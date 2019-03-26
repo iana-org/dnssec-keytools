@@ -1,0 +1,13 @@
+*~
+\#*
+.*~
+.\#*
+.idea
+.mypy_cache
+__pycache__
+*.egg-info
+venv
+testing/softhsm/tokens
+testing/softhsm/softhsm.initialized
+testing/softhsm/*.p8
+tmp

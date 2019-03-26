@@ -1,0 +1,3 @@
+---
+request_policy:
+    validate_signatures: True

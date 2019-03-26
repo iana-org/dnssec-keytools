@@ -1,0 +1,247 @@
+# example ksrsigner configuration/policy file
+
+filenames:
+  previous_skr: prev-skr.xml
+  current_ksr: ksr.xml
+  current_skr: skr.xml
+
+# inventory of key signing keys
+keys:
+  ksk_current:
+    description: Root DNSSEC KSK 2010
+    label: Kjqmt7v
+    algorithm: RSASHA256
+    rsa_size: 2048
+    rsa_exponent: 65537
+    valid_from: 2010-07-15T00:00:00+00:00
+    valid_until: 2019-01-11T00:00:00+00:00
+    # TODO: ds_sha256: 49AAC11D7B6F6446702E54A1607371607A1A41855200FD2CE1CDDE32F24E8FB5
+  ksk_next:
+    description: Root DNSSEC KSK 2017
+    label: Klajeyz
+    algorithm: RSASHA256
+    rsa_size: 2048
+    rsa_exponent: 65537
+    valid_from: 2017-02-02T00:00:00+00:00
+    # TODO: ds_sha256: E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D
+
+request_policy:
+  # permitted domains in KSR
+  acceptable_domains:
+    - "."
+  # number of bundles in KSR
+  num_bundles: 9
+  # validate ZSK proof-of-possession
+  validate_signatures: True
+  keys_match_zsk_policy: True
+  check_bundle_overlap: True
+  signature_validity_match_zsk_policy: True
+  # number of unique ZSKs in request
+  acceptable_key_set_lengths:
+    - 2
+    - 3
+  # validate that the current request continues a timeline ending with the previous response
+  check_request_daisy_chain: True
+  # TODO
+  match_previous_skr: True
+  acceptable_dnssec_algorithms:
+    - RSASHA256
+  rsa_acceptable_exponents:
+    - 3
+    - 65537
+  rsa_acceptable_key_sizes:
+    - 2048
+
+response_policy:
+  num_bundles: 9
+  validate_signatures: True
+
+ksk_policy:
+  publish_safety: PT0S
+  retire_safety: P28D
+  max_signature_validity: P21D
+  min_signature_validity: P21D
+  max_validity_overlap: P16D
+  min_validity_overlap: P9D
+  ttl: 172800
+
+# SKR signature schemes, each scheme defines what
+# 
+schemas:
+
+  # normal key bundle
+  normal:
+    1:
+      publish: ksk_current
+      sign: ksk_current
+    2:
+      publish: ksk_current
+      sign: ksk_current
+    3:
+      publish: ksk_current
+      sign: ksk_current
+    4:
+      publish: ksk_current
+      sign: ksk_current
+    5:
+      publish: ksk_current
+      sign: ksk_current
+    6:
+      publish: ksk_current
+      sign: ksk_current
+    7:
+      publish: ksk_current
+      sign: ksk_current
+    8:
+      publish: ksk_current
+      sign: ksk_current
+    9:
+      publish: ksk_current
+      sign: ksk_current
+
+  # introduce (pre-publish) the next KSK in slot 2-9 (phase D)
+  pre-publish:
+    1:
+      publish: ksk_current
+      sign: ksk_current
+    2:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+    3:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+    4:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+    5:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+    6:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+    7:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+    8:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+    9:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+
+  # roll over from the current to the next KSK (phase E)
+  rollover:
+    1:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+    2:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+    3:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+    4:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+    5:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+    6:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+    7:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+    8:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+    9:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+
+  # published the previous KSK as revoked during slot 2-8 (phase F)
+  revoke:
+    1:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+    2:
+      publish: ksk_next
+      revoke: ksk_current
+      sign:
+        - ksk_current
+        - ksk_next
+    3:
+      publish: ksk_next
+      revoke: ksk_current
+      sign:
+        - ksk_current
+        - ksk_next
+    4:
+      publish: ksk_next
+      revoke: ksk_current
+      sign:
+        - ksk_current
+        - ksk_next
+    5:
+      publish: ksk_next
+      revoke: ksk_current
+      sign:
+        - ksk_current
+        - ksk_next
+    6:
+      publish: ksk_next
+      revoke: ksk_current
+      sign:
+        - ksk_current
+        - ksk_next
+    7:
+      publish: ksk_next
+      revoke: ksk_current
+      sign:
+        - ksk_current
+        - ksk_next
+    8:
+      publish: ksk_next
+      revoke: ksk_current
+      sign:
+        - ksk_current
+        - ksk_next
+    9:
+      publish: ksk_next
+      sign: ksk_next

@@ -1,0 +1,10 @@
+Greetings,
+
+ADDR: {{ request.remote_addr }}
+CERT: {{ client_subject() }} / {{ client_digest() }}
+
+Filename: {{ filename }}
+Checksum: {{ filehash }}
+Timestamp: {{ timestamp }}
+
+Result: {{ result }}

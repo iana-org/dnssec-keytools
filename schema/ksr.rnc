@@ -1,0 +1,135 @@
+# $Id: ksr.rnc 1175 2010-05-05 21:07:43Z jakob $
+#
+# KSR: Key Signing Request/Response - Relax NG Compact Schema
+#
+# Authors: Jakob Schlyter <jakob@kirei.se>
+#          David Blacka <davidb@verisignlabs.com>
+#          Joe Abley <joe.abley@icann.org>
+#
+
+datatypes xsd = "http://www.w3.org/2001/XMLSchema-datatypes"
+
+start = element KSR {
+  attribute id { xsd:string },
+  attribute serial { xsd:nonNegativeInteger },
+  attribute domain { xsd:string },
+
+  (request | response)
+}
+
+request = element Request {
+  attribute timestamp { xsd:dateTime }?,
+
+  # ZSK policy in request
+  element RequestPolicy {
+    element ZSK { anykeyPolicy }
+  },
+
+  element RequestBundle {
+    attribute id { xsd:string },
+    element Inception { xsd:dateTime },
+    element Expiration { xsd:dateTime },
+    
+    # optional request that the request is signed by specific KSKs
+    signer*,
+
+    # ZSKs requested to be signed
+    key+,
+
+    # signatures by ZSKs to proof possession of the private key
+    # each signature must cover the RequestBundle DNSKEY RRset
+    signature+
+  }+
+}
+
+response = element Response {
+  attribute timestamp { xsd:dateTime }?,
+
+  # KSK policy in response
+  # ZSK policy from request echoed back in response
+  element ResponsePolicy {
+    element KSK { anykeyPolicy },
+    element ZSK { anykeyPolicy }
+  },
+
+  element ResponseBundle {
+    attribute id { xsd:string },
+    element Inception { xsd:dateTime },
+    element Expiration { xsd:dateTime },
+
+    # KSKs & ZSK:s from RequestBundle
+    key+,
+    
+    # Signatures by KSKs
+    signature+
+  }+
+}
+
+algorithmPolicy = element SignatureAlgorithm {
+    attribute algorithm { algorithm },
+    ( RSA | DSA )
+}
+
+RSA = element RSA {
+    attribute size { xsd:nonNegativeInteger },
+    attribute exponent { xsd:nonNegativeInteger },
+    empty
+}
+
+DSA = element DSA {
+    attribute size { xsd:nonNegativeInteger },
+    empty
+}
+
+anykeyPolicy =
+  element PublishSafety { xsd:duration },
+  element RetireSafety { xsd:duration },
+  element MaxSignatureValidity { xsd:duration },
+  element MinSignatureValidity { xsd:duration },
+  element MaxValidityOverlap { xsd:duration },
+  element MinValidityOverlap { xsd:duration },
+  algorithmPolicy+
+
+signer = element Signer {
+  attribute keyIdentifier { keyid },
+  empty
+}
+
+signature = element Signature {
+  attribute keyIdentifier { keyid }?,
+  element TTL { ttl },
+  element TypeCovered { xsd:string },
+  element Algorithm { algorithm },
+  element Labels { labels },
+  element OriginalTTL { ttl },
+  element SignatureExpiration { xsd:dateTime },
+  element SignatureInception { xsd:dateTime },
+  element KeyTag { keytag },
+  element SignersName { xsd:string },
+  element SignatureData { xsd:base64Binary }  
+}
+
+key = element Key {
+  attribute keyIdentifier { keyid }?,
+  attribute keyTag { keytag  },
+  element TTL { ttl },
+  element Flags { flags },
+  element Protocol { protocol },
+  element Algorithm { algorithm },
+  element PublicKey { xsd:base64Binary }
+}
+
+keytag = xsd:nonNegativeInteger { maxInclusive = "65535" }
+
+keyid = xsd:string
+
+algorithm = xsd:nonNegativeInteger { maxInclusive = "255" }
+
+ttl = xsd:nonNegativeInteger
+
+protocol = xsd:nonNegativeInteger
+  { minInclusive = "3" maxInclusive = "3" }
+
+flags = xsd:nonNegativeInteger { maxInclusive = "65535" } 
+
+labels = xsd:nonNegativeInteger { maxInclusive = "255" }

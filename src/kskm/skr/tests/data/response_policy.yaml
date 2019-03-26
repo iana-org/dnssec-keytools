@@ -1,0 +1,3 @@
+---
+response_policy:
+    warn_instead_of_fail: True

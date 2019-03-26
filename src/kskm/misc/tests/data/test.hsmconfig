@@ -1,0 +1,7 @@
+# Test HSM config used in unit tests. Empty lines included intentionally.
+
+
+     # white space and comment
+KEYPER_LIBRARY_PATH=$HOME/dnssec/ksr/AEP
+LD_LIBRARY_PATH=$KEYPER_LIBRARY_PATH
+PKCS11_LIBRARY_PATH=$KEYPER_LIBRARY_PATH/pkcs11.GCC4.0.2.so.4.07
