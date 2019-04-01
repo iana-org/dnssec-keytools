@@ -14,17 +14,17 @@ testing_extras = [
     'eradicate',
     'flask',
     'green',
+    'mypy',
     'nose==1.3.7',
     'nosexcover',
     'pycryptodome',
     'pylama==7.6.6',
     'pyopenssl',
     'wheel',
-    'mypy'
 ]
 
 online_extras = [
-    'Flask',
+    'flask',
     'pyopenssl'
 ]
 
