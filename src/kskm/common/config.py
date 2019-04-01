@@ -164,7 +164,7 @@ class KSKKey(object):
     rsa_size: Optional[int]
     rsa_exponent: Optional[int]
     valid_from: datetime
-    valid_until: Optional[datetime]
+    valid_until: Optional[datetime] = None
 
     @classmethod
     def from_dict(cls: Type[KSKKey], data: dict) -> KSKKey:
@@ -178,7 +178,7 @@ class KSKKey(object):
             # If they are not, convert them here.
             if _dt in _data and not isinstance(_data[_dt], datetime):
                 _data[_dt] = parse_datetime(_data[_dt])
-            else:
+            elif _dt in _data:
                 # Set timezone UTC in the datetime
                 _data[_dt] = _data[_dt].replace(tzinfo=timezone.utc)
         return cls(**_data)

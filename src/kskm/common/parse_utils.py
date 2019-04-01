@@ -72,7 +72,7 @@ def _get_timedelta(policy: dict, name: str) -> timedelta:
 
 
 def duration_to_timedelta(duration: Optional[str]) -> timedelta:
-    """Parse strings such as P14D or P1H5M (ISO8601 durations) into timedeltas."""
+    """Parse strings such as P14D or PT1H5M (ISO8601 durations) into timedeltas."""
     if not duration:
         return timedelta()
     if not duration.startswith('P'):
@@ -103,7 +103,7 @@ def duration_to_timedelta(duration: Optional[str]) -> timedelta:
             else:
                 # the length of one month is different depending on start date,
                 # we don't have that concept here so disallow it for now
-                raise RuntimeError('Months are not supported')
+                raise NotImplementedError('Months are not supported')
         elif what == 'S' or what == '':
             res += timedelta(seconds=num)
         try:

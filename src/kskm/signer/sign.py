@@ -32,9 +32,10 @@ def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
     """
     ksk_keys = get_ksk_keys(config)
     res: List[ResponseBundle] = []
-    bundle_num = 1
+    bundle_num = 0
     _hush_key_ttl_warnings: Dict[str, bool] = {}
     for _bundle in request.bundles:
+        bundle_num += 1
         this_schema = schema.actions[bundle_num]
         # All DNSKEY RRs in a set *has* to have the same TTL. Ensure all keys have the TTL
         # configured by the KSK operator. A warning is logged for any discrepancies found,

@@ -39,7 +39,7 @@ class TestParseRealSKRs(unittest.TestCase):
                                ])
         self.assertEqual(expected_ids, bundle_ids)
 
-    def tests_parse_2018_q1_0(self):
+    def test_parse_2018_q1_0(self):
         """ Test loading and validating skr-root-2018-q1-0-d_to_e.xml """
         fn = os.path.join(self.data_dir, 'skr-root-2018-q1-0-d_to_e.xml')
         policy = get_response_policy(self.policy_fn, get_config(None))

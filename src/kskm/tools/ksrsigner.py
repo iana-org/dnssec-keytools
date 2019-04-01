@@ -33,6 +33,7 @@ _DEFAULTS = {'debug': False,
              'previous_skr': None,
              'config': None,
              'ksr': None,
+             'skr': None,
              }
 
 
@@ -58,6 +59,11 @@ def parse_args(defaults: dict) -> ArgsType:
                         help='KSR request to process',
                         )
 
+    parser.add_argument('skr',
+                        metavar='SKRFILE', type=str,
+                        default=defaults['skr'], nargs='?',
+                        help='SKR output filename',
+                        )
     # Optional arguments
     parser.add_argument('--hsm_config_dir',
                         dest='hsm_config_dir',
@@ -85,7 +91,7 @@ def parse_args(defaults: dict) -> ArgsType:
                         )
     parser.add_argument('--config',
                         dest='config',
-                        metavar='SKRFILE', type=str,
+                        metavar='CFGFILE', type=str,
                         default=defaults['config'],
                         help='Path to the KSR signer configuration file',
                         )
@@ -113,6 +119,12 @@ def _ksr_filename(args: Optional[ArgsType], config: ConfigType) -> Optional[str]
     if args and args.ksr:
         return args.ksr
     return config_filename('current_ksr', config)
+
+
+def _skr_filename(args: Optional[ArgsType], config: ConfigType) -> Optional[str]:
+    if args and args.skr:
+        return args.skr
+    return config_filename('current_skr', config)
 
 
 def main(logger: logging.Logger, args: Optional[ArgsType], config: Optional[ConfigType] = None) -> bool:
@@ -164,7 +176,9 @@ def main(logger: logging.Logger, args: Optional[ArgsType], config: Optional[Conf
     #
     schema = get_schema('normal', config)
     new_skr = create_skr(request, schema, p11modules, config)
-    output_skr_xml(new_skr)
+
+    _skr_fn = _skr_filename(args, config)
+    output_skr_xml(new_skr, _skr_fn)
 
     return True
 

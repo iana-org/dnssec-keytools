@@ -2,9 +2,10 @@
 import logging
 
 from dataclasses import replace
-from typing import Iterable, Set
+from typing import Iterable, Set, Optional
 
 from kskm.ksr import Request
+from kskm.skr.output import skr_to_xml
 from kskm.signer.sign import sign_bundles
 from kskm.skr.data import Response, ResponseBundle
 from kskm.misc.hsm import KSKM_P11
@@ -31,9 +32,14 @@ def create_skr(request: Request, schema: Schema, p11modules: KSKM_P11, config: C
                     zsk_policy=request.zsk_policy)
 
 
-def output_skr_xml(skr: Response) -> str:
+def output_skr_xml(skr: Response, output_fn: Optional[str]) -> None:
     """Return SKR as XML."""
-    pass
+    xml = skr_to_xml(skr)
+    if output_fn:
+        with open(output_fn, 'w') as fd:
+            fd.write(xml)
+    else:
+        print(xml)
 
 
 def _ksk_signature_policy(ksk_policy: KSKPolicy, bundles: Iterable[ResponseBundle]) -> SignaturePolicy:
