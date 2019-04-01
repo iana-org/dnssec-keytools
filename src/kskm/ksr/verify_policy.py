@@ -1,4 +1,4 @@
-""" The checks defined in the 'Verify KSR policy parameters' section of docs/ksr-processing.md. """
+"""The checks defined in the 'Verify KSR policy parameters' section of docs/ksr-processing.md."""
 from logging import Logger
 
 from datetime import timedelta
@@ -12,34 +12,43 @@ from kskm.common.rsa_utils import is_algorithm_rsa
 
 
 class KSR_PolicyViolation(PolicyViolation):
-    pass
+    """A bundle in the KSR does not conform with the KSK operators policy."""
 
-
-class SignaturePolicyViolation(KSR_PolicyViolation):
     pass
 
 
 class KSR_POLICY_KEYS_Violation(KSR_PolicyViolation):
+    """KSR-POLICY-KEYS policy violation."""
+
     pass
 
 
 class KSR_POLICY_ALG_Violation(KSR_PolicyViolation):
+    """KSR-POLICY-ALG policy violation."""
+
     pass
 
 
 class KSR_POLICY_PARAMS_Violation(KSR_PolicyViolation):
+    """KSR-POLICY-PARAMS policy violation."""
+
     pass
 
 
 class KSR_POLICY_SIG_OVERLAP_Violation(KSR_PolicyViolation):
+    """KSR-POLICY-SIG-OVERLAP policy violation."""
+
     pass
 
 
 class KSR_POLICY_SIG_VALIDITY_Violation(KSR_PolicyViolation):
+    """KSR-POLICY-SIG-VALIDITY policy violation."""
+
     pass
 
 
 def verify_policy(request: Request, policy: RequestPolicy, logger: Logger) -> None:
+    """Verify that the bundles in a request are acceptable with the KSK operators configured policy."""
     logger.debug('Begin "Verify KSR policy parameters"')
 
     check_keys_in_bundles(request, policy, logger)
@@ -146,6 +155,7 @@ def check_zsk_policy_signature_algorithms(request: Request, policy: RequestPolic
     _num_algs = len(request.zsk_policy.algorithms)
     logger.info(f'KSR-POLICY-ALG: All {_num_algs} ZSK operator signature algorithms accepted by policy')
 
+
 def check_zsk_policy_signature_parameters(request: Request, policy: RequestPolicy, logger: Logger) -> None:
     """
     Check that the key parameters in the ZSK operators policy are accepted by KSK operator policy.
@@ -182,7 +192,6 @@ def check_zsk_policy_signature_parameters(request: Request, policy: RequestPolic
                 logger.debug(f'ZSK policy algorithm {alg} parameters accepted')
 
     logger.info(f'KSR-POLICY-PARAMS: {count} signature algorithms parameters accepted by policy')
-
 
 
 def check_bundle_overlaps(request: Request, policy: RequestPolicy, logger: Logger) -> None:
@@ -245,9 +254,10 @@ def _fmt_bundle(bundle: RequestBundle) -> str:
                                  bundle.expiration.isoformat().split('T')[0]
                                  )
 
+
 def _fmt_timedelta(tdelta: timedelta) -> str:
     res = str(tdelta)
     if res.endswith('days, 0:00:00'):
-        # cut off the meaningless 0:00:00 after "days"
+        # cut off the unnecessary 0:00:00 after "days"
         res = res[:0 - len(', 0:00:00')]
     return res

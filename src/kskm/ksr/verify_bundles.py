@@ -1,4 +1,4 @@
-""" The checks defined in the 'Verify KSR bundles' section of docs/ksr-processing.md. """
+"""The checks defined in the 'Verify KSR bundles' section of docs/ksr-processing.md."""
 from logging import Logger
 from cryptography.exceptions import InvalidSignature
 from typing import Dict, Optional
@@ -14,24 +14,31 @@ from kskm.common.signature import validate_signatures
 
 
 class KSR_BundleViolation(PolicyViolation):
+    """Policy violation in a KSRs bundles."""
+
     pass
+
 
 class KSR_BUNDLE_KEYS_Violation(KSR_BundleViolation):
+    """KSR-BUNDLE-KEYS policy violation."""
+
     pass
+
 
 class KSR_BUNDLE_POP_Violation(KSR_BundleViolation):
+    """KSR-BUNDLE-POP (Proof of Possession) policy violation."""
+
     pass
+
 
 class KSR_BUNDLE_UNIQUE_Violation(KSR_BundleViolation):
-    pass
+    """KSR-BUNDLE-UNIQUE violation."""
 
-
-# XXX
-class BundlesKeySetViolation(KSR_BundleViolation):
     pass
 
 
 def verify_bundles(request: Request, policy: RequestPolicy, logger: Logger) -> None:
+    """Verify that the bundles in a request conform with the ZSK operators stated policy."""
     logger.debug('Begin "Verify KSR bundles"')
     if policy.num_bundles is not None and len(request.bundles) != policy.num_bundles:
         # TODO: This check is not part of the specification
@@ -51,7 +58,7 @@ def verify_bundles(request: Request, policy: RequestPolicy, logger: Logger) -> N
 
 def check_unique_ids(request: Request, policy: RequestPolicy, logger: Logger) -> None:
     """
-    Verify that all requested bundles has unique IDs
+    Verify that all requested bundles has unique IDs.
 
     KSR-BUNDLE-UNIQUE:
       Verify that all requested bundles has unique IDs
@@ -110,7 +117,7 @@ def check_keys_match_zsk_policy(request: Request, policy: RequestPolicy, logger:
                     _matching_alg = _find_matching_zsk_policy_rsa_alg(request, key, pubkey, ignore_exponent=True)
                     if _matching_alg:
                         logger.warning(f'KSR-BUNDLE-KEYS: Key {key.key_identifier} in bundle {bundle.id} has '
-                                f'exponent {pubkey.exponent}, not matching the ZSK SignaturePolicy')
+                                       f'exponent {pubkey.exponent}, not matching the ZSK SignaturePolicy')
                 if not _matching_alg:
                     fail(policy, KSR_BUNDLE_KEYS_Violation,
                          f'Key {key.key_identifier} in bundle {bundle.id} does not match the ZSK SignaturePolicy')
@@ -132,7 +139,7 @@ def check_keys_match_zsk_policy(request: Request, policy: RequestPolicy, logger:
 
 
 def _find_matching_zsk_policy_rsa_alg(request: Request, key: Key, pubkey: RSAPublicKeyData,
-                                      ignore_exponent: bool=False) -> Optional[AlgorithmPolicy]:
+                                      ignore_exponent: bool = False) -> Optional[AlgorithmPolicy]:
     for this in request.zsk_policy.algorithms:
         if not isinstance(this, AlgorithmPolicyRSA):
             continue
@@ -141,6 +148,7 @@ def _find_matching_zsk_policy_rsa_alg(request: Request, key: Key, pubkey: RSAPub
         if key.algorithm == this.algorithm and pubkey.bits == this.bits and ignore_exponent:
             return this
     return None
+
 
 def check_proof_of_possession(request: Request, policy: RequestPolicy, logger: Logger) -> None:
     """

@@ -1,3 +1,4 @@
+"""PKCS#11 key interface."""
 import logging
 from dataclasses import dataclass
 from typing import Optional
@@ -17,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class KeyUsagePolicy_Violation(PolicyViolation):
-    """ Exception raised when a key can't be used because of policy. """
+    """Exception raised when a key can't be used because of policy."""
 
     pass
 
@@ -33,7 +34,7 @@ class CompositeKey(object):
 def load_pkcs11_key(ksk: KSKKey, p11modules: KSKM_P11, ksk_policy: KSKPolicy,
                     bundle: RequestBundle, public: bool) -> Optional[CompositeKey]:
     """
-    Using a KSK key label, load that key from an HSM and then validate it is the right key and is OK to use.
+    Load a key from an HSM using a KSK key label and then validate it is the right key and is OK to use.
 
     Return it as a 'CompositeKey' which is just a container representing the key in two different formats -
     the standard Key format that has all the DNSSEC related data such as TTL, and as a PKCS#11 reference

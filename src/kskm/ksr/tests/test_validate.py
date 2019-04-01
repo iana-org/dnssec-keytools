@@ -53,7 +53,6 @@ class Test_Validate_KSR(unittest.TestCase):
         """ Test loading an SKR failing the supplied policy """
         fn = os.path.join(self.data_dir, 'ksr-root-2018-q1-0-d_to_e.xml')
         policy = RequestPolicy(warn_instead_of_fail=False,
-                               num_bundles = 99)
+                               num_bundles=99)
         with self.assertRaises(RuntimeError):
             load_ksr(fn, policy)
-

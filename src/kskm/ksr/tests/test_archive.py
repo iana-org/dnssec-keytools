@@ -33,7 +33,8 @@ class TestParseRealKSRs(unittest.TestCase):
         self.data_dir = pkg_resources.resource_filename(__name__, 'data')
 
     @unittest.skipUnless(archive_dir('ksr'), 'KSKM_KSR_ARCHIVE_PATH not set or invalid')
-    def test_archive(self):
+    def test_parse_all_ksrs_in_archive(self):
+        """Parse (but do not validate) all the KSRs in the ICANN archive."""
         # Create a policy that allows some errors that are present in one or more of the historical KSRs.
         #
         # Exception: Failed validating KSR request in file icann-ksr-archive/ksr/ksr-root-2010-q3-2.xml:
@@ -64,7 +65,8 @@ class TestParseRealKSRs(unittest.TestCase):
             load_ksr(fn, policy)
 
     @unittest.skipUnless(archive_dir('ksr'), 'KSKM_KSR_ARCHIVE_PATH not set or invalid')
-    def test_archive2(self):
+    def test_load_and_validate_all_ksrs_in_archive(self):
+        """Parse and validate all the KSRs in the ICANN archive."""
         dir = archive_dir('ksr')
         res = True
         for fn in sorted(glob.glob(dir + '/*')):

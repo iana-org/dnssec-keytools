@@ -1,3 +1,4 @@
+"""Functions to display data to humans."""
 from typing import List, Union, Sequence
 
 from kskm.common.data import BundleType
@@ -30,7 +31,7 @@ def format_bundles_for_humans(bundles: Sequence[BundleType]) -> Sequence[str]:
                 if kskm.common.parse_utils.is_revoked_key(key):
                     usage += 'R'
                 usage += 'S' if signed else 'P'
-                ksk_info += ['{}({})/{}'.format(key.key_tag, key.key_identifier, usage)]
+                ksk_info += [f'{key.key_tag}({key.key_identifier})/{usage}']
         out = _fmt_fields(num=num,
                           inception=this.inception.isoformat().split('+')[0],
                           expiration=this.expiration.isoformat().split('+')[0],

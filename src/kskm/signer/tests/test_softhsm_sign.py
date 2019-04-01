@@ -15,16 +15,12 @@ import os
 import io
 import unittest
 
-from dataclasses import replace
-
-
-from kskm.misc.hsm import *
+from kskm.misc.hsm import init_pkcs11_modules, get_p11_key, KSKM_P11
 from kskm.ksr import Request
 from kskm.ksr.data import RequestBundle
-from kskm.common.data import Signature, Key, Bundle, AlgorithmDNSSEC, FlagsDNSKEY, SignaturePolicy
+from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY
 from kskm.common.signature import validate_signatures
-from kskm.common.rsa_utils import RSAPublicKeyData, encode_rsa_public_key, public_key_to_dnssec_key
-from kskm.common.dnssec import calculate_key_tag
+from kskm.common.rsa_utils import public_key_to_dnssec_key
 from kskm.common.parse_utils import parse_datetime, signature_policy_from_dict
 from kskm.common.config import load_from_yaml, get_schema, get_ksk_policy
 from kskm.signer import sign_bundles
@@ -79,11 +75,13 @@ ksk_policy:
 class Test_SignWithSoftHSM(unittest.TestCase):
 
     def setUp(self) -> None:
+        """ Prepare for tests. """
         # CKA_LABEL for one of the keys loaded into SoftHSM using testing/Makefile
         self.zsk_key_label = 'KEY1'
         self.ksk_key_label = 'KEY2'
         self.p11modules: KSKM_P11 = KSKM_P11([])
         if _TEST_HSMCONFIG_DIR:
+            os.environ['PKCS11PIN'] = '123456'
             self.p11modules = init_pkcs11_modules(_TEST_HSMCONFIG_DIR)
             if not self.p11modules:
                 self.fail(f'Failed loading PKCS#11 modules from .hsmconfig in {_TEST_HSMCONFIG_DIR}')
@@ -102,7 +100,6 @@ class Test_SignWithSoftHSM(unittest.TestCase):
                                           }
                    }
         self.signature_policy = signature_policy_from_dict(_policy)
-
 
     @unittest.skipUnless(_TEST_HSMCONFIG_DIR, 'TEST_HSMCONFIG_DIR not set')
     def test_sign_with_softhsm(self) -> None:

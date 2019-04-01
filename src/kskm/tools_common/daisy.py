@@ -1,5 +1,4 @@
-""" Code to validate daisy-chain propertys between KSR(n) and SKR(n-1). """
-
+"""Code to validate daisy-chain properties between KSR(n) and SKR(n-1)."""
 import logging
 from datetime import datetime
 from dataclasses import dataclass
@@ -19,24 +18,31 @@ logger = logging.getLogger(__name__)
 
 
 class DaisyChainOrderViolation(PolicyViolation):
+    """An ordering issue has been found in bundles."""
+
     pass
+
 
 # TODO: We don't actually do anything with the timestamps in DaisyTime, should we?
 @dataclass(frozen=True, repr=False)
 class DaisyTime(object):
+    """Inception/expiration data for a bundle."""
+
     inception: datetime
     expiration: datetime
     key: Key
 
     def __repr__(self) -> str:
-        return 'DaisyTime(keytag={}, inception={}, expiration={})'.format(
-            self.key.key_tag, self.inception, self.expiration)
+        """Pretty-print a DaisyTime (want to only show the key_tag, not the whole Key)."""
+        return f'DaisyTime(key_tag={self.key.key_tag}, inception={self.inception}, expiration={self.expiration})'
 
 
 # TODO: We don't actually do anything with more than one 'curr'.
 #       The code below could be made simpler and more readable if curr was not a list.
 @dataclass(frozen=True)
 class DaisyChain(object):
+    """A timeline of bundles in DaisyTime format."""
+
     prev: DaisyTime         # ZSK(n-1)
     curr: List[DaisyTime]   # ZSK(n)
     next: DaisyTime         # ZSK(n+1)
@@ -48,35 +54,37 @@ def check_daisy_chain(ksr: Request, last_skr: Response, policy: RequestPolicy) -
         return
 
     logger.debug('Last SKR (response):')
-    [logger.debug(x) for x in format_bundles_for_humans(last_skr.bundles)] # type: ignore
+    [logger.debug(x) for x in format_bundles_for_humans(last_skr.bundles)]  # type: ignore
 
     ksr_chain = _daisychain_from_bundle(ksr.bundles)
     last_chain = _daisychain_from_bundle(last_skr.bundles)
 
     if ksr_chain.prev.key != last_chain.curr[-1].key:
-        logger.info('KSR {} previous key: {}'.format(ksr.id, ksr_chain.prev.key))
-        logger.info('Last SKR {} current key: {}'.format(last_skr.id, last_chain.curr[-1].key))
-        fail(policy, DaisyChainOrderViolation, 'KSR previous key {} does not match last SKR current key {}'.format(
-            ksr_chain.prev.key.key_tag, last_chain.curr[-1].key.key_tag))
+        logger.info(f'KSR {ksr.id} previous key: {ksr_chain.prev.key}')
+        logger.info(f'Last SKR {last_skr.id} current key: {last_chain.curr[-1].key}')
+        fail(policy, DaisyChainOrderViolation,
+             f'KSR previous key {ksr_chain.prev.key.key_tag} does not match '
+             f'last SKR current key {last_chain.curr[-1].key.key_tag}')
     else:
         _this = ksr_chain.prev.key
-        logger.debug('KSR previous key matches last SKR current key: {}({})'.format(_this.key_tag, _this.key_identifier))
+        logger.debug(f'KSR previous key matches last SKR current key: {_this.key_tag}({_this.key_identifier})')
 
     if ksr_chain.curr[0].key != last_chain.next.key:
-        logger.info('KSR {} current key: {}'.format(ksr.id, ksr_chain.curr[0].key))
-        logger.info('Last SKR {} next key: {}'.format(last_skr.id, last_chain.next.key))
-        fail(policy, DaisyChainOrderViolation, 'KSR current key {} does not match last SKR next key {}'.format(
-            ksr_chain.curr[0].key.key_tag, last_chain.next.key.key_tag))
+        logger.info(f'KSR {ksr.id} current key: {ksr_chain.curr[0].key}')
+        logger.info(f'Last SKR {last_skr.id} next key: {last_chain.next.key}')
+        fail(policy, DaisyChainOrderViolation,
+             f'KSR current key {ksr_chain.curr[0].key.key_tag} does not match '
+             f'last SKR next key {last_chain.next.key.key_tag}')
     else:
         _this = ksr_chain.curr[0].key
-        logger.debug('KSR current key matches last SKR next key: {}({})'.format(_this.key_tag, _this.key_identifier))
+        logger.debug('KSR current key matches last SKR next key: {_this.key_tag}({_this.key_identifier})')
 
 
 def _daisychain_from_bundle(bundles: Sequence[Bundle]) -> DaisyChain:
     """Extract all ZSKs from the bundles and build up a DaisyChain with the previous, current and next keys."""
     _curr_keylist = [x for x in list(bundles[1].keys) if is_zsk_key(x)]
     if len(_curr_keylist) != 1:
-        raise RuntimeError('The second bundle ({}) did not contain exactly one ZSK key'.format(bundles[1].id))
+        raise RuntimeError(f'The second bundle ({bundles[1].id}) did not contain exactly one ZSK key')
     curr_key = _curr_keylist[0]
     prev = None
     next = None

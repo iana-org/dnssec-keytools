@@ -8,7 +8,7 @@ import base64
 import logging
 
 from dataclasses import dataclass, field
-from typing import Iterator, Optional, MutableMapping, Dict, Iterable, Any, NewType, Mapping, List
+from typing import Iterator, Optional, MutableMapping, Dict, Any, NewType, Mapping, List
 
 import PyKCS11
 
@@ -23,17 +23,19 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class KSKM_P11Key(object):
+    """A reference to a key object loaded from a PKCS#11 module."""
+
     label: str  # for debugging
     public_key: RSAPublicKeyData
-    private_key: Any = field(repr=False) # PyKCS11 opaque data
-    session: Any = field(repr=False) # PyKCS11 opaque data
+    private_key: Any = field(repr=False)  # PyKCS11 opaque data
+    session: Any = field(repr=False)  # PyKCS11 opaque data
 
 
 class KSKM_P11Module(object):
-    """
-    KSKM interface to a PKCS#11 module.
-    """
+    """KSKM interface to a PKCS#11 module."""
+
     def __init__(self, module: str):
+        """Load and initialise a PKCS#11 module."""
         logger.info('Initializing PKCS#11 module {}'.format(module))
         self._module_name = module
         self._lib = PyKCS11.PyKCS11Lib()
@@ -48,20 +50,30 @@ class KSKM_P11Module(object):
 
     @property
     def sessions(self) -> Mapping[int, Any]:
+        """Get sessions for all slots."""
         if not self._sessions:
             for _slot in self._slots:
                 try:
                     logger.debug(f'Opening slot {_slot} in module {self._module_name}')
                     _session = self._lib.openSession(_slot)
-                    _session.login("123456")
+                    # TODO: Get the PIN from the configuration, or prompt for it?
+                    pin = os.environ.get('PKCS11PIN')
+                    if pin:
+                        _session.login(pin)
+                    else:
+                        logger.info(f'Not logging in to slot {_slot} (module {self._module_name}) - no PIN provided')
                     self._sessions[_slot] = _session
                 except PyKCS11.PyKCS11Error:
                     pass
         return self._sessions
 
-    def find_key_by_label(self, label: str, public: bool=True) -> Optional[KSKM_P11Key]:
+    def find_key_by_label(self, label: str, public: bool = True) -> Optional[KSKM_P11Key]:
+        """
+        Query the PKCS#11 module for a key with CKA_LABEL matching 'label'.
+
+        If 'public' is True, a CKO_PUBLIC_KEY will be sought, otherwise CKO_PRIVATE_KEY.
+        """
         for _slot, _session in self.sessions.items():
-            #res = self.session.findObjects([(PyKCS11.CKA_CLASS, PyKCS11.CKO_PUBLIC_KEY)])
             template = [(PyKCS11.CKA_LABEL, label)]
             if public:
                 template += [(PyKCS11.CKA_CLASS, PyKCS11.CKO_PUBLIC_KEY)]
@@ -69,39 +81,50 @@ class KSKM_P11Module(object):
                 template += [(PyKCS11.CKA_CLASS, PyKCS11.CKO_PRIVATE_KEY)]
             res = _session.findObjects(template)
             if res:
-                #logger.debug(f'Found key with label {label!r} in slot {_slot}')
+                # logger.debug(f'Found key with label {label!r} in slot {_slot}')
                 return KSKM_P11Key(label=label,
-                                   public_key=_p11_object_to_public_key(_session, res),
+                                   public_key=self._p11_object_to_public_key(_session, res),
                                    private_key=res if not public else None,
                                    session=_session,
                                    )
         logger.debug(f'Key with label {label!r} not found')
         return None
 
+    @staticmethod
+    def _p11_object_to_public_key(session: Any, data: list) -> RSAPublicKeyData:
+        """Create an RSAPublicKeyData object from PKCS#11 findObject return data."""
+        _cka_type = session.getAttributeValue(data[0], [PyKCS11.CKA_KEY_TYPE])[0]
+        if _cka_type == PyKCS11.CKK_RSA:
+            _modulus = session.getAttributeValue(data[0], [PyKCS11.CKA_MODULUS])
+            _exp = session.getAttributeValue(data[0], [PyKCS11.CKA_PUBLIC_EXPONENT])
+
+            # TODO: Don't know what PKCS#11 byte order really is, but 'big' works for me with SoftHSM2 at least
+            rsa_e = int.from_bytes(bytes(_exp[0]), byteorder='big')
+            rsa_n = bytes(_modulus[0])
+            return RSAPublicKeyData(bits=len(rsa_n) * 8,
+                                    exponent=rsa_e,
+                                    n=rsa_n)
+        else:
+            raise NotImplementedError('Unknown CKA_TYPE: {}'.format(PyKCS11.CKK[_cka_type]))
+
 
 def sign_using_p11(key: KSKM_P11Key, data: bytes) -> bytes:
+    """
+    Sign some data using a PKCS#11 key.
+
+    TODO: Currently, the PKCS#11 mechanism used is always CKM_SHA256_RSA_PKCS.
+    TODO: The old code seemed to be pretty deliberately made to create the raw data
+          itself and then ask the HSM to sign raw data (using CKM_RSA_X_509), but the
+          documentation (/* = Raw.  NOT CKM_RSA_PKCS;*/) did not give a reason for this.
+          Since CKM_SHA256_RSA_PKCS works fine with SoftHSM2, I did not put time into
+          implementing PKCS#1 1.5 padding again here, but if this is needed the data
+          structure is shown in e.g. RFC8017, A.2.4. RSASSA-PKCS-v1_5.
+    """
     logger.debug(f'Signing {len(data)} bytes with key {key}')
     mechanism = PyKCS11.Mechanism(PyKCS11.CKM_SHA256_RSA_PKCS, None)
     sig = key.session.sign(key.private_key[0], data, mechanism)
     sig_b = bytes(sig)
     return base64.b64encode(sig_b)
-
-
-def _p11_object_to_public_key(session: Any, data: list) -> RSAPublicKeyData:
-    _cka_type = session.getAttributeValue(data[0], [PyKCS11.CKA_KEY_TYPE])[0]
-    if _cka_type == PyKCS11.CKK_RSA:
-        #logger.debug('Creating RSA public key')
-        _modulus = session.getAttributeValue(data[0], [PyKCS11.CKA_MODULUS])
-        _exp = session.getAttributeValue(data[0], [PyKCS11.CKA_PUBLIC_EXPONENT])
-
-        # TODO: Don't know what PKCS#11 byte order really is, but 'big' works for me with SoftHSM2 at least
-        rsa_e = int.from_bytes(bytes(_exp[0]), byteorder='big')
-        rsa_n = bytes(_modulus[0])
-        return RSAPublicKeyData(bits=len(rsa_n) * 8,
-                                exponent=rsa_e,
-                                n=rsa_n)
-    else:
-        raise NotImplementedError('Unknown CKA_TYPE: {}'.format(PyKCS11.CKK[_cka_type]))
 
 
 KSKM_P11 = NewType('KSKM_P11', List[KSKM_P11Module])
@@ -208,6 +231,18 @@ def parse_hsmconfig(config: Iterator, src: str, defaults: MutableMapping, max_li
 
 
 def get_p11_key(label: str, p11modules: KSKM_P11, public: bool) -> Optional[KSKM_P11Key]:
+    """
+    Look for a key with CKA_LABEL matching 'label'.
+
+    Iterates through all the available PKCS#11 modules, and returns a reference to the
+    first key found with the right label. The parameter 'public' determines if the search
+    should be for a public or private key object.
+
+    :param label: CKA_LABEL to look for
+    :param p11modules: The list of PKCS#11 modules
+    :param public: Try to locate a public/private key
+    :return: None or a PKCS#11 key object reference
+    """
     for module in p11modules:
         p11key = module.find_key_by_label(label, public=public)
         if p11key is not None:

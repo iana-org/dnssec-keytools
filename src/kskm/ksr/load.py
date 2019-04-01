@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 MAX_KSR_SIZE = 1024 * 1024
 
 
-def load_ksr(fn: str, policy: RequestPolicy, raise_original: bool=False) -> Request:
+def load_ksr(fn: str, policy: RequestPolicy, raise_original: bool = False) -> Request:
     """Load a KSR request XML file, and check it according to the RequestPolicy."""
     with open(fn, 'rb') as fd:
         ksr_file_size = os.fstat(fd.fileno()).st_size

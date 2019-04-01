@@ -22,9 +22,13 @@ PolicyViolationType = TypeVar('PolicyViolationType', bound=PolicyViolation)
 
 
 def fail(policy: PolicyType, exc: Type[PolicyViolationType], message: str) -> None:
+    """
+    Raise an exception, or just log a warning if policy says warn_instead_of_fail.
+
+    TODO: Should probably remove the warn_instead_of_fail mode. It should be sufficient
+          to disable checks in the policy being used.
+    """
     if policy.warn_instead_of_fail:
         logger.warning(message)
     else:
         raise exc(message)
-
-

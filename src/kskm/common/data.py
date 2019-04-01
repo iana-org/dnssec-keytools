@@ -62,6 +62,7 @@ class SignaturePolicy(object):
     algorithms: Set[AlgorithmPolicy]
 
 
+# TODO: I believe this class is unused/used incorrectly
 @dataclass(frozen=True)
 class Signer(object):
     key_identifier: Optional[str]
@@ -93,7 +94,6 @@ class Key(object):
     public_key: bytes = field(repr=False)
 
 
-
 @dataclass(frozen=True)
 class Bundle(ABC):
     id: str
@@ -106,6 +106,7 @@ class Bundle(ABC):
 @dataclass(frozen=True)
 class Policy(ABC):
     """Base class for RequestPolicy and ResponsePolicy."""
+
     warn_instead_of_fail: bool = False
 
     @classmethod

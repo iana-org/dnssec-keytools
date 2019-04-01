@@ -1,3 +1,4 @@
+"""Logging initialisation code."""
 import sys
 import logging
 import logging.handlers

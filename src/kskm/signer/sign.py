@@ -1,3 +1,4 @@
+"""Sign request bundles and return response bundles."""
 import base64
 import logging
 import hashlib
@@ -89,6 +90,7 @@ def _sign_keys(bundle: RequestBundle, sign_key_name: str, p11modules: KSKM_P11,
                ksk_policy: KSKPolicy, ksk_keys: KSKKeysType) -> Signature:
     """
     Sign all ZSK keys in bundle_keys using the HSM key identified by 'label'.
+
     :return: A list of new signatures
     """
     ksk = ksk_keys[sign_key_name]
@@ -128,9 +130,7 @@ def _sign_keys(bundle: RequestBundle, sign_key_name: str, p11modules: KSKM_P11,
 
 
 def _verify_using_crypto(p11_key: KSKM_P11Key, rrsig_raw: bytes, signature: bytes) -> None:
-    """
-    Double-check signatures created using HSM with a standard software cryptographic library.
-    """
+    """Double-check signatures created using HSM with a standard software cryptographic library."""
     pubkey = rsapubkey_to_crypto_pubkey(p11_key.public_key)
     try:
         verify_signature(pubkey, signature, rrsig_raw, AlgorithmDNSSEC.RSASHA256)  # TODO: handle other algorithms

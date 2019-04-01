@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 
 
 class InvalidSignatureViolation(PolicyViolation):
+    """Exception raised when a signature fails validation."""
+
     pass
 
 

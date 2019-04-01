@@ -2,7 +2,7 @@
 import re
 import logging
 
-from typing import Set, Optional, Union, List, Type
+from typing import Set, Optional, Union, List
 from datetime import timedelta, datetime, timezone
 
 from kskm.common.dsa_utils import is_algorithm_dsa, parse_signature_policy_dsa

@@ -1,4 +1,4 @@
-""" The checks defined in the 'Verify KSR header' section of docs/ksr-processing.md. """
+"""The checks defined in the 'Verify KSR header' section of docs/ksr-processing.md."""
 from logging import Logger
 
 from kskm.ksr import Request
@@ -7,10 +7,13 @@ from kskm.common.validate import PolicyViolation, fail
 
 
 class KSR_HeaderPolicyViolation(PolicyViolation):
+    """Policy violation in a KSRs header."""
+
     pass
 
 
 def verify_header(request: Request, policy: RequestPolicy, logger: Logger) -> None:
+    """Check the header elements of a Key Signing Request."""
     logger.debug('Begin "Verify KSR header"')
 
     check_domain(request, policy, logger)

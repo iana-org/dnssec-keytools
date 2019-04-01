@@ -19,6 +19,8 @@ logger = logging.getLogger(__name__)
 # TODO: How to handle different versions of this policy over time?
 @dataclass(frozen=True)
 class RequestPolicy(Policy):
+    """Configuration knobs for validating KSRs."""
+
     # Verify KSR header parameters
     acceptable_domains: List[str] = field(default_factory=lambda: ['.'])
 

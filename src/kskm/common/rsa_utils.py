@@ -66,8 +66,9 @@ def decode_rsa_public_key(key: bytes) -> RSAPublicKeyData:
                             exponent=rsa_e,
                             n=rsa_n)
 
+
 def encode_rsa_public_key(key: RSAPublicKeyData) -> bytes:
-    """ Encode a public key (probably loaded from an HSM) into base64 encoded Key.public_key form. """
+    """Encode a public key (probably loaded from an HSM) into base64 encoded Key.public_key form."""
     _exp_len = math.ceil(int.bit_length(key.exponent) / 8)
     exp = int.to_bytes(key.exponent, length=_exp_len, byteorder='big')
     if _exp_len > 1:

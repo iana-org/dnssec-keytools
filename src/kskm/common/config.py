@@ -1,3 +1,4 @@
+"""Load and parse configuration."""
 from __future__ import annotations
 
 import yaml
@@ -15,14 +16,16 @@ __author__ = 'ft'
 
 
 class ConfigurationError(Exception):
-    """ Base exception for errors in the configuration. """
+    """Base exception for errors in the configuration."""
 
     pass
 
 
 ConfigType = NewType('ConfigType', Mapping)
 
+
 def get_config(fn: Optional[str]) -> ConfigType:
+    """Top-level function to load configuration, or return a default ConfigType instance."""
     if not fn:
         # Avoid having Optional[ConfigType] everywhere by always having a config, even if it is empty
         return ConfigType({})
@@ -31,10 +34,12 @@ def get_config(fn: Optional[str]) -> ConfigType:
 
 
 def load_from_yaml(stream: IO) -> ConfigType:
+    """Load configuration from a YAML stream."""
     return ConfigType(yaml.safe_load(stream))
 
 
 def filename(which: str, config: ConfigType) -> Optional[str]:
+    """Get a filename from the configuration."""
     if config and 'filenames' in config:
         _this = config['filenames'].get(which)
         if isinstance(_this, str):
@@ -44,14 +49,20 @@ def filename(which: str, config: ConfigType) -> Optional[str]:
 
 SigningKey = NewType('SigningKey', str)
 
+
 @dataclass(frozen=True)
 class SchemaAction(object):
+    """Actions to take for a specific bundle."""
+
     publish: Iterable[SigningKey]
     sign: Iterable[SigningKey]
     revoke: Iterable[SigningKey]
 
+
 @dataclass(frozen=True)
 class Schema(object):
+    """A named schema used when signing KSRs."""
+
     name: str
     actions: Mapping[int, SchemaAction]
 
@@ -104,6 +115,12 @@ def _parse_keylist(elem: Union[str, List[str]]) -> List[SigningKey]:
 
 @dataclass()
 class KSKPolicy(object):
+    """
+    Signing policy for the KSK operator.
+
+    This corresponds to the 'ksk_policy' section of ksrsigner.yaml.
+    """
+
     signature_policy: SignaturePolicy
     ttl: int
     signers_name: str = '.'
@@ -135,6 +152,12 @@ def _ksk_policy_timedelta(config: ConfigType, name: str) -> timedelta:
 
 @dataclass()
 class KSKKey(object):
+    """
+    A key that can be used in schemas.
+
+    This corresponds to an entry in the 'keys' section of ksrsigner.yaml.
+    """
+
     description: str
     label: str
     algorithm: AlgorithmDNSSEC
@@ -162,6 +185,7 @@ class KSKKey(object):
 
 
 KSKKeysType = NewType('KSKKeysType', Mapping[str, KSKKey])
+
 
 def get_ksk_keys(config: ConfigType) -> KSKKeysType:
     """
