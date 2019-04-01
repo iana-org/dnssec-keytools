@@ -191,25 +191,19 @@ def check_bundle_overlaps(request: Request, policy: RequestPolicy, logger: Logge
 
     KSR-POLICY-SIG-OVERLAP:
 
-      Verify that the requested signature inceptions/expirations has an overlap period between
-      MinValidityOverlap_ and _MaxValidityOverlap_.
+      Verify that the bundles inception/expiration has an overlap period between
+      _MinValidityOverlap_ and _MaxValidityOverlap_.
       This check ensures that no gaps exists in the KSR timeline.
     """
     if not policy.check_bundle_overlap:
         logger.warning('KSR-POLICY-SIG-OVERLAP: Disabled by policy (check_bundle_overlap)')
         return
 
-    sorted_inception = sorted(request.bundles, key=lambda x: x.inception)
-    sorted_expiration = sorted(request.bundles, key=lambda x: x.expiration)
-    if sorted_expiration != sorted_inception:
-        fail(policy, KSR_POLICY_SIG_OVERLAP_Violation,
-             'Bundles sorted on inception does not match sorted on expiration')
-
     logger.debug('Verifying request {} bundle times and overlap:'.format(request.id))
-    for i in range(len(sorted_inception)):
+    for i in range(len(request.bundles)):
         overlap_str = '-'
-        previous = sorted_inception[i - 1]
-        this = sorted_inception[i]
+        previous = request.bundles[i - 1]
+        this = request.bundles[i]
         if i:
             overlap = previous.expiration - this.inception
             overlap_str = _fmt_timedelta(overlap)
@@ -221,9 +215,9 @@ def check_bundle_overlaps(request: Request, policy: RequestPolicy, logger: Logge
             overlap=overlap_str))
 
     # check that bundles overlap, and with how much
-    for i in range(1, len(sorted_inception)):
-        previous = sorted_inception[i - 1]
-        this = sorted_inception[i]
+    for i in range(1, len(request.bundles)):
+        previous = request.bundles[i - 1]
+        this = request.bundles[i]
         if this.inception > previous.expiration:
             return fail(policy, KSR_POLICY_SIG_OVERLAP_Violation,
                         'Bundle "{}" does not overlap with previous bundle "{}"'.format(this, previous)
