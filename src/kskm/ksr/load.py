@@ -1,28 +1,32 @@
 """Top-level functions to load KSRs (Key Signing Requests)."""
 
+import logging
 import os
 
 from kskm.common.parse_utils import signature_policy_from_dict
 from kskm.common.validate import PolicyViolation
 from kskm.common.xml_parser import parse_ksr
+from kskm.common.integrity import checksum_bytes2str
 from kskm.ksr.data import Request
 from kskm.ksr.parse_utils import requestbundles_from_list_of_dicts
 from kskm.ksr.policy import RequestPolicy
 from kskm.ksr.validate import validate_request
 
 __author__ = 'ft'
+logger = logging.getLogger(__name__)
 
 MAX_KSR_SIZE = 1024 * 1024
 
 
 def load_ksr(fn: str, policy: RequestPolicy, raise_original: bool=False) -> Request:
     """Load a KSR request XML file, and check it according to the RequestPolicy."""
-    with open(fn) as fd:
+    with open(fn, 'rb') as fd:
         ksr_file_size = os.fstat(fd.fileno()).st_size
         if (ksr_file_size > MAX_KSR_SIZE):
             raise RuntimeError(f"KSR exceeding maximum size of {MAX_KSR_SIZE} bytes")
         xml = fd.read(MAX_KSR_SIZE)  # impose upper limit on how much memory/CPU can be spent loading a file
-    request = request_from_xml(xml)
+    logger.info("Loaded KSR from file %s %s", fn, checksum_bytes2str(xml))
+    request = request_from_xml(xml.decode())
     try:
         if validate_request(request, policy) is not True:
             raise RuntimeError('Failed validating KSR request in file {}'.format(fn))
