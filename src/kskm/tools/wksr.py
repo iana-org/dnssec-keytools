@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+"""KSR Receiver Web Server."""
+
 import argparse
 import hashlib
 import logging
@@ -34,7 +36,7 @@ notify_config = None
 
 @app.before_request
 def authz():
-    """Check TLS client whitelist"""
+    """Check TLS client whitelist."""
     digest = PeerCertWSGIRequestHandler.client_digest()
     # we allow no certificate for now
     if digest is None:
@@ -48,8 +50,7 @@ def authz():
 
 @app.route('/', methods=['GET'])
 def index():
-    """Present homepage"""
-
+    """Present homepage."""
     if 'peercert' in request.environ:
         subject = str(request.environ['peercert'].get_subject().commonName)
         return f"Hello world: {subject}"
@@ -59,8 +60,7 @@ def index():
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
-    """Handle manual file upload"""
-
+    """Handle manual file upload."""
     if request.method == 'GET':
         return render_template("upload.html", action=request.base_url)
 
@@ -89,7 +89,7 @@ def upload():
 
 
 def validate_ksr(filename: str) -> dict:
-    """Validate incoming KSR"""
+    """Validate incoming KSR."""
     global ksk_config
     config_fn = ksk_config.get('ksrsigner_configfile')
     _config = get_config(None)
@@ -107,7 +107,7 @@ def validate_ksr(filename: str) -> dict:
 
 
 def notify(env: dict) -> None:
-    """Send notification about incoming KSR"""
+    """Send notification about incoming KSR."""
     msg = EmailMessage()
     body = render_template("email.txt", **env)
     msg.set_content(body)
@@ -120,8 +120,7 @@ def notify(env: dict) -> None:
 
 
 def save_ksr(upload_file: FileStorage) -> Tuple[str, str]:
-    """Process incoming KSR"""
-
+    """Process incoming KSR."""
     # check content type
     if upload_file.content_type != ksr_config.get('content_type'):
         raise BadRequest
@@ -148,10 +147,11 @@ def save_ksr(upload_file: FileStorage) -> Tuple[str, str]:
     return (filename, filehash)
 
 
-
 # TLS client auth based on post at https://www.ajg.id.au/2018/01/01/mutual-tls-with-python-flask-and-werkzeug/
 class PeerCertWSGIRequestHandler(werkzeug.serving.WSGIRequestHandler):
     """
+    TLS Client Certificate Authenticator.
+
     We subclass this class so that we can gain access to the connection
     property. self.connection is the underlying client socket. When a TLS
     connection is established, the underlying socket is an instance of
@@ -160,8 +160,11 @@ class PeerCertWSGIRequestHandler(werkzeug.serving.WSGIRequestHandler):
     The output from that method is what we want to make available elsewhere
     in the application.
     """
+
     def make_environ(self):
         """
+        Create request environment.
+
         The superclass method develops the environ hash that eventually
         forms part of the Flask request object.
 
@@ -178,6 +181,7 @@ class PeerCertWSGIRequestHandler(werkzeug.serving.WSGIRequestHandler):
 
     @classmethod
     def client_subject(cls) -> Optional[str]:
+        """Find TLS client certificate subject."""
         peercert = request.environ['peercert']
         if peercert is None:
             return
@@ -186,6 +190,7 @@ class PeerCertWSGIRequestHandler(werkzeug.serving.WSGIRequestHandler):
 
     @classmethod
     def client_digest(cls) -> Optional[str]:
+        """Find TLS client certficate digest."""
         peercert = request.environ['peercert']
         if peercert is None:
             return
@@ -193,8 +198,7 @@ class PeerCertWSGIRequestHandler(werkzeug.serving.WSGIRequestHandler):
 
 
 def main():
-    """Main function"""
-
+    """Main program function."""
     global ksr_config, notify_config
 
     parser = argparse.ArgumentParser(description='KSR Web Server')

@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+"""
+SHA-256 PGP Words calculator.
+
+Command line to to calculate SHA-256 hash of STDIN and present
+result as hex digest and PGP wordlist.
+"""
 
 import hashlib
 import sys
