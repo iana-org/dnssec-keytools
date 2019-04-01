@@ -1,5 +1,5 @@
 SOURCE=		src
-PYTHON=		python3
+PYTHON=		python3.7
 VENV=		venv
 DOCS=		htmlcov
 DISTDIRS=	*.egg-info build dist
