@@ -75,15 +75,18 @@ ksk_policy:
   ttl: 20
 """
 
-class TestSignWithSoftHSM(unittest.TestCase):
 
-    def setUp(self):
+class Test_SignWithSoftHSM(unittest.TestCase):
+
+    def setUp(self) -> None:
         # CKA_LABEL for one of the keys loaded into SoftHSM using testing/Makefile
         self.zsk_key_label = 'KEY1'
         self.ksk_key_label = 'KEY2'
-        self.p11modules = init_pkcs11_modules(_TEST_HSMCONFIG_DIR)
-        if not self.p11modules:
-            self.fail(f'Failed loading PKCS#11 modules from .hsmconfig in {_TEST_HSMCONFIG_DIR}')
+        self.p11modules: KSKM_P11 = KSKM_P11([])
+        if _TEST_HSMCONFIG_DIR:
+            self.p11modules = init_pkcs11_modules(_TEST_HSMCONFIG_DIR)
+            if not self.p11modules:
+                self.fail(f'Failed loading PKCS#11 modules from .hsmconfig in {_TEST_HSMCONFIG_DIR}')
         conf = io.StringIO(_TEST_CONFIG_SIMPLE)
         self.config = load_from_yaml(conf)
         self.schema = get_schema('test', self.config)
@@ -102,9 +105,11 @@ class TestSignWithSoftHSM(unittest.TestCase):
 
 
     @unittest.skipUnless(_TEST_HSMCONFIG_DIR, 'TEST_HSMCONFIG_DIR not set')
-    def test_sign_with_softhsm(self):
+    def test_sign_with_softhsm(self) -> None:
         """ Test signing a key record with SoftHSM and then verifying it """
         p11_key = get_p11_key(self.ksk_key_label, self.p11modules, public=True)
+        if not p11_key:
+            self.fail('Key not found')
         ksk_key = public_key_to_dnssec_key(key=p11_key.public_key,
                                            key_identifier=self.ksk_key_label,
                                            algorithm=AlgorithmDNSSEC.RSASHA256,
@@ -115,9 +120,9 @@ class TestSignWithSoftHSM(unittest.TestCase):
         bundle = RequestBundle(id='test-01',
                                inception=parse_datetime('2018-01-01T00:00:00+00:00'),
                                expiration=parse_datetime('2018-01-22T00:00:00+00:00'),
-                               keys=set([ksk_key]),
+                               keys={ksk_key},
                                signatures=set(),
-                               signers='.'
+                               signers=None,
                                )
         request = Request(id='test-req-01',
                           serial=1,

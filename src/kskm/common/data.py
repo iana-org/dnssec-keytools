@@ -84,7 +84,7 @@ class Signature(object):
 
 @dataclass(frozen=True)
 class Key(object):
-    key_identifier: Optional[str]
+    key_identifier: Optional[str]  # TODO: Some checks compare keys using the identifier, won't work if it is None
     key_tag: int
     ttl: int
     flags: int

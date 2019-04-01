@@ -26,7 +26,7 @@ def create_skr(request: Request, schema: Schema, p11modules: KSKM_P11, config: C
     return Response(id=request.id,
                     serial=request.serial,
                     domain=request.domain,
-                    bundles=bundles,
+                    bundles=list(bundles),
                     ksk_policy=_ksk_signature_policy(ksk_policy, bundles),
                     zsk_policy=request.zsk_policy)
 
@@ -45,6 +45,7 @@ def _ksk_signature_policy(ksk_policy: KSKPolicy, bundles: Iterable[ResponseBundl
                 _pub = decode_rsa_public_key(key.public_key)
                 alg = AlgorithmPolicyRSA(exponent=_pub.exponent,
                                          bits=_pub.bits,
+                                         algorithm=key.algorithm,
                                          )
                 algorithms.add(alg)
             else:

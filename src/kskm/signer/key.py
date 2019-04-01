@@ -1,11 +1,10 @@
 import logging
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from typing import Optional
 
 from kskm.ksr.data import RequestBundle
 from kskm.common.data import Key, FlagsDNSKEY
 from kskm.common.config import KSKKey, KSKPolicy
-from kskm.common.dnssec import calculate_key_tag
 from kskm.misc.hsm import KSKM_P11Key, KSKM_P11, get_p11_key
 from kskm.common.rsa_utils import RSAPublicKeyData, public_key_to_dnssec_key
 from kskm.common.validate import PolicyViolation
@@ -35,11 +34,16 @@ def load_pkcs11_key(ksk: KSKKey, p11modules: KSKM_P11, ksk_policy: KSKPolicy,
                     bundle: RequestBundle, public: bool) -> Optional[CompositeKey]:
     """
     Using a KSK key label, load that key from an HSM and then validate it is the right key and is OK to use.
+
+    Return it as a 'CompositeKey' which is just a container representing the key in two different formats -
+    the standard Key format that has all the DNSSEC related data such as TTL, and as a PKCS#11 reference
+    which is used to e.g. make a signature using this key stored in an HSM.
+
     :param public: Ask the HSM for a public key, or not.
     """
     if ksk.valid_from > bundle.inception:
         raise KeyUsagePolicy_Violation('Key {ksk.label} is not valid at the time of bundle {bundle.id} inception')
-    if ksk.valid_until < bundle.expiration:
+    if ksk.valid_until is not None and ksk.valid_until < bundle.expiration:
         raise KeyUsagePolicy_Violation('Key {ksk.label} is not valid at the time of bundle {bundle.id} expiration')
 
     _found = get_p11_key(ksk.label, p11modules, public=public)
@@ -59,7 +63,6 @@ def load_pkcs11_key(ksk: KSKKey, p11modules: KSKM_P11, ksk_policy: KSKPolicy,
                                         protocol=_DNSKEY_PROTOCOL,
                                         ttl=ksk_policy.ttl,
                                         )
-        _key = replace(_key, key_tag=calculate_key_tag(_key))
         return CompositeKey(p11=_found, dns=_key)
     else:
         logger.error(f'Key {ksk.label}/"{ksk.description}" for bundle {bundle.id} is not RSA')

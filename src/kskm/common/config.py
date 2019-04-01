@@ -3,7 +3,7 @@ from __future__ import annotations
 import yaml
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from copy import deepcopy
 
 from typing import Optional, Mapping, Iterable, NewType, IO, Dict, Union, List, Type
@@ -12,6 +12,12 @@ from kskm.common.data import SignaturePolicy, AlgorithmDNSSEC
 from kskm.common.parse_utils import duration_to_timedelta, parse_datetime
 
 __author__ = 'ft'
+
+
+class ConfigurationError(Exception):
+    """ Base exception for errors in the configuration. """
+
+    pass
 
 
 ConfigType = NewType('ConfigType', Mapping)
@@ -123,7 +129,7 @@ def get_ksk_policy(config: ConfigType) -> KSKPolicy:
                      )
 
 
-def _ksk_policy_timedelta(config: ConfigType, name: str):
+def _ksk_policy_timedelta(config: ConfigType, name: str) -> timedelta:
     return duration_to_timedelta(config['ksk_policy'][name])
 
 
@@ -173,10 +179,10 @@ def get_ksk_keys(config: ConfigType) -> KSKKeysType:
         valid_from: 2010-07-15T00:00:00+00:00
         valid_until: 2019-01-11T00:00:00+00:00
     """
-    res = {}
+    res: Dict[str, KSKKey] = {}
     if 'keys' not in config:
-        return res
+        return KSKKeysType(res)
     for name, v in config['keys'].items():
         key = KSKKey.from_dict(v)
         res[name] = key
-    return res
+    return KSKKeysType(res)

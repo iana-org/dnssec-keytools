@@ -2,17 +2,18 @@ import base64
 import logging
 import hashlib
 from dataclasses import replace
-from typing import Iterable, Dict
+from typing import Iterable, Dict, List
 
 from cryptography.exceptions import InvalidSignature
 
-from kskm.common.config import KSKPolicy, ConfigType, get_ksk_keys, SchemaAction, KSKKeysType
+from kskm.common.config import KSKPolicy, ConfigType, get_ksk_keys, SchemaAction, KSKKeysType, Schema
+from kskm.common.config import ConfigurationError
 from kskm.common.data import Key, Signature, TypeDNSSEC, AlgorithmDNSSEC
 from kskm.common.signature import dndepth, make_raw_rrsig
 from kskm.ksr import Request
 from kskm.ksr.data import RequestBundle
 from kskm.misc.crypto import rsapubkey_to_crypto_pubkey, verify_signature
-from kskm.misc.hsm import KSKM_P11, sign_using_p11
+from kskm.misc.hsm import KSKM_P11, sign_using_p11, KSKM_P11Key
 from kskm.signer.key import load_pkcs11_key
 from kskm.skr.data import ResponseBundle
 
@@ -20,7 +21,7 @@ from kskm.skr.data import ResponseBundle
 logger = logging.getLogger(__name__)
 
 
-def sign_bundles(request: Request, schema, p11modules: KSKM_P11,
+def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
                  ksk_policy: KSKPolicy, config: ConfigType) -> Iterable[ResponseBundle]:
     """
     Execute the actions specified in the schema, for all bundles in the request.
@@ -29,7 +30,7 @@ def sign_bundles(request: Request, schema, p11modules: KSKM_P11,
     DNSKEY RR set using the KSK key stored in a PKCS#11 module (HSM).
     """
     ksk_keys = get_ksk_keys(config)
-    res = []
+    res: List[ResponseBundle] = []
     bundle_num = 1
     _hush_key_ttl_warnings: Dict[str, bool] = {}
     for _bundle in request.bundles:
@@ -42,7 +43,8 @@ def sign_bundles(request: Request, schema, p11modules: KSKM_P11,
             if _key.ttl != ksk_policy.ttl:
                 if _key.key_identifier not in _hush_key_ttl_warnings:
                     logger.warning(f'Overriding key {_key.key_identifier} TTL {_key.ttl} -> {ksk_policy.ttl}')
-                    _hush_key_ttl_warnings[_key.key_identifier] = True
+                    if _key.key_identifier is not None:
+                        _hush_key_ttl_warnings[_key.key_identifier] = True
                 _key = replace(_key, ttl=ksk_policy.ttl)
             _new_keys.add(_key)
         #
@@ -56,10 +58,10 @@ def sign_bundles(request: Request, schema, p11modules: KSKM_P11,
         #
         # Using the 'signing' keys for this bundle in the schema, sign all the keys in the bundle
         #
-        signatures = []
+        signatures = set()
         for _sign_key in this_schema.sign:
-            _sigs = _sign_keys(_bundle, _sign_key, p11modules, ksk_policy, ksk_keys)
-            signatures += _sigs
+            _sig = _sign_keys(_bundle, _sign_key, p11modules, ksk_policy, ksk_keys)
+            signatures.add(_sig)
         res += [ResponseBundle(id=_bundle.id,
                                inception=_bundle.inception,
                                expiration=_bundle.expiration,
@@ -70,7 +72,7 @@ def sign_bundles(request: Request, schema, p11modules: KSKM_P11,
 
 def _schema_action_to_publish_keys(bundle: RequestBundle, s_action: SchemaAction, p11modules: KSKM_P11,
                                    ksk_policy: KSKPolicy, ksk_keys: KSKKeysType) -> Iterable[Key]:
-    res = []
+    res: List[Key] = []
     # Load the keys the KSK operator wants to add to the ones provided by the ZSK operator
     for _publish_key in s_action.publish:
         ksk = ksk_keys[_publish_key]
@@ -78,14 +80,13 @@ def _schema_action_to_publish_keys(bundle: RequestBundle, s_action: SchemaAction
         if not this_key:
             logger.error(f'Could not find publish key {_publish_key!r} ({ksk.label}/{ksk.description}) '
                          f'for bundle {bundle.id}')
-            # TODO: probably a fatal error, raise an exception
-            return []
+            raise ConfigurationError(f'Key {_publish_key!r} not found')
         res += [this_key.dns]
     return res
 
 
 def _sign_keys(bundle: RequestBundle, sign_key_name: str, p11modules: KSKM_P11,
-               ksk_policy: KSKPolicy, ksk_keys: KSKKeysType) -> Iterable[Signature]:
+               ksk_policy: KSKPolicy, ksk_keys: KSKKeysType) -> Signature:
     """
     Sign all ZSK keys in bundle_keys using the HSM key identified by 'label'.
     :return: A list of new signatures
@@ -95,8 +96,7 @@ def _sign_keys(bundle: RequestBundle, sign_key_name: str, p11modules: KSKM_P11,
     if not this_key:
         logger.error(f'Could not find signing key {sign_key_name!r} ({ksk.label}/{ksk.description}) '
                      f'for bundle {bundle.id}')
-        # TODO: probably a fatal error, raise an exception
-        return []
+        raise ConfigurationError(f'Key {sign_key_name!r} not found')
 
     signing_key = this_key.dns
 
@@ -124,10 +124,10 @@ def _sign_keys(bundle: RequestBundle, sign_key_name: str, p11modules: KSKM_P11,
     _verify_using_crypto(this_key.p11, rrsig_raw, base64.b64decode(signature_data))
 
     sig = replace(sig, signature_data=signature_data)
-    return [sig]
+    return sig
 
 
-def _verify_using_crypto(p11_key, rrsig_raw, signature):
+def _verify_using_crypto(p11_key: KSKM_P11Key, rrsig_raw: bytes, signature: bytes) -> None:
     """
     Double-check signatures created using HSM with a standard software cryptographic library.
     """
