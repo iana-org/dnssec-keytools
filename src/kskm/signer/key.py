@@ -8,13 +8,19 @@ from kskm.common.config import KSKKey, KSKPolicy
 from kskm.common.dnssec import calculate_key_tag
 from kskm.misc.hsm import KSKM_P11Key, KSKM_P11, get_p11_key
 from kskm.common.rsa_utils import RSAPublicKeyData, public_key_to_dnssec_key
-
+from kskm.common.validate import PolicyViolation
 
 __author__ = 'ft'
 
 _DNSKEY_PROTOCOL = 3
 
 logger = logging.getLogger(__name__)
+
+
+class KeyUsagePolicy_Violation(PolicyViolation):
+    """ Exception raised when a key can't be used because of policy. """
+
+    pass
 
 
 @dataclass()
@@ -31,9 +37,15 @@ def load_pkcs11_key(ksk: KSKKey, p11modules: KSKM_P11, ksk_policy: KSKPolicy,
     Using a KSK key label, load that key from an HSM and then validate it is the right key and is OK to use.
     :param public: Ask the HSM for a public key, or not.
     """
+    if ksk.valid_from > bundle.inception:
+        raise KeyUsagePolicy_Violation('Key {ksk.label} is not valid at the time of bundle {bundle.id} inception')
+    if ksk.valid_until < bundle.expiration:
+        raise KeyUsagePolicy_Violation('Key {ksk.label} is not valid at the time of bundle {bundle.id} expiration')
+
     _found = get_p11_key(ksk.label, p11modules, public=public)
     if not _found:
         return None
+
     if isinstance(_found.public_key, RSAPublicKeyData):
         if _found.public_key.bits != ksk.rsa_size:
             raise ValueError(f'PKCS#11 key {ksk.label} is RSA-{_found.public_key.bits} - expected {ksk.rsa_size}')

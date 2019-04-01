@@ -3,7 +3,7 @@ from __future__ import annotations
 import yaml
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from copy import deepcopy
 
 from typing import Optional, Mapping, Iterable, NewType, IO, Dict, Union, List, Type
@@ -149,6 +149,9 @@ class KSKKey(object):
             # If they are not, convert them here.
             if _dt in _data and not isinstance(_data[_dt], datetime):
                 _data[_dt] = parse_datetime(_data[_dt])
+            else:
+                # Set timezone UTC in the datetime
+                _data[_dt] = _data[_dt].replace(tzinfo=timezone.utc)
         return cls(**_data)
 
 
