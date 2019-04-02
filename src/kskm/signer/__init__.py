@@ -7,6 +7,7 @@ from typing import Iterable, Set, Optional
 from kskm.ksr import Request
 from kskm.skr.output import skr_to_xml
 from kskm.signer.sign import sign_bundles
+from kskm.common.integrity import checksum_bytes2str
 from kskm.skr.data import Response, ResponseBundle
 from kskm.misc.hsm import KSKM_P11
 from kskm.common.data import SignaturePolicy
@@ -36,8 +37,10 @@ def output_skr_xml(skr: Response, output_fn: Optional[str]) -> None:
     """Return SKR as XML."""
     xml = skr_to_xml(skr)
     if output_fn:
-        with open(output_fn, 'w') as fd:
-            fd.write(xml)
+        xml_bytes = xml.encode()
+        with open(output_fn, 'wb') as fd:
+            fd.write(xml_bytes)
+        logger.info("Wrote SKR to file %s %s", output_fn, checksum_bytes2str(xml_bytes))
     else:
         print(xml)
 
