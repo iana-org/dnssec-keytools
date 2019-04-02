@@ -33,14 +33,14 @@ def create_skr(request: Request, schema: Schema, p11modules: KSKM_P11, config: C
                     zsk_policy=request.zsk_policy)
 
 
-def output_skr_xml(skr: Response, output_fn: Optional[str]) -> None:
+def output_skr_xml(skr: Response, output_filename: Optional[str]) -> None:
     """Return SKR as XML."""
     xml = skr_to_xml(skr)
-    if output_fn:
+    if output_filename:
         xml_bytes = xml.encode()
-        with open(output_fn, 'wb') as fd:
+        with open(output_filename, 'wb') as fd:
             fd.write(xml_bytes)
-        logger.info("Wrote SKR to file %s %s", output_fn, checksum_bytes2str(xml_bytes))
+        logger.info("Wrote SKR to file %s %s", output_filename, checksum_bytes2str(xml_bytes))
     else:
         print(xml)
 
