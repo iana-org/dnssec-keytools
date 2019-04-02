@@ -24,9 +24,9 @@ def load_ksr(fn: str, policy: RequestPolicy, raise_original: bool = False) -> Re
         ksr_file_size = os.fstat(fd.fileno()).st_size
         if (ksr_file_size > MAX_KSR_SIZE):
             raise RuntimeError(f"KSR exceeding maximum size of {MAX_KSR_SIZE} bytes")
-        xml = fd.read(MAX_KSR_SIZE)  # impose upper limit on how much memory/CPU can be spent loading a file
-    logger.info("Loaded KSR from file %s %s", fn, checksum_bytes2str(xml))
-    request = request_from_xml(xml.decode())
+        xml_bytes = fd.read(MAX_KSR_SIZE)  # impose upper limit on how much memory/CPU can be spent loading a file
+    logger.info("Loaded KSR from file %s %s", fn, checksum_bytes2str(xml_bytes))
+    request = request_from_xml(xml_bytes.decode())
     try:
         if validate_request(request, policy) is not True:
             raise RuntimeError('Failed validating KSR request in file {}'.format(fn))
