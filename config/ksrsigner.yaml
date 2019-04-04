@@ -43,8 +43,6 @@ request_policy:
     - 3
   # validate that the current request continues a timeline ending with the previous response
   check_request_daisy_chain: True
-  # TODO
-  match_previous_skr: True
   acceptable_dnssec_algorithms:
     - RSASHA256
   rsa_acceptable_exponents:

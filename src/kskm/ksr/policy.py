@@ -44,7 +44,6 @@ class RequestPolicy(Policy):
 
     # Verify KSR/SKR chaining
     check_request_daisy_chain: bool = True
-    # TODO: match_previous_skr
     # TODO: match policy timers
     # TODO: match policy algorithms (match against acceptable)
     # TODO: protocol, flags match
