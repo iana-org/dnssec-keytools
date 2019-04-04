@@ -115,13 +115,11 @@ def _is_rsa_key(key: Key) -> bool:
 def _dn2wire(dn: str) -> bytes:
     if dn == '.':
         return b'\00'
-    # TODO: Will domain _always_ be the root, or does this have to be implemented?
-    raise NotImplementedError('Non-root dn2wire not implemented yet')
+    raise NotImplementedError('Non-root dn2wire not implemented')
 
 
 def dndepth(dn: str) -> int:
     """Return the number of DNS labels in a domain name (number of dots-1)."""
     if dn == '.':
         return 0
-    # TODO: Will domain _always_ be the root, or does this have to be implemented?
-    raise NotImplementedError('Non-root dndepth not implemented yet')
+    raise NotImplementedError('Non-root dndepth not implemented')

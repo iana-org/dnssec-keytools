@@ -141,7 +141,6 @@ def check_zsk_policy_signature_algorithms(request: Request, policy: RequestPolic
     KSR-POLICY-ALG:
     Verify that only signature algorithms listed in the policy are used in the bundle.
     """
-    # TODO: Not all implemented - need clarification of specification
     if not policy.signature_algorithms_match_zsk_policy:
         logger.warning('KSR-POLICY-ALG: Disabled by policy (signature_algorithms_match_zsk_policy)')
         return

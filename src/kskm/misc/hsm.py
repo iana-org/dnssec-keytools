@@ -97,8 +97,6 @@ class KSKM_P11Module(object):
         if _cka_type == PyKCS11.CKK_RSA:
             _modulus = session.getAttributeValue(data[0], [PyKCS11.CKA_MODULUS])
             _exp = session.getAttributeValue(data[0], [PyKCS11.CKA_PUBLIC_EXPONENT])
-
-            # TODO: Don't know what PKCS#11 byte order really is, but 'big' works for me with SoftHSM2 at least
             rsa_e = int.from_bytes(bytes(_exp[0]), byteorder='big')
             rsa_n = bytes(_modulus[0])
             return RSAPublicKeyData(bits=len(rsa_n) * 8,
@@ -112,8 +110,7 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes) -> bytes:
     """
     Sign some data using a PKCS#11 key.
 
-    TODO: Currently, the PKCS#11 mechanism used is always CKM_SHA256_RSA_PKCS.
-    TODO: The old code seemed to be pretty deliberately made to create the raw data
+    NOTE: The old code seemed to be pretty deliberately made to create the raw data
           itself and then ask the HSM to sign raw data (using CKM_RSA_X_509), but the
           documentation (/* = Raw.  NOT CKM_RSA_PKCS;*/) did not give a reason for this.
           Since CKM_SHA256_RSA_PKCS works fine with SoftHSM2, I did not put time into

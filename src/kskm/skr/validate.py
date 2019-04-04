@@ -31,7 +31,6 @@ def validate_response(response: Response, policy: ResponsePolicy) -> bool:
     if policy.num_bundles is not None and len(response.bundles) != policy.num_bundles:
         fail(policy, PolicyViolation, 'Wrong number of bundles in response ({}, expected {})'.format(
             len(response.bundles), policy.num_bundles))
-    # TODO: Check that the claims in the SignaturePolicy (zsk_policy) are within acceptable parameters
     for bundle in response.bundles:
         # check that all keys in the bundle are covered by a correct signature
         check_valid_signatures(bundle, policy)

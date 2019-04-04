@@ -37,7 +37,6 @@ def verify_signature(pubkey: rsa.RSAPublicKey, signature: bytes, data: bytes, al
         raise
 
 
-# TODO: Tried to declare this to return a hashes.HashAlgorithm, but failed so far.
 def _algorithm_to_hash(alg: AlgorithmDNSSEC) -> SHA256:
     if alg in [AlgorithmDNSSEC.RSASHA256, AlgorithmDNSSEC.ECDSAP256SHA256]:
         return SHA256()

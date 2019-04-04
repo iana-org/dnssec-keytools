@@ -23,6 +23,6 @@ class KSR(ABC):
 @dataclass(frozen=True)
 class Request(KSR):
     zsk_policy: SignaturePolicy
-    # TODO: 'bundles' is supposed to be a Set, but a set cannot contain other sets
-    #       (TypeError: unhashable type: 'set')
+    # 'bundles' is supposed to be a Set, but a set cannot contain other sets
+    # (TypeError: unhashable type: 'set')
     bundles: List[RequestBundle]

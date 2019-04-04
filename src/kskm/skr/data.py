@@ -24,6 +24,6 @@ class SKR(ABC):
 class Response(SKR):
     zsk_policy: SignaturePolicy
     ksk_policy: SignaturePolicy
-    # TODO: 'bundles' is supposed to be a Set, but a set cannot contain other sets
-    #       (TypeError: unhashable type: 'set')
+    # 'bundles' is supposed to be a Set, but a set cannot contain other sets
+    # (TypeError: unhashable type: 'set')
     bundles: List[ResponseBundle]

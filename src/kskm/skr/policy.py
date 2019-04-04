@@ -17,7 +17,6 @@ logger = logging.getLogger(__name__)
 
 
 # TODO: ResponsePolicy is really both KSR and SKR policy
-# TODO: How to handle different versions of this policy over time?
 @dataclass(frozen=True)
 class ResponsePolicy(Policy):
     """Validation parameters for SKRs."""
