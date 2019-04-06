@@ -2,15 +2,15 @@
 from __future__ import annotations
 
 import logging
+from copy import deepcopy
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from typing import (IO, Dict, Iterable, List, Mapping, NewType, Optional, Type,
+                    Union)
+
 import yaml
 
-from dataclasses import dataclass
-from datetime import datetime, timezone, timedelta
-from copy import deepcopy
-
-from typing import Optional, Mapping, Iterable, NewType, IO, Dict, Union, List, Type
-
-from kskm.common.data import SignaturePolicy, AlgorithmDNSSEC
+from kskm.common.data import AlgorithmDNSSEC, SignaturePolicy
 from kskm.common.integrity import checksum_bytes2str
 from kskm.common.parse_utils import duration_to_timedelta, parse_datetime
 

@@ -1,10 +1,8 @@
 """Common code and base exception classes used in KSR/SKR validation."""
 import logging
+from typing import Type, TypeVar
 
 from kskm.common.data import PolicyType
-
-from typing import TypeVar, Type
-
 
 __author__ = 'ft'
 

@@ -1,9 +1,9 @@
 """The checks defined in the 'Verify KSR header' section of docs/ksr-processing.md."""
 from logging import Logger
 
+from kskm.common.validate import PolicyViolation, fail
 from kskm.ksr import Request
 from kskm.ksr.policy import RequestPolicy
-from kskm.common.validate import PolicyViolation, fail
 
 
 class KSR_HeaderPolicyViolation(PolicyViolation):

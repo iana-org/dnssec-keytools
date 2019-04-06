@@ -1,19 +1,18 @@
 """Hardware Security Module interface functions."""
 from __future__ import annotations
 
+import base64
+import glob
+import logging
 import os
 import re
-import glob
-import base64
-import logging
-
 from dataclasses import dataclass, field
-from typing import Iterator, Optional, MutableMapping, Dict, Any, NewType, Mapping, List
+from typing import (Any, Dict, Iterator, List, Mapping, MutableMapping,
+                    NewType, Optional)
 
 import PyKCS11
 
 from kskm.common.rsa_utils import RSAPublicKeyData
-
 
 __author__ = 'ft'
 

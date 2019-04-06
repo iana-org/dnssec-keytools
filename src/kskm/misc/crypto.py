@@ -1,16 +1,14 @@
 """Code using the Cryptography library."""
 import logging
 
-from kskm.common.data import Key, AlgorithmDNSSEC
-from kskm.common.rsa_utils import decode_rsa_public_key, RSAPublicKeyData
-
+from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives.hashes import SHA256
 from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
+from cryptography.hazmat.primitives.hashes import SHA256
 
-from cryptography.exceptions import InvalidSignature
-
+from kskm.common.data import AlgorithmDNSSEC, Key
+from kskm.common.rsa_utils import RSAPublicKeyData, decode_rsa_public_key
 
 __author__ = 'ft'
 

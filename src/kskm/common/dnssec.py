@@ -1,6 +1,6 @@
 """DNSSEC protocol specific functions."""
-import struct
 import base64
+import struct
 
 from kskm.common.data import Key
 

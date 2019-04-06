@@ -1,20 +1,18 @@
 """The more testable parts of the ksrsigner tool."""
 import logging
-
 from dataclasses import replace
-from typing import Iterable, Set, Optional
+from typing import Iterable, Optional, Set
 
-from kskm.ksr import Request
-from kskm.skr.output import skr_to_xml
-from kskm.signer.sign import sign_bundles
+from kskm.common.config import ConfigType, KSKPolicy, Schema, get_ksk_policy
+from kskm.common.data import (AlgorithmPolicy, AlgorithmPolicyRSA,
+                              SignaturePolicy)
 from kskm.common.integrity import checksum_bytes2str
-from kskm.skr.data import Response, ResponseBundle
+from kskm.common.rsa_utils import decode_rsa_public_key, is_algorithm_rsa
+from kskm.ksr import Request
 from kskm.misc.hsm import KSKM_P11
-from kskm.common.data import SignaturePolicy
-from kskm.common.data import AlgorithmPolicy, AlgorithmPolicyRSA
-from kskm.common.config import get_ksk_policy, KSKPolicy
-from kskm.common.config import ConfigType, Schema
-from kskm.common.rsa_utils import is_algorithm_rsa, decode_rsa_public_key
+from kskm.signer.sign import sign_bundles
+from kskm.skr.data import Response, ResponseBundle
+from kskm.skr.output import skr_to_xml
 
 __author__ = 'ft'
 

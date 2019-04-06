@@ -1,14 +1,12 @@
 """Dataclass and code to load a request policy from file/object."""
-import yaml
 import logging
-
-from typing import Optional, List
-
 from dataclasses import dataclass, field, replace
+from typing import List, Optional
 
-from kskm.common.data import Policy
+import yaml
+
 from kskm.common.config import ConfigType
-
+from kskm.common.data import Policy
 
 __author__ = 'ft'
 

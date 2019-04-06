@@ -1,15 +1,12 @@
 """Various functions relating to the RSA algorithm."""
-import math
 import base64
+import math
 import struct
-
-from dataclasses import dataclass, replace, field
-
+from dataclasses import dataclass, field, replace
 from typing import Optional
 
-from kskm.common.data import AlgorithmPolicyRSA, AlgorithmDNSSEC, Key
+from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyRSA, Key
 from kskm.common.dnssec import calculate_key_tag
-
 
 __author__ = 'ft'
 

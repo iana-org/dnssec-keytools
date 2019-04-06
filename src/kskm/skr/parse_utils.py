@@ -1,7 +1,8 @@
 """Utility functions used in parsing SKRs."""
 from typing import List
 
-from kskm.common.parse_utils import parse_datetime, keys_from_dict, signature_from_dict
+from kskm.common.parse_utils import (keys_from_dict, parse_datetime,
+                                     signature_from_dict)
 from kskm.skr.data import ResponseBundle
 
 __author__ = 'ft'

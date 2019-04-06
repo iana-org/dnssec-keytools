@@ -1,20 +1,17 @@
 """Generate and validate DNSSEC signatures for bundles."""
 
-import struct
 import base64
-import logging
 import binascii
-
+import logging
+import struct
 from hashlib import sha256
-from typing import Set, Dict, List
+from typing import Dict, List, Set
 
+from kskm.common.data import Bundle, Key, Signature
 from kskm.common.dnssec import key_to_rdata
-from kskm.common.data import Key, Signature, Bundle
-from kskm.common.rsa_utils import is_algorithm_rsa, decode_rsa_public_key
-from kskm.misc.crypto import verify_signature, InvalidSignature
-
-
-from kskm.misc.crypto import key_to_crypto_pubkey
+from kskm.common.rsa_utils import decode_rsa_public_key, is_algorithm_rsa
+from kskm.misc.crypto import (InvalidSignature, key_to_crypto_pubkey,
+                              verify_signature)
 
 __author__ = 'ft'
 

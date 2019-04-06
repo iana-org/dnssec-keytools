@@ -3,7 +3,7 @@ from abc import ABC
 from dataclasses import dataclass
 from typing import List, Optional, Set
 
-from kskm.common.data import SignaturePolicy, Bundle, Signer
+from kskm.common.data import Bundle, SignaturePolicy, Signer
 
 
 @dataclass(frozen=True)

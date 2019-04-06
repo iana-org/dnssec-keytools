@@ -1,7 +1,7 @@
 """SKR (Response) data classes."""
+from abc import ABC
 from dataclasses import dataclass
 from typing import List
-from abc import ABC
 
 from kskm.common.data import Bundle, SignaturePolicy
 

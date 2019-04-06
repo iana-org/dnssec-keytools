@@ -1,7 +1,7 @@
 """Logging initialisation code."""
-import sys
 import logging
 import logging.handlers
+import sys
 
 __author__ = 'ft'
 
