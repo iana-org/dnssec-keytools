@@ -3,7 +3,7 @@
 import hashlib
 from typing import Tuple, List
 
-from kskm.tools_common.wordlist import pgp_wordlist
+from kskm.common.wordlist import pgp_wordlist
 
 
 def sha2wordlist(message: bytes) -> Tuple[str, List[str]]:

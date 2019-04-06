@@ -1,6 +1,6 @@
 import unittest
 import hashlib
-from kskm.tools_common.wordlist import pgp_wordlist
+from kskm.common.wordlist import pgp_wordlist
 
 
 TESTS = [

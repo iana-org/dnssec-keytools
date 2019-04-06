@@ -18,9 +18,9 @@ import kskm.skr
 import kskm.misc
 import kskm.common
 from kskm.signer import create_skr, output_skr_xml
-from kskm.tools_common.display import format_bundles_for_humans
-from kskm.tools_common.logging import get_logger
-from kskm.tools_common.daisy import check_daisy_chain
+from kskm.common.display import format_bundles_for_humans
+from kskm.common.logging import get_logger
+from kskm.common.daisy import check_daisy_chain
 from kskm.common.config import filename as config_filename, get_config, get_schema, ConfigType
 
 __author__ = 'ft'

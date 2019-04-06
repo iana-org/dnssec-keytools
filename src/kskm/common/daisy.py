@@ -11,7 +11,7 @@ from kskm.ksr.policy import RequestPolicy
 from kskm.common.validate import PolicyViolation, fail
 from kskm.ksr.data import Request, Bundle
 from kskm.skr.data import Response
-from kskm.tools_common.display import format_bundles_for_humans
+from kskm.common.display import format_bundles_for_humans
 
 
 logger = logging.getLogger(__name__)
