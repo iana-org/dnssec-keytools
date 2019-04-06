@@ -3,6 +3,7 @@
 from typing import List
 
 # https://en.wikipedia.org/wiki/PGP_word_list
+# https://philzimmermann.com/docs/PGP_word_list.pdf
 WORDS = [
     ("aardvark", "adroitness"),
     ("absurd", "adviser"),
