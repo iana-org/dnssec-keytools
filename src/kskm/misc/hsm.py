@@ -37,6 +37,7 @@ class KSKM_P11Module(object):
 
     def __init__(self, module: str, label: Optional[str] = None, pin: Optional[str] = None, env: Dict[str, str] = {}):
         """Load and initialise a PKCS#11 module."""
+        self.module = module
         if label is None:
             self.label = module
         else:
@@ -66,7 +67,7 @@ class KSKM_P11Module(object):
         if pin is None:
             self.pin = getpass(f"Enter PIN for PKCS#11 module {self.label}: ")
         else:
-            self.pin = pin
+            self.pin = str(pin)
 
         # Mapping from slot number to session
         self._sessions: Dict[int, Any] = {}
@@ -84,11 +85,12 @@ class KSKM_P11Module(object):
                     _session = self._lib.openSession(_slot)
                     if self.pin is not None and len(self.pin) > 0:
                         _session.login(self.pin)
+                        logger.debug(f'Login to module {self.label} slot {_slot} successful')
                     else:
-                        logger.info(f'Not logging in to slot {_slot} module {self.label} - no PIN provided')
+                        logger.info(f'Not logging in to module {self.label} slot {_slot} - no PIN provided')
                     self._sessions[_slot] = _session
                 except PyKCS11.PyKCS11Error:
-                    pass
+                    logger.warning(f'Login to module {self.label} slot {_slot} failed')
         return self._sessions
 
     def find_key_by_label(self, label: str, public: bool = True) -> Optional[KSKM_P11Key]:
@@ -149,6 +151,19 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes) -> bytes:
 
 
 KSKM_P11 = NewType('KSKM_P11', List[KSKM_P11Module])
+
+
+def init_pkcs11_modules_from_dict(config: dict) -> KSKM_P11:
+    """
+    Initialize PKCS#11 modules using configuration dictionary.
+
+    :return: A list of PyKCS11 library instances.
+    """
+    modules: list = []
+    for label, kwargs in config.items():
+        modules.append(KSKM_P11Module(label=label, **kwargs))
+
+    return KSKM_P11(modules)
 
 
 def init_pkcs11_modules(config_dir: str) -> KSKM_P11:
