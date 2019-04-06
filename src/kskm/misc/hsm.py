@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 import re
 import glob
+from getpass import getpass
 import base64
 import logging
 
@@ -34,13 +35,38 @@ class KSKM_P11Key(object):
 class KSKM_P11Module(object):
     """KSKM interface to a PKCS#11 module."""
 
-    def __init__(self, module: str):
+    def __init__(self, module: str, label: Optional[str] = None, pin: Optional[str] = None, env: Dict[str, str] = {}):
         """Load and initialise a PKCS#11 module."""
-        logger.info('Initializing PKCS#11 module {}'.format(module))
-        self._module_name = module
+        if label is None:
+            self.label = module
+        else:
+            self.label = label
+
+        logger.info('Initializing PKCS#11 module %s', self.label)
+
+        # configure environment
+        old_env = {}
+        for key in env.keys():
+            old_env[key] = os.environ.get(key)
+        os.environ.update(env)
+
+        # load module
         self._lib = PyKCS11.PyKCS11Lib()
         self._lib.load(module)
         self._lib.lib.C_Initialize()
+
+        # reset environment
+        for k, v in old_env.items():
+            if v is None:
+                del(os.environ[k])
+            else:
+                os.environ[k] = v
+
+        # set PIN
+        if pin is None:
+            self.pin = getpass(f"Enter PIN for PKCS#11 module {self.label}: ")
+        else:
+            self.pin = pin
 
         # Mapping from slot number to session
         self._sessions: Dict[int, Any] = {}
@@ -54,14 +80,12 @@ class KSKM_P11Module(object):
         if not self._sessions:
             for _slot in self._slots:
                 try:
-                    logger.debug(f'Opening slot {_slot} in module {self._module_name}')
+                    logger.debug(f'Opening slot {_slot} in module {self.label}')
                     _session = self._lib.openSession(_slot)
-                    # TODO: Get the PIN from the configuration, or prompt for it?
-                    pin = os.environ.get('PKCS11PIN')
-                    if pin:
-                        _session.login(pin)
+                    if self.pin is not None and len(self.pin) > 0:
+                        _session.login(self.pin)
                     else:
-                        logger.info(f'Not logging in to slot {_slot} (module {self._module_name}) - no PIN provided')
+                        logger.info(f'Not logging in to slot {_slot} module {self.label} - no PIN provided')
                     self._sessions[_slot] = _session
                 except PyKCS11.PyKCS11Error:
                     pass
