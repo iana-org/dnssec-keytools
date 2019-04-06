@@ -1,16 +1,17 @@
 """The checks defined in the 'Verify KSR bundles' section of docs/ksr-processing.md."""
 from logging import Logger
-from cryptography.exceptions import InvalidSignature
 from typing import Dict, Optional
 
-from kskm.common.dnssec import calculate_key_tag
-from kskm.common.data import AlgorithmPolicyRSA, Key, AlgorithmPolicy
-from kskm.common.rsa_utils import is_algorithm_rsa, decode_rsa_public_key, RSAPublicKeyData
+from cryptography.exceptions import InvalidSignature
 
+from kskm.common.data import AlgorithmPolicy, AlgorithmPolicyRSA, Key
+from kskm.common.dnssec import calculate_key_tag
+from kskm.common.rsa_utils import (RSAPublicKeyData, decode_rsa_public_key,
+                                   is_algorithm_rsa)
+from kskm.common.signature import validate_signatures
+from kskm.common.validate import PolicyViolation, fail
 from kskm.ksr import Request
 from kskm.ksr.policy import RequestPolicy
-from kskm.common.validate import PolicyViolation, fail
-from kskm.common.signature import validate_signatures
 
 
 class KSR_BundleViolation(PolicyViolation):

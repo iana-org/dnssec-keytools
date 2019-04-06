@@ -1,14 +1,14 @@
 """Parse utilities common to both KSRs and SKRs."""
-import re
 import logging
+import re
+from datetime import datetime, timedelta, timezone
+from typing import List, Optional, Set, Union
 
-from typing import Set, Optional, Union, List
-from datetime import timedelta, datetime, timezone
-
+from kskm.common.data import (AlgorithmDNSSEC, AlgorithmPolicy, FlagsDNSKEY,
+                              Key, Signature, SignaturePolicy, Signer,
+                              TypeDNSSEC)
 from kskm.common.dsa_utils import is_algorithm_dsa, parse_signature_policy_dsa
 from kskm.common.rsa_utils import is_algorithm_rsa, parse_signature_policy_rsa
-from kskm.common.data import AlgorithmPolicy, AlgorithmDNSSEC, Key, Signature, TypeDNSSEC
-from kskm.common.data import SignaturePolicy, Signer, FlagsDNSKEY
 
 __author__ = 'ft'
 

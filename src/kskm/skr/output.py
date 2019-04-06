@@ -1,9 +1,9 @@
 """Output SKR XML documents."""
+from datetime import timedelta
 from typing import Set
 
-from datetime import timedelta
-
-from kskm.common.data import SignaturePolicy, AlgorithmPolicy, AlgorithmPolicyRSA, Key, Signature
+from kskm.common.data import (AlgorithmPolicy, AlgorithmPolicyRSA, Key,
+                              Signature, SignaturePolicy)
 from kskm.skr import Response
 from kskm.skr.data import ResponseBundle
 

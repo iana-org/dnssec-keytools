@@ -1,8 +1,8 @@
 """Functions to display data to humans."""
-from typing import List, Union, Sequence
+from typing import List, Sequence, Union
 
-from kskm.common.data import BundleType
 import kskm.common
+from kskm.common.data import BundleType
 
 __author__ = 'ft'
 

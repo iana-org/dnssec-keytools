@@ -3,15 +3,14 @@
 import logging
 import os
 
-from kskm.common.parse_utils import signature_policy_from_dict
-from kskm.common.xml_parser import parse_ksr
 from kskm.common.integrity import checksum_bytes2str
+from kskm.common.parse_utils import signature_policy_from_dict
 from kskm.common.validate import PolicyViolation
+from kskm.common.xml_parser import parse_ksr
 from kskm.skr.data import Response
-from kskm.skr.policy import ResponsePolicy
 from kskm.skr.parse_utils import responsebundles_from_list_of_dicts
+from kskm.skr.policy import ResponsePolicy
 from kskm.skr.validate import validate_response
-
 
 __author__ = 'ft'
 logger = logging.getLogger(__name__)

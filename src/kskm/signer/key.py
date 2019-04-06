@@ -3,12 +3,12 @@ import logging
 from dataclasses import dataclass
 from typing import Optional
 
-from kskm.ksr.data import RequestBundle
-from kskm.common.data import Key, FlagsDNSKEY
 from kskm.common.config import KSKKey, KSKPolicy
-from kskm.misc.hsm import KSKM_P11Key, KSKM_P11, get_p11_key
+from kskm.common.data import FlagsDNSKEY, Key
 from kskm.common.rsa_utils import RSAPublicKeyData, public_key_to_dnssec_key
 from kskm.common.validate import PolicyViolation
+from kskm.ksr.data import RequestBundle
+from kskm.misc.hsm import KSKM_P11, KSKM_P11Key, get_p11_key
 
 __author__ = 'ft'
 

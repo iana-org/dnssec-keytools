@@ -21,9 +21,9 @@ from werkzeug.datastructures import FileStorage
 from werkzeug.exceptions import BadRequest, Forbidden, RequestEntityTooLarge
 
 from kskm.common.config import get_config
-from kskm.ksr.policy import get_request_policy
-from kskm.ksr import load_ksr
 from kskm.common.validate import PolicyViolation
+from kskm.ksr import load_ksr
+from kskm.ksr.policy import get_request_policy
 
 DEFAULT_CONFIG = 'wksr.yaml'
 DEFAULT_CIPHERS = 'ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384'

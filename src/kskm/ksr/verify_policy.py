@@ -1,14 +1,13 @@
 """The checks defined in the 'Verify KSR policy parameters' section of docs/ksr-processing.md."""
+from datetime import timedelta
 from logging import Logger
 
-from datetime import timedelta
-
+from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyRSA
+from kskm.common.rsa_utils import is_algorithm_rsa
+from kskm.common.validate import PolicyViolation, fail
 from kskm.ksr import Request
 from kskm.ksr.data import RequestBundle
 from kskm.ksr.policy import RequestPolicy
-from kskm.common.validate import PolicyViolation, fail
-from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyRSA
-from kskm.common.rsa_utils import is_algorithm_rsa
 
 
 class KSR_PolicyViolation(PolicyViolation):

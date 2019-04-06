@@ -1,23 +1,22 @@
 """Sign request bundles and return response bundles."""
 import base64
-import logging
 import hashlib
+import logging
 from dataclasses import replace
-from typing import Iterable, Dict, List
+from typing import Dict, Iterable, List
 
 from cryptography.exceptions import InvalidSignature
 
-from kskm.common.config import KSKPolicy, ConfigType, get_ksk_keys, SchemaAction, KSKKeysType, Schema
-from kskm.common.config import ConfigurationError
-from kskm.common.data import Key, Signature, TypeDNSSEC, AlgorithmDNSSEC
+from kskm.common.config import (ConfigType, ConfigurationError, KSKKeysType,
+                                KSKPolicy, Schema, SchemaAction, get_ksk_keys)
+from kskm.common.data import AlgorithmDNSSEC, Key, Signature, TypeDNSSEC
 from kskm.common.signature import dndepth, make_raw_rrsig
 from kskm.ksr import Request
 from kskm.ksr.data import RequestBundle
 from kskm.misc.crypto import rsapubkey_to_crypto_pubkey, verify_signature
-from kskm.misc.hsm import KSKM_P11, sign_using_p11, KSKM_P11Key
+from kskm.misc.hsm import KSKM_P11, KSKM_P11Key, sign_using_p11
 from kskm.signer.key import load_pkcs11_key
 from kskm.skr.data import ResponseBundle
-
 
 logger = logging.getLogger(__name__)
 

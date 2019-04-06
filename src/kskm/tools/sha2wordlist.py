@@ -8,8 +8,8 @@ result as hex digest and PGP wordlist.
 
 import hashlib
 import sys
-from kskm.common.wordlist import pgp_wordlist
 
+from kskm.common.wordlist import pgp_wordlist
 
 message = sys.stdin.read().encode()
 m = hashlib.new('sha256')

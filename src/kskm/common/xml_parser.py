@@ -10,11 +10,10 @@ NOT XML compliance. We just need to parse KSRs good enough.
 """
 from __future__ import absolute_import
 
-import re
 import logging
-
-from typing import Tuple, Optional, Dict, Union
+import re
 from dataclasses import dataclass
+from typing import Dict, Optional, Tuple, Union
 
 __author__ = 'ft'
 

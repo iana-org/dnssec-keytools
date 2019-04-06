@@ -3,10 +3,10 @@
 import logging
 import os
 
+from kskm.common.integrity import checksum_bytes2str
 from kskm.common.parse_utils import signature_policy_from_dict
 from kskm.common.validate import PolicyViolation
 from kskm.common.xml_parser import parse_ksr
-from kskm.common.integrity import checksum_bytes2str
 from kskm.ksr.data import Request
 from kskm.ksr.parse_utils import requestbundles_from_list_of_dicts
 from kskm.ksr.policy import RequestPolicy

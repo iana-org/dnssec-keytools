@@ -5,23 +5,24 @@ KSR signer tool.
 Process a KSR received from the ZSK operator and produce an SKR response
 with signatures created using the KSK keys.
 """
-import os
-import sys
 import argparse
 import logging.handlers
-
-from typing import Optional
+import os
+import sys
 from argparse import Namespace as ArgsType
+from typing import Optional
 
-import kskm.ksr
-import kskm.skr
-import kskm.misc
 import kskm.common
-from kskm.signer import create_skr, output_skr_xml
+import kskm.ksr
+import kskm.misc
+import kskm.skr
+from kskm.common.config import ConfigType
+from kskm.common.config import filename as config_filename
+from kskm.common.config import get_config, get_schema
+from kskm.common.daisy import check_daisy_chain
 from kskm.common.display import format_bundles_for_humans
 from kskm.common.logging import get_logger
-from kskm.common.daisy import check_daisy_chain
-from kskm.common.config import filename as config_filename, get_config, get_schema, ConfigType
+from kskm.signer import create_skr, output_skr_xml
 
 __author__ = 'ft'
 

@@ -1,18 +1,16 @@
 """Code to validate daisy-chain properties between KSR(n) and SKR(n-1)."""
 import logging
-from datetime import datetime
 from dataclasses import dataclass
-
+from datetime import datetime
 from typing import List, Sequence
 
 from kskm.common.data import Key
-from kskm.common.parse_utils import is_zsk_key
-from kskm.ksr.policy import RequestPolicy
-from kskm.common.validate import PolicyViolation, fail
-from kskm.ksr.data import Request, Bundle
-from kskm.skr.data import Response
 from kskm.common.display import format_bundles_for_humans
-
+from kskm.common.parse_utils import is_zsk_key
+from kskm.common.validate import PolicyViolation, fail
+from kskm.ksr.data import Bundle, Request
+from kskm.ksr.policy import RequestPolicy
+from kskm.skr.data import Response
 
 logger = logging.getLogger(__name__)
 

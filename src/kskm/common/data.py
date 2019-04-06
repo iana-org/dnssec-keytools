@@ -1,10 +1,9 @@
 """Data classes common to KSR and SKR Classes."""
 from abc import ABC
-from enum import Enum
-from datetime import datetime, timedelta
 from dataclasses import dataclass, field
-from typing import Set, Optional, TypeVar, Type
-
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Optional, Set, Type, TypeVar
 
 # Type definitions to refer to the ABC types declared below
 PolicyType = TypeVar('PolicyType', bound='Policy')
