@@ -50,12 +50,11 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            'kskm-keybackup = kskm.tools.keybackup',
-            'kskm-kskgen = kskm.tools.kskgen',
-            'kskm-ksrsigner = kskm.tools.ksrsigner',
-            'kskm-sha2wordlist = kskm.tools.sha2wordlist',
-            'kskm-trustanchor = kskm.tools.trustanchor',
-            'kskm-wksr = kskm.tools.wksr',
+            'kskm-keymaster = kskm.tools.keymaster:main',
+            'kskm-ksrsigner = kskm.tools.ksrsigner:main',
+            'kskm-sha2wordlist = kskm.tools.sha2wordlist:main',
+            'kskm-trustanchor = kskm.tools.trustanchor:main',
+            'kskm-wksr = kskm.tools.wksr:main',
         ]
     },
 )
