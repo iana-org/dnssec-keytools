@@ -37,7 +37,13 @@ setup(
     ],
     keywords='',
     packages=[
+          'kskm.common',
           'kskm.ksr',
+          'kskm.misc',
+          'kskm.signer',
+          'kskm.skr',
+          'kskm.ta',
+          'kskm.tools',
     ],
     package_dir={'': 'src'},
     namespace_packages=['kskm'],
