@@ -1,6 +1,7 @@
 """Load and parse configuration."""
 from __future__ import annotations
 
+import logging
 import yaml
 
 from dataclasses import dataclass
@@ -10,9 +11,11 @@ from copy import deepcopy
 from typing import Optional, Mapping, Iterable, NewType, IO, Dict, Union, List, Type
 
 from kskm.common.data import SignaturePolicy, AlgorithmDNSSEC
+from kskm.common.integrity import checksum_bytes2str
 from kskm.common.parse_utils import duration_to_timedelta, parse_datetime
 
 __author__ = 'ft'
+logger = logging.getLogger(__name__)
 
 
 class ConfigurationError(Exception):
@@ -24,12 +27,15 @@ class ConfigurationError(Exception):
 ConfigType = NewType('ConfigType', Mapping)
 
 
-def get_config(fn: Optional[str]) -> ConfigType:
+def get_config(filename: Optional[str]) -> ConfigType:
     """Top-level function to load configuration, or return a default ConfigType instance."""
-    if not fn:
+    if not filename:
         # Avoid having Optional[ConfigType] everywhere by always having a config, even if it is empty
         return ConfigType({})
-    with open(fn) as fd:
+    with open(filename, 'rb') as fd:
+        config_bytes = fd.read()
+        logger.info("Loaded configuration from file %s %s", filename, checksum_bytes2str(config_bytes))
+        fd.seek(0)
         return load_from_yaml(fd)
 
 

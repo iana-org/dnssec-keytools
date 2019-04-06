@@ -25,6 +25,9 @@ wheel:
 test: $(VENV)
 	$(VENV)/bin/green $(GREEN_FLAGS)
 
+container:
+	docker build --tag wksr .
+
 coverage: $(VENV)
 	$(VENV)/bin/coverage run -m unittest discover --verbose
 	$(VENV)/bin/coverage html
