@@ -1,6 +1,11 @@
 """Top-level functions to load SKRs (Signed Key Response)."""
+
+import logging
+import os
+
 from kskm.common.parse_utils import signature_policy_from_dict
 from kskm.common.xml_parser import parse_ksr
+from kskm.common.integrity import checksum_bytes2str
 from kskm.common.validate import PolicyViolation
 from kskm.skr.data import Response
 from kskm.skr.policy import ResponsePolicy
@@ -9,17 +14,24 @@ from kskm.skr.validate import validate_response
 
 
 __author__ = 'ft'
+logger = logging.getLogger(__name__)
+
+MAX_SKR_SIZE = 1024 * 1024
 
 
-def load_skr(fn: str, policy: ResponsePolicy) -> Response:
+def load_skr(filename: str, policy: ResponsePolicy) -> Response:
     """Load a SKR response XML file."""
-    with open(fn) as fd:
-        xml = fd.read(1024 * 1024)  # impose upper limit on how much memory/CPU can be spent loading a file
-    response = response_from_xml(xml)
+    with open(filename, 'rb') as fd:
+        skr_file_size = os.fstat(fd.fileno()).st_size
+        if (skr_file_size > MAX_SKR_SIZE):
+            raise RuntimeError(f"SKR exceeding maximum size of {MAX_SKR_SIZE} bytes")
+        xml_bytes = fd.read(MAX_SKR_SIZE)  # impose upper limit on how much memory/CPU can be spent loading a file
+    logger.info("Loaded SKR from file %s %s", filename, checksum_bytes2str(xml_bytes))
+    response = response_from_xml(xml_bytes.decode())
     try:
         validate_response(response, policy)
     except PolicyViolation as exc:
-        raise RuntimeError('Failed validating KSR request in file {}: {}'.format(fn, exc))
+        raise RuntimeError('Failed validating SKR response in file {}: {}'.format(filename, exc))
     return response
 
 
