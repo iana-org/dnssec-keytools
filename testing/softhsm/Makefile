@@ -1,6 +1,7 @@
+SOFTHSM_CONF=		softhsm.conf
 SOFTHSM_SO_PIN=		1234567890
 SOFTHSM_PIN =		123456
-SOFTHSM_ENV=		SOFTHSM2_CONF=./softhsm.conf
+SOFTHSM_ENV=		SOFTHSM2_CONF=$(SOFTHSM_CONF)
 SOFTHSM_INIT=		--init-token \
 			--so-pin $(SOFTHSM_SO_PIN) \
 			--pin $(SOFTHSM_PIN)
@@ -8,36 +9,65 @@ SOFTHSM_IMPORT=		--pin $(SOFTHSM_PIN)
 SOFTHSM_BIN=		env $(SOFTHSM_ENV) softhsm2-util
 
 STATUSFILE=		softhsm.initialized
-TOKENS=			tokens
+TOKENDIR=		tokens
 
-CLEANFILES=	*.p8 softhsm.initialized $(TOKENS)
+KEYS=			rsa2048-1.key rsa2048-2.key ecp256-1.key ecp256-2.key
+KEYS_PKCS8=		rsa2048-1.p8 rsa2048-2.p8 ecp256-1.p8 ecp256-2.p8
 
-.SUFFIXES:	.p8 .key
+CLEANFILES=		*.p8 *.key softhsm.initialized $(TOKENDIR) $(SOFTHSM_CONF)
+
+.SUFFIXES:		.p8 .key
 
 
 softhsm: $(STATUSFILE)
 
+keys: $(KEYS)
+
+$(SOFTHSM_CONF):
+	echo "directories.tokendir = $(TOKENDIR)" > $@
+	echo "objectstore.backend = file" >> $@
+	echo "log.level = DEBUG" >> $@
+	echo "slots.removable = false" >> $@
+
 # fill slot 0 with both rsa2048-1.key & rsa2048-2.key
 # fill slot 1 with rsa2048-1.key only
 # fill slot 2 with rsa2048-2.key only
-$(STATUSFILE): $(TOKENS) rsa2048-1.p8 rsa2048-2.p8
+$(STATUSFILE): $(SOFTHSM_CONF) $(TOKENDIR) $(KEYS_PKCS8)
 	$(SOFTHSM_BIN) $(SOFTHSM_INIT) --free --label "SoftHSM-0"
 	$(SOFTHSM_BIN) $(SOFTHSM_INIT) --free --label "SoftHSM-1"
 	$(SOFTHSM_BIN) $(SOFTHSM_INIT) --free --label "SoftHSM-2"
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-1.p8 --token "SoftHSM-0" --id 01 --label KEY1 
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-2.p8 --token "SoftHSM-0" --id 02 --label KEY2 
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-1.p8 --token "SoftHSM-1" --id 01 --label KEY1 
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-2.p8 --token "SoftHSM-2" --id 02 --label KEY2
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-1.p8 --token "SoftHSM-0" --id 01 --label RSA1 
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-2.p8 --token "SoftHSM-0" --id 02 --label RSA2 
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-1.p8 --token "SoftHSM-1" --id 01 --label RSA1 
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-2.p8 --token "SoftHSM-2" --id 02 --label RSA2
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-1.p8 --token "SoftHSM-0" --id 03 --label EC1 
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-2.p8 --token "SoftHSM-0" --id 04 --label EC2 
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-1.p8 --token "SoftHSM-1" --id 03 --label EC1 
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-2.p8 --token "SoftHSM-2" --id 04 --label EC2
 	touch $(STATUSFILE)
 
 inventory:
 	$(SOFTHSM_BIN) --show-slots
 
-$(TOKENS):
+$(TOKENDIR):
 	mkdir $@
 
 rsa2048-1.p8: rsa2048-1.key
 rsa2048-2.p8: rsa2048-2.key
+ecp256-1.p8: ecp256-2.key
+ecp256-2.p8: ecp256-2.key
+
+rsa2048-1.key:
+	openssl genrsa 2048 > $@
+
+rsa2048-2.key:
+	openssl genrsa 2048 > $@
+
+ecp256-1.key:
+	openssl ecparam -name prime256v1 -genkey -noout -out $@
+
+ecp256-2.key:
+	openssl ecparam -name prime256v1 -genkey -noout -out $@
 
 .key.p8:
 	openssl pkcs8 -in $< -inform pem -nocrypt -out $@ -topk8
