@@ -67,7 +67,7 @@ response = element Response {
 
 algorithmPolicy = element SignatureAlgorithm {
     attribute algorithm { algorithm },
-    ( RSA | DSA )
+    ( RSA | DSA | ECDSA)
 }
 
 RSA = element RSA {
@@ -77,6 +77,11 @@ RSA = element RSA {
 }
 
 DSA = element DSA {
+    attribute size { xsd:nonNegativeInteger },
+    empty
+}
+
+ECDSA = element ECDSA {
     attribute size { xsd:nonNegativeInteger },
     empty
 }
