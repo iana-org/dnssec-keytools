@@ -5,8 +5,8 @@ DOCS=		htmlcov
 DISTDIRS=	*.egg-info build dist
 GREEN_FLAGS=	-vv
 
-SOFTHSM_CONF=	${CURDIR}/softhsm.conf
-
+SOFTHSM2_CONF=		${CURDIR}/softhsm.conf
+SOFTHSM2_MODULE?=	$(shell sh testing/softhsm/find_libsofthsm2.sh)
 
 all:
 
@@ -25,10 +25,12 @@ wheel:
 	$(VENV)/bin/python setup.py bdist_wheel
 
 softhsm:
-	(cd testing/softhsm; make SOFTHSM_CONF=$(SOFTHSM_CONF) softhsm)
+	(cd testing/softhsm; make SOFTHSM_CONF=$(SOFTHSM2_CONF) softhsm)
 
 test: $(VENV) softhsm
-	env SOFTHSM2_CONF=$(SOFTHSM_CONF) $(VENV)/bin/green $(GREEN_FLAGS)
+	test -f $(SOFTHSM2_MODULE)
+	env SOFTHSM2_CONF=$(SOFTHSM2_CONF) SOFTHSM2_MODULE=$(SOFTHSM2_MODULE) \
+		$(VENV)/bin/green $(GREEN_FLAGS)
 
 container:
 	docker build --tag wksr .
@@ -44,7 +46,7 @@ typecheck: $(VENV)
 	$(VENV)/bin/mypy $(SOURCE)
 
 clean:
-	(cd testing/softhsm; make SOFTHSM_CONF=$(SOFTHSM_CONF) clean)
+	(cd testing/softhsm; make SOFTHSM_CONF=$(SOFTHSM2_CONF) clean)
 	rm -fr $(DOCS) $(DISTDIRS)
 
 realclean: clean

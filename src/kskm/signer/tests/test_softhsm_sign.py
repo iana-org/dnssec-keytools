@@ -1,20 +1,13 @@
 """
-These tests only run if TEST_HSMCONFIG_DIR is set.
+These tests only works if SOFTHSM2_MODULE and SOFTHSM2_CONF is set.
 
-Point that environment variable to a directory with an .hsmconfig file allowing
-initialisation of SoftHSM2 *with the test keys created using 'make softhsm' in th
-testing/softhsm/ loaded*.
-
-Example ${TEST_HSMCONFIG_DIR}/test.hsmconfig file:
-
-  SOFTHSM2_CONF=/path/to/icann-kskm/testing/softhsm/softhsm.conf
-  PKCS11_LIBRARY_PATH=/usr/lib/softhsm/libsofthsm2.so
+Set SOFTHSM2_MODULE to the SoftHSM PKCS#11 and SOFTHSM2_CONF to the configuration
+file *with the test keys created using 'make softhsm' in th testing/softhsm/ loaded*.
 """
 
 import os
 import io
 import unittest
-import pkg_resources
 
 from kskm.misc.hsm import init_pkcs11_modules_from_dict, get_p11_key, KSKM_P11
 from kskm.ksr import Request
@@ -27,22 +20,10 @@ from kskm.common.config import load_from_yaml, get_schema, get_ksk_policy
 from kskm.signer import sign_bundles
 
 
-# use module defined by SOFTHSM2_MODULE or try to find one
-SOFTHSM2_MODULE = os.environ.get('SOFTHSM2_MODULE')
-if SOFTHSM2_MODULE is None:
-    SOFTHSM2_MODULE = None
-    for _fn in ['/usr/local/homebrew/lib/softhsm/libsofthsm2.so',
-                '/usr/lib/softhsm/libsofthsm2.so']:
-        if os.path.isfile(_fn):
-            SOFTHSM2_MODULE = _fn
-
-# use module defined by SOFTHSM2_CONF or use default
-SOFTHSM2_CONF = os.environ.get('SOFTHSM2_CONF',
-                               pkg_resources.resource_filename(__name__, '../../../../softhsm.conf'))
-
-print("Running PKCS#12 tests with:")
-print("SOFTHSM2_MODULE", SOFTHSM2_MODULE)
-print("SOFTHSM2_CONF", SOFTHSM2_CONF)
+if os.environ.get('SOFTHSM2_MODULE') and os.environ.get('SOFTHSM2_CONF'):
+    _TEST_SOFTHSM2 = True
+else:
+    _TEST_SOFTHSM2 = False
 
 
 _TEST_CONFIG_SIMPLE_RSA = """
@@ -85,14 +66,12 @@ keys:
     valid_until: 2019-01-11T00:00:00+00:00
 """
 
-_TEST_CONFIG_SIMPLE_COMMON = f"""
+_TEST_CONFIG_SIMPLE_COMMON = """
 hsm:
   softhsm:
-    module: {SOFTHSM2_MODULE}
+    module: $SOFTHSM2_MODULE
     pin: 123456
-    env:
-      SOFTHSM2_CONF: {SOFTHSM2_CONF}
-""" + """
+
 schemas:
   test:
     1: {publish: [], sign: ksk_test_key}
@@ -114,6 +93,7 @@ ksk_policy:
   min_validity_overlap: P9D
   ttl: 20
 """
+
 
 class Test_SignWithSoftHSM_RSA(unittest.TestCase):
 
@@ -144,6 +124,7 @@ class Test_SignWithSoftHSM_RSA(unittest.TestCase):
         for this in self.p11modules:
             this.close()
 
+    @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
     def test_sign_with_softhsm(self) -> None:
         """ Test signing a key record with SoftHSM and then verifying it """
         if not self.p11modules:
@@ -205,6 +186,7 @@ class Test_SignWithSoftHSM_ECDSA(unittest.TestCase):
         for this in self.p11modules:
             this.close()
 
+    @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
     def test_ec_sign_with_softhsm(self) -> None:
         """ Test ECDSA signing a key record with SoftHSM and then verifying it """
         if not self.p11modules:
