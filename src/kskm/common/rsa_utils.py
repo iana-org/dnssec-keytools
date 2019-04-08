@@ -2,11 +2,9 @@
 import base64
 import math
 import struct
-from dataclasses import dataclass, field, replace
-from typing import Optional
+from dataclasses import dataclass, field
 
-from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyRSA, Key
-from kskm.common.dnssec import calculate_key_tag
+from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyRSA, KSKM_PublicKey
 
 __author__ = 'ft'
 
@@ -38,10 +36,9 @@ def parse_signature_policy_rsa(data: dict) -> AlgorithmPolicyRSA:
 
 
 @dataclass(frozen=True)
-class RSAPublicKeyData(object):
+class RSAPublicKeyData(KSKM_PublicKey):
     """A parsed DNSSEC RSA public key."""
 
-    bits: int
     exponent: int
     n: bytes = field(repr=False)
 
@@ -75,19 +72,3 @@ def encode_rsa_public_key(key: RSAPublicKeyData) -> bytes:
         #       is it not meant to be used?
         exp_header = struct.pack('!B', _exp_len)
     return base64.b64encode(exp_header + exp + key.n)
-
-
-def public_key_to_dnssec_key(key: RSAPublicKeyData,
-                             key_identifier: Optional[str], algorithm: AlgorithmDNSSEC,
-                             ttl: int, flags: int, protocol: int) -> Key:
-    """Make a Key instance from an RSAPublicKeyData, and some other values."""
-    _key = Key(algorithm=algorithm,
-               flags=flags,
-               key_identifier=key_identifier,
-               protocol=protocol,
-               ttl=ttl,
-               key_tag=0,  # will calculate this below
-               public_key=encode_rsa_public_key(key),
-               )
-    key_tag = calculate_key_tag(_key)
-    return replace(_key, key_tag=key_tag)

@@ -6,14 +6,17 @@ from dataclasses import replace
 from typing import Dict, Iterable, List
 
 from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric.utils import encode_dss_signature
 
 from kskm.common.config import (ConfigType, ConfigurationError, KSKKeysType,
                                 KSKPolicy, Schema, SchemaAction, get_ksk_keys)
 from kskm.common.data import AlgorithmDNSSEC, Key, Signature, TypeDNSSEC
+from kskm.common.ecdsa_utils import is_algorithm_ecdsa
+from kskm.common.rsa_utils import is_algorithm_rsa
 from kskm.common.signature import dndepth, make_raw_rrsig
 from kskm.ksr import Request
 from kskm.ksr.data import RequestBundle
-from kskm.misc.crypto import rsapubkey_to_crypto_pubkey, verify_signature
+from kskm.misc.crypto import pubkey_to_crypto_pubkey, verify_signature
 from kskm.misc.hsm import KSKM_P11, KSKM_P11Key, sign_using_p11
 from kskm.signer.key import load_pkcs11_key
 from kskm.skr.data import ResponseBundle
@@ -120,20 +123,26 @@ def _sign_keys(bundle: RequestBundle, sign_key_name: str, p11modules: KSKM_P11,
     )
 
     rrsig_raw = make_raw_rrsig(sig, set(sign_keys))
-    signature_data = sign_using_p11(this_key.p11, rrsig_raw)
+    if signing_key.algorithm == AlgorithmDNSSEC.ECDSAP256SHA256:
+        to_sign = hashlib.sha256(rrsig_raw).digest()
+    else:
+        to_sign = rrsig_raw
+    signature_data = sign_using_p11(this_key.p11, to_sign, signing_key.algorithm)
 
     # Before proceeding, validate the signature using a non-HSM based implementation
-    _verify_using_crypto(this_key.p11, rrsig_raw, base64.b64decode(signature_data))
+    _verify_using_crypto(this_key.p11, rrsig_raw, signature_data, signing_key.algorithm)
 
-    sig = replace(sig, signature_data=signature_data)
+    sig = replace(sig, signature_data=base64.b64encode(signature_data))
     return sig
 
 
-def _verify_using_crypto(p11_key: KSKM_P11Key, rrsig_raw: bytes, signature: bytes) -> None:
+def _verify_using_crypto(p11_key: KSKM_P11Key, rrsig_raw: bytes, signature: bytes,
+                         algorithm: AlgorithmDNSSEC) -> None:
     """Double-check signatures created using HSM with a standard software cryptographic library."""
-    pubkey = rsapubkey_to_crypto_pubkey(p11_key.public_key)
+    pubkey = pubkey_to_crypto_pubkey(p11_key.public_key)
     try:
-        verify_signature(pubkey, signature, rrsig_raw, AlgorithmDNSSEC.RSASHA256)  # TODO: handle other algorithms
+        verify_signature(pubkey, signature, rrsig_raw, algorithm)
+        logger.debug('Signature validated with software')
     except InvalidSignature:
         logger.error('Failed validating the signature created by the HSM')
         logger.debug('RRSIG : {}'.format(base64.b16encode(rrsig_raw)))

@@ -1,19 +1,24 @@
 """Hardware Security Module interface functions."""
 from __future__ import annotations
 
-import base64
-import glob
-import logging
 import os
 import re
-from dataclasses import dataclass, field
+import glob
+import base64
+import hashlib
+import logging
+import binascii
+
 from getpass import getpass
+from dataclasses import dataclass, field
 from typing import (Any, Dict, Iterator, List, Mapping, MutableMapping,
                     NewType, Optional)
 
 import PyKCS11
 
-from kskm.common.rsa_utils import RSAPublicKeyData
+from kskm.common.data import KSKM_PublicKeyType, AlgorithmDNSSEC
+from kskm.common.ecdsa_utils import ECDSAPublicKeyData
+from kskm.common.rsa_utils import RSAPublicKeyData, is_algorithm_rsa
 
 __author__ = 'ft'
 
@@ -26,7 +31,7 @@ class KSKM_P11Key(object):
     """A reference to a key object loaded from a PKCS#11 module."""
 
     label: str  # for debugging
-    public_key: RSAPublicKeyData
+    public_key: Optional[KSKM_PublicKeyType]
     private_key: Any = field(repr=False)  # PyKCS11 opaque data
     session: Any = field(repr=False)  # PyKCS11 opaque data
 
@@ -79,6 +84,12 @@ class KSKM_P11Module(object):
         self._slots = self._lib.getSlotList(tokenPresent=True)
         logger.debug('P11 slots: {!r}'.format(self._slots))
 
+    def close(self):
+        for slot in self._slots:
+            self._lib.closeAllSessions(slot)
+        self._sessions = {}
+
+
     @property
     def sessions(self) -> Mapping[int, Any]:
         """Get sessions for all slots."""
@@ -103,25 +114,29 @@ class KSKM_P11Module(object):
 
         If 'public' is True, a CKO_PUBLIC_KEY will be sought, otherwise CKO_PRIVATE_KEY.
         """
+        _slots = []
         for _slot, _session in self.sessions.items():
             template = [(PyKCS11.CKA_LABEL, label)]
             if public:
                 template += [(PyKCS11.CKA_CLASS, PyKCS11.CKO_PUBLIC_KEY)]
             else:
                 template += [(PyKCS11.CKA_CLASS, PyKCS11.CKO_PRIVATE_KEY)]
+            _slots += [_slot]
             res = _session.findObjects(template)
             if res:
                 # logger.debug(f'Found key with label {label!r} in slot {_slot}')
-                return KSKM_P11Key(label=label,
-                                   public_key=self._p11_object_to_public_key(_session, res),
-                                   private_key=res if not public else None,
-                                   session=_session,
-                                   )
-        logger.debug(f'Key with label {label!r} not found')
+                key = KSKM_P11Key(label=label,
+                                  public_key=self._p11_object_to_public_key(_session, res),
+                                  private_key=res if not public else None,
+                                  session=_session,
+                                  )
+                return key
+
+        logger.debug(f'Key with label {label!r} not found in slots {_slots} (module {self.module})')
         return None
 
     @staticmethod
-    def _p11_object_to_public_key(session: Any, data: list) -> RSAPublicKeyData:
+    def _p11_object_to_public_key(session: Any, data: list) -> Optional[KSKM_PublicKeyType]:
         """Create an RSAPublicKeyData object from PKCS#11 findObject return data."""
         _cka_type = session.getAttributeValue(data[0], [PyKCS11.CKA_KEY_TYPE])[0]
         if _cka_type == PyKCS11.CKK_RSA:
@@ -132,13 +147,40 @@ class KSKM_P11Module(object):
             return RSAPublicKeyData(bits=len(rsa_n) * 8,
                                     exponent=rsa_e,
                                     n=rsa_n)
+        elif _cka_type == PyKCS11.CKK_EC:
+            # DER-encoding of ANSI X9.62 ECPoint value ''Q''.
+            _cka_ec_point = session.getAttributeValue(data[0], [PyKCS11.CKA_EC_POINT])
+            if not _cka_ec_point[0]:
+                return None
+            ec_point = bytes(_cka_ec_point[0])
+            # SoftHSM2 tacks on an extra 0x04 <len-byte> before the 0x04 that signals an
+            # uncompressed EC point. Check for that and remove it if found.
+            _prefix = bytes([4, len(ec_point) - 2, 4])
+            if ec_point.startswith(_prefix):
+                ec_point = ec_point[2:]
+            ec_params = bytes(session.getAttributeValue(data[0], [PyKCS11.CKA_EC_PARAMS])[0])
+            logger.debug(f'EC_POINT: {binascii.hexlify(ec_point)}')
+            logger.debug(f'EC_PARAMS: {binascii.hexlify(ec_params)}')
+            # ec_point is an 0x04 prefix byte, and then both x and y points concatenated, so divide by 2
+            _ec_len = (len(ec_point) - 1) * 8 // 2
+            # TODO: Get algorithm from EC_PARAMS (contains an OID) instead of guessing based on len
+            if _ec_len == 256:
+                alg = AlgorithmDNSSEC.ECDSAP256SHA256
+            elif _ec_len == 384:
+                alg = AlgorithmDNSSEC.ECDSAP384SHA384
+            else:
+                raise RuntimeError(f'Unexpected ECDSA key length: {_ec_len}')
+            return ECDSAPublicKeyData(bits=_ec_len, q=ec_point, algorithm=alg)
         else:
             raise NotImplementedError('Unknown CKA_TYPE: {}'.format(PyKCS11.CKK[_cka_type]))
 
 
-def sign_using_p11(key: KSKM_P11Key, data: bytes) -> bytes:
+def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) -> bytes:
     """
     Sign some data using a PKCS#11 key.
+
+    The parameters 'rsa' and 'sha_bits' are used to figure out what PKCS#11 mechanism
+    to use. If RSA is True, PKCS#1 1.5 will be used.
 
     NOTE: The old code seemed to be pretty deliberately made to create the raw data
           itself and then ask the HSM to sign raw data (using CKM_RSA_X_509), but the
@@ -148,10 +190,18 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes) -> bytes:
           structure is shown in e.g. RFC8017, A.2.4. RSASSA-PKCS-v1_5.
     """
     logger.debug(f'Signing {len(data)} bytes with key {key}')
-    mechanism = PyKCS11.Mechanism(PyKCS11.CKM_SHA256_RSA_PKCS, None)
-    sig = key.session.sign(key.private_key[0], data, mechanism)
-    sig_b = bytes(sig)
-    return base64.b64encode(sig_b)
+    _mechs = {AlgorithmDNSSEC.RSASHA1: PyKCS11.CKM_SHA1_RSA_PKCS,
+              AlgorithmDNSSEC.RSASHA256: PyKCS11.CKM_SHA256_RSA_PKCS,
+              AlgorithmDNSSEC.RSASHA512: PyKCS11.CKM_SHA512_RSA_PKCS,
+              AlgorithmDNSSEC.ECDSAP256SHA256: PyKCS11.CKM_ECDSA,
+              AlgorithmDNSSEC.ECDSAP384SHA384: PyKCS11.CKM_ECDSA,
+              }
+    mechanism = _mechs.get(algorithm)
+    if mechanism is None:
+        raise RuntimeError(f'Can\'t PKCS#11 sign data with algorithm {algorithm.name}')
+
+    sig = key.session.sign(key.private_key[0], data, PyKCS11.Mechanism(mechanism, None))
+    return bytes(sig)
 
 
 KSKM_P11 = NewType('KSKM_P11', List[KSKM_P11Module])

@@ -11,6 +11,9 @@ SOFTHSM_BIN=		env $(SOFTHSM_ENV) softhsm2-util
 STATUSFILE=		softhsm.initialized
 TOKENDIR=		${CURDIR}/tokens
 
+P11MODULE ?=            /usr/lib/softhsm/libsofthsm2.so
+PKCS11TOOL=             env $(SOFTHSM_ENV) pkcs11-tool --module $(P11MODULE) --login --pin $(SOFTHSM_PIN)
+
 KEYS=			rsa2048-1.key rsa2048-2.key ecp256-1.key ecp256-2.key
 KEYS_PKCS8=		rsa2048-1.p8 rsa2048-2.p8 ecp256-1.p8 ecp256-2.p8
 
@@ -38,16 +41,22 @@ $(STATUSFILE): $(SOFTHSM_CONF) $(TOKENDIR) $(KEYS_PKCS8)
 	$(SOFTHSM_BIN) $(SOFTHSM_INIT) --free --label "SoftHSM-2"
 	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-1.p8 --token "SoftHSM-0" --id 01 --label RSA1
 	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-2.p8 --token "SoftHSM-0" --id 02 --label RSA2
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-1.p8 --token "SoftHSM-1" --id 01 --label RSA1x 
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-1.p8 --token "SoftHSM-1" --id 01 --label RSA1x
 	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-2.p8 --token "SoftHSM-2" --id 02 --label RSA2x
 	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-1.p8 --token "SoftHSM-0" --id 03 --label EC1
 	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-2.p8 --token "SoftHSM-0" --id 04 --label EC2
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-1.p8 --token "SoftHSM-1" --id 03 --label EC1x 
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-1.p8 --token "SoftHSM-1" --id 03 --label EC1x
 	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-2.p8 --token "SoftHSM-2" --id 04 --label EC2x
 	touch $(STATUSFILE)
 
 inventory:
 	$(SOFTHSM_BIN) --show-slots
+
+keylist:
+	$(PKCS11TOOL) --list-token-slots || true
+	$(PKCS11TOOL) --list-objects --token-label "SoftHSM-0"
+	$(PKCS11TOOL) --list-objects --token-label "SoftHSM-1"
+	$(PKCS11TOOL) --list-objects --token-label "SoftHSM-2"
 
 $(TOKENDIR):
 	mkdir $@

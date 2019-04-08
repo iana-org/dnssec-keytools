@@ -47,8 +47,6 @@ def validate_signatures(bundle: Bundle) -> bool:
         if sig.key_tag not in _keys:
             raise ValueError('No key with key_tag {} in bundle {}'.format(sig.key_tag, bundle.id))
         key = _keys[sig.key_tag]
-        if not _is_rsa_key(key):
-            raise NotImplementedError('Can only verify RSA signatures (not {})'.format(key.algorithm))
         pubkey = key_to_crypto_pubkey(key)
         _sig_decoded = base64.b64decode(sig.signature_data)
 
@@ -62,8 +60,9 @@ def validate_signatures(bundle: Bundle) -> bool:
             logger.error(f'Key {key.key_tag}/{key.key_identifier} in bundle {bundle.id} FAILED validation')
             logger.debug('RRSIG : {}'.format(binascii.hexlify(rrsig_raw)))
             logger.debug('DIGEST: {}'.format(sha256(rrsig_raw).hexdigest()))
-            _pk = decode_rsa_public_key(key.public_key)
-            logger.debug('Public key: {}'.format(_pk))
+            if is_algorithm_rsa(key.algorithm):
+                _pk = decode_rsa_public_key(key.public_key)
+                logger.debug('Public key: {}'.format(_pk))
             raise
     return True
 

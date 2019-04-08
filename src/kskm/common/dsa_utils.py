@@ -5,20 +5,17 @@ __author__ = 'ft'
 
 
 def is_algorithm_dsa(alg: AlgorithmDNSSEC) -> bool:
-    """Check if `alg' is one of the known DSA algorithms."""
-    # TODO: Are these the right ones? Have no examples of SignaturePolicy DSA.
-    return alg in [AlgorithmDNSSEC.ECDSAP256SHA256,
-                   AlgorithmDNSSEC.ECDSAP384SHA384,
-                   ]
+    """Check if `alg' is the DSA algorithm."""
+    return alg == AlgorithmDNSSEC.DSA
 
 
 def parse_signature_policy_dsa(data: dict) -> AlgorithmPolicyDSA:
     """
-    Parse DSA ZSK SignatureAlgorithm entrys.
+    Parse DSA ZSK SignatureAlgorithm entries.
 
     The ZSK policy on a parsed KSR XML contains dicts assumed to look like this:
 
-    {'attrs': {'algorithm': '13'},
+    {'attrs': {'algorithm': '3'},
      'value': {'DSA': {'attrs': {'size': '1024'}, 'value': ''}}}
     """
     attr_alg = AlgorithmDNSSEC(int(data['attrs']['algorithm']))

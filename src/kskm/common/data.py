@@ -9,10 +9,18 @@ from typing import Optional, Set, Type, TypeVar
 PolicyType = TypeVar('PolicyType', bound='Policy')
 BundleType = TypeVar('BundleType', bound='Bundle')
 AlgorithmPolicyType = TypeVar('AlgorithmPolicyType', bound='AlgorithmPolicy')
+KSKM_PublicKeyType = TypeVar('KSKM_PublicKeyType', bound='KSKM_PublicKey')
+
+
+@dataclass(frozen=True)
+class KSKM_PublicKey(ABC):
+
+    bits: int
 
 
 # TODO: use https://github.com/rthalley/dnspython/blob/master/dns/dnssec.py if we use it elsewhere
 class AlgorithmDNSSEC(Enum):
+    DSA = 3
     RSASHA1 = 5
     RSASHA256 = 8
     RSASHA512 = 10
@@ -43,6 +51,11 @@ class AlgorithmPolicy(object):
 @dataclass(frozen=True)
 class AlgorithmPolicyRSA(AlgorithmPolicy):
     exponent: int
+
+
+@dataclass(frozen=True)
+class AlgorithmPolicyECDSA(AlgorithmPolicy):
+    pass
 
 
 @dataclass(frozen=True)

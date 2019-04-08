@@ -167,10 +167,10 @@ class KSKKey(object):
     description: str
     label: str
     algorithm: AlgorithmDNSSEC
-    rsa_size: Optional[int]
-    rsa_exponent: Optional[int]
     valid_from: datetime
     valid_until: Optional[datetime] = None
+    rsa_size: Optional[int] = None
+    rsa_exponent: Optional[int] = None
 
     @classmethod
     def from_dict(cls: Type[KSKKey], data: dict) -> KSKKey:
