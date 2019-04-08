@@ -5,7 +5,7 @@ DOCS=		htmlcov
 DISTDIRS=	*.egg-info build dist
 GREEN_FLAGS=	-vv
 
-SOFTHSM2_CONF=		${CURDIR}/softhsm.conf
+SOFTHSM2_CONF=		${CURDIR}/testing/softhsm/softhsm.conf
 SOFTHSM2_MODULE?=	$(shell sh testing/softhsm/find_libsofthsm2.sh)
 
 all:
