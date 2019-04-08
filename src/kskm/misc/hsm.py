@@ -47,7 +47,7 @@ class KSKM_P11Module(object):
         else:
             self.label = label
 
-        logger.info('Initializing PKCS#11 module %s', self.label)
+        logger.info('Initializing PKCS#11 module %s using %s', self.label, self.module)
 
         # configure environment
         old_env = {}
@@ -57,7 +57,7 @@ class KSKM_P11Module(object):
 
         # load module
         self._lib = PyKCS11.PyKCS11Lib()
-        self._lib.load(module)
+        self._lib.load(self.module)
         self._lib.lib.C_Initialize()
 
         # reset environment
