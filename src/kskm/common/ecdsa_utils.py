@@ -33,10 +33,10 @@ def parse_signature_policy_ecdsa(data: dict) -> AlgorithmPolicyECDSA:
     """
     attr_alg = AlgorithmDNSSEC(int(data['attrs']['algorithm']))
     attrs = data['value']['ECDSA']['attrs']
-    dsa = AlgorithmPolicyECDSA(bits=int(attrs['size']),
-                               algorithm=attr_alg,
-                               )
-    return dsa
+    ecdsa = AlgorithmPolicyECDSA(bits=int(attrs['size']),
+                                 algorithm=attr_alg,
+                                 )
+    return ecdsa
 
 
 def encode_ecdsa_public_key(key: ECDSAPublicKeyData) -> bytes:
