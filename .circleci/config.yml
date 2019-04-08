@@ -6,7 +6,7 @@ jobs:
       - image: python:3.7
     steps:
       - run: apt -y update
-      - run: apt -y install swig
+      - run: apt -y install swig softhsm2 libsofthsm2
       - checkout
       - run: make test
 
