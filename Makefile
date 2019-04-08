@@ -5,6 +5,8 @@ DOCS=		htmlcov
 DISTDIRS=	*.egg-info build dist
 GREEN_FLAGS=	-vv
 
+SOFTHSM_CONF=	${CURDIR}/softhsm.conf
+
 
 all:
 
@@ -23,10 +25,10 @@ wheel:
 	$(VENV)/bin/python setup.py bdist_wheel
 
 softhsm:
-	(cd testing/softhsm; make softhsm)
+	(cd testing/softhsm; make SOFTHSM_CONF=$(SOFTHSM_CONF) softhsm)
 
 test: $(VENV) softhsm
-	$(VENV)/bin/green $(GREEN_FLAGS)
+	env SOFTHSM2_CONF=$(SOFTHSM_CONF) $(VENV)/bin/green $(GREEN_FLAGS)
 
 container:
 	docker build --tag wksr .
@@ -42,6 +44,7 @@ typecheck: $(VENV)
 	$(VENV)/bin/mypy $(SOURCE)
 
 clean:
+	(cd testing/softhsm; make SOFTHSM_CONF=$(SOFTHSM_CONF) clean)
 	rm -fr $(DOCS) $(DISTDIRS)
 
 realclean: clean
