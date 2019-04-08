@@ -35,7 +35,7 @@ setup(
     version=version,
     description=f'KSK Management tools ({git_hash})',
     classifiers=[
-          'Programming Language :: Python',
+          'Programming Language :: Python :: 3',
     ],
     keywords='',
     packages=[
