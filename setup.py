@@ -2,7 +2,7 @@ from setuptools import setup
 import subprocess
 
 version = '0.0.1'
-git_hash = subprocess.check_output('git rev-parse --verify HEAD', shell=True)
+git_hash = subprocess.check_output('git rev-parse --short --verify HEAD', shell=True)
 
 install_requires = [
     'cryptography',
