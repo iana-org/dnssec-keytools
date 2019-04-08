@@ -1,6 +1,8 @@
 from setuptools import setup
+import subprocess
 
 version = '0.0.1'
+git_hash = subprocess.check_output('git rev-parse --verify HEAD', shell=True)
 
 install_requires = [
     'cryptography',
@@ -31,7 +33,7 @@ online_extras = [
 setup(
     name='kskm',
     version=version,
-    description='KSK Management tools',
+    description=f'KSK Management tools ({git_hash})',
     classifiers=[
           'Programming Language :: Python',
     ],
