@@ -22,7 +22,10 @@ upgrade-venv:: setup.py
 wheel:
 	$(VENV)/bin/python setup.py bdist_wheel
 
-test: $(VENV)
+softhsm:
+	(cd testing/softhsm; make softhsm)
+
+test: $(VENV) softhsm
 	$(VENV)/bin/green $(GREEN_FLAGS)
 
 container:
