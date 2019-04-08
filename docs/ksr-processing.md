@@ -20,6 +20,7 @@ The input to the KSR validation process is the KSR to be validated, KSR(n), as w
 - **KSR-BUNDLE-UNIQUE**: Verify that all requested bundles has unique IDs
 - **KSR-BUNDLE-KEYS**: Verify that the keys are consistent across all bundles and that the key tags are correctly calculated. Each _keyIdentifier_ should refer to the same key (tag, ttl, flags, protocol, algorithm, public key) for all bundles.
 - **KSR-BUNDLE-POP**: For each key bundle in KSR(n), verify the signature by each ZSK to confirm proof-of-possession of private component of each ZSK. The inception and expiration times of the RRSIGs in the KSR are ignored when checking proof-of-possession.
+- **KSR-BUNDLE-COUNT**: Verify that the number of requested bundles are within acceptable limits.
 
 ### Verify KSR policy parameters
 
