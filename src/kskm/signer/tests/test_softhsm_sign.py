@@ -27,16 +27,22 @@ from kskm.common.config import load_from_yaml, get_schema, get_ksk_policy
 from kskm.signer import sign_bundles
 
 
-_TEST_HSMCONFIG_DIR = os.environ.get('TEST_HSMCONFIG_DIR')
+# use module defined by SOFTHSM2_MODULE or try to find one
+SOFTHSM2_MODULE = os.environ.get('SOFTHSM2_MODULE')
+if SOFTHSM2_MODULE is None:
+    SOFTHSM2_MODULE = None
+    for _fn in ['/usr/local/homebrew/lib/softhsm/libsofthsm2.so',
+                '/usr/lib/softhsm/libsofthsm2.so']:
+        if os.path.isfile(_fn):
+            SOFTHSM2_MODULE = _fn
 
-SOFTHSM2_MODULE = ''
-for _fn in ['/usr/local/homebrew/lib/softhsm/libsofthsm2.so',
-            '/usr/lib/softhsm/libsofthsm2.so']:
-    if os.path.isfile(_fn):
-        SOFTHSM2_MODULE = _fn
+# use module defined by SOFTHSM2_CONF or use default
+SOFTHSM2_CONF = os.environ.get('SOFTHSM2_CONF',
+                               pkg_resources.resource_filename(__name__, '../../../../softhsm.conf'))
 
-SOFTHSM2_CONF = pkg_resources.resource_filename(__name__, '../../../../testing/softhsm/softhsm.conf')
-print(SOFTHSM2_CONF)
+print("Running PKCS#12 tests with:")
+print("SOFTHSM2_MODULE", SOFTHSM2_MODULE)
+print("SOFTHSM2_CONF", SOFTHSM2_CONF)
 
 
 _TEST_CONFIG_SIMPLE_RSA = """
