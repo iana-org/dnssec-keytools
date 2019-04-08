@@ -36,14 +36,14 @@ $(STATUSFILE): $(SOFTHSM_CONF) $(TOKENDIR) $(KEYS_PKCS8)
 	$(SOFTHSM_BIN) $(SOFTHSM_INIT) --free --label "SoftHSM-0"
 	$(SOFTHSM_BIN) $(SOFTHSM_INIT) --free --label "SoftHSM-1"
 	$(SOFTHSM_BIN) $(SOFTHSM_INIT) --free --label "SoftHSM-2"
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-1.p8 --token "SoftHSM-0" --id 01 --label RSA1 
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-2.p8 --token "SoftHSM-0" --id 02 --label RSA2 
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-1.p8 --token "SoftHSM-1" --id 01 --label RSA1 
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-2.p8 --token "SoftHSM-2" --id 02 --label RSA2
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-1.p8 --token "SoftHSM-0" --id 03 --label EC1 
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-2.p8 --token "SoftHSM-0" --id 04 --label EC2 
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-1.p8 --token "SoftHSM-1" --id 03 --label EC1 
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-2.p8 --token "SoftHSM-2" --id 04 --label EC2
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-1.p8 --token "SoftHSM-0" --id 01 --label RSA1
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-2.p8 --token "SoftHSM-0" --id 02 --label RSA2
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-1.p8 --token "SoftHSM-1" --id 01 --label RSA1x 
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-2.p8 --token "SoftHSM-2" --id 02 --label RSA2x
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-1.p8 --token "SoftHSM-0" --id 03 --label EC1
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-2.p8 --token "SoftHSM-0" --id 04 --label EC2
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-1.p8 --token "SoftHSM-1" --id 03 --label EC1x 
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-2.p8 --token "SoftHSM-2" --id 04 --label EC2x
 	touch $(STATUSFILE)
 
 inventory:
