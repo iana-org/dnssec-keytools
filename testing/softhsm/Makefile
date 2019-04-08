@@ -1,4 +1,4 @@
-SOFTHSM_CONF=		softhsm.conf
+SOFTHSM_CONF=		${CURDIR}/softhsm.conf
 SOFTHSM_SO_PIN=		1234567890
 SOFTHSM_PIN =		123456
 SOFTHSM_ENV=		SOFTHSM2_CONF=$(SOFTHSM_CONF)
@@ -9,7 +9,7 @@ SOFTHSM_IMPORT=		--pin $(SOFTHSM_PIN)
 SOFTHSM_BIN=		env $(SOFTHSM_ENV) softhsm2-util
 
 STATUSFILE=		softhsm.initialized
-TOKENDIR=		tokens
+TOKENDIR=		${CURDIR}/tokens
 
 KEYS=			rsa2048-1.key rsa2048-2.key ecp256-1.key ecp256-2.key
 KEYS_PKCS8=		rsa2048-1.p8 rsa2048-2.p8 ecp256-1.p8 ecp256-2.p8
