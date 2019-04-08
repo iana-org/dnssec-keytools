@@ -1,5 +1,17 @@
 # example ksrsigner configuration/policy file
 
+hsm:
+  softhsm:
+    module: /usr/local/homebrew/lib/softhsm/libsofthsm2.so
+    pin: 123456
+    env:
+      SOFTHSM2_CONF: softhsm.conf
+  aep:
+    module: /usr/local/lib/pkcs11.GCC4.0.2.so.4.07
+    pin: 000000
+    env:
+      KEYPER_LIBRARY_PATH: /var/dnssec/ksr/AEP
+
 filenames:
   previous_skr: prev-skr.xml
   # TODO: Rename these to input_ksr and output_skr to avoid human errors?
