@@ -4,6 +4,8 @@ jobs:
   test:
     docker:
       - image: python:3.7
+    environment:
+      SOFTHSM_MODULE: /usr/lib/softhsm/libsofthsm2.so
     steps:
       - run: apt -y update
       - run: apt -y install swig softhsm2 libsofthsm2
