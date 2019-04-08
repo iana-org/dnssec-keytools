@@ -36,7 +36,12 @@ class KSKM_P11Module(object):
 
     def __init__(self, module: str, label: Optional[str] = None, pin: Optional[str] = None, env: Dict[str, str] = {}):
         """Load and initialise a PKCS#11 module."""
-        self.module = module
+
+        if module.startswith('$'):
+            self.module = os.environ.get(module.lstrip('$'))
+        else:
+            self.module = module
+
         if label is None:
             self.label = module
         else:
