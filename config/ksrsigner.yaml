@@ -1,5 +1,6 @@
 # example ksrsigner configuration/policy file
 
+# per HSM PKCS#11 configuration; module required, pin and env is optional
 hsm:
   softhsm:
     module: /usr/local/homebrew/lib/softhsm/libsofthsm2.so
