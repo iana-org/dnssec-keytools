@@ -2,13 +2,13 @@ from __future__ import absolute_import
 
 import os
 import unittest
-import pkg_resources
-
 from dataclasses import replace
 
-import kskm.ksr.verify_policy
+import pkg_resources
+
 import kskm.ksr.verify_bundles
-from kskm.ksr import request_from_xml, load_ksr
+import kskm.ksr.verify_policy
+from kskm.ksr import load_ksr, request_from_xml
 from kskm.ksr.policy import RequestPolicy
 
 

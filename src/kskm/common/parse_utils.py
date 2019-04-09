@@ -8,7 +8,8 @@ from kskm.common.data import (AlgorithmDNSSEC, AlgorithmPolicy, FlagsDNSKEY,
                               Key, Signature, SignaturePolicy, Signer,
                               TypeDNSSEC)
 from kskm.common.dsa_utils import is_algorithm_dsa, parse_signature_policy_dsa
-from kskm.common.ecdsa_utils import is_algorithm_ecdsa, parse_signature_policy_ecdsa
+from kskm.common.ecdsa_utils import (is_algorithm_ecdsa,
+                                     parse_signature_policy_ecdsa)
 from kskm.common.rsa_utils import is_algorithm_rsa, parse_signature_policy_rsa
 
 __author__ = 'ft'

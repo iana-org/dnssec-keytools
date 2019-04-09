@@ -1,20 +1,19 @@
 """Hardware Security Module interface functions."""
 from __future__ import annotations
 
-import os
-import re
+import binascii
 import glob
 import logging
-import binascii
-
-from getpass import getpass
+import os
+import re
 from dataclasses import dataclass, field
+from getpass import getpass
 from typing import (Any, Dict, Iterator, List, Mapping, MutableMapping,
                     NewType, Optional)
 
 import PyKCS11
 
-from kskm.common.data import KSKM_PublicKeyType, AlgorithmDNSSEC
+from kskm.common.data import AlgorithmDNSSEC, KSKM_PublicKeyType
 from kskm.common.ecdsa_utils import ECDSAPublicKeyData
 from kskm.common.rsa_utils import RSAPublicKeyData
 

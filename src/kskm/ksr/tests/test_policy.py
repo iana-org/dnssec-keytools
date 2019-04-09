@@ -1,8 +1,9 @@
 import os
 import unittest
+
 import pkg_resources
 
-from kskm.ksr.policy import policy_from_file, RequestPolicy
+from kskm.ksr.policy import RequestPolicy, policy_from_file
 
 
 class TestRequestPolicy(unittest.TestCase):

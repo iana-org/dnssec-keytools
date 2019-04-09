@@ -1,10 +1,11 @@
 import os
-import pkg_resources
-
 from hashlib import sha256
 from unittest import TestCase
-from kskm.ksr import request_from_xml
+
+import pkg_resources
+
 from kskm.common.signature import make_raw_rrsig
+from kskm.ksr import request_from_xml
 
 
 class TestBundle_to_hashdigest(TestCase):

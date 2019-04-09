@@ -4,9 +4,9 @@ import struct
 from dataclasses import replace
 from typing import Optional
 
-from kskm.common.data import Key, AlgorithmDNSSEC, KSKM_PublicKey
-from kskm.common.rsa_utils import RSAPublicKeyData, encode_rsa_public_key
+from kskm.common.data import AlgorithmDNSSEC, Key, KSKM_PublicKey
 from kskm.common.ecdsa_utils import ECDSAPublicKeyData, encode_ecdsa_public_key
+from kskm.common.rsa_utils import RSAPublicKeyData, encode_rsa_public_key
 
 __author__ = 'ft'
 

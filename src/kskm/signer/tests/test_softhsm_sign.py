@@ -5,20 +5,19 @@ Set SOFTHSM2_MODULE to the SoftHSM PKCS#11 and SOFTHSM2_CONF to the configuratio
 file *with the test keys created using 'make softhsm' in th testing/softhsm/ loaded*.
 """
 
-import os
 import io
+import os
 import unittest
 
-from kskm.misc.hsm import init_pkcs11_modules_from_dict, get_p11_key, KSKM_P11
-from kskm.ksr import Request
-from kskm.ksr.data import RequestBundle
+from kskm.common.config import get_ksk_policy, get_schema, load_from_yaml
 from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY
-from kskm.common.signature import validate_signatures
 from kskm.common.dnssec import public_key_to_dnssec_key
 from kskm.common.parse_utils import parse_datetime, signature_policy_from_dict
-from kskm.common.config import load_from_yaml, get_schema, get_ksk_policy
+from kskm.common.signature import validate_signatures
+from kskm.ksr import Request
+from kskm.ksr.data import RequestBundle
+from kskm.misc.hsm import KSKM_P11, get_p11_key, init_pkcs11_modules_from_dict
 from kskm.signer import sign_bundles
-
 
 if os.environ.get('SOFTHSM2_MODULE') and os.environ.get('SOFTHSM2_CONF'):
     _TEST_SOFTHSM2 = True

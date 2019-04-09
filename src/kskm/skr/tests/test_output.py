@@ -1,9 +1,11 @@
 import os
 import unittest
+
 import pkg_resources
 
 from kskm.common.config import get_config
-from kskm.skr import response_from_xml, skr_to_xml, load_skr, get_response_policy
+from kskm.skr import (get_response_policy, load_skr, response_from_xml,
+                      skr_to_xml)
 from kskm.skr.validate import validate_response
 
 

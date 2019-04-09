@@ -4,7 +4,8 @@ import math
 import struct
 from dataclasses import dataclass, field
 
-from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyRSA, KSKM_PublicKey
+from kskm.common.data import (AlgorithmDNSSEC, AlgorithmPolicyRSA,
+                              KSKM_PublicKey)
 
 __author__ = 'ft'
 

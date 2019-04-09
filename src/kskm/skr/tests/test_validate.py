@@ -1,13 +1,13 @@
-import os
 import base64
+import os
 import unittest
-import pkg_resources
-
 from dataclasses import replace
 
+import pkg_resources
+
 from kskm.skr import load_skr
-from kskm.skr.validate import validate_response, InvalidSignatureViolation
 from kskm.skr.policy import ResponsePolicy
+from kskm.skr.validate import InvalidSignatureViolation, validate_response
 
 
 class Test_Validate_SKR(unittest.TestCase):

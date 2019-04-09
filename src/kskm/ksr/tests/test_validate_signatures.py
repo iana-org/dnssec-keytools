@@ -1,14 +1,13 @@
-import os
 import base64
-import pkg_resources
-
+import os
 from unittest import TestCase
 
-from kskm.ksr import request_from_xml
-from kskm.common.data import Key, Signature, AlgorithmDNSSEC
-from kskm.common.signature import validate_signatures
-
+import pkg_resources
 from cryptography.exceptions import InvalidSignature
+
+from kskm.common.data import AlgorithmDNSSEC, Key, Signature
+from kskm.common.signature import validate_signatures
+from kskm.ksr import request_from_xml
 
 
 class TestValidate_signatures(TestCase):

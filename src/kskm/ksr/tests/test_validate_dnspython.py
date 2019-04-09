@@ -4,19 +4,18 @@ Testcode using a separate implementation of DNSSEC signature validation (dnspyth
 dnspython was used to validate the implementation of signature validation, and also
 to track down a bug with RDATA sorting. Thanks!
 """
-import os
 import logging
-import pkg_resources
-
-from unittest import TestCase
+import os
 from typing import Set
+from unittest import TestCase
 
 import dns
 import dns.rrset
+import pkg_resources
 from dns.dnssec import ValidationFailure
 
-from kskm.ksr import request_from_xml
 from kskm.common.data import Key, Signature
+from kskm.ksr import request_from_xml
 from kskm.ksr.data import RequestBundle
 
 logger = logging.getLogger(__name__)

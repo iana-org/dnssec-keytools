@@ -1,13 +1,13 @@
-import os
 import base64
+import os
 import unittest
-import pkg_resources
-
 from dataclasses import replace
 
+import pkg_resources
+
 from kskm.ksr import load_ksr
-from kskm.ksr.validate import validate_request
 from kskm.ksr.policy import RequestPolicy
+from kskm.ksr.validate import validate_request
 from kskm.ksr.verify_bundles import KSR_BUNDLE_POP_Violation
 
 

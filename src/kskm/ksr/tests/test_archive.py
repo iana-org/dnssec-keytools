@@ -1,15 +1,15 @@
 from __future__ import absolute_import
 
-import os
 import glob
+import os
 import unittest
+
 import pkg_resources
-
-from kskm.ksr.policy import RequestPolicy
-from kskm.ksr import load_ksr, request_from_xml
-from kskm.common.signature import validate_signatures
-
 from cryptography.exceptions import InvalidSignature
+
+from kskm.common.signature import validate_signatures
+from kskm.ksr import load_ksr, request_from_xml
+from kskm.ksr.policy import RequestPolicy
 
 
 def archive_dir(extra=None):

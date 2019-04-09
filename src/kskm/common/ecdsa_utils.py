@@ -2,7 +2,8 @@
 import base64
 from dataclasses import dataclass, field
 
-from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyECDSA, KSKM_PublicKey
+from kskm.common.data import (AlgorithmDNSSEC, AlgorithmPolicyECDSA,
+                              KSKM_PublicKey)
 
 __author__ = 'ft'
 

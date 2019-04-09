@@ -1,8 +1,8 @@
 import base64
 import unittest
 
-
-from kskm.common.rsa_utils import RSAPublicKeyData, encode_rsa_public_key, decode_rsa_public_key
+from kskm.common.rsa_utils import (RSAPublicKeyData, decode_rsa_public_key,
+                                   encode_rsa_public_key)
 
 
 class TestRsaUtils(unittest.TestCase):

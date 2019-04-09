@@ -1,12 +1,13 @@
 from __future__ import absolute_import
 
 import datetime
-
 from unittest import TestCase
 
+from kskm.common.data import (AlgorithmDNSSEC, Key, Signature, Signer,
+                              TypeDNSSEC)
+from kskm.common.parse_utils import (duration_to_timedelta, keys_from_dict,
+                                     signature_from_dict)
 from kskm.ksr.parse_utils import signers_from_list
-from kskm.common.parse_utils import duration_to_timedelta, keys_from_dict, signature_from_dict
-from kskm.common.data import Signer, Key, Signature, TypeDNSSEC, AlgorithmDNSSEC
 
 
 class Test_duration_to_timedelta(TestCase):

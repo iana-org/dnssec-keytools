@@ -5,9 +5,9 @@ from typing import Optional
 
 from kskm.common.config import KSKKey, KSKPolicy
 from kskm.common.data import FlagsDNSKEY, Key
+from kskm.common.dnssec import public_key_to_dnssec_key
 from kskm.common.ecdsa_utils import ECDSAPublicKeyData, is_algorithm_ecdsa
 from kskm.common.rsa_utils import RSAPublicKeyData, is_algorithm_rsa
-from kskm.common.dnssec import public_key_to_dnssec_key
 from kskm.common.validate import PolicyViolation
 from kskm.ksr.data import RequestBundle
 from kskm.misc.hsm import KSKM_P11, KSKM_P11Key, get_p11_key

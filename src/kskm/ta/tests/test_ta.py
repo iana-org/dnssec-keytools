@@ -1,8 +1,9 @@
 import unittest
-from datetime import datetime
 from binascii import unhexlify
-from kskm.ta.data import TrustAnchor, KeyDigest, DigestDNSSEC
+from datetime import datetime
+
 from kskm.common.data import AlgorithmDNSSEC
+from kskm.ta.data import DigestDNSSEC, KeyDigest, TrustAnchor
 
 TA_20181219_XML = """<?xml version="1.0" encoding="UTF-8"?>
 <TrustAnchor id="380DC50D-484E-40D0-A3AE-68F2B18F61C7" source="http://data.iana.org/root-anchors/root-anchors.xml">

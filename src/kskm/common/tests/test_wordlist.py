@@ -1,7 +1,7 @@
-import unittest
 import hashlib
-from kskm.common.wordlist import pgp_wordlist
+import unittest
 
+from kskm.common.wordlist import pgp_wordlist
 
 TESTS = [
     {
