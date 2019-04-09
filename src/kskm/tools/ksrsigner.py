@@ -112,13 +112,13 @@ def _previous_skr_filename(args: Optional[ArgsType], config: ConfigType) -> Opti
 def _ksr_filename(args: Optional[ArgsType], config: ConfigType) -> Optional[str]:
     if args and args.ksr:
         return args.ksr
-    return config_filename('current_ksr', config)
+    return config_filename('input_ksr', config)
 
 
 def _skr_filename(args: Optional[ArgsType], config: ConfigType) -> Optional[str]:
     if args and args.skr:
         return args.skr
-    return config_filename('current_skr', config)
+    return config_filename('output_skr', config)
 
 
 def main(logger: logging.Logger, args: Optional[ArgsType], config: Optional[ConfigType] = None) -> bool:

@@ -15,9 +15,8 @@ hsm:
 
 filenames:
   previous_skr: prev-skr.xml
-  # TODO: Rename these to input_ksr and output_skr to avoid human errors?
-  current_ksr: ksr.xml
-  current_skr: skr.xml
+  input_ksr: ksr.xml
+  output_skr: skr.xml
 
 # inventory of key signing keys
 keys:
