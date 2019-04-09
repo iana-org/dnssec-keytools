@@ -28,7 +28,6 @@ __author__ = 'ft'
 
 _DEFAULTS = {'debug': False,
              'syslog': False,
-             'hsm_config_dir': '/opt/dnssec',
              'request_policy': None,
              'response_policy': None,
              'previous_skr': None,
@@ -66,12 +65,6 @@ def parse_args(defaults: dict) -> ArgsType:
                         help='SKR output filename',
                         )
     # Optional arguments
-    parser.add_argument('--hsm_config_dir',
-                        dest='hsm_config_dir',
-                        metavar='DIR', type=str,
-                        default=defaults['hsm_config_dir'],
-                        help='Path to HSM configuration files',
-                        )
     parser.add_argument('--request_policy',
                         dest='request_policy',
                         metavar='POLICYFILE', type=str,
@@ -160,7 +153,7 @@ def main(logger: logging.Logger, args: Optional[ArgsType], config: Optional[Conf
     #
     # Initialise PKCS#11 modules (HSMs)
     #
-    p11modules = kskm.misc.hsm.init_pkcs11_modules(args.hsm_config_dir)
+    p11modules = kskm.misc.hsm.init_pkcs11_modules_from_dict(config['hsm'])
 
     #
     # Perform some checks that need both KSR, SKR and PKCS#11 modules
