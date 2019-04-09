@@ -1,5 +1,4 @@
 *.key
 *.p8
 softhsm.conf
-softhsm.initialized
 tokens
