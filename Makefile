@@ -8,6 +8,9 @@ GREEN_FLAGS=	-vv
 SOFTHSM2_CONF=		${CURDIR}/testing/softhsm/softhsm.conf
 SOFTHSM2_MODULE?=	$(shell sh testing/softhsm/find_libsofthsm2.sh)
 
+TEST_ENV=		SOFTHSM2_CONF=$(SOFTHSM2_CONF) \
+			SOFTHSM2_MODULE=$(SOFTHSM2_MODULE)
+
 all:
 
 $(VENV): $(VENV)/.depend
@@ -25,18 +28,17 @@ wheel:
 	$(VENV)/bin/python setup.py bdist_wheel
 
 softhsm:
+	test -f $(SOFTHSM2_MODULE) || echo "Failed to find SoftHSM module"
 	(cd testing/softhsm; make SOFTHSM_CONF=$(SOFTHSM2_CONF) softhsm)
 
 test: $(VENV) softhsm
-	test -f $(SOFTHSM2_MODULE)
-	env SOFTHSM2_CONF=$(SOFTHSM2_CONF) SOFTHSM2_MODULE=$(SOFTHSM2_MODULE) \
-		$(VENV)/bin/green $(GREEN_FLAGS)
+	env $(TEST_ENV) $(VENV)/bin/green $(GREEN_FLAGS)
 
 container:
 	docker build --tag wksr .
 
-coverage: $(VENV)
-	$(VENV)/bin/coverage run -m unittest discover --verbose
+coverage: $(VENV) softhsm
+	env $(TEST_ENV) $(VENV)/bin/coverage run --source $(SOURCE) -m unittest discover -s $(SOURCE) --verbose
 	$(VENV)/bin/coverage html
 
 lint: $(VENV)
