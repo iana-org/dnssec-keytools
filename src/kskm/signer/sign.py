@@ -6,13 +6,10 @@ from dataclasses import replace
 from typing import Dict, Iterable, List
 
 from cryptography.exceptions import InvalidSignature
-from cryptography.hazmat.primitives.asymmetric.utils import encode_dss_signature
 
 from kskm.common.config import (ConfigType, ConfigurationError, KSKKeysType,
                                 KSKPolicy, Schema, SchemaAction, get_ksk_keys)
 from kskm.common.data import AlgorithmDNSSEC, Key, Signature, TypeDNSSEC
-from kskm.common.ecdsa_utils import is_algorithm_ecdsa
-from kskm.common.rsa_utils import is_algorithm_rsa
 from kskm.common.signature import dndepth, make_raw_rrsig
 from kskm.ksr import Request
 from kskm.ksr.data import RequestBundle

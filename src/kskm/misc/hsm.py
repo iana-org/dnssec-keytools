@@ -4,8 +4,6 @@ from __future__ import annotations
 import os
 import re
 import glob
-import base64
-import hashlib
 import logging
 import binascii
 
@@ -18,7 +16,7 @@ import PyKCS11
 
 from kskm.common.data import KSKM_PublicKeyType, AlgorithmDNSSEC
 from kskm.common.ecdsa_utils import ECDSAPublicKeyData
-from kskm.common.rsa_utils import RSAPublicKeyData, is_algorithm_rsa
+from kskm.common.rsa_utils import RSAPublicKeyData
 
 __author__ = 'ft'
 
@@ -41,7 +39,6 @@ class KSKM_P11Module(object):
 
     def __init__(self, module: str, label: Optional[str] = None, pin: Optional[str] = None, env: Dict[str, str] = {}):
         """Load and initialise a PKCS#11 module."""
-
         if module.startswith('$'):
             self.module = os.environ.get(module.lstrip('$'))
         else:
@@ -85,10 +82,10 @@ class KSKM_P11Module(object):
         logger.debug('P11 slots: {!r}'.format(self._slots))
 
     def close(self):
+        """Close all sessions."""
         for slot in self._slots:
             self._lib.closeAllSessions(slot)
         self._sessions = {}
-
 
     @property
     def sessions(self) -> Mapping[int, Any]:

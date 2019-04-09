@@ -1,5 +1,5 @@
 """Code using the Cryptography library."""
-import base64
+
 import logging
 
 from cryptography.exceptions import InvalidSignature
