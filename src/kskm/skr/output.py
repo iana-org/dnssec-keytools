@@ -1,6 +1,6 @@
 """Output SKR XML documents."""
 from datetime import timedelta
-from typing import Set
+from typing import Set, List
 
 from kskm.common.data import (AlgorithmPolicy, AlgorithmPolicyRSA, Key,
                               Signature, SignaturePolicy)
@@ -120,7 +120,7 @@ def _skr_signature_to_xml(sig: Signature) -> str:
 
 
 def _indent(data: str) -> str:
-    res = []
+    res: List[str] = []
     for this in data.split('\n'):
         if not this:  # skip blank lines
             continue
