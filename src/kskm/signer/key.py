@@ -56,7 +56,8 @@ def load_pkcs11_key(ksk: KSKKey, p11modules: KSKM_P11, ksk_policy: KSKPolicy,
         # Query again for the public key.
         logger.debug(f'Got no complimentary public key for label {ksk.label}, searching again')
         _found_pub = get_p11_key(ksk.label, p11modules, public=True)
-        _found = replace(_found, public_key=_found_pub.public_key)
+        if _found_pub:
+            _found = replace(_found, public_key=_found_pub.public_key)
 
     if not _found.public_key:
         logger.error(f'Loaded private key for label {ksk.label}, but could not load public key')

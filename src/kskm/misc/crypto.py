@@ -1,7 +1,7 @@
 """Code using the Cryptography library."""
 
 import logging
-from typing import NewType, Optional, Union
+from typing import Optional, Union
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.backends import default_backend
@@ -23,17 +23,15 @@ __author__ = 'ft'
 logger = logging.getLogger(__name__)
 
 
-CryptoPubKey = NewType('CryptoPubKey', Union[rsa.RSAPublicKey, ec.EllipticCurvePublicKey])
+CryptoPubKey = Union[rsa.RSAPublicKey, ec.EllipticCurvePublicKey]
 
 
 def key_to_crypto_pubkey(key: Key) -> rsa.RSAPublicKey:
     if is_algorithm_rsa(key.algorithm):
-        pubkey = decode_rsa_public_key(key.public_key)
+        return pubkey_to_crypto_pubkey(decode_rsa_public_key(key.public_key))
     elif is_algorithm_ecdsa(key.algorithm):
-        pubkey = decode_ecdsa_public_key(key.public_key, key.algorithm)
-    else:
-        raise RuntimeError(f'Can\'t make cryptography public key from {repr(pubkey)}')
-    return pubkey_to_crypto_pubkey(pubkey)
+        return pubkey_to_crypto_pubkey(decode_ecdsa_public_key(key.public_key, key.algorithm))
+    raise RuntimeError(f"Can't make cryptography public key from {key}")
 
 
 def pubkey_to_crypto_pubkey(pubkey: Optional[KSKM_PublicKeyType]) -> CryptoPubKey:
@@ -42,7 +40,7 @@ def pubkey_to_crypto_pubkey(pubkey: Optional[KSKM_PublicKeyType]) -> CryptoPubKe
     elif isinstance(pubkey, ECDSAPublicKeyData):
         return ecdsa_pubkey_to_crypto_pubkey(pubkey)
     else:
-        raise RuntimeError(f'Can\'t make cryptography public key from {repr(pubkey)}')
+        raise RuntimeError(f"Can't make cryptography public key from {pubkey}")
 
 
 def rsa_pubkey_to_crypto_pubkey(pubkey: RSAPublicKeyData) -> rsa.RSAPublicKey:
@@ -52,7 +50,12 @@ def rsa_pubkey_to_crypto_pubkey(pubkey: RSAPublicKeyData) -> rsa.RSAPublicKey:
 
 
 def ecdsa_pubkey_to_crypto_pubkey(pubkey: ECDSAPublicKeyData) -> ec.EllipticCurvePublicKey:
-    curve = ec.SECP256R1()  # TODO: get this from pubkey
+    if pubkey.algorithm == AlgorithmDNSSEC.ECDSAP256SHA256:
+        curve = ec.SECP256R1()
+    elif pubkey.algorithm == AlgorithmDNSSEC.ECDSAP384SHA384:
+        curve = ec.SECP384R1()
+    else:
+        raise RuntimeError(f"Don't know which curve to use for {pubkey.algorithm.name}")
     return ec.EllipticCurvePublicKey.from_encoded_point(curve, pubkey.q)
 
 
@@ -64,14 +67,14 @@ def verify_signature(pubkey: CryptoPubKey, signature: bytes, data: bytes, algori
         elif is_algorithm_ecdsa(algorithm):
             # OpenSSL (which is at the bottom of 'cryptography' expects ECDSA signatures to
             # be in RFC3279 format (ASN.1 encoded).
-            r, s = signature[:len(signature) // 2], signature[len(signature) // 2:]
-            r = int.from_bytes(r, byteorder='big')
-            s = int.from_bytes(s, byteorder='big')
+            _r, _s = signature[:len(signature) // 2], signature[len(signature) // 2:]
+            r = int.from_bytes(_r, byteorder='big')
+            s = int.from_bytes(_s, byteorder='big')
             signature = encode_dss_signature(r, s)
             _ec_alg = ec.ECDSA(algorithm=_algorithm_to_hash(algorithm))
             pubkey.verify(signature, data, _ec_alg)
         else:
-            raise RuntimeError(f'Don\'t know how to verify signature with {repr(pubkey)}')
+            raise RuntimeError(f"Don't know how to verify signature with {repr(pubkey)}")
     except InvalidSignature:
         logger.warning('Validating signature failed')
         raise
@@ -80,4 +83,4 @@ def verify_signature(pubkey: CryptoPubKey, signature: bytes, data: bytes, algori
 def _algorithm_to_hash(alg: AlgorithmDNSSEC) -> SHA256:
     if alg in [AlgorithmDNSSEC.RSASHA256, AlgorithmDNSSEC.ECDSAP256SHA256]:
         return SHA256()
-    raise ValueError('Hashing for algorithm {} not supported'.format(alg))
+    raise ValueError(f'Hashing for algorithm {alg} not supported')

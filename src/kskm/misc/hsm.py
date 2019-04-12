@@ -80,7 +80,7 @@ class KSKM_P11Module(object):
         self._slots = self._lib.getSlotList(tokenPresent=True)
         logger.debug('P11 slots: {!r}'.format(self._slots))
 
-    def close(self):
+    def close(self) -> None:
         """Close all sessions."""
         for slot in self._slots:
             self._lib.closeAllSessions(slot)
@@ -110,7 +110,7 @@ class KSKM_P11Module(object):
 
         If 'public' is True, a CKO_PUBLIC_KEY will be sought, otherwise CKO_PRIVATE_KEY.
         """
-        _slots = []
+        _slots: list = []
         for _slot, _session in self.sessions.items():
             template = [(PyKCS11.CKA_LABEL, label)]
             if public:
