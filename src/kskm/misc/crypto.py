@@ -9,7 +9,7 @@ from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
 from cryptography.hazmat.primitives.asymmetric.utils import \
     encode_dss_signature
-from cryptography.hazmat.primitives.hashes import SHA256
+from cryptography.hazmat.primitives.hashes import SHA256, SHA384
 
 from kskm.common.data import AlgorithmDNSSEC, Key, KSKM_PublicKeyType
 from kskm.common.ecdsa_utils import (ECDSAPublicKeyData,
@@ -80,7 +80,9 @@ def verify_signature(pubkey: CryptoPubKey, signature: bytes, data: bytes, algori
         raise
 
 
-def _algorithm_to_hash(alg: AlgorithmDNSSEC) -> SHA256:
+def _algorithm_to_hash(alg: AlgorithmDNSSEC) -> Union[SHA256, SHA384]:
     if alg in [AlgorithmDNSSEC.RSASHA256, AlgorithmDNSSEC.ECDSAP256SHA256]:
         return SHA256()
+    if alg in [AlgorithmDNSSEC.ECDSAP384SHA384]:
+        return SHA384()
     raise ValueError(f'Hashing for algorithm {alg} not supported')

@@ -120,11 +120,7 @@ def _sign_keys(bundle: RequestBundle, sign_key_name: str, p11modules: KSKM_P11,
     )
 
     rrsig_raw = make_raw_rrsig(sig, set(sign_keys))
-    if signing_key.algorithm == AlgorithmDNSSEC.ECDSAP256SHA256:
-        to_sign = hashlib.sha256(rrsig_raw).digest()
-    else:
-        to_sign = rrsig_raw
-    signature_data = sign_using_p11(this_key.p11, to_sign, signing_key.algorithm)
+    signature_data = sign_using_p11(this_key.p11, rrsig_raw, signing_key.algorithm)
 
     # Before proceeding, validate the signature using a non-HSM based implementation
     _verify_using_crypto(this_key.p11, rrsig_raw, signature_data, signing_key.algorithm)

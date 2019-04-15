@@ -8,6 +8,7 @@ import os
 import re
 from dataclasses import dataclass, field
 from getpass import getpass
+from hashlib import sha256, sha384
 from typing import (Any, Dict, Iterator, List, Mapping, MutableMapping,
                     NewType, Optional)
 
@@ -175,9 +176,6 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) ->
     """
     Sign some data using a PKCS#11 key.
 
-    The parameters 'rsa' and 'sha_bits' are used to figure out what PKCS#11 mechanism
-    to use. If RSA is True, PKCS#1 1.5 will be used.
-
     NOTE: The old code seemed to be pretty deliberately made to create the raw data
           itself and then ask the HSM to sign raw data (using CKM_RSA_X_509), but the
           documentation (/* = Raw.  NOT CKM_RSA_PKCS;*/) did not give a reason for this.
@@ -185,6 +183,12 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) ->
           implementing PKCS#1 1.5 padding again here, but if this is needed the data
           structure is shown in e.g. RFC8017, A.2.4. RSASSA-PKCS-v1_5.
     """
+    # Mechanism CKM_ECDSA is without hashing, so pre-hash data if using ECDSA
+    if algorithm == AlgorithmDNSSEC.ECDSAP256SHA256:
+        data = sha256(data).digest()
+    elif algorithm == AlgorithmDNSSEC.ECDSAP384SHA384:
+        data = sha384(data).digest()
+
     logger.debug(f'Signing {len(data)} bytes with key {key}')
     _mechs = {AlgorithmDNSSEC.RSASHA1: PyKCS11.CKM_SHA1_RSA_PKCS,
               AlgorithmDNSSEC.RSASHA256: PyKCS11.CKM_SHA256_RSA_PKCS,
