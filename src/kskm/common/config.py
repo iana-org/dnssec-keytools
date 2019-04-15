@@ -24,9 +24,15 @@ class ConfigurationError(Exception):
 
 
 class KSKMConfig(object):
+    """
+    Configuration object.
+
+    Holds configuration loaded from ksrsigner.yaml.
+    """
 
     def __init__(self, data: Mapping):
         self._data = data
+        # lazily parsed parts of the configuration.
         self._hsm: Optional[Mapping] = None
         self._ksk_keys: Optional[KSKKeysType] = None
         self._ksk_policy: Optional[KSKPolicy] = None
@@ -35,6 +41,20 @@ class KSKMConfig(object):
 
     @property
     def hsm(self) -> Mapping:
+        """
+        HSM configuration.
+
+        Example:
+
+            hsm:
+              softhsm:
+              module: /path/to/softhsm/libsofthsm2.so
+              pin: 123456
+              env:
+                SOFTHSM2_CONF: /path/to/softhsm.conf
+
+        Returns a plain dict with the configuration for now.
+        """
         if self._hsm is None:
             self._hsm = self._data.get('hsm', {})
         assert self._hsm is not None  # help type checker
@@ -42,6 +62,22 @@ class KSKMConfig(object):
 
     @property
     def ksk_policy(self) -> KSKPolicy:
+        """
+        Key Signing Key policy.
+
+        Parameters from here are used when creating an SKR.
+
+        Example:
+
+            ksk_policy:
+              publish_safety: PT0S
+              retire_safety: P28D
+              max_signature_validity: P21D
+              min_signature_validity: P21D
+              max_validity_overlap: P16D
+              min_validity_overlap: P9D
+              ttl: 172800
+        """
         if self._ksk_policy is None:
             self._ksk_policy = KSKPolicy.from_dict(self._data.get('ksk_policy', {}))
         assert self._ksk_policy is not None  # help type checker
@@ -76,7 +112,14 @@ class KSKMConfig(object):
         return self._ksk_keys
 
     def get_filename(self, which: str) -> Optional[str]:
-        """Get a filename from the configuration."""
+        """Get a filename from the configuration.
+
+        Example:
+            filenames:
+              previous_skr: prev-skr.xml
+              input_ksr: ksr.xml
+              output_skr: skr.xml
+        """
         if 'filenames' in self._data:
             _this = self._data['filenames'].get(which)
             if isinstance(_this, str):
@@ -85,6 +128,17 @@ class KSKMConfig(object):
 
     @property
     def request_policy(self) -> RequestPolicy:
+        """Policy for validating a request (KSR).
+
+        Example:
+            request_policy:
+              acceptable_domains:
+                - "."
+              num_bundles: 9
+              ...
+
+        TODO: Rename this, since the name is also used as a crucial parts in KSR XML.
+        """
         if self._request_policy is None:
             policy = RequestPolicy.from_dict(self._data.get('request_policy', {}))
             if policy.dns_ttl == 0:
@@ -95,6 +149,18 @@ class KSKMConfig(object):
 
     @property
     def response_policy(self) -> ResponsePolicy:
+        """Policy for validating a response (SKR).
+
+        Since responses loaded have likely been created by the KSR signer itself,
+        only some basic validation is performed.
+
+        Example:
+            response_policy:
+              num_bundles: 9
+              validate_signatures: True
+
+        TODO: Rename this, since the name is also used as a crucial parts in SKR XML.
+        """
         if self._response_policy is None:
             self._response_policy = ResponsePolicy.from_dict(self._data.get('response_policy', {}))
         assert self._response_policy is not None  # help type checker

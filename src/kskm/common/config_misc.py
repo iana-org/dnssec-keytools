@@ -1,15 +1,28 @@
 """Sub-parts of KSKMConfig (in config.py)."""
 from __future__ import annotations
 
+from abc import ABC
 from copy import deepcopy
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Iterable, List, Mapping, NewType, Optional, Type, Union
 
-from kskm.common.data import AlgorithmDNSSEC, Policy, SignaturePolicy
+from kskm.common.data import AlgorithmDNSSEC, SignaturePolicy, PolicyType
 from kskm.common.parse_utils import duration_to_timedelta, parse_datetime
 
 __author__ = 'ft'
+
+
+@dataclass(frozen=True)
+class Policy(ABC):
+    """Base class for RequestPolicy and ResponsePolicy."""
+
+    warn_instead_of_fail: bool = False
+
+    @classmethod
+    def from_dict(cls: Type[PolicyType], data: dict) -> PolicyType:
+        """Instantiate ResponsePolicy from a dict of values."""
+        return cls(**data)
 
 
 @dataclass(frozen=True)

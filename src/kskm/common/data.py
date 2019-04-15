@@ -3,7 +3,7 @@ from abc import ABC
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Optional, Set, Type, TypeVar
+from typing import Optional, Set, TypeVar
 
 # Type definitions to refer to the ABC types declared below
 PolicyType = TypeVar('PolicyType', bound='Policy')
@@ -113,15 +113,3 @@ class Bundle(ABC):
     expiration: datetime
     keys: Set[Key]
     signatures: Set[Signature]
-
-
-@dataclass(frozen=True)
-class Policy(ABC):
-    """Base class for RequestPolicy and ResponsePolicy."""
-
-    warn_instead_of_fail: bool = False
-
-    @classmethod
-    def from_dict(cls: Type[PolicyType], data: dict) -> PolicyType:
-        """Instantiate ResponsePolicy from a dict of values."""
-        return cls(**data)
