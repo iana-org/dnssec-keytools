@@ -11,11 +11,12 @@ from cryptography.hazmat.primitives.asymmetric.utils import \
     encode_dss_signature
 from cryptography.hazmat.primitives.hashes import SHA256, SHA384
 
-from kskm.common.data import AlgorithmDNSSEC, Key, KSKM_PublicKeyType
-from kskm.common.ecdsa_utils import (ECDSAPublicKeyData,
+from kskm.common.data import AlgorithmDNSSEC, Key
+from kskm.common.public_key import KSKM_PublicKeyType
+from kskm.common.ecdsa_utils import (KSKM_PublicKey_ECDSA,
                                      decode_ecdsa_public_key,
                                      is_algorithm_ecdsa)
-from kskm.common.rsa_utils import (RSAPublicKeyData, decode_rsa_public_key,
+from kskm.common.rsa_utils import (KSKM_PublicKey_RSA, decode_rsa_public_key,
                                    is_algorithm_rsa)
 
 __author__ = 'ft'
@@ -35,21 +36,21 @@ def key_to_crypto_pubkey(key: Key) -> rsa.RSAPublicKey:
 
 
 def pubkey_to_crypto_pubkey(pubkey: Optional[KSKM_PublicKeyType]) -> CryptoPubKey:
-    if isinstance(pubkey, RSAPublicKeyData):
+    if isinstance(pubkey, KSKM_PublicKey_RSA):
         return rsa_pubkey_to_crypto_pubkey(pubkey)
-    elif isinstance(pubkey, ECDSAPublicKeyData):
+    elif isinstance(pubkey, KSKM_PublicKey_ECDSA):
         return ecdsa_pubkey_to_crypto_pubkey(pubkey)
     else:
         raise RuntimeError(f"Can't make cryptography public key from {pubkey}")
 
 
-def rsa_pubkey_to_crypto_pubkey(pubkey: RSAPublicKeyData) -> rsa.RSAPublicKey:
+def rsa_pubkey_to_crypto_pubkey(pubkey: KSKM_PublicKey_RSA) -> rsa.RSAPublicKey:
     rsa_n = int.from_bytes(pubkey.n, byteorder='big')
     public = rsa.RSAPublicNumbers(pubkey.exponent, rsa_n)
     return default_backend().load_rsa_public_numbers(public)
 
 
-def ecdsa_pubkey_to_crypto_pubkey(pubkey: ECDSAPublicKeyData) -> ec.EllipticCurvePublicKey:
+def ecdsa_pubkey_to_crypto_pubkey(pubkey: KSKM_PublicKey_ECDSA) -> ec.EllipticCurvePublicKey:
     if pubkey.algorithm == AlgorithmDNSSEC.ECDSAP256SHA256:
         curve = ec.SECP256R1()
     elif pubkey.algorithm == AlgorithmDNSSEC.ECDSAP384SHA384:

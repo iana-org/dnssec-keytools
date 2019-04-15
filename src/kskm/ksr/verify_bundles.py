@@ -6,7 +6,7 @@ from cryptography.exceptions import InvalidSignature
 
 from kskm.common.data import AlgorithmPolicy, AlgorithmPolicyRSA, Key
 from kskm.common.dnssec import calculate_key_tag
-from kskm.common.rsa_utils import (RSAPublicKeyData, decode_rsa_public_key,
+from kskm.common.rsa_utils import (KSKM_PublicKey_RSA, decode_rsa_public_key,
                                    is_algorithm_rsa)
 from kskm.common.signature import validate_signatures
 from kskm.common.validate import PolicyViolation, fail
@@ -140,7 +140,7 @@ def check_keys_match_zsk_policy(request: Request, policy: RequestPolicy, logger:
     logger.info(f'KSR-BUNDLE-KEYS: All {_num_keys} unique keys in the bundles accepted by policy')
 
 
-def _find_matching_zsk_policy_rsa_alg(request: Request, key: Key, pubkey: RSAPublicKeyData,
+def _find_matching_zsk_policy_rsa_alg(request: Request, key: Key, pubkey: KSKM_PublicKey_RSA,
                                       ignore_exponent: bool = False) -> Optional[AlgorithmPolicy]:
     for this in request.zsk_policy.algorithms:
         if not isinstance(this, AlgorithmPolicyRSA):

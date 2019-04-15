@@ -112,7 +112,8 @@ class KSKMConfig(object):
         return self._ksk_keys
 
     def get_filename(self, which: str) -> Optional[str]:
-        """Get a filename from the configuration.
+        """
+        Get a filename from the configuration.
 
         Example:
             filenames:
@@ -128,7 +129,8 @@ class KSKMConfig(object):
 
     @property
     def request_policy(self) -> RequestPolicy:
-        """Policy for validating a request (KSR).
+        """
+        Policy for validating a request (KSR).
 
         Example:
             request_policy:
@@ -149,7 +151,8 @@ class KSKMConfig(object):
 
     @property
     def response_policy(self) -> ResponsePolicy:
-        """Policy for validating a response (SKR).
+        """
+        Policy for validating a response (SKR).
 
         Since responses loaded have likely been created by the KSR signer itself,
         only some basic validation is performed.

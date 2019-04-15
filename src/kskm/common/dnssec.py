@@ -4,9 +4,10 @@ import struct
 from dataclasses import replace
 from typing import Optional
 
-from kskm.common.data import AlgorithmDNSSEC, Key, KSKM_PublicKey
-from kskm.common.ecdsa_utils import ECDSAPublicKeyData, encode_ecdsa_public_key
-from kskm.common.rsa_utils import RSAPublicKeyData, encode_rsa_public_key
+from kskm.common.data import AlgorithmDNSSEC, Key
+from kskm.common.public_key import KSKM_PublicKey
+from kskm.common.ecdsa_utils import KSKM_PublicKey_ECDSA, encode_ecdsa_public_key
+from kskm.common.rsa_utils import KSKM_PublicKey_RSA, encode_rsa_public_key
 
 __author__ = 'ft'
 
@@ -45,9 +46,9 @@ def public_key_to_dnssec_key(key: KSKM_PublicKey,
                              key_identifier: Optional[str], algorithm: AlgorithmDNSSEC,
                              ttl: int, flags: int) -> Key:
     """Make a Key instance from an RSAPublicKeyData, and some other values."""
-    if isinstance(key, RSAPublicKeyData):
+    if isinstance(key, KSKM_PublicKey_RSA):
         pubkey = encode_rsa_public_key(key)
-    elif isinstance(key, ECDSAPublicKeyData):
+    elif isinstance(key, KSKM_PublicKey_ECDSA):
         pubkey = encode_ecdsa_public_key(key)
     else:
         raise RuntimeError(f'Unrecognised key {key}')

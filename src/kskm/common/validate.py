@@ -2,7 +2,7 @@
 import logging
 from typing import Type, TypeVar
 
-from kskm.common.data import PolicyType
+from kskm.common.config_misc import PolicyType
 
 __author__ = 'ft'
 

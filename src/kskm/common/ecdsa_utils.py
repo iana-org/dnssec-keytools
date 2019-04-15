@@ -2,14 +2,14 @@
 import base64
 from dataclasses import dataclass, field
 
-from kskm.common.data import (AlgorithmDNSSEC, AlgorithmPolicyECDSA,
-                              KSKM_PublicKey)
+from kskm.common.data import (AlgorithmDNSSEC, AlgorithmPolicyECDSA)
+from kskm.common.public_key import KSKM_PublicKey
 
 __author__ = 'ft'
 
 
 @dataclass(frozen=True)
-class ECDSAPublicKeyData(KSKM_PublicKey):
+class KSKM_PublicKey_ECDSA(KSKM_PublicKey):
     """A parsed DNSSEC ECDSA public key."""
 
     q: bytes = field(repr=False)
@@ -34,16 +34,20 @@ def parse_signature_policy_ecdsa(data: dict) -> AlgorithmPolicyECDSA:
     """
     attr_alg = AlgorithmDNSSEC(int(data['attrs']['algorithm']))
     attrs = data['value']['ECDSA']['attrs']
-    ecdsa = AlgorithmPolicyECDSA(bits=int(attrs['size']),
-                                 algorithm=attr_alg,
+    ecdsa = AlgorithmPolicyECDSA(algorithm=attr_alg,
+                                 bits=int(attrs['size']),
                                  )
     return ecdsa
 
 
-def encode_ecdsa_public_key(key: ECDSAPublicKeyData) -> bytes:
+def encode_ecdsa_public_key(key: KSKM_PublicKey_ECDSA) -> bytes:
+    """Convert the internal representation for a public ECDSA key to bytes."""
     return base64.b64encode(key.q)
 
 
-def decode_ecdsa_public_key(key: bytes, algorithm: AlgorithmDNSSEC) -> ECDSAPublicKeyData:
+def decode_ecdsa_public_key(key: bytes, algorithm: AlgorithmDNSSEC) -> KSKM_PublicKey_ECDSA:
+    """Parse bytes to the internal representation of an ECDSA key."""
     q = base64.b64decode(key)
-    return ECDSAPublicKeyData(bits=len(q) * 8, q=q, algorithm=algorithm)
+    return KSKM_PublicKey_ECDSA(algorithm=algorithm,
+                                bits=len(q) * 8,
+                                q=q)

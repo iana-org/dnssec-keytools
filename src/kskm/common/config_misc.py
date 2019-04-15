@@ -4,10 +4,10 @@ from __future__ import annotations
 from abc import ABC
 from copy import deepcopy
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Iterable, List, Mapping, NewType, Optional, Type, Union
+from datetime import datetime, timezone, timedelta
+from typing import Iterable, List, Mapping, NewType, Optional, Type, Union, TypeVar
 
-from kskm.common.data import AlgorithmDNSSEC, SignaturePolicy, PolicyType
+from kskm.common.data import AlgorithmDNSSEC, SignaturePolicy
 from kskm.common.parse_utils import duration_to_timedelta, parse_datetime
 
 __author__ = 'ft'
@@ -112,7 +112,8 @@ class KSKPolicy(object):
         Algorithms are not initialised here, but rather created dynamically from the KSK keys used
         in the schema.
         """
-        _get_timedelta = lambda name: duration_to_timedelta(data.get(name))
+        def _get_timedelta(name: str) -> timedelta:
+            return duration_to_timedelta(data.get(name))
 
         _sp = SignaturePolicy(publish_safety=_get_timedelta('publish_safety'),
                               retire_safety=_get_timedelta('retire_safety'),
@@ -162,3 +163,4 @@ class KSKKey(object):
 
 
 KSKKeysType = NewType('KSKKeysType', Mapping[str, KSKKey])
+PolicyType = TypeVar('PolicyType', bound='Policy')

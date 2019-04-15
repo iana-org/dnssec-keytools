@@ -14,9 +14,10 @@ from typing import (Any, Dict, Iterator, List, Mapping, MutableMapping,
 
 import PyKCS11
 
-from kskm.common.data import AlgorithmDNSSEC, KSKM_PublicKeyType
-from kskm.common.ecdsa_utils import ECDSAPublicKeyData
-from kskm.common.rsa_utils import RSAPublicKeyData
+from kskm.common.data import AlgorithmDNSSEC
+from kskm.common.public_key import KSKM_PublicKeyType
+from kskm.common.ecdsa_utils import KSKM_PublicKey_ECDSA
+from kskm.common.rsa_utils import KSKM_PublicKey_RSA
 
 __author__ = 'ft'
 
@@ -141,9 +142,9 @@ class KSKM_P11Module(object):
             _exp = session.getAttributeValue(data[0], [PyKCS11.CKA_PUBLIC_EXPONENT])
             rsa_e = int.from_bytes(bytes(_exp[0]), byteorder='big')
             rsa_n = bytes(_modulus[0])
-            return RSAPublicKeyData(bits=len(rsa_n) * 8,
-                                    exponent=rsa_e,
-                                    n=rsa_n)
+            return KSKM_PublicKey_RSA(bits=len(rsa_n) * 8,
+                                      exponent=rsa_e,
+                                      n=rsa_n)
         elif _cka_type == PyKCS11.CKK_EC:
             # DER-encoding of ANSI X9.62 ECPoint value ''Q''.
             _cka_ec_point = session.getAttributeValue(data[0], [PyKCS11.CKA_EC_POINT])
@@ -167,7 +168,7 @@ class KSKM_P11Module(object):
                 alg = AlgorithmDNSSEC.ECDSAP384SHA384
             else:
                 raise RuntimeError(f'Unexpected ECDSA key length: {_ec_len}')
-            return ECDSAPublicKeyData(bits=_ec_len, q=ec_point, algorithm=alg)
+            return KSKM_PublicKey_ECDSA(bits=_ec_len, q=ec_point, algorithm=alg)
         else:
             raise NotImplementedError('Unknown CKA_TYPE: {}'.format(PyKCS11.CKK[_cka_type]))
 

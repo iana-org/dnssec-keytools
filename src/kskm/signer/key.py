@@ -6,8 +6,8 @@ from typing import Optional
 from kskm.common.config_misc import KSKPolicy, KSKKey
 from kskm.common.data import FlagsDNSKEY, Key
 from kskm.common.dnssec import public_key_to_dnssec_key
-from kskm.common.ecdsa_utils import ECDSAPublicKeyData, is_algorithm_ecdsa
-from kskm.common.rsa_utils import RSAPublicKeyData, is_algorithm_rsa
+from kskm.common.ecdsa_utils import KSKM_PublicKey_ECDSA, is_algorithm_ecdsa
+from kskm.common.rsa_utils import KSKM_PublicKey_RSA, is_algorithm_rsa
 from kskm.common.validate import PolicyViolation
 from kskm.ksr.data import RequestBundle
 from kskm.misc.hsm import KSKM_P11, KSKM_P11Key, get_p11_key
@@ -63,7 +63,7 @@ def load_pkcs11_key(ksk: KSKKey, p11modules: KSKM_P11, ksk_policy: KSKPolicy,
         logger.error(f'Loaded private key for label {ksk.label}, but could not load public key')
         return None
 
-    if isinstance(_found.public_key, RSAPublicKeyData):
+    if isinstance(_found.public_key, KSKM_PublicKey_RSA):
         if not is_algorithm_rsa(ksk.algorithm):
             raise ValueError(f'PKCS#11 key {_found.label} is an RSA key, expected {ksk.algorithm.name}')
         if _found.public_key.bits != ksk.rsa_size:
@@ -71,7 +71,7 @@ def load_pkcs11_key(ksk: KSKKey, p11modules: KSKM_P11, ksk_policy: KSKPolicy,
         if _found.public_key.exponent != ksk.rsa_exponent:
             raise ValueError(f'PKCS#11 key {_found.label} has RSA exponent {_found.public_key.exponent} - '
                              f'expected {ksk.rsa_exponent}')
-    elif isinstance(_found.public_key, ECDSAPublicKeyData):
+    elif isinstance(_found.public_key, KSKM_PublicKey_ECDSA):
         if not is_algorithm_ecdsa(ksk.algorithm):
             raise ValueError(f'PKCS#11 key {_found.label} is an ECDSA key, expected {ksk.algorithm.name}')
     else:

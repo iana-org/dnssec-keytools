@@ -4,8 +4,8 @@ import math
 import struct
 from dataclasses import dataclass, field
 
-from kskm.common.data import (AlgorithmDNSSEC, AlgorithmPolicyRSA,
-                              KSKM_PublicKey)
+from kskm.common.data import (AlgorithmDNSSEC, AlgorithmPolicyRSA)
+from kskm.common.public_key import KSKM_PublicKey
 
 __author__ = 'ft'
 
@@ -37,14 +37,14 @@ def parse_signature_policy_rsa(data: dict) -> AlgorithmPolicyRSA:
 
 
 @dataclass(frozen=True)
-class RSAPublicKeyData(KSKM_PublicKey):
+class KSKM_PublicKey_RSA(KSKM_PublicKey):
     """A parsed DNSSEC RSA public key."""
 
     exponent: int
     n: bytes = field(repr=False)
 
 
-def decode_rsa_public_key(key: bytes) -> RSAPublicKeyData:
+def decode_rsa_public_key(key: bytes) -> KSKM_PublicKey_RSA:
     """Parse DNSSEC RSA public_key, as specified in RFC3110."""
     _bytes = base64.b64decode(key)
     if _bytes[0] == 0:
@@ -57,12 +57,12 @@ def decode_rsa_public_key(key: bytes) -> RSAPublicKeyData:
 
     rsa_e = int.from_bytes(_bytes[:_exponent_len], byteorder='big')
     rsa_n = _bytes[_exponent_len:]
-    return RSAPublicKeyData(bits=len(rsa_n) * 8,
-                            exponent=rsa_e,
-                            n=rsa_n)
+    return KSKM_PublicKey_RSA(bits=len(rsa_n) * 8,
+                              exponent=rsa_e,
+                              n=rsa_n)
 
 
-def encode_rsa_public_key(key: RSAPublicKeyData) -> bytes:
+def encode_rsa_public_key(key: KSKM_PublicKey_RSA) -> bytes:
     """Encode a public key (probably loaded from an HSM) into base64 encoded Key.public_key form."""
     _exp_len = math.ceil(int.bit_length(key.exponent) / 8)
     exp = int.to_bytes(key.exponent, length=_exp_len, byteorder='big')

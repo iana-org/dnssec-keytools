@@ -6,16 +6,8 @@ from enum import Enum
 from typing import Optional, Set, TypeVar
 
 # Type definitions to refer to the ABC types declared below
-PolicyType = TypeVar('PolicyType', bound='Policy')
 BundleType = TypeVar('BundleType', bound='Bundle')
 AlgorithmPolicyType = TypeVar('AlgorithmPolicyType', bound='AlgorithmPolicy')
-KSKM_PublicKeyType = TypeVar('KSKM_PublicKeyType', bound='KSKM_PublicKey')
-
-
-@dataclass(frozen=True)
-class KSKM_PublicKey(ABC):
-
-    bits: int
 
 
 # TODO: use https://github.com/rthalley/dnspython/blob/master/dns/dnssec.py if we use it elsewhere
