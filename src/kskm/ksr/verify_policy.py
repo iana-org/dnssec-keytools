@@ -7,7 +7,7 @@ from kskm.common.rsa_utils import is_algorithm_rsa
 from kskm.common.validate import PolicyViolation, fail
 from kskm.ksr import Request
 from kskm.ksr.data import RequestBundle
-from kskm.common.config import RequestPolicy
+from kskm.common.config_misc import RequestPolicy
 
 
 class KSR_PolicyViolation(PolicyViolation):

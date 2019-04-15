@@ -9,7 +9,7 @@ from kskm.common.validate import PolicyViolation
 from kskm.common.xml_parser import parse_ksr
 from kskm.skr.data import Response
 from kskm.skr.parse_utils import responsebundles_from_list_of_dicts
-from kskm.common.config import ResponsePolicy
+from kskm.common.config_misc import ResponsePolicy
 from kskm.skr.validate import validate_response
 
 __author__ = 'ft'

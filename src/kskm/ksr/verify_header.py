@@ -3,7 +3,7 @@ from logging import Logger
 
 from kskm.common.validate import PolicyViolation, fail
 from kskm.ksr import Request
-from kskm.common.config import RequestPolicy
+from kskm.common.config_misc import RequestPolicy
 
 
 class KSR_HeaderPolicyViolation(PolicyViolation):

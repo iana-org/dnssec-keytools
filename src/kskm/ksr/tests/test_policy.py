@@ -3,7 +3,8 @@ import unittest
 
 import pkg_resources
 
-from kskm.common.config import RequestPolicy, get_config
+from kskm.common.config import get_config
+from kskm.common.config_misc import RequestPolicy
 
 
 class TestRequestPolicy(unittest.TestCase):

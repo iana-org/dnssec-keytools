@@ -7,8 +7,8 @@ from typing import Dict, Iterable, List
 
 from cryptography.exceptions import InvalidSignature
 
-from kskm.common.config import (KSKMConfig, ConfigurationError, KSKKeysType,
-                                KSKPolicy, Schema, SchemaAction)
+from kskm.common.config import (KSKMConfig, ConfigurationError)
+from kskm.common.config_misc import SchemaAction, Schema, KSKPolicy, KSKKeysType
 from kskm.common.data import AlgorithmDNSSEC, Key, Signature, TypeDNSSEC
 from kskm.common.signature import dndepth, make_raw_rrsig
 from kskm.ksr import Request

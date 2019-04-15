@@ -3,7 +3,8 @@ import logging
 from dataclasses import replace
 from typing import Iterable, Optional, Set
 
-from kskm.common.config import KSKMConfig, KSKPolicy, Schema
+from kskm.common.config import KSKMConfig
+from kskm.common.config_misc import Schema, KSKPolicy
 from kskm.common.data import (AlgorithmPolicy, AlgorithmPolicyRSA,
                               SignaturePolicy)
 from kskm.common.integrity import checksum_bytes2str

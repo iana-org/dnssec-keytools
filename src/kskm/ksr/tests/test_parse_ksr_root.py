@@ -9,7 +9,7 @@ import pkg_resources
 import kskm.ksr.verify_bundles
 import kskm.ksr.verify_policy
 from kskm.ksr import load_ksr, request_from_xml
-from kskm.common.config import RequestPolicy
+from kskm.common.config_misc import RequestPolicy
 
 
 class TestParseRealKSRs(unittest.TestCase):

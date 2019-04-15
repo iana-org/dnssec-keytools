@@ -3,7 +3,7 @@ import logging
 from dataclasses import dataclass, replace
 from typing import Optional
 
-from kskm.common.config import KSKKey, KSKPolicy
+from kskm.common.config_misc import KSKPolicy, KSKKey
 from kskm.common.data import FlagsDNSKEY, Key
 from kskm.common.dnssec import public_key_to_dnssec_key
 from kskm.common.ecdsa_utils import ECDSAPublicKeyData, is_algorithm_ecdsa

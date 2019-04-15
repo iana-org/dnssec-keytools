@@ -6,7 +6,7 @@ from dataclasses import replace
 import pkg_resources
 
 from kskm.ksr import load_ksr, request_from_xml
-from kskm.common.config import RequestPolicy
+from kskm.common.config_misc import RequestPolicy
 from kskm.ksr.validate import validate_request
 from kskm.ksr.verify_bundles import KSR_BUNDLE_POP_Violation
 from kskm.ksr.verify_policy import KSR_POLICY_ALG_Violation
