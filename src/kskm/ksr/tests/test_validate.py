@@ -5,10 +5,12 @@ from dataclasses import replace
 
 import pkg_resources
 
-from kskm.ksr import load_ksr
+from kskm.common.data import AlgorithmDNSSEC
+from kskm.ksr import load_ksr, request_from_xml
 from kskm.ksr.policy import RequestPolicy
 from kskm.ksr.validate import validate_request
 from kskm.ksr.verify_bundles import KSR_BUNDLE_POP_Violation
+from kskm.ksr.verify_policy import KSR_POLICY_ALG_Violation
 
 
 class Test_Validate_KSR(unittest.TestCase):
@@ -56,3 +58,35 @@ class Test_Validate_KSR(unittest.TestCase):
                                num_bundles=99)
         with self.assertRaises(RuntimeError):
             load_ksr(fn, policy)
+
+    def test_DSA_algorithm_not_allowed(self):
+        """ Test validating a KSR with the DSA algorithm """
+        xml = """
+<KSR domain="." id="test" serial="0">
+  <Request>
+    <RequestPolicy>
+      <ZSK>
+        <PublishSafety>P10D</PublishSafety>
+        <RetireSafety>P10D</RetireSafety>
+        <MaxSignatureValidity>P21D</MaxSignatureValidity>
+        <MinSignatureValidity>P21D</MinSignatureValidity>
+        <MaxValidityOverlap>P12D</MaxValidityOverlap>
+        <MinValidityOverlap>P9D</MinValidityOverlap>
+        <SignatureAlgorithm algorithm="3">
+          <DSA size="123"/>
+        </SignatureAlgorithm>
+      </ZSK>
+    </RequestPolicy>
+  </Request>
+</KSR>
+"""
+        policy = RequestPolicy(check_bundle_overlap=False,
+                               num_bundles=0,
+                               acceptable_key_set_lengths=[0],
+                               approved_algorithms=['RSASHA256', 'DSA']
+                               )
+        request = request_from_xml(xml)
+        # DSA is not allowed, even if it is in approved_algorithms
+        with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
+            validate_request(request, policy)
+        self.assertIn('DSA is not allowed', str(exc.exception))

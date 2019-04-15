@@ -146,6 +146,9 @@ def check_zsk_policy_signature_algorithms(request: Request, policy: RequestPolic
 
     _approved_algorithms = [AlgorithmDNSSEC[x] for x in policy.approved_algorithms]
     for alg in request.zsk_policy.algorithms:
+        if alg.algorithm == AlgorithmDNSSEC.DSA:
+            fail(policy, KSR_POLICY_ALG_Violation, 'Algorithm DSA is not allowed')
+
         if alg.algorithm not in _approved_algorithms:
             fail(policy, KSR_POLICY_ALG_Violation,
                  f'ZSK policy is {alg.algorithm}, but policy only allows {_approved_algorithms}')

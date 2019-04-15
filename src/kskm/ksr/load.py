@@ -42,7 +42,7 @@ def load_ksr(filename: str, policy: RequestPolicy, raise_original: bool = False)
 def request_from_xml(xml: str) -> Request:
     """Top-level function to parse a KSR XML document into a Request instance."""
     data = parse_ksr(xml)
-    bundles = requestbundles_from_list_of_dicts(data['KSR']['value']['Request']['RequestBundle'])
+    bundles = requestbundles_from_list_of_dicts(data['KSR']['value']['Request'].get('RequestBundle', []))
     zsk_policy = signature_policy_from_dict(data['KSR']['value']['Request']['RequestPolicy']['ZSK'])
     _attrs = data['KSR']['attrs']
     req = Request(id=_attrs['id'],
