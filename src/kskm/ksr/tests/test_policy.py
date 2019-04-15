@@ -3,7 +3,7 @@ import unittest
 
 import pkg_resources
 
-from kskm.ksr.policy import RequestPolicy, policy_from_file
+from kskm.common.config import RequestPolicy, get_config
 
 
 class TestRequestPolicy(unittest.TestCase):
@@ -15,8 +15,9 @@ class TestRequestPolicy(unittest.TestCase):
     def test_load_request_policy(self):
         """ Test loading the request policy from file """
         fn = os.path.join(self.data_dir, 'request_policy.yaml')
-        p = policy_from_file(fn)
-        self.assertTrue(p.validate_signatures)
+        config = get_config(fn)
+
+        self.assertTrue(config.request_policy.validate_signatures)
 
     def test_unknown_data(self):
         """ Test creating a policy from unknown data """

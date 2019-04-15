@@ -3,7 +3,7 @@ import logging
 from dataclasses import replace
 from typing import Iterable, Optional, Set
 
-from kskm.common.config import ConfigType, KSKPolicy, Schema, get_ksk_policy
+from kskm.common.config import KSKMConfig, KSKPolicy, Schema
 from kskm.common.data import (AlgorithmPolicy, AlgorithmPolicyRSA,
                               SignaturePolicy)
 from kskm.common.integrity import checksum_bytes2str
@@ -19,15 +19,14 @@ __author__ = 'ft'
 logger = logging.getLogger(__name__)
 
 
-def create_skr(request: Request, schema: Schema, p11modules: KSKM_P11, config: ConfigType) -> Response:
+def create_skr(request: Request, schema: Schema, p11modules: KSKM_P11, config: KSKMConfig) -> Response:
     """Create a SKR (response) from a request (KSR) and a schema."""
-    ksk_policy = get_ksk_policy(config)
-    bundles = sign_bundles(request, schema, p11modules, ksk_policy, config)
+    bundles = sign_bundles(request, schema, p11modules, config.ksk_policy, config)
     return Response(id=request.id,
                     serial=request.serial,
                     domain=request.domain,
                     bundles=list(bundles),
-                    ksk_policy=_ksk_signature_policy(ksk_policy, bundles),
+                    ksk_policy=_ksk_signature_policy(config.ksk_policy, bundles),
                     zsk_policy=request.zsk_policy)
 
 

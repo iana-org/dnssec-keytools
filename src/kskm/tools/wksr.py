@@ -23,7 +23,6 @@ from werkzeug.exceptions import BadRequest, Forbidden, RequestEntityTooLarge
 from kskm.common.config import get_config
 from kskm.common.validate import PolicyViolation
 from kskm.ksr import load_ksr
-from kskm.ksr.policy import get_request_policy
 
 DEFAULT_CONFIG = 'wksr.yaml'
 DEFAULT_CIPHERS = 'ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384'
@@ -92,9 +91,9 @@ def validate_ksr(filename: str) -> dict:
     """Validate incoming KSR."""
     global ksk_config
     config_fn = ksk_config.get('ksrsigner_configfile')
-    _config = get_config(None)
     # If config_fn is None, get_request_policy returns a default policy
-    request_policy = get_request_policy(config_fn, _config)
+    _config = get_config(config_fn)
+    request_policy = _config.get_request_policy()
     result = {}
     try:
         ksr = load_ksr(filename, request_policy, raise_original=True)

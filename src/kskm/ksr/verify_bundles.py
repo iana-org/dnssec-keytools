@@ -11,7 +11,7 @@ from kskm.common.rsa_utils import (RSAPublicKeyData, decode_rsa_public_key,
 from kskm.common.signature import validate_signatures
 from kskm.common.validate import PolicyViolation, fail
 from kskm.ksr import Request
-from kskm.ksr.policy import RequestPolicy
+from kskm.common.config import RequestPolicy
 
 __author__ = 'ft'
 

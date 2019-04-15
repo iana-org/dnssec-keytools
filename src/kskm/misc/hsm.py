@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from getpass import getpass
 from hashlib import sha256, sha384
 from typing import (Any, Dict, Iterator, List, Mapping, MutableMapping,
-                    NewType, Optional)
+                    NewType, Optional, TypeVar)
 
 import PyKCS11
 

@@ -4,7 +4,7 @@ import logging
 from kskm.common.signature import InvalidSignature, validate_signatures
 from kskm.common.validate import PolicyViolation, fail
 from kskm.skr.data import Response, ResponseBundle
-from kskm.skr.policy import ResponsePolicy
+from kskm.common.config import ResponsePolicy
 
 __author__ = 'ft'
 

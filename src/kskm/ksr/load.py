@@ -9,7 +9,7 @@ from kskm.common.validate import PolicyViolation
 from kskm.common.xml_parser import parse_ksr
 from kskm.ksr.data import Request
 from kskm.ksr.parse_utils import requestbundles_from_list_of_dicts
-from kskm.ksr.policy import RequestPolicy
+from kskm.common.config import RequestPolicy
 from kskm.ksr.validate import validate_request
 
 __author__ = 'ft'

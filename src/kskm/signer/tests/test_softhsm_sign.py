@@ -9,7 +9,7 @@ import io
 import os
 import unittest
 
-from kskm.common.config import get_ksk_policy, get_schema, load_from_yaml
+from kskm.common.config import KSKMConfig
 from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY
 from kskm.common.dnssec import public_key_to_dnssec_key
 from kskm.common.parse_utils import parse_datetime, signature_policy_from_dict
@@ -103,9 +103,9 @@ class Test_SignWithSoftHSM_RSA(unittest.TestCase):
         self.ksk_key_label = 'RSA2'
         self.p11modules: KSKM_P11 = KSKM_P11([])
         conf = io.StringIO(_TEST_CONFIG_SIMPLE_RSA + _TEST_CONFIG_SIMPLE_COMMON)
-        self.config = load_from_yaml(conf)
-        self.p11modules = init_pkcs11_modules_from_dict(self.config['hsm'])
-        self.schema = get_schema('test', self.config)
+        self.config = KSKMConfig.from_yaml(conf)
+        self.p11modules = init_pkcs11_modules_from_dict(self.config.hsm)
+        self.schema = self.config.get_schema('test')
         _policy = {'PublishSafety': 'P10D',
                    'RetireSafety': 'P10D',
                    'MaxSignatureValidity': 'P20D',
@@ -150,9 +150,8 @@ class Test_SignWithSoftHSM_RSA(unittest.TestCase):
                           bundles=[bundle],
                           zsk_policy=self.signature_policy,
                           )
-        ksk_policy = get_ksk_policy(self.config)
         new_bundles = sign_bundles(request=request, schema=self.schema, p11modules=self.p11modules,
-                                   config=self.config, ksk_policy=ksk_policy)
+                                   config=self.config, ksk_policy=self.config.ksk_policy)
         validate_signatures(list(new_bundles)[0])
 
 
@@ -165,9 +164,9 @@ class Test_SignWithSoftHSM_ECDSA(unittest.TestCase):
         self.ksk_key_label = 'EC2'
         self.p11modules: KSKM_P11 = KSKM_P11([])
         conf = io.StringIO(_TEST_CONFIG_SIMPLE_EC + _TEST_CONFIG_SIMPLE_COMMON)
-        self.config = load_from_yaml(conf)
-        self.p11modules = init_pkcs11_modules_from_dict(self.config['hsm'])
-        self.schema = get_schema('test', self.config)
+        self.config = KSKMConfig.from_yaml(conf)
+        self.p11modules = init_pkcs11_modules_from_dict(self.config.hsm)
+        self.schema = self.config.get_schema('test')
         _policy = {'PublishSafety': 'P10D',
                    'RetireSafety': 'P10D',
                    'MaxSignatureValidity': 'P20D',
@@ -212,7 +211,6 @@ class Test_SignWithSoftHSM_ECDSA(unittest.TestCase):
                           bundles=[bundle],
                           zsk_policy=self.signature_policy,
                           )
-        ksk_policy = get_ksk_policy(self.config)
         new_bundles = sign_bundles(request=request, schema=self.schema, p11modules=self.p11modules,
-                                   config=self.config, ksk_policy=ksk_policy)
+                                   config=self.config, ksk_policy=self.config.ksk_policy)
         validate_signatures(list(new_bundles)[0])

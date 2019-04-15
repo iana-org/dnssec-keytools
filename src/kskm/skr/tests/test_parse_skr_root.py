@@ -4,7 +4,7 @@ import unittest
 import pkg_resources
 
 from kskm.common.config import get_config
-from kskm.skr import get_response_policy, load_skr, response_from_xml
+from kskm.skr import load_skr, response_from_xml
 
 
 class TestParseRealSKRs(unittest.TestCase):
@@ -43,6 +43,6 @@ class TestParseRealSKRs(unittest.TestCase):
     def test_parse_2018_q1_0(self):
         """ Test loading and validating skr-root-2018-q1-0-d_to_e.xml """
         fn = os.path.join(self.data_dir, 'skr-root-2018-q1-0-d_to_e.xml')
-        policy = get_response_policy(self.policy_fn, get_config(None))
-        skr = load_skr(fn, policy)
+        config = get_config(None)
+        skr = load_skr(fn, config.response_policy)
         self.assertEqual(skr.id, '4fe9bb10-6f6b-4503-8575-7824e2d66925')

@@ -6,7 +6,7 @@ from dataclasses import replace
 import pkg_resources
 
 from kskm.skr import load_skr
-from kskm.skr.policy import ResponsePolicy
+from kskm.common.config import ResponsePolicy
 from kskm.skr.validate import InvalidSignatureViolation, validate_response
 
 

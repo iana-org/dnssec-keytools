@@ -9,7 +9,7 @@ from cryptography.exceptions import InvalidSignature
 
 from kskm.common.signature import validate_signatures
 from kskm.ksr import load_ksr, request_from_xml
-from kskm.ksr.policy import RequestPolicy
+from kskm.common.config import RequestPolicy
 
 
 def archive_dir(extra=None):

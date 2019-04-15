@@ -4,7 +4,7 @@ import unittest
 import pkg_resources
 
 from kskm.common.config import get_config
-from kskm.skr import (get_response_policy, load_skr, response_from_xml,
+from kskm.skr import (load_skr, response_from_xml,
                       skr_to_xml)
 from kskm.skr.validate import validate_response
 
@@ -19,7 +19,8 @@ class TestParseRealSKRs(unittest.TestCase):
     def test_recreate_2018_q1_0(self):
         """ Test a parse->output->parse cycle with skr-root-2018-q1-0-d_to_e.xml """
         fn = os.path.join(self.data_dir, 'skr-root-2018-q1-0-d_to_e.xml')
-        policy = get_response_policy(self.policy_fn, get_config(None))
+        config = get_config(self.policy_fn)
+        policy = config.response_policy
 
         skr = load_skr(fn, policy)
         self.assertEqual(skr.id, '4fe9bb10-6f6b-4503-8575-7824e2d66925')

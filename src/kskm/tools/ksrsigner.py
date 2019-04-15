@@ -16,9 +16,8 @@ import kskm.common
 import kskm.ksr
 import kskm.misc
 import kskm.skr
-from kskm.common.config import ConfigType
-from kskm.common.config import filename as config_filename
-from kskm.common.config import get_config, get_schema
+from kskm.common.config import KSKMConfig
+from kskm.common.config import get_config
 from kskm.common.daisy import check_daisy_chain
 from kskm.common.display import format_bundles_for_humans
 from kskm.common.logging import get_logger
@@ -103,25 +102,25 @@ def parse_args(defaults: dict) -> ArgsType:
     return args
 
 
-def _previous_skr_filename(args: Optional[ArgsType], config: ConfigType) -> Optional[str]:
+def _previous_skr_filename(args: Optional[ArgsType], config: KSKMConfig) -> Optional[str]:
     if args and args.previous_skr:
         return args.previous_skr
-    return config_filename('previous_skr', config)
+    return config.get_filename('previous_skr')
 
 
-def _ksr_filename(args: Optional[ArgsType], config: ConfigType) -> Optional[str]:
+def _ksr_filename(args: Optional[ArgsType], config: KSKMConfig) -> Optional[str]:
     if args and args.ksr:
         return args.ksr
-    return config_filename('input_ksr', config)
+    return config.get_filename('input_ksr')
 
 
-def _skr_filename(args: Optional[ArgsType], config: ConfigType) -> Optional[str]:
+def _skr_filename(args: Optional[ArgsType], config: KSKMConfig) -> Optional[str]:
     if args and args.skr:
         return args.skr
-    return config_filename('output_skr', config)
+    return config.get_filename('output_skr')
 
 
-def main(logger: logging.Logger, args: Optional[ArgsType], config: Optional[ConfigType] = None) -> bool:
+def main(logger: logging.Logger, args: Optional[ArgsType], config: Optional[KSKMConfig] = None) -> bool:
     """Parse KSR and previous SKR. Produce a new SKR."""
     #
     # Load configuration, if not provided already
@@ -135,31 +134,28 @@ def main(logger: logging.Logger, args: Optional[ArgsType], config: Optional[Conf
     skr = None
     _previous_skr = _previous_skr_filename(args, config)
     if _previous_skr:
-        response_policy = kskm.skr.get_response_policy(args.response_policy, config)
-        skr = kskm.skr.load_skr(_previous_skr, response_policy)
+        skr = kskm.skr.load_skr(_previous_skr, config.response_policy)
         logger.info('Previous SKR:')
         [logger.info(x) for x in format_bundles_for_humans(skr.bundles)]
 
     #
     # Load the KSR request
     #
-    request_policy = kskm.ksr.get_request_policy(args.request_policy, config)
-
     _ksr_fn = _ksr_filename(args, config)
-    request = kskm.ksr.load_ksr(_ksr_fn, request_policy)
+    request = kskm.ksr.load_ksr(_ksr_fn, config.request_policy)
     logger.info('Request:')
     [logger.info(x) for x in format_bundles_for_humans(request.bundles)]
 
     #
     # Initialise PKCS#11 modules (HSMs)
     #
-    p11modules = kskm.misc.hsm.init_pkcs11_modules_from_dict(config['hsm'])
+    p11modules = kskm.misc.hsm.init_pkcs11_modules_from_dict(config.hsm)
 
     #
     # Perform some checks that need both KSR, SKR and PKCS#11 modules
     #
     if skr is not None:
-        check_daisy_chain(request, skr, request_policy)
+        check_daisy_chain(request, skr, config.request_policy)
         # TODO: Verify that the public key that signed the bundles in skr is available in the HSM
     else:
         logger.info('KSR-CHAIN-PRE/KSR-CHAIN-POST: Previous SKR *NOT* loaded - daisy chain not validated')
@@ -168,7 +164,7 @@ def main(logger: logging.Logger, args: Optional[ArgsType], config: Optional[Conf
     #
     # Create a new SKR
     #
-    schema = get_schema('normal', config)
+    schema = config.get_schema('normal')
     new_skr = create_skr(request, schema, p11modules, config)
 
     _skr_fn = _skr_filename(args, config)

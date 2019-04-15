@@ -7,8 +7,8 @@ from typing import Dict, Iterable, List
 
 from cryptography.exceptions import InvalidSignature
 
-from kskm.common.config import (ConfigType, ConfigurationError, KSKKeysType,
-                                KSKPolicy, Schema, SchemaAction, get_ksk_keys)
+from kskm.common.config import (KSKMConfig, ConfigurationError, KSKKeysType,
+                                KSKPolicy, Schema, SchemaAction)
 from kskm.common.data import AlgorithmDNSSEC, Key, Signature, TypeDNSSEC
 from kskm.common.signature import dndepth, make_raw_rrsig
 from kskm.ksr import Request
@@ -22,14 +22,13 @@ logger = logging.getLogger(__name__)
 
 
 def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
-                 ksk_policy: KSKPolicy, config: ConfigType) -> Iterable[ResponseBundle]:
+                 ksk_policy: KSKPolicy, config: KSKMConfig) -> Iterable[ResponseBundle]:
     """
     Execute the actions specified in the schema, for all bundles in the request.
 
     This is typically to add one or more KSK keys to the key set, and then sign the
     DNSKEY RR set using the KSK key stored in a PKCS#11 module (HSM).
     """
-    ksk_keys = get_ksk_keys(config)
     res: List[ResponseBundle] = []
     bundle_num = 0
     _hush_key_ttl_warnings: Dict[str, bool] = {}
@@ -51,7 +50,7 @@ def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
         #
         # Load all the 'publish' keys from the PKCS#11 backends and format them as Key instances
         #
-        publish_keys = _schema_action_to_publish_keys(_bundle, this_schema, p11modules, ksk_policy, ksk_keys)
+        publish_keys = _schema_action_to_publish_keys(_bundle, this_schema, p11modules, ksk_policy, config.ksk_keys)
         # Add all the 'publish' keys (KSK operator keys) to the keys already in the bundle (ZSK operator keys)
         _new_keys.update(publish_keys)
         _bundle = replace(_bundle, keys=_new_keys)
@@ -61,7 +60,7 @@ def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
         #
         signatures = set()
         for _sign_key in this_schema.sign:
-            _sig = _sign_keys(_bundle, _sign_key, p11modules, ksk_policy, ksk_keys)
+            _sig = _sign_keys(_bundle, _sign_key, p11modules, ksk_policy, config.ksk_keys)
             signatures.add(_sig)
         res += [ResponseBundle(id=_bundle.id,
                                inception=_bundle.inception,

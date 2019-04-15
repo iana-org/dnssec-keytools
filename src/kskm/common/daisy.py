@@ -9,7 +9,7 @@ from kskm.common.display import format_bundles_for_humans
 from kskm.common.parse_utils import is_zsk_key
 from kskm.common.validate import PolicyViolation, fail
 from kskm.ksr.data import Bundle, Request
-from kskm.ksr.policy import RequestPolicy
+from kskm.common.config import RequestPolicy
 from kskm.skr.data import Response
 
 logger = logging.getLogger(__name__)
