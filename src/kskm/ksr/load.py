@@ -13,6 +13,8 @@ from kskm.ksr.policy import RequestPolicy
 from kskm.ksr.validate import validate_request
 
 __author__ = 'ft'
+
+
 logger = logging.getLogger(__name__)
 
 MAX_KSR_SIZE = 1024 * 1024

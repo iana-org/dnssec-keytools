@@ -13,6 +13,8 @@ from kskm.common.validate import PolicyViolation, fail
 from kskm.ksr import Request
 from kskm.ksr.policy import RequestPolicy
 
+__author__ = 'ft'
+
 
 class KSR_BundleViolation(PolicyViolation):
     """Policy violation in a KSRs bundles."""
@@ -38,21 +40,20 @@ class KSR_BUNDLE_UNIQUE_Violation(KSR_BundleViolation):
     pass
 
 
+class KSR_BUNDLE_COUNT_Violation(KSR_BundleViolation):
+    """KSR-BUNDLE-COUNT violation."""
+
+    pass
+
+
 def verify_bundles(request: Request, policy: RequestPolicy, logger: Logger) -> None:
     """Verify that the bundles in a request conform with the ZSK operators stated policy."""
     logger.debug('Begin "Verify KSR bundles"')
-    if policy.num_bundles is not None and len(request.bundles) != policy.num_bundles:
-        # TODO: This check is not part of the specification
-        _num_bundles = len(request.bundles)
-        fail(policy, KSR_BundleViolation,
-             f'Wrong number of bundles in request ({_num_bundles}, expected {policy.num_bundles})')
-    #
-    # Checks according to the specification below this point:
-    #
 
     check_unique_ids(request, policy, logger)
     check_keys_match_zsk_policy(request, policy, logger)
     check_proof_of_possession(request, policy, logger)
+    check_bundle_count(request, policy, logger)
 
     logger.debug('End "Verify KSR bundles"')
 
@@ -173,3 +174,16 @@ def check_proof_of_possession(request: Request, policy: RequestPolicy, logger: L
                  f'Invalid signature encountered in bundle {bundle.id}')
     _num_bundles = len(request.bundles)
     logger.info(f'KSR-BUNDLE-POP: All {_num_bundles} bundles contain proof-of-possession')
+
+
+def check_bundle_count(request: Request, policy: RequestPolicy, logger: Logger) -> None:
+    """
+    Validate the number of bundles in the request.
+
+    KSR-BUNDLE-COUNT:
+      Verify that the number of requested bundles are within acceptable limits.
+    """
+    if policy.num_bundles is not None and len(request.bundles) != policy.num_bundles:
+        _num_bundles = len(request.bundles)
+        fail(policy, KSR_BUNDLE_COUNT_Violation,
+             f'Wrong number of bundles in request ({_num_bundles}, expected {policy.num_bundles})')

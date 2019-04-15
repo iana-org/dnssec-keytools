@@ -104,10 +104,6 @@ def make_raw_rrsig(sig: Signature, keys: Set[Key]) -> bytes:
     return res
 
 
-def _is_rsa_key(key: Key) -> bool:
-    return is_algorithm_rsa(key.algorithm)
-
-
 def _dn2wire(dn: str) -> bytes:
     if dn == '.':
         return b'\00'
