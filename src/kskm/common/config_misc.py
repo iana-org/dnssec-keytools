@@ -5,12 +5,16 @@ from abc import ABC
 from copy import deepcopy
 from dataclasses import dataclass, field
 from datetime import datetime, timezone, timedelta
-from typing import Iterable, List, Mapping, NewType, Optional, Type, Union, TypeVar
+from typing import Iterable, List, Mapping, NewType, Optional, Type, Union, TypeVar, cast
 
 from kskm.common.data import AlgorithmDNSSEC, SignaturePolicy
 from kskm.common.parse_utils import duration_to_timedelta, parse_datetime
 
 __author__ = 'ft'
+
+
+PolicyType = TypeVar('PolicyType', bound='Policy')
+KSKKeysType = NewType('KSKKeysType', Mapping[str, 'KSKKey'])
 
 
 @dataclass(frozen=True)
@@ -160,7 +164,3 @@ class KSKKey(object):
                 # Set timezone UTC in the datetime
                 _data[_dt] = _data[_dt].replace(tzinfo=timezone.utc)
         return cls(**_data)
-
-
-KSKKeysType = NewType('KSKKeysType', Mapping[str, KSKKey])
-PolicyType = TypeVar('PolicyType', bound='Policy')

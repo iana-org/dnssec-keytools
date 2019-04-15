@@ -12,7 +12,7 @@ from cryptography.hazmat.primitives.asymmetric.utils import \
 from cryptography.hazmat.primitives.hashes import SHA256, SHA384
 
 from kskm.common.data import AlgorithmDNSSEC, Key
-from kskm.common.public_key import KSKM_PublicKeyType
+from kskm.common.public_key import KSKM_PublicKey
 from kskm.common.ecdsa_utils import (KSKM_PublicKey_ECDSA,
                                      decode_ecdsa_public_key,
                                      is_algorithm_ecdsa)
@@ -35,7 +35,7 @@ def key_to_crypto_pubkey(key: Key) -> rsa.RSAPublicKey:
     raise RuntimeError(f"Can't make cryptography public key from {key}")
 
 
-def pubkey_to_crypto_pubkey(pubkey: Optional[KSKM_PublicKeyType]) -> CryptoPubKey:
+def pubkey_to_crypto_pubkey(pubkey: Optional[KSKM_PublicKey]) -> CryptoPubKey:
     if isinstance(pubkey, KSKM_PublicKey_RSA):
         return rsa_pubkey_to_crypto_pubkey(pubkey)
     elif isinstance(pubkey, KSKM_PublicKey_ECDSA):

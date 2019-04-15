@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import replace
-from typing import (Dict, IO, Mapping, Optional, cast)
+from typing import (Dict, IO, Mapping, Optional, cast, Type)
 
 import yaml
 
@@ -209,7 +209,7 @@ class KSKMConfig(object):
         return Schema(name=name, actions=_actions)
 
     @classmethod
-    def from_yaml(cls, stream: IO) -> KSKMConfig:
+    def from_yaml(cls: Type[KSKMConfig], stream: IO) -> KSKMConfig:
         """Load configuration from a YAML stream."""
         return cls(yaml.safe_load(stream))
 

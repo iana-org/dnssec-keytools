@@ -15,7 +15,7 @@ from typing import (Any, Dict, Iterator, List, Mapping, MutableMapping,
 import PyKCS11
 
 from kskm.common.data import AlgorithmDNSSEC
-from kskm.common.public_key import KSKM_PublicKeyType
+from kskm.common.public_key import KSKM_PublicKey
 from kskm.common.ecdsa_utils import KSKM_PublicKey_ECDSA
 from kskm.common.rsa_utils import KSKM_PublicKey_RSA
 
@@ -30,7 +30,7 @@ class KSKM_P11Key(object):
     """A reference to a key object loaded from a PKCS#11 module."""
 
     label: str  # for debugging
-    public_key: Optional[KSKM_PublicKeyType]
+    public_key: Optional[KSKM_PublicKey]
     private_key: Any = field(repr=False)  # PyKCS11 opaque data
     session: Any = field(repr=False)  # PyKCS11 opaque data
 
@@ -134,7 +134,7 @@ class KSKM_P11Module(object):
         return None
 
     @staticmethod
-    def _p11_object_to_public_key(session: Any, data: list) -> Optional[KSKM_PublicKeyType]:
+    def _p11_object_to_public_key(session: Any, data: list) -> Optional[KSKM_PublicKey]:
         """Create an RSAPublicKeyData object from PKCS#11 findObject return data."""
         _cka_type = session.getAttributeValue(data[0], [PyKCS11.CKA_KEY_TYPE])[0]
         if _cka_type == PyKCS11.CKK_RSA:
