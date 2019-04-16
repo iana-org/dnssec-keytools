@@ -221,7 +221,7 @@ def main():
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    config = yaml.load(open(args.config).read())
+    config = yaml.load(open(args.config).read(), Loader=yaml.SafeLoader)
     tls_config = config['tls']
     ksr_config = config.get('ksr', {})
     notify_config = config.get('notify')
