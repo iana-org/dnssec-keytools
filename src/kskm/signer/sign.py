@@ -15,7 +15,7 @@ from kskm.ksr import Request
 from kskm.ksr.data import RequestBundle
 from kskm.misc.crypto import pubkey_to_crypto_pubkey, verify_signature
 from kskm.misc.hsm import KSKM_P11, KSKM_P11Key, sign_using_p11
-from kskm.signer.key import load_pkcs11_key, CompositeKey
+from kskm.signer.key import CompositeKey, load_pkcs11_key
 from kskm.skr.data import ResponseBundle
 from kskm.skr.validate import check_valid_signatures
 
@@ -54,26 +54,16 @@ def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
                 _key = replace(_key, ttl=ksk_policy.ttl)
             _new_keys.add(_key)
         #
-        # Load all the 'publish' keys from the PKCS#11 backends and format them as Key instances
-        #
-        publish_keys = _schema_action_to_publish_keys(_bundle, this_schema, p11modules, ksk_policy, config.ksk_keys)
         # Add all the 'publish' keys (KSK operator keys) to the keys already in the bundle (ZSK operator keys)
-        _new_keys.update(publish_keys)
-
+        #
+        for this_key in _fetch_keys(this_schema.publish, _bundle, p11modules, ksk_policy, config.ksk_keys, True):
+            _new_keys.add(this_key.dns)
         #
         # All the signing keys sign the complete DNSKEY RRSET, so first add them to the bundles keys
         #
-        signing_keys: List[CompositeKey] = []
-        for sign_key_name in this_schema.sign:
-            ksk = config.ksk_keys[sign_key_name]
-            this_key = load_pkcs11_key(ksk, p11modules, ksk_policy, _bundle, public=False)
-            if not this_key:
-                logger.error(f'Could not find signing key {sign_key_name!r} ({ksk.label}/{ksk.description}) '
-                             f'for bundle {_bundle.id}')
-                raise ConfigurationError(f'Key {sign_key_name!r} not found')
-
+        signing_keys = _fetch_keys(this_schema.sign, _bundle, p11modules, ksk_policy, config.ksk_keys, False)
+        for this_key in signing_keys:
             _new_keys.add(this_key.dns)
-            signing_keys += [this_key]
 
         updated_bundle = replace(_bundle, keys=_new_keys)
 
@@ -83,7 +73,7 @@ def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
         signatures = set()
         for _sign_key in signing_keys:
             logger.debug(f'Signing keys {updated_bundle.keys} with sign_key {_sign_key}')
-            _sig = _sign_keys(updated_bundle, _sign_key, p11modules, ksk_policy, config.ksk_keys)
+            _sig = _sign_keys(updated_bundle, _sign_key, ksk_policy)
             if _sig:
                 signatures.add(_sig)
 
@@ -99,36 +89,36 @@ def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
                                          expiration=_bundle.expiration,
                                          keys=_new_keys,
                                          signatures=signatures)
+        #
+        # For good measure, apply response policy validation
+        #
         check_valid_signatures(response_bundle, config.response_policy)
         res += [response_bundle]
 
     return res
 
 
-def _schema_action_to_publish_keys(bundle: RequestBundle, s_action: SchemaAction, p11modules: KSKM_P11,
-                                   ksk_policy: KSKPolicy, ksk_keys: KSKKeysType) -> Iterable[Key]:
-    res: List[Key] = []
-    # Load the keys the KSK operator wants to add to the ones provided by the ZSK operator
-    for _publish_key in s_action.publish:
-        ksk = ksk_keys[_publish_key]
-        this_key = load_pkcs11_key(ksk, p11modules, ksk_policy, bundle, public=True)
+def _fetch_keys(key_names: Iterable[str], bundle: RequestBundle, p11modules: KSKM_P11,
+                ksk_policy: KSKPolicy, ksk_keys: KSKKeysType, public: bool) -> Iterable[CompositeKey]:
+    res = []
+    for _name in key_names:
+        _key = ksk_keys[_name]
+        this_key = load_pkcs11_key(_key, p11modules, ksk_policy, bundle, public=public)
         if not this_key:
-            logger.error(f'Could not find publish key {_publish_key!r} ({ksk.label}/{ksk.description}) '
+            logger.error(f'Could not find key {repr(_name)} ({_key.label}/{_key.description}) '
                          f'for bundle {bundle.id}')
-            raise ConfigurationError(f'Key {_publish_key!r} not found')
-        res += [this_key.dns]
+            raise ConfigurationError(f'Key {repr(_name)} not found')
+        res += [this_key]
     return res
 
 
-def _sign_keys(bundle: RequestBundle, signing_key: CompositeKey, p11modules: KSKM_P11,
-               ksk_policy: KSKPolicy, ksk_keys: KSKKeysType) -> Optional[Signature]:
+def _sign_keys(bundle: RequestBundle, signing_key: CompositeKey, ksk_policy: KSKPolicy) -> Optional[Signature]:
     """
     Sign the bundle key RRSET using the HSM key identified by 'label'.
     """
     # All ZSK TTLs are guaranteed to be the same as ksk_policy.ttl at this point. Just do this for clarity.
     for _key in bundle.keys:
-        if _key.ttl != ksk_policy.ttl:
-            raise CreateSignatureError(f'TTL mismatch between ZSK and KSK in bundle {bundle.id}')
+        assert _key.ttl == ksk_policy.ttl
 
     sig = Signature(
         key_tag=signing_key.dns.key_tag,

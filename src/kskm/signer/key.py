@@ -44,9 +44,9 @@ def load_pkcs11_key(ksk: KSKKey, p11modules: KSKM_P11, ksk_policy: KSKPolicy,
     :param public: Ask the HSM for a public key, or not.
     """
     if ksk.valid_from > bundle.inception:
-        raise KeyUsagePolicy_Violation('Key {ksk.label} is not valid at the time of bundle {bundle.id} inception')
+        raise KeyUsagePolicy_Violation(f'Key {ksk.label} is not valid at the time of bundle {bundle.id} inception')
     if ksk.valid_until is not None and ksk.valid_until < bundle.expiration:
-        raise KeyUsagePolicy_Violation('Key {ksk.label} is not valid at the time of bundle {bundle.id} expiration')
+        raise KeyUsagePolicy_Violation(f'Key {ksk.label} is not valid at the time of bundle {bundle.id} expiration')
 
     _found = get_p11_key(ksk.label, p11modules, public=public)
     if not _found:
