@@ -8,8 +8,8 @@ from typing import Dict, Iterable, List, Optional
 from cryptography.exceptions import InvalidSignature
 
 from kskm.common.config import (ConfigurationError, KSKMConfig)
-from kskm.common.config_misc import KSKKeysType, KSKPolicy, Schema, SchemaAction
-from kskm.common.data import AlgorithmDNSSEC, Key, Signature, TypeDNSSEC
+from kskm.common.config_misc import KSKKeysType, KSKPolicy, Schema
+from kskm.common.data import AlgorithmDNSSEC, Signature, TypeDNSSEC
 from kskm.common.signature import dndepth, make_raw_rrsig
 from kskm.ksr import Request
 from kskm.ksr.data import RequestBundle
@@ -19,10 +19,14 @@ from kskm.signer.key import CompositeKey, load_pkcs11_key
 from kskm.skr.data import ResponseBundle
 from kskm.skr.validate import check_valid_signatures
 
+__author__ = 'ft'
+
 logger = logging.getLogger(__name__)
 
 
 class CreateSignatureError(Exception):
+    """Failures to create a signature."""
+
     pass
 
 
@@ -113,9 +117,7 @@ def _fetch_keys(key_names: Iterable[str], bundle: RequestBundle, p11modules: KSK
 
 
 def _sign_keys(bundle: RequestBundle, signing_key: CompositeKey, ksk_policy: KSKPolicy) -> Optional[Signature]:
-    """
-    Sign the bundle key RRSET using the HSM key identified by 'label'.
-    """
+    """Sign the bundle key RRSET using the HSM key identified by 'label'."""
     # All ZSK TTLs are guaranteed to be the same as ksk_policy.ttl at this point. Just do this for clarity.
     for _key in bundle.keys:
         assert _key.ttl == ksk_policy.ttl

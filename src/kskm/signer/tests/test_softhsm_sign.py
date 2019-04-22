@@ -12,7 +12,7 @@ from typing import Set
 
 import yaml
 
-from kskm.common.config import KSKMConfig, ConfigurationError
+from kskm.common.config import ConfigurationError, KSKMConfig
 from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY, Key
 from kskm.common.dnssec import public_key_to_dnssec_key
 from kskm.common.parse_utils import parse_datetime, signature_policy_from_dict
@@ -23,6 +23,8 @@ from kskm.misc.hsm import KSKM_P11, get_p11_key, init_pkcs11_modules_from_dict
 from kskm.signer import sign_bundles
 from kskm.signer.key import KeyUsagePolicy_Violation
 from kskm.signer.sign import CreateSignatureError
+
+__author__ = 'ft'
 
 if os.environ.get('SOFTHSM2_MODULE') and os.environ.get('SOFTHSM2_CONF'):
     _TEST_SOFTHSM2 = True
@@ -78,6 +80,7 @@ ksk_policy:
   ttl: 20
 """
 
+
 class SignWithSoftHSM_Baseclass(unittest.TestCase):
 
     def setUp(self) -> None:
@@ -104,6 +107,7 @@ class SignWithSoftHSM_Baseclass(unittest.TestCase):
         self.request_zsk_policy = signature_policy_from_dict(_policy)
 
     def tearDown(self) -> None:
+        """Unload PKCS#11 modules, lest they might not work for the next test that starts."""
         for this in self.p11modules:
             this.close()
 
@@ -211,7 +215,6 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
     @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
     def test_ec_sign_prepublish_key(self) -> None:
         """ Test a schema pre-publishing a third key. """
-
         _PUBLISH_SCHEMA = """---
         schemas:
           test:
@@ -303,7 +306,6 @@ class Test_SignWithSoftHSM_DualAlgorithm(SignWithSoftHSM_Baseclass):
             sign_bundles(request=request, schema=self.config.get_schema('test'),
                          p11modules=self.p11modules, config=self.config,
                          ksk_policy=self.config.ksk_policy)
-
 
     @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
     def test_ec_sign_prepublish_key(self) -> None:
@@ -452,4 +454,3 @@ class Test_SignWithSoftHSM_Errorhandling(SignWithSoftHSM_Baseclass):
             sign_bundles(request=request, schema=self.schema,
                          p11modules=self.p11modules, config=self.config,
                          ksk_policy=self.config.ksk_policy)
-

@@ -27,7 +27,8 @@ logger = logging.getLogger(__name__)
 CryptoPubKey = Union[rsa.RSAPublicKey, ec.EllipticCurvePublicKey]
 
 
-def key_to_crypto_pubkey(key: Key) -> rsa.RSAPublicKey:
+def key_to_crypto_pubkey(key: Key) -> CryptoPubKey:
+    """Turn a Key (DNSKEY) into a CryptoPubKey that can be used with 'cryptography'."""
     if is_algorithm_rsa(key.algorithm):
         return pubkey_to_crypto_pubkey(decode_rsa_public_key(key.public_key))
     elif is_algorithm_ecdsa(key.algorithm):
@@ -36,6 +37,7 @@ def key_to_crypto_pubkey(key: Key) -> rsa.RSAPublicKey:
 
 
 def pubkey_to_crypto_pubkey(pubkey: Optional[KSKM_PublicKey]) -> CryptoPubKey:
+    """Turn an KSKM_PublicKey into a CryptoPubKey."""
     if isinstance(pubkey, KSKM_PublicKey_RSA):
         return rsa_pubkey_to_crypto_pubkey(pubkey)
     elif isinstance(pubkey, KSKM_PublicKey_ECDSA):
@@ -45,12 +47,14 @@ def pubkey_to_crypto_pubkey(pubkey: Optional[KSKM_PublicKey]) -> CryptoPubKey:
 
 
 def rsa_pubkey_to_crypto_pubkey(pubkey: KSKM_PublicKey_RSA) -> rsa.RSAPublicKey:
+    """Convert an KSKM_PublicKey_RSA into a 'cryptography' rsa.RSAPublicKey."""
     rsa_n = int.from_bytes(pubkey.n, byteorder='big')
     public = rsa.RSAPublicNumbers(pubkey.exponent, rsa_n)
     return default_backend().load_rsa_public_numbers(public)
 
 
 def ecdsa_pubkey_to_crypto_pubkey(pubkey: KSKM_PublicKey_ECDSA) -> ec.EllipticCurvePublicKey:
+    """Convert an KSKM_PublicKey_ECDSA into a 'cryptography' ec.EllipticCurvePublicKey."""
     if pubkey.algorithm == AlgorithmDNSSEC.ECDSAP256SHA256:
         curve = ec.SECP256R1()
     elif pubkey.algorithm == AlgorithmDNSSEC.ECDSAP384SHA384:
@@ -61,6 +65,7 @@ def ecdsa_pubkey_to_crypto_pubkey(pubkey: KSKM_PublicKey_ECDSA) -> ec.EllipticCu
 
 
 def verify_signature(pubkey: CryptoPubKey, signature: bytes, data: bytes, algorithm: AlgorithmDNSSEC) -> None:
+    """Verify a signature over 'data' using an 'cryptography' public key."""
     _hash = _algorithm_to_hash(algorithm)
     try:
         if is_algorithm_rsa(algorithm):

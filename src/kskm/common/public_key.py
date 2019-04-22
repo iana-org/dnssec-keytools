@@ -2,7 +2,6 @@
 
 from abc import ABC
 from dataclasses import dataclass
-from typing import TypeVar
 
 __author__ = 'ft'
 

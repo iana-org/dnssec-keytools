@@ -4,8 +4,8 @@ from __future__ import annotations
 from abc import ABC
 from copy import deepcopy
 from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
-from typing import Iterable, List, Mapping, NewType, Optional, Type, Union, TypeVar, cast
+from datetime import datetime, timedelta, timezone
+from typing import Iterable, List, Mapping, NewType, Optional, Type, TypeVar, Union
 
 from kskm.common.data import AlgorithmDNSSEC, SignaturePolicy
 from kskm.common.parse_utils import duration_to_timedelta, parse_datetime
