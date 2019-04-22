@@ -104,7 +104,7 @@ def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
 
 def _fetch_keys(key_names: Iterable[str], bundle: RequestBundle, p11modules: KSKM_P11,
                 ksk_policy: KSKPolicy, ksk_keys: KSKKeysType, public: bool) -> Iterable[CompositeKey]:
-    res = []
+    res: List[CompositeKey] = []
     for _name in key_names:
         _key = ksk_keys[_name]
         this_key = load_pkcs11_key(_key, p11modules, ksk_policy, bundle, public=public)
