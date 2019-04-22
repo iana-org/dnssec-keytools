@@ -19,7 +19,7 @@ from kskm.common.signature import validate_signatures
 from kskm.ksr import Request
 from kskm.ksr.data import RequestBundle
 from kskm.misc.hsm import KSKM_P11, get_p11_key, init_pkcs11_modules_from_dict
-from kskm.signer import sign_bundles, create_skr
+from kskm.signer import sign_bundles
 from kskm.signer.sign import CreateSignatureError
 
 if os.environ.get('SOFTHSM2_MODULE') and os.environ.get('SOFTHSM2_CONF'):
@@ -165,6 +165,13 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
             algorithm: ECDSAP256SHA256
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
+
+          ksk_prepublish_key:
+            description: A SoftHSM key used in tests
+            label: EC3
+            algorithm: ECDSAP256SHA256
+            valid_from: 2010-07-15T00:00:00+00:00
+            valid_until: 2019-01-11T00:00:00+00:00
         """
 
         self.config.update(yaml.safe_load(io.StringIO(_EC_KEYS)))
@@ -215,3 +222,44 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
             sign_bundles(request=request, schema=self.schema, p11modules=self.p11modules,
                          config=self.config, ksk_policy=self.config.ksk_policy)
 
+    @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
+    def test_ec_sign_prepublish_key(self) -> None:
+        """ Test a schema pre-publishing a third key. """
+
+        _PUBLISH_SCHEMA = """---
+        schemas:
+          test:
+            1: {publish: ksk_prepublish_key, sign: ksk_test_key}
+            2: {publish: ksk_prepublish_key, sign: ksk_test_key}
+            3: {publish: ksk_prepublish_key, sign: ksk_test_key}
+            4: {publish: ksk_prepublish_key, sign: ksk_test_key}
+            5: {publish: ksk_prepublish_key, sign: ksk_test_key}
+            6: {publish: ksk_prepublish_key, sign: ksk_test_key}
+            7: {publish: ksk_prepublish_key, sign: ksk_test_key}
+            8: {publish: ksk_prepublish_key, sign: ksk_test_key}
+            9: {publish: ksk_prepublish_key, sign: ksk_test_key}
+        """
+        self.config.update(yaml.safe_load(io.StringIO(_PUBLISH_SCHEMA)))
+        zsk_key = self._p11_to_dnskey('EC1', AlgorithmDNSSEC.ECDSAP256SHA256, flags=0)
+        bundle = RequestBundle(id='test-01',
+                               inception=parse_datetime('2018-01-01T00:00:00+00:00'),
+                               expiration=parse_datetime('2018-01-22T00:00:00+00:00'),
+                               keys={zsk_key},
+                               signatures=set(),
+                               signers=None,
+                               )
+        request = Request(id='test-req-01',
+                          serial=1,
+                          domain='.',
+                          bundles=[bundle],
+                          zsk_policy=self.request_zsk_policy,
+                          )
+        new_bundles = sign_bundles(request=request, schema=self.config.get_schema('test'),
+                                   p11modules=self.p11modules, config=self.config,
+                                   ksk_policy=self.config.ksk_policy)
+        validate_signatures(list(new_bundles)[0])
+        key_ids = sorted([x.key_identifier for x in list(new_bundles)[0].keys])
+        self.assertEqual(key_ids, ['EC1',  # ZSK key in RequestBundle
+                                   'EC2',  # ksk_test_key
+                                   'EC3',  # ksk_prepublish_key
+                                   ])

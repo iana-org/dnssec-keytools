@@ -14,8 +14,8 @@ STATUSFILE=		$(TOKENDIR)/.initialized
 P11MODULE?=		/usr/lib/softhsm/libsofthsm2.so
 PKCS11TOOL=		env $(SOFTHSM_ENV) pkcs11-tool --module $(P11MODULE) --login --pin $(SOFTHSM_PIN)
 
-KEYS=			rsa2048-1.key rsa2048-2.key ecp256-1.key ecp256-2.key
-KEYS_PKCS8=		rsa2048-1.p8 rsa2048-2.p8 ecp256-1.p8 ecp256-2.p8
+KEYS=			rsa2048-1.key rsa2048-2.key ecp256-1.key ecp256-2.key ecp256-3.key
+KEYS_PKCS8=		rsa2048-1.p8 rsa2048-2.p8 ecp256-1.p8 ecp256-2.p8 ecp256-3.p8
 
 CLEANFILES=		*.p8 *.key softhsm.initialized $(TOKENDIR) $(SOFTHSM_CONF)
 
@@ -50,6 +50,7 @@ $(STATUSFILE): $(SOFTHSM_CONF) $(TOKENDIR) $(KEYS_PKCS8)
 	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-2.p8 --token $(LABEL_TOKEN_2) --id 02 --label RSA2x
 	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-1.p8 --token $(LABEL_TOKEN_0) --id 03 --label EC1
 	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-2.p8 --token $(LABEL_TOKEN_0) --id 04 --label EC2
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-3.p8 --token $(LABEL_TOKEN_0) --id 05 --label EC3
 	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-1.p8 --token $(LABEL_TOKEN_1) --id 03 --label EC1x
 	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-2.p8 --token $(LABEL_TOKEN_2) --id 04 --label EC2x
 	touch $(STATUSFILE)
@@ -70,6 +71,7 @@ rsa2048-1.p8: rsa2048-1.key
 rsa2048-2.p8: rsa2048-2.key
 ecp256-1.p8: ecp256-2.key
 ecp256-2.p8: ecp256-2.key
+ecp256-3.p8: ecp256-3.key
 
 rsa2048-1.key:
 	openssl genrsa 2048 > $@
@@ -81,6 +83,9 @@ ecp256-1.key:
 	openssl ecparam -name prime256v1 -genkey -noout -out $@
 
 ecp256-2.key:
+	openssl ecparam -name prime256v1 -genkey -noout -out $@
+
+ecp256-3.key:
 	openssl ecparam -name prime256v1 -genkey -noout -out $@
 
 .key.p8:
