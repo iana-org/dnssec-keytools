@@ -3,12 +3,12 @@ import base64
 import hashlib
 import logging
 from dataclasses import replace
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Optional
 
 from cryptography.exceptions import InvalidSignature
 
-from kskm.common.config import (KSKMConfig, ConfigurationError)
-from kskm.common.config_misc import SchemaAction, Schema, KSKPolicy, KSKKeysType
+from kskm.common.config import (ConfigurationError, KSKMConfig)
+from kskm.common.config_misc import KSKKeysType, KSKPolicy, Schema, SchemaAction
 from kskm.common.data import AlgorithmDNSSEC, Key, Signature, TypeDNSSEC
 from kskm.common.signature import dndepth, make_raw_rrsig
 from kskm.ksr import Request
@@ -19,6 +19,10 @@ from kskm.signer.key import load_pkcs11_key
 from kskm.skr.data import ResponseBundle
 
 logger = logging.getLogger(__name__)
+
+
+class CreateSignatureError(Exception):
+    pass
 
 
 def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
@@ -35,6 +39,7 @@ def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
     for _bundle in request.bundles:
         bundle_num += 1
         this_schema = schema.actions[bundle_num]
+
         # All DNSKEY RRs in a set *has* to have the same TTL. Ensure all keys have the TTL
         # configured by the KSK operator. A warning is logged for any discrepancies found,
         # because an earlier policy check (KSR-POLICY-KEYS) should have found this unless disabled.
@@ -53,15 +58,26 @@ def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
         publish_keys = _schema_action_to_publish_keys(_bundle, this_schema, p11modules, ksk_policy, config.ksk_keys)
         # Add all the 'publish' keys (KSK operator keys) to the keys already in the bundle (ZSK operator keys)
         _new_keys.update(publish_keys)
-        _bundle = replace(_bundle, keys=_new_keys)
+        updated_bundle = replace(_bundle, keys=_new_keys)
 
         #
         # Using the 'signing' keys for this bundle in the schema, sign all the keys in the bundle
         #
         signatures = set()
         for _sign_key in this_schema.sign:
-            _sig = _sign_keys(_bundle, _sign_key, p11modules, ksk_policy, config.ksk_keys)
-            signatures.add(_sig)
+            logger.debug(f'Signing keys {updated_bundle.keys} with sign_key {_sign_key}')
+            _sig = _sign_keys(updated_bundle, _sign_key, p11modules, ksk_policy, config.ksk_keys)
+            if _sig:
+                signatures.add(_sig)
+
+        # Ensure the ZSK set of algorithms covering this bundle match the KSK set of algorithms
+        _zsk_algs = set([x.algorithm.name for x in _bundle.keys])
+        _ksk_algs = set([x.algorithm.name for x in signatures])
+        if _zsk_algs != _ksk_algs:
+            raise CreateSignatureError(f'ZSK algorithms {_zsk_algs} does not match KSK algorithms {_ksk_algs} '
+                                       f'for bundle {_bundle.id}')
+
+        # TODO: Ensure we got signatures covering all the ZSK keys in the bundle
         res += [ResponseBundle(id=_bundle.id,
                                inception=_bundle.inception,
                                expiration=_bundle.expiration,
@@ -86,11 +102,9 @@ def _schema_action_to_publish_keys(bundle: RequestBundle, s_action: SchemaAction
 
 
 def _sign_keys(bundle: RequestBundle, sign_key_name: str, p11modules: KSKM_P11,
-               ksk_policy: KSKPolicy, ksk_keys: KSKKeysType) -> Signature:
+               ksk_policy: KSKPolicy, ksk_keys: KSKKeysType) -> Optional[Signature]:
     """
-    Sign all ZSK keys in bundle_keys using the HSM key identified by 'label'.
-
-    :return: A list of new signatures
+    Sign the bundle key RRSET using the HSM key identified by 'label'.
     """
     ksk = ksk_keys[sign_key_name]
     this_key = load_pkcs11_key(ksk, p11modules, ksk_policy, bundle, public=False)
@@ -101,9 +115,11 @@ def _sign_keys(bundle: RequestBundle, sign_key_name: str, p11modules: KSKM_P11,
 
     signing_key = this_key.dns
 
-    sign_keys = list(bundle.keys)
-    # This TTL is guaranteed to be the same as ksk_policy.ttl at this point. Just do this for clarity.
-    assert sign_keys[0].ttl == ksk_policy.ttl
+    # All ZSK TTLs are guaranteed to be the same as ksk_policy.ttl at this point. Just do this for clarity.
+    for _key in bundle.keys:
+        if _key.ttl != ksk_policy.ttl:
+            raise CreateSignatureError(f'TTL mismatch between ZSK and KSK in bundle {bundle.id}')
+
     sig = Signature(
         key_tag=signing_key.key_tag,
         key_identifier=signing_key.key_identifier,
@@ -118,7 +134,7 @@ def _sign_keys(bundle: RequestBundle, sign_key_name: str, p11modules: KSKM_P11,
         signature_data=b'',  # Will replace this below
     )
 
-    rrsig_raw = make_raw_rrsig(sig, set(sign_keys))
+    rrsig_raw = make_raw_rrsig(sig, bundle.keys)
     signature_data = sign_using_p11(this_key.p11, rrsig_raw, signing_key.algorithm)
 
     # Before proceeding, validate the signature using a non-HSM based implementation

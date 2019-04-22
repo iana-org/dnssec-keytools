@@ -9,6 +9,8 @@ import io
 import os
 import unittest
 
+import yaml
+
 from kskm.common.config import KSKMConfig
 from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY
 from kskm.common.dnssec import public_key_to_dnssec_key
@@ -17,7 +19,8 @@ from kskm.common.signature import validate_signatures
 from kskm.ksr import Request
 from kskm.ksr.data import RequestBundle
 from kskm.misc.hsm import KSKM_P11, get_p11_key, init_pkcs11_modules_from_dict
-from kskm.signer import sign_bundles
+from kskm.signer import sign_bundles, create_skr
+from kskm.signer.sign import CreateSignatureError
 
 if os.environ.get('SOFTHSM2_MODULE') and os.environ.get('SOFTHSM2_CONF'):
     _TEST_SOFTHSM2 = True
@@ -25,8 +28,13 @@ else:
     _TEST_SOFTHSM2 = False
 
 
-_TEST_CONFIG_SIMPLE_RSA = """
+_TEST_CONFIG = """
 ---
+hsm:
+  softhsm:
+    module: $SOFTHSM2_MODULE
+    pin: 123456
+
 keys:
   zsk_test_key:
     description: A SoftHSM key used in tests
@@ -45,31 +53,6 @@ keys:
     rsa_exponent: 65537
     valid_from: 2010-07-15T00:00:00+00:00
     valid_until: 2019-01-11T00:00:00+00:00
-"""
-
-_TEST_CONFIG_SIMPLE_EC = """
----
-keys:
-  zsk_test_key:
-    description: A SoftHSM key used in tests
-    label: EC1
-    algorithm: ECDSAP256SHA256
-    valid_from: 2010-07-15T00:00:00+00:00
-    valid_until: 2019-01-11T00:00:00+00:00
-
-  ksk_test_key:
-    description: A SoftHSM key used in tests
-    label: EC2
-    algorithm: ECDSAP256SHA256
-    valid_from: 2010-07-15T00:00:00+00:00
-    valid_until: 2019-01-11T00:00:00+00:00
-"""
-
-_TEST_CONFIG_SIMPLE_COMMON = """
-hsm:
-  softhsm:
-    module: $SOFTHSM2_MODULE
-    pin: 123456
 
 schemas:
   test:
@@ -93,8 +76,7 @@ ksk_policy:
   ttl: 20
 """
 
-
-class Test_SignWithSoftHSM_RSA(unittest.TestCase):
+class SignWithSoftHSM_Baseclass(unittest.TestCase):
 
     def setUp(self) -> None:
         """ Prepare for tests. """
@@ -102,7 +84,7 @@ class Test_SignWithSoftHSM_RSA(unittest.TestCase):
         self.zsk_key_label = 'RSA1'
         self.ksk_key_label = 'RSA2'
         self.p11modules: KSKM_P11 = KSKM_P11([])
-        conf = io.StringIO(_TEST_CONFIG_SIMPLE_RSA + _TEST_CONFIG_SIMPLE_COMMON)
+        conf = io.StringIO(_TEST_CONFIG)
         self.config = KSKMConfig.from_yaml(conf)
         self.p11modules = init_pkcs11_modules_from_dict(self.config.hsm)
         self.schema = self.config.get_schema('test')
@@ -117,26 +99,33 @@ class Test_SignWithSoftHSM_RSA(unittest.TestCase):
                                                     }
                                           }
                    }
-        self.signature_policy = signature_policy_from_dict(_policy)
+        self.request_zsk_policy = signature_policy_from_dict(_policy)
 
     def tearDown(self) -> None:
         for this in self.p11modules:
             this.close()
+
+    def _p11_to_dnskey(self, key_name: str, algorithm: AlgorithmDNSSEC, flags: int = FlagsDNSKEY.SEP.value):
+        if not self.p11modules:
+            self.skipTest('No HSM config')
+        p11_key = get_p11_key(key_name, self.p11modules, public=True)
+        if not p11_key:
+            self.fail('Key not found')
+        zsk_key = public_key_to_dnssec_key(key=p11_key.public_key,
+                                           key_identifier=key_name,
+                                           algorithm=algorithm,
+                                           flags=flags,
+                                           ttl=10,
+                                           )
+        return zsk_key
+
+
+class Test_SignWithSoftHSM_RSA(SignWithSoftHSM_Baseclass):
 
     @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
     def test_sign_with_softhsm(self) -> None:
         """ Test signing a key record with SoftHSM and then verifying it """
-        if not self.p11modules:
-            self.skipTest('No HSM config')
-        p11_key = get_p11_key(self.ksk_key_label, self.p11modules, public=True)
-        if not p11_key:
-            self.fail(f'Key {self.ksk_key_label} not found')
-        ksk_key = public_key_to_dnssec_key(key=p11_key.public_key,
-                                           key_identifier=self.ksk_key_label,
-                                           algorithm=AlgorithmDNSSEC.RSASHA256,
-                                           flags=FlagsDNSKEY.SEP.value,  # SEP bit set for KSK
-                                           ttl=10,
-                                           )
+        ksk_key = self._p11_to_dnskey(self.ksk_key_label, AlgorithmDNSSEC.RSASHA256)
         bundle = RequestBundle(id='test-01',
                                inception=parse_datetime('2018-01-01T00:00:00+00:00'),
                                expiration=parse_datetime('2018-01-22T00:00:00+00:00'),
@@ -148,56 +137,46 @@ class Test_SignWithSoftHSM_RSA(unittest.TestCase):
                           serial=1,
                           domain='.',
                           bundles=[bundle],
-                          zsk_policy=self.signature_policy,
+                          zsk_policy=self.request_zsk_policy,
                           )
         new_bundles = sign_bundles(request=request, schema=self.schema, p11modules=self.p11modules,
                                    config=self.config, ksk_policy=self.config.ksk_policy)
         validate_signatures(list(new_bundles)[0])
 
 
-class Test_SignWithSoftHSM_ECDSA(unittest.TestCase):
+class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
 
     def setUp(self) -> None:
         """ Prepare for tests. """
+        super().setUp()
+
+        _EC_KEYS = """---
+        keys:
+          zsk_test_key:
+            description: A SoftHSM key used in tests
+            label: EC1
+            algorithm: ECDSAP256SHA256
+            valid_from: 2010-07-15T00:00:00+00:00
+            valid_until: 2019-01-11T00:00:00+00:00
+
+          ksk_test_key:
+            description: A SoftHSM key used in tests
+            label: EC2
+            algorithm: ECDSAP256SHA256
+            valid_from: 2010-07-15T00:00:00+00:00
+            valid_until: 2019-01-11T00:00:00+00:00
+        """
+
+        self.config.update(yaml.safe_load(io.StringIO(_EC_KEYS)))
+
         # CKA_LABEL for one of the keys loaded into SoftHSM using testing/Makefile
         self.zsk_key_label = 'EC1'
         self.ksk_key_label = 'EC2'
-        self.p11modules: KSKM_P11 = KSKM_P11([])
-        conf = io.StringIO(_TEST_CONFIG_SIMPLE_EC + _TEST_CONFIG_SIMPLE_COMMON)
-        self.config = KSKMConfig.from_yaml(conf)
-        self.p11modules = init_pkcs11_modules_from_dict(self.config.hsm)
-        self.schema = self.config.get_schema('test')
-        _policy = {'PublishSafety': 'P10D',
-                   'RetireSafety': 'P10D',
-                   'MaxSignatureValidity': 'P20D',
-                   'MinSignatureValidity': 'P15D',
-                   'MaxValidityOverlap': 'P5D',
-                   'MinValidityOverlap': 'P5D',
-                   'SignatureAlgorithm': {'attrs': {'algorithm': '13'},
-                                          'value': {'ECDSA': {'attrs': {'size': '256'}, 'value': ''}
-                                                    }
-                                          }
-                   }
-        self.signature_policy = signature_policy_from_dict(_policy)
-
-    def tearDown(self) -> None:
-        for this in self.p11modules:
-            this.close()
 
     @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
     def test_ec_sign_with_softhsm(self) -> None:
         """ Test ECDSA signing a key record with SoftHSM and then verifying it """
-        if not self.p11modules:
-            self.skipTest('No HSM config')
-        p11_key = get_p11_key(self.ksk_key_label, self.p11modules, public=True)
-        if not p11_key:
-            self.fail('Key not found')
-        ksk_key = public_key_to_dnssec_key(key=p11_key.public_key,
-                                           key_identifier=self.ksk_key_label,
-                                           algorithm=AlgorithmDNSSEC.ECDSAP256SHA256,
-                                           flags=FlagsDNSKEY.SEP.value,  # SEP bit set for KSK
-                                           ttl=10,
-                                           )
+        ksk_key = self._p11_to_dnskey(self.ksk_key_label, AlgorithmDNSSEC.ECDSAP256SHA256)
         bundle = RequestBundle(id='test-01',
                                inception=parse_datetime('2018-01-01T00:00:00+00:00'),
                                expiration=parse_datetime('2018-01-22T00:00:00+00:00'),
@@ -209,8 +188,30 @@ class Test_SignWithSoftHSM_ECDSA(unittest.TestCase):
                           serial=1,
                           domain='.',
                           bundles=[bundle],
-                          zsk_policy=self.signature_policy,
+                          zsk_policy=self.request_zsk_policy,
                           )
         new_bundles = sign_bundles(request=request, schema=self.schema, p11modules=self.p11modules,
                                    config=self.config, ksk_policy=self.config.ksk_policy)
         validate_signatures(list(new_bundles)[0])
+
+    @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
+    def test_ec_sign_rsa_zsk(self) -> None:
+        """ Test mismatching algorithms for ZSK and KSK. """
+        zsk_key = self._p11_to_dnskey('RSA1', AlgorithmDNSSEC.RSASHA256, flags=0)
+        bundle = RequestBundle(id='test-01',
+                               inception=parse_datetime('2018-01-01T00:00:00+00:00'),
+                               expiration=parse_datetime('2018-01-22T00:00:00+00:00'),
+                               keys={zsk_key},
+                               signatures=set(),
+                               signers=None,
+                               )
+        request = Request(id='test-req-01',
+                          serial=1,
+                          domain='.',
+                          bundles=[bundle],
+                          zsk_policy=self.request_zsk_policy,
+                          )
+        with self.assertRaises(CreateSignatureError):
+            sign_bundles(request=request, schema=self.schema, p11modules=self.p11modules,
+                         config=self.config, ksk_policy=self.config.ksk_policy)
+

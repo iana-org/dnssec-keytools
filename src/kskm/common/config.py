@@ -31,7 +31,7 @@ class KSKMConfig(object):
     """
 
     def __init__(self, data: Mapping):
-        self._data = data
+        self._data = dict(data)
         # lazily parsed parts of the configuration.
         self._hsm: Optional[Mapping] = None
         self._ksk_keys: Optional[KSKKeysType] = None
@@ -207,6 +207,11 @@ class KSKMConfig(object):
                                  revoke=_parse_keylist(data[num].get('revoke', [])))
             _actions[num] = _this
         return Schema(name=name, actions=_actions)
+
+    def update(self, data: Mapping) -> None:
+        """Update configuration on the fly. Usable in tests."""
+        logger.warning(f'Updating configuration (sections {data.keys()})')
+        self._data.update(data)
 
     @classmethod
     def from_yaml(cls: Type[KSKMConfig], stream: IO) -> KSKMConfig:

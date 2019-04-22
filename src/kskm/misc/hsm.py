@@ -208,7 +208,7 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) ->
 KSKM_P11 = NewType('KSKM_P11', List[KSKM_P11Module])
 
 
-def init_pkcs11_modules_from_dict(config: dict) -> KSKM_P11:
+def init_pkcs11_modules_from_dict(config: Mapping) -> KSKM_P11:
     """
     Initialize PKCS#11 modules using configuration dictionary.
 
