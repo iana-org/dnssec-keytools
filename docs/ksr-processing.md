@@ -42,7 +42,7 @@ Validate the policy parameters present in the KSR against the KSK operator's own
     - key size
     - exponent
 
-- **KSR-POLICY-SAFETY**: Verify _PublishSafety_ and _RetireSafety_ periods.
+- **KSR-POLICY-SAFETY**: Verify _PublishSafety_ and _RetireSafety_ periods. A key must be published at least _PublishSafety_ before being used for signing and at least _RetireSafety_ before being removed after it is no longer used for signing.
 
 - **KSR-POLICY-SIG-VALIDITY**: Verify that each requested signature (bundle inception/expiration) has a validity period between _MinSignatureValidity_ and _MaxSignatureValidity_.
 
