@@ -18,6 +18,7 @@ def verify_header(request: Request, policy: RequestPolicy, logger: Logger) -> No
 
     check_domain(request, policy, logger)
     check_id(request, policy, logger)
+    check_serial(request, policy, logger)
 
     logger.debug('End "Verify KSR header"')
 
@@ -49,3 +50,14 @@ def check_id(request: Request, policy: RequestPolicy, logger: Logger) -> None:
     #       filename for last KSR as argument, or a small plain-text database with all IDs seen
     #       previously?
     logger.info('KSR-ID: Not implemented yet')
+
+
+def check_serial(request: Request, policy: RequestPolicy, logger: Logger) -> None:
+    """
+    Check the serial in the request.
+
+    KSR-SERIAL:
+      Verify that the KSR SERIAL is unique and incresing for the the KSR ID.
+    """
+    # TODO: Implement check of unique request SERAIL.
+    logger.info('KSR-SERIAL: Not implemented yet')

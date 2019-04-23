@@ -10,10 +10,12 @@ The following checks are performed by the KSK operator to validate the Key Signi
 The input to the KSR validation process is the KSR to be validated, KSR(n), as well as the last processed SKR, SKR(n-1).
 
 
+
 ### Verify KSR header
 
 - **KSR-DOMAIN**: Verify that the KSR domain name is correct.
 - **KSR-ID**: Verify that the KSR ID is unique. This requires a list of all previously seen KSRs.
+- **KSR-SERIAL**: Verify that the KSR serial is unique and incresing for the  KSR ID. This requires a list of all previously seen KSRs with the current KSR ID.
 
 ### Verify KSR bundles
 
