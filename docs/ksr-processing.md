@@ -56,6 +56,8 @@ Validate the policy parameters present in the KSR against the KSK operator's own
 
 - **KSR-CHAIN-POST**: Compare the post-published ZSK from the first key bundle of KSR(n) with the ZSKs published in the last key bundle of SKR(n-1). These keys must be identical.
 
+**KSR-CHAIN-PRE** and **KSR-CHAIN-POST** effectively means that the last slot of SKR(n-1) must have all the same ZSKs as the first slot of KSR(n).
+
 
 ## Signing the Key Signing Request
 
