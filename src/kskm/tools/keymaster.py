@@ -22,21 +22,9 @@ def keygen(args: argparse.Namespace):
     pass
 
 
-def wrapgen(args: argparse.Namespace):
-    """Generate new wrapping key."""
-    logger.info("Generate wrapping key")
-    pass
-
-
 def keydel(args: argparse.Namespace):
     """Delete signing key."""
     logger.info("Delete signing key")
-    pass
-
-
-def wrapdel(args: argparse.Namespace):
-    """Delete wrapping key."""
-    logger.info("Delete wrapping key")
     pass
 
 
@@ -49,6 +37,18 @@ def keybackup(args: argparse.Namespace):
 def keyrestore(args: argparse.Namespace):
     """Restore key."""
     logger.info("Restore (import) key")
+    pass
+
+
+def wrapgen(args: argparse.Namespace):
+    """Generate new wrapping key."""
+    logger.info("Generate wrapping key")
+    pass
+
+
+def wrapdel(args: argparse.Namespace):
+    """Delete wrapping key."""
+    logger.info("Delete wrapping key")
     pass
 
 
