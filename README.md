@@ -15,7 +15,7 @@ This tool depends on the following software:
 - [pykcs11](https://github.com/LudovicRousseau/PyKCS11)
 - [cryptography](https://cryptography.io/) (for DNSSEC validation of KSRs)
 - [PyYAML](https://pyyaml.org/) (to load configuration files)
-- [SWIG](http://www.swig.org/) (for pypkcs11)
+- [SWIG](http://www.swig.org/) (for pykcs11)
 
 For the KSR submission webserver (wksr), the following extras are required:
 
@@ -34,7 +34,7 @@ For testing and independent DNSSEC validation of KSRs, the following modules are
 
 To create a virtual environment for testing, use `make venv`.
 
-N.B. You will need to ensure that SWIG is installed, as pypkcs11 depends on it.
+N.B. You will need to ensure that SWIG is installed, as pykcs11 depends on it.
 
 
 ## Code Documentation
