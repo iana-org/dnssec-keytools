@@ -1,16 +1,40 @@
 # DNSSEC KSK Management Tools
 
+This repository contains source code for the software used by PTI to manage
+the DNSSEC Key Signing Key (KSK) for the Root Zone.
+
+More information about Root Zone Management is available at
+https://www.iana.org/domains/root.
+
+
 ## Dependencies
 
-- Python 3.7 with mypy
-- pykcs11
-- cryptography (for DNSSEC validation of KSRs)
-- PyYAML (to load configuration files)
+This tool depends on the following software:
 
+- [Python 3.7](https://www.python.org/) with [mypy](http://mypy-lang.org/)
+- [pykcs11](https://github.com/LudovicRousseau/PyKCS11)
+- [cryptography](https://cryptography.io/) (for DNSSEC validation of KSRs)
+- [PyYAML](https://pyyaml.org/) (to load configuration files)
+- [SWIG](http://www.swig.org/) (for pypkcs11)
+
+For the KSR submission webserver (wksr), the following extras are required:
+
+- [Flask](http://flask.pocoo.org/)
+- [pyOpenSSL](https://pyopenssl.org/)
 
 ## Additional test dependencies
 
-- dnspython + pycryptodome (for independent DNSSEC validation of KSRs)
+For testing and independent DNSSEC validation of KSRs, the following modules are used:
+
+- [dnspython](http://www.dnspython.org/)
+- [pycryptodome](https://pycryptodome.readthedocs.io/)
+
+
+## Setup
+
+To create a virtual environment for testing, use `make venv`.
+
+N.B. You will need to ensure that SWIG is installed, as pypkcs11 depends on it.
 
 
 ## Code Documentation
