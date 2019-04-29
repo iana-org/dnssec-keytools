@@ -126,6 +126,7 @@ def trustanchor(logger: logging.Logger, args: Optional[ArgsType], config: Option
 
 
 def main() -> None:
+    """Main program function."""
     try:
         progname = os.path.basename(sys.argv[0])
         args = parse_args(_DEFAULTS)
