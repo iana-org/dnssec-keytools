@@ -21,7 +21,7 @@ from kskm.common.config import get_config
 from kskm.common.display import format_bundles_for_humans
 from kskm.common.logging import get_logger
 from kskm.signer import create_skr, output_skr_xml
-from kskm.signer.policy import check_skr_and_ksr
+from kskm.signer.policy import check_skr_and_ksr, check_last_skr_and_new_skr
 
 __author__ = 'ft'
 
@@ -166,6 +166,7 @@ def main(logger: logging.Logger, args: Optional[ArgsType], config: Optional[KSKM
     #
     schema = config.get_schema('normal')
     new_skr = create_skr(request, schema, p11modules, config)
+    check_last_skr_and_new_skr(skr, new_skr, config.request_policy)
 
     _skr_fn = _skr_filename(args, config)
     output_skr_xml(new_skr, _skr_fn)

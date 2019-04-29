@@ -13,7 +13,7 @@ class KSR_HeaderPolicyViolation(PolicyViolation):
 
 
 class KSR_ID_Violation(KSR_HeaderPolicyViolation):
-    """KSR-ID policy violation"""
+    """KSR-ID policy violation."""
 
     pass
 
