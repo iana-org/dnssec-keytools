@@ -120,7 +120,7 @@ def _skr_filename(args: Optional[ArgsType], config: KSKMConfig) -> Optional[str]
     return config.get_filename('output_skr')
 
 
-def main(logger: logging.Logger, args: Optional[ArgsType], config: Optional[KSKMConfig] = None) -> bool:
+def ksrsigner(logger: logging.Logger, args: Optional[ArgsType], config: Optional[KSKMConfig] = None) -> bool:
     """Parse KSR and previous SKR. Produce a new SKR."""
     #
     # Load configuration, if not provided already
@@ -174,14 +174,18 @@ def main(logger: logging.Logger, args: Optional[ArgsType], config: Optional[KSKM
     return True
 
 
-if __name__ == '__main__':
+def main() -> None:
     try:
         progname = os.path.basename(sys.argv[0])
         args = parse_args(_DEFAULTS)
         logger = get_logger(progname, debug=args.debug, syslog=args.syslog)
-        res = main(logger, args)
+        res = ksrsigner(logger, args)
         if res is True:
             sys.exit(0)
         sys.exit(1)
     except KeyboardInterrupt:
         sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()

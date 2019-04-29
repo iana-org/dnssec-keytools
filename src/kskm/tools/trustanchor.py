@@ -87,7 +87,7 @@ def output_trustanchor_xml(ta: TrustAnchor, output_filename: Optional[str]) -> N
         print(xml)
 
 
-def main(logger: logging.Logger, args: Optional[ArgsType], config: Optional[KSKMConfig] = None) -> bool:
+def trustanchor(logger: logging.Logger, args: Optional[ArgsType], config: Optional[KSKMConfig] = None) -> bool:
     """Main entry point for generating trust anchors and writing them (as XML) to a file."""
     #
     # Load configuration, if not provided already
@@ -125,14 +125,18 @@ def main(logger: logging.Logger, args: Optional[ArgsType], config: Optional[KSKM
     return True
 
 
-if __name__ == '__main__':
+def main() -> None:
     try:
         progname = os.path.basename(sys.argv[0])
         args = parse_args(_DEFAULTS)
         logger = get_logger(progname, debug=args.debug, syslog=False)
-        res = main(logger, args)
+        res = trustanchor(logger, args)
         if res is True:
             sys.exit(0)
         sys.exit(1)
     except KeyboardInterrupt:
         sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()
