@@ -18,7 +18,7 @@ import kskm.misc
 import kskm.skr
 from kskm.common.config import KSKMConfig
 from kskm.common.config import get_config
-from kskm.common.daisy import check_daisy_chain
+from kskm.signer.daisy import check_daisy_chain
 from kskm.common.display import format_bundles_for_humans
 from kskm.common.logging import get_logger
 from kskm.signer import create_skr, output_skr_xml
