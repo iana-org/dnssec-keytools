@@ -111,7 +111,8 @@ class SignWithSoftHSM_Baseclass(unittest.TestCase):
         for this in self.p11modules:
             this.close()
 
-    def _p11_to_dnskey(self, key_name: str, algorithm: AlgorithmDNSSEC, flags: int = FlagsDNSKEY.SEP.value):
+    def _p11_to_dnskey(self, key_name: str, algorithm: AlgorithmDNSSEC,
+                       flags: int = FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value):
         if not self.p11modules:
             self.skipTest('No HSM config')
         p11_key = get_p11_key(key_name, self.p11modules, public=True)

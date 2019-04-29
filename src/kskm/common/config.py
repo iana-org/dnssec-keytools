@@ -120,6 +120,7 @@ class KSKMConfig(object):
               previous_skr: prev-skr.xml
               input_ksr: ksr.xml
               output_skr: skr.xml
+              output_trustanchor: root-anchors.xml
         """
         if 'filenames' in self._data:
             _this = self._data['filenames'].get(which)

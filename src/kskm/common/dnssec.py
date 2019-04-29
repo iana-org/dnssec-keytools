@@ -13,7 +13,7 @@ __author__ = 'ft'
 
 
 def key_to_rdata(key: Key) -> bytes:
-    """Return key in DNS RDATA format."""
+    """Return key in DNS RDATA format (RFC 4034)."""
     header = struct.pack('!HBB',
                          key.flags,
                          key.protocol,

@@ -82,7 +82,7 @@ def load_pkcs11_key(ksk: KSKKey, p11modules: KSKM_P11, ksk_policy: KSKPolicy,
     _key = public_key_to_dnssec_key(key=_found.public_key,
                                     key_identifier=ksk.label,
                                     algorithm=ksk.algorithm,
-                                    flags=FlagsDNSKEY.SEP.value,
+                                    flags=FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value,
                                     ttl=ksk_policy.ttl,
                                     )
     return CompositeKey(p11=_found, dns=_key)
