@@ -18,10 +18,10 @@ import kskm.misc
 import kskm.skr
 from kskm.common.config import KSKMConfig
 from kskm.common.config import get_config
-from kskm.signer.daisy import check_daisy_chain
 from kskm.common.display import format_bundles_for_humans
 from kskm.common.logging import get_logger
 from kskm.signer import create_skr, output_skr_xml
+from kskm.signer.policy import check_skr_and_ksr
 
 __author__ = 'ft'
 
@@ -155,7 +155,7 @@ def main(logger: logging.Logger, args: Optional[ArgsType], config: Optional[KSKM
     # Perform some checks that need both KSR, SKR and PKCS#11 modules
     #
     if skr is not None:
-        check_daisy_chain(request, skr, config.request_policy)
+        check_skr_and_ksr(request, skr, config.request_policy)
         # TODO: Verify that the public key that signed the bundles in skr is available in the HSM
     else:
         logger.info('KSR-CHAIN-PRE/KSR-CHAIN-POST: Previous SKR *NOT* loaded - daisy chain not validated')

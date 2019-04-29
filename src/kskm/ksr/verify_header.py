@@ -12,6 +12,12 @@ class KSR_HeaderPolicyViolation(PolicyViolation):
     pass
 
 
+class KSR_ID_Violation(KSR_HeaderPolicyViolation):
+    """KSR-ID policy violation"""
+
+    pass
+
+
 def verify_header(request: Request, policy: RequestPolicy, logger: Logger) -> None:
     """Check the header elements of a Key Signing Request."""
     logger.debug('Begin "Verify KSR header"')
@@ -45,11 +51,7 @@ def check_id(request: Request, policy: RequestPolicy, logger: Logger) -> None:
     KSR-ID:
       Verify that the KSR ID is unique.
     """
-    # TODO: Implement check of unique request ID.
-    #       How is this best done? Provide path to directory with previous KSRs as argument,
-    #       filename for last KSR as argument, or a small plain-text database with all IDs seen
-    #       previously?
-    logger.info('KSR-ID: Not implemented yet')
+    logger.info('KSR-ID: Will be checked later, when SKR is available')
 
 
 def check_serial(request: Request, policy: RequestPolicy, logger: Logger) -> None:
