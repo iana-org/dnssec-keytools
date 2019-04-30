@@ -76,7 +76,7 @@ def _trustanchor_filename(args: Optional[ArgsType], config: KSKMConfig) -> Optio
 
 
 def output_trustanchor_xml(ta: TrustAnchor, output_filename: Optional[str]) -> None:
-    """Return SKR as XML."""
+    """Return trust anchor as XML."""
     xml = ta.to_xml_doc()
     if output_filename:
         xml_bytes = xml.encode()
