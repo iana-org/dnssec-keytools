@@ -6,23 +6,46 @@ import glob
 import logging
 import os
 import re
+from copy import copy
 from dataclasses import dataclass, field
+from enum import Enum
 from getpass import getpass
 from hashlib import sha256, sha384
 from typing import (Any, Dict, Iterator, List, Mapping, MutableMapping,
                     NewType, Optional)
 
 import PyKCS11
+from PyKCS11.LowLevel import CKF_RW_SESSION, CKU_SO, CKU_USER
 
 from kskm.common.data import AlgorithmDNSSEC
-from kskm.common.public_key import KSKM_PublicKey
 from kskm.common.ecdsa_utils import KSKM_PublicKey_ECDSA
+from kskm.common.public_key import KSKM_PublicKey
 from kskm.common.rsa_utils import KSKM_PublicKey_RSA
 
 __author__ = 'ft'
 
 
 logger = logging.getLogger(__name__)
+
+
+class KeyClass(Enum):
+    """Re-representation of PKCS#11 key classes to shield other modules from the details."""
+    PUBLIC = PyKCS11.LowLevel.CKO_PUBLIC_KEY
+    PRIVATE = PyKCS11.LowLevel.CKO_PRIVATE_KEY
+    SECRET = PyKCS11.LowLevel.CKO_SECRET_KEY
+
+
+@dataclass
+class KeyInfo(object):
+    """
+    Inventory information about a key found in a slot.
+
+    TODO: Not sure what to save for SECRET keys yet.
+    """
+    key_class: KeyClass
+    key_id: int
+    label: str
+    p11key: Optional[KSKM_P11Key] = field(repr=False, default=None)
 
 
 @dataclass
@@ -38,25 +61,36 @@ class KSKM_P11Key(object):
 class KSKM_P11Module(object):
     """KSKM interface to a PKCS#11 module."""
 
-    def __init__(self, module: str, label: Optional[str] = None, pin: Optional[str] = None, env: Dict[str, str] = {}):
-        """Load and initialise a PKCS#11 module."""
+    def __init__(self, module: str, label: Optional[str] = None,
+                 pin: Optional[str] = None, so_pin: Optional[str] = None,
+                 so_login: bool = False, rw_session: bool = False,
+                 env: Optional[Dict[str, str]] = None):
+        """Load and initialise a PKCS#11 module.
+        :param so_login: Log in as SO or USER
+        :param rw_session: Request a R/W session or not
+        """
         if module.startswith('$'):
             self.module = os.environ.get(module.lstrip('$'))
         else:
             self.module = module
+
+        # Parameters affecting login to slots
+        self._so_login = so_login
+        self._rw_session = rw_session
 
         if label is None:
             self.label = module
         else:
             self.label = label
 
-        logger.info('Initializing PKCS#11 module %s using %s', self.label, self.module)
+        logger.info(f'Initializing PKCS#11 module {self.label} using {self.module}')
 
         # configure environment
         old_env = {}
-        for key in env.keys():
-            old_env[key] = os.environ.get(key)
-        os.environ.update(env)
+        if env:
+            for key in env.keys():
+                old_env[key] = os.environ.get(key)
+            os.environ.update(env)
 
         # load module
         self._lib = PyKCS11.PyKCS11Lib()
@@ -64,23 +98,46 @@ class KSKM_P11Module(object):
         self._lib.lib.C_Initialize()
 
         # reset environment
-        for k, v in old_env.items():
-            if v is None:
-                del(os.environ[k])
-            else:
-                os.environ[k] = v
+        if env:
+            for k, v in old_env.items():
+                if v is None:
+                    del(os.environ[k])
+                else:
+                    os.environ[k] = v
 
         # set PIN
+        self.pin = None
         if pin is None:
-            self.pin = getpass(f"Enter PIN for PKCS#11 module {self.label}: ")
+            if not so_login:
+                self.pin = getpass(f"Enter USER PIN for PKCS#11 module {self.label}: ")
         else:
             self.pin = str(pin)
+
+        self.so_pin = None
+        if so_pin is None:
+            if so_login:
+                self.so_pin = getpass(f"Enter SO PIN for PKCS#11 module {self.label}: ")
+        else:
+            self.so_pin = str(pin)
 
         # Mapping from slot number to session
         self._sessions: Dict[int, Any] = {}
 
         self._slots = self._lib.getSlotList(tokenPresent=True)
-        logger.debug('P11 slots: {!r}'.format(self._slots))
+        logger.debug(f'P11 slots: {self._slots}')
+        if self._slots:
+            _info = self._lib.getTokenInfo(self._slots[0])
+            if _info:
+                info = _info.to_dict()
+                logger.info('HSM information:')
+                logger.info(f'    Label:           {info.get("label")}')
+                logger.info(f'    ManufacturerID:  {info.get("manufacturerID")}')
+                logger.info(f'    Model:           {info.get("model")}')
+                logger.info(f'    Serial:          {info.get("serialNumber")}')
+                logger.info('')
+
+    def __str__(self):
+        return f'<{self.__class__.__name__}: {self.label} ({self.module})>'
 
     def close(self) -> None:
         """Close all sessions."""
@@ -89,21 +146,37 @@ class KSKM_P11Module(object):
         self._sessions = {}
 
     @property
+    def slots(self) -> List[int]:
+        return self._slots
+
+    @property
     def sessions(self) -> Mapping[int, Any]:
         """Get sessions for all slots."""
         if not self._sessions:
+            _success_count = 0
             for _slot in self._slots:
                 try:
-                    logger.debug(f'Opening slot {_slot} in module {self.label}')
-                    _session = self._lib.openSession(_slot)
-                    if self.pin is not None and len(self.pin) > 0:
-                        _session.login(self.pin)
+                    logger.debug(f'Opening slot {_slot} in module {self.label} '
+                                 f'(R/W: {self._rw_session}, SO: {self._so_login})')
+                    _user_type = CKU_SO if self._so_login else CKU_USER
+                    _pin = self.so_pin if self._so_login else self.pin
+                    _rw = CKF_RW_SESSION if self._rw_session else 0
+                    _session = self._lib.openSession(_slot, flags=_rw)
+                    if _pin is not None and len(_pin) > 0:
+                        _session.login(_pin, user_type=_user_type)
                         logger.debug(f'Login to module {self.label} slot {_slot} successful')
+                        _success_count += 1
                     else:
                         logger.info(f'Not logging in to module {self.label} slot {_slot} - no PIN provided')
                     self._sessions[_slot] = _session
                 except PyKCS11.PyKCS11Error:
-                    logger.warning(f'Login to module {self.label} slot {_slot} failed')
+                    if not _success_count:
+                        _level = logging.WARNING
+                    else:
+                        # not an error if one or more slots succeeded before this one
+                        _level = logging.DEBUG
+                    logger.log(_level, f'Login to module {self.label} slot {_slot} failed')
+
         return self._sessions
 
     def find_key_by_label(self, label: str, public: bool = True) -> Optional[KSKM_P11Key]:
@@ -124,7 +197,7 @@ class KSKM_P11Module(object):
             if res:
                 # logger.debug(f'Found key with label {label!r} in slot {_slot}')
                 key = KSKM_P11Key(label=label,
-                                  public_key=self._p11_object_to_public_key(_session, res),
+                                  public_key=self._p11_object_to_public_key(_session, res[0]),
                                   private_key=res if not public else None,
                                   session=_session,
                                   )
@@ -133,13 +206,63 @@ class KSKM_P11Module(object):
         logger.debug(f'Key with label {label!r} not found in slots {_slots} (module {self.module})')
         return None
 
+    def find_key_by_id(self, key_id: int, session: Any) -> List[KSKM_P11Key]:
+        """
+        Query the PKCS#11 module for a key with CKA_ID matching 'key_id'.
+        """
+        template = [(PyKCS11.LowLevel.CKA_ID, key_id)]
+        res = []
+        objs = session.findObjects(template)
+        for this in objs:
+            cls, label = session.getAttributeValue(this, [PyKCS11.LowLevel.CKA_CLASS,
+                                                          PyKCS11.LowLevel.CKA_LABEL,
+                                                          ])
+            key = None
+            if cls == PyKCS11.LowLevel.CKO_PRIVATE_KEY:
+                key = KSKM_P11Key(label=label,
+                                   public_key=self._p11_object_to_public_key(session, this),
+                                   private_key=this,
+                                   session=session,
+                                   )
+            elif cls == PyKCS11.LowLevel.CKO_PUBLIC_KEY:
+                key = KSKM_P11Key(label=label,
+                                  public_key=self._p11_object_to_public_key(session, this),
+                                  private_key=None,
+                                  session=session,
+                                  )
+            if key is not None:
+                res += [key]
+        return res
+
+    def get_key_inventory(self, session) -> List[KeyInfo]:
+        """Enumerate all keys found in a slot."""
+        # TODO: Should this function return CKA_IDs too? This tool suite relies on addressing keys
+        #       only with CKA_LABEL in general, so probably no point in returning CKA_ID.
+        res = []
+
+        for this in session.findObjects([]):
+            cls, label, key_id = session.getAttributeValue(this, [PyKCS11.LowLevel.CKA_CLASS,
+                                                                  PyKCS11.LowLevel.CKA_LABEL,
+                                                                  PyKCS11.LowLevel.CKA_ID,
+                                                                  ])
+            if cls == PyKCS11.LowLevel.CKO_SECRET_KEY:
+                res += [KeyInfo(key_class=KeyClass.SECRET, label=label, key_id=key_id)]
+            elif cls == PyKCS11.LowLevel.CKO_PUBLIC_KEY:
+                res += [KeyInfo(key_class=KeyClass.PUBLIC, label=label, key_id=key_id,
+                                p11key=self.find_key_by_id(key_id, session))]
+            elif cls == PyKCS11.LowLevel.CKO_PRIVATE_KEY:
+                res += [KeyInfo(key_class=KeyClass.PRIVATE, label=label, key_id=key_id,
+                                p11key=self.find_key_by_id(key_id, session))]
+
+        return res
+
     @staticmethod
-    def _p11_object_to_public_key(session: Any, data: list) -> Optional[KSKM_PublicKey]:
+    def _p11_object_to_public_key(session: Any, data: Any) -> Optional[KSKM_PublicKey]:
         """Create an RSAPublicKeyData object from PKCS#11 findObject return data."""
-        _cka_type = session.getAttributeValue(data[0], [PyKCS11.CKA_KEY_TYPE])[0]
+        _cka_type = session.getAttributeValue(data, [PyKCS11.CKA_KEY_TYPE])[0]
         if _cka_type == PyKCS11.CKK_RSA:
-            _modulus = session.getAttributeValue(data[0], [PyKCS11.CKA_MODULUS])
-            _exp = session.getAttributeValue(data[0], [PyKCS11.CKA_PUBLIC_EXPONENT])
+            _modulus = session.getAttributeValue(data, [PyKCS11.CKA_MODULUS])
+            _exp = session.getAttributeValue(data, [PyKCS11.CKA_PUBLIC_EXPONENT])
             rsa_e = int.from_bytes(bytes(_exp[0]), byteorder='big')
             rsa_n = bytes(_modulus[0])
             return KSKM_PublicKey_RSA(bits=len(rsa_n) * 8,
@@ -147,7 +270,7 @@ class KSKM_P11Module(object):
                                       n=rsa_n)
         elif _cka_type == PyKCS11.CKK_EC:
             # DER-encoding of ANSI X9.62 ECPoint value ''Q''.
-            _cka_ec_point = session.getAttributeValue(data[0], [PyKCS11.CKA_EC_POINT])
+            _cka_ec_point = session.getAttributeValue(data, [PyKCS11.CKA_EC_POINT])
             if not _cka_ec_point[0]:
                 return None
             ec_point = bytes(_cka_ec_point[0])
@@ -156,7 +279,7 @@ class KSKM_P11Module(object):
             _prefix = bytes([4, len(ec_point) - 2, 4])
             if ec_point.startswith(_prefix):
                 ec_point = ec_point[2:]
-            ec_params = bytes(session.getAttributeValue(data[0], [PyKCS11.CKA_EC_PARAMS])[0])
+            ec_params = bytes(session.getAttributeValue(data, [PyKCS11.CKA_EC_PARAMS])[0])
             logger.debug(f'EC_POINT: {binascii.hexlify(ec_point)}')
             logger.debug(f'EC_PARAMS: {binascii.hexlify(ec_params)}')
             # ec_point is an 0x04 prefix byte, and then both x and y points concatenated, so divide by 2
@@ -208,23 +331,30 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) ->
 KSKM_P11 = NewType('KSKM_P11', List[KSKM_P11Module])
 
 
-def init_pkcs11_modules_from_dict(config: Mapping) -> KSKM_P11:
+def init_pkcs11_modules_from_dict(config: Mapping, so_login: bool = False,
+                                  rw_session: bool = False) -> KSKM_P11:
     """
     Initialize PKCS#11 modules using configuration dictionary.
 
     :return: A list of PyKCS11 library instances.
     """
     modules: list = []
-    for label, kwargs in config.items():
+    for label, _kwargs in config.items():
+        kwargs = copy(_kwargs)  # don't modify caller's data
+        if so_login:
+            kwargs['so_login'] = True
+        if rw_session:
+            kwargs['rw_session'] = rw_session
         modules.append(KSKM_P11Module(label=label, **kwargs))
 
     return KSKM_P11(modules)
 
 
-def init_pkcs11_modules(config_dir: str) -> KSKM_P11:
+def init_pkcs11_modules(config_dir: str, so_login: bool = False) -> KSKM_P11:
     """
     Parse *.hsmconfig files in the config_dir and initialize PKCS#11 modules accordingly.
 
+    :param so_login: Login as PKCS#11 Security Officer, otherwise login as ordinary user
     :return: A list of PyKCS11 library instances.
     """
     modules: list = []
@@ -240,7 +370,7 @@ def init_pkcs11_modules(config_dir: str) -> KSKM_P11:
             old_env[key] = os.environ.get(key)
         os.environ.update(env)
 
-        lib = KSKM_P11Module(env['PKCS11_LIBRARY_PATH'])
+        lib = KSKM_P11Module(env['PKCS11_LIBRARY_PATH'], so_login=so_login)
         modules += [lib]
 
         # reset environment

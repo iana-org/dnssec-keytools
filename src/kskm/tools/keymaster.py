@@ -8,57 +8,69 @@ Tool to create, delete, backup, restore keys as well as perform a key inventory.
 
 import argparse
 import logging
+import sys
+from typing import List, Optional
 
-logger = logging.getLogger(__name__)
+import kskm
+import kskm.misc
+from kskm.common.config import KSKMConfig, get_config
+from kskm.common.data import FlagsDNSKEY
+from kskm.common.logging import get_logger
+from kskm.keymaster.inventory import key_inventory
+from kskm.keymaster.keygen import generate_rsa_key
+from kskm.misc.hsm import KSKM_P11
 
-SUPPORTED_ALGORITMS = ["RSA", "EC"]
+SUPPORTED_ALGORITMS = ['RSA', 'EC']
 SUPPORTED_SIZES = [2048]
 SUPPORTED_CURVES = ['secp256r1', 'secp384r1']
 
 
-def keygen(args: argparse.Namespace):
+def keygen(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
     """Generate new signing key."""
-    logger.info("Generate key")
+    logger.info('Generate key')
+    flags = FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value
+    generate_rsa_key(flags, args.key_size, p11modules)
     pass
 
 
-def keydel(args: argparse.Namespace):
+def keydel(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
     """Delete signing key."""
-    logger.info("Delete signing key")
+    logger.info('Delete signing key')
     pass
 
 
-def keybackup(args: argparse.Namespace):
+def keybackup(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
     """Backup key."""
-    logger.info("Backup (export) key")
+    logger.info('Backup (export) key')
     pass
 
 
-def keyrestore(args: argparse.Namespace):
+def keyrestore(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
     """Restore key."""
-    logger.info("Restore (import) key")
+    logger.info('Restore (import) key')
     pass
 
 
-def wrapgen(args: argparse.Namespace):
+def wrapgen(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
     """Generate new wrapping key."""
-    logger.info("Generate wrapping key")
+    logger.info('Generate wrapping key')
     pass
 
 
-def wrapdel(args: argparse.Namespace):
+def wrapdel(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
     """Delete wrapping key."""
-    logger.info("Delete wrapping key")
+    logger.info('Delete wrapping key')
     pass
 
 
-def inventory(args: argparse.Namespace):
+def inventory(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
     """Show HSM inventory."""
-    logger.info("Show HSM inventory")
+    logger.info('Show HSM inventory')
+    key_inventory(p11modules)
     pass
 
 
-def main() -> None:
+def main(progname='keymaster', args: Optional[List[str]] = None, config: Optional[KSKMConfig] = None) -> bool:
     """Main function."""
     parser = argparse.ArgumentParser(description='Keymaster')
 
@@ -88,6 +100,7 @@ def main() -> None:
 
     parser_keygen = subparsers.add_parser('keygen')
     parser_keygen.set_defaults(func=keygen)
+    # TODO: pass in label, or generate it from current time like the old tool does?
     parser_keygen.add_argument('--label',
                                dest='key_label',
                                metavar='LABEL',
@@ -103,7 +116,7 @@ def main() -> None:
                                help='Key algorithm')
     parser_keygen.add_argument('--size',
                                dest='key_size',
-                               metavar='SIZE',
+                               metavar='BITS',
                                type=int,
                                choices=SUPPORTED_SIZES,
                                required=False,
@@ -115,6 +128,9 @@ def main() -> None:
                                choices=SUPPORTED_CURVES,
                                required=False,
                                help='Key curve')
+    # TODO: Add option to identify HSM, if multiple are configured?
+    # TODO: Add option to specify slot, instead of just picking the first one?
+    # TODO: DNSKEY flags as option?
 
     parser_wrapgen = subparsers.add_parser('wrapgen')
     parser_wrapgen.set_defaults(func=wrapgen)
@@ -173,14 +189,34 @@ def main() -> None:
                                    required=True,
                                    help='Wrapping key label')
 
-    args = parser.parse_args()
+    args = parser.parse_args(args=args)
+
+    #
+    # Load configuration, if not provided already
+    #
+    if config is None:
+        config = get_config(args.config)
+
+    #
+    # Initialise PKCS#11 modules (HSMs)
+    #
+    p11modules = kskm.misc.hsm.init_pkcs11_modules_from_dict(config.hsm, rw_session=True)
+    logger = get_logger(progname, debug=args.debug, syslog=False)
 
     try:
-        args.func(args)
+        mode_function = args.func
     except AttributeError:
         parser.print_help()
-        exit(-1)
+        return False
+
+    return mode_function(args, config, p11modules, logger)
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    try:
+        res = main()
+        if res is True:
+            sys.exit(0)
+        sys.exit(1)
+    except KeyboardInterrupt:
+        sys.exit(0)
