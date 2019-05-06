@@ -28,7 +28,6 @@ from kskm.ta import TrustAnchor
 from kskm.ta.keydigest import create_trustanchor_keydigest
 
 _DEFAULTS = {'debug': False,
-             'config': None,
              }
 
 
@@ -47,13 +46,15 @@ def parse_args(defaults: dict) -> ArgsType:
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                      )
 
-    # Optional arguments
+    # Required arguments
     parser.add_argument('--config',
                         dest='config',
                         metavar='CFGFILE', type=str,
-                        default=defaults['config'],
+                        required=True,
                         help='Path to the KSR signer configuration file',
                         )
+
+    # Optional arguments
     parser.add_argument('--debug',
                         dest='debug',
                         action='store_true', default=defaults['debug'],
@@ -75,7 +76,7 @@ def _trustanchor_filename(args: Optional[ArgsType], config: KSKMConfig) -> Optio
     return config.get_filename('output_trustanchor')
 
 
-def output_trustanchor_xml(ta: TrustAnchor, output_filename: Optional[str]) -> None:
+def output_trustanchor_xml(ta: TrustAnchor, output_filename: Optional[str], logger: logging.Logger) -> None:
     """Return trust anchor as XML."""
     xml = ta.to_xml_doc()
     if output_filename:
@@ -120,7 +121,7 @@ def trustanchor(logger: logging.Logger, args: Optional[ArgsType], config: Option
         keydigests=keydigests,
     )
 
-    output_trustanchor_xml(ta, _trustanchor_filename(args, config))
+    output_trustanchor_xml(ta, _trustanchor_filename(args, config), logger)
 
     return True
 
