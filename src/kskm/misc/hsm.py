@@ -187,11 +187,11 @@ class KSKM_P11Module(object):
         """
         _slots: list = []
         for _slot, _session in self.sessions.items():
-            template = [(PyKCS11.CKA_LABEL, label)]
+            template = [(PyKCS11.LowLevel.CKA_LABEL, label)]
             if public:
-                template += [(PyKCS11.CKA_CLASS, PyKCS11.CKO_PUBLIC_KEY)]
+                template += [(PyKCS11.LowLevel.CKA_CLASS, PyKCS11.LowLevel.CKO_PUBLIC_KEY)]
             else:
-                template += [(PyKCS11.CKA_CLASS, PyKCS11.CKO_PRIVATE_KEY)]
+                template += [(PyKCS11.LowLevel.CKA_CLASS, PyKCS11.LowLevel.CKO_PRIVATE_KEY)]
             _slots += [_slot]
             res = _session.findObjects(template)
             if res:
@@ -259,18 +259,18 @@ class KSKM_P11Module(object):
     @staticmethod
     def _p11_object_to_public_key(session: Any, data: Any) -> Optional[KSKM_PublicKey]:
         """Create an RSAPublicKeyData object from PKCS#11 findObject return data."""
-        _cka_type = session.getAttributeValue(data, [PyKCS11.CKA_KEY_TYPE])[0]
-        if _cka_type == PyKCS11.CKK_RSA:
-            _modulus = session.getAttributeValue(data, [PyKCS11.CKA_MODULUS])
-            _exp = session.getAttributeValue(data, [PyKCS11.CKA_PUBLIC_EXPONENT])
+        _cka_type = session.getAttributeValue(data, [PyKCS11.LowLevel.CKA_KEY_TYPE])[0]
+        if _cka_type == PyKCS11.LowLevel.CKK_RSA:
+            _modulus = session.getAttributeValue(data, [PyKCS11.LowLevel.CKA_MODULUS])
+            _exp = session.getAttributeValue(data, [PyKCS11.LowLevel.CKA_PUBLIC_EXPONENT])
             rsa_e = int.from_bytes(bytes(_exp[0]), byteorder='big')
             rsa_n = bytes(_modulus[0])
             return KSKM_PublicKey_RSA(bits=len(rsa_n) * 8,
                                       exponent=rsa_e,
                                       n=rsa_n)
-        elif _cka_type == PyKCS11.CKK_EC:
+        elif _cka_type == PyKCS11.LowLevel.CKK_EC:
             # DER-encoding of ANSI X9.62 ECPoint value ''Q''.
-            _cka_ec_point = session.getAttributeValue(data, [PyKCS11.CKA_EC_POINT])
+            _cka_ec_point = session.getAttributeValue(data, [PyKCS11.LowLevel.CKA_EC_POINT])
             if not _cka_ec_point[0]:
                 return None
             ec_point = bytes(_cka_ec_point[0])
@@ -279,7 +279,7 @@ class KSKM_P11Module(object):
             _prefix = bytes([4, len(ec_point) - 2, 4])
             if ec_point.startswith(_prefix):
                 ec_point = ec_point[2:]
-            ec_params = bytes(session.getAttributeValue(data, [PyKCS11.CKA_EC_PARAMS])[0])
+            ec_params = bytes(session.getAttributeValue(data, [PyKCS11.LowLevel.CKA_EC_PARAMS])[0])
             logger.debug(f'EC_POINT: {binascii.hexlify(ec_point)}')
             logger.debug(f'EC_PARAMS: {binascii.hexlify(ec_params)}')
             # ec_point is an 0x04 prefix byte, and then both x and y points concatenated, so divide by 2
@@ -293,7 +293,7 @@ class KSKM_P11Module(object):
                 raise RuntimeError(f'Unexpected ECDSA key length: {_ec_len}')
             return KSKM_PublicKey_ECDSA(bits=_ec_len, q=ec_point, algorithm=alg)
         else:
-            raise NotImplementedError('Unknown CKA_TYPE: {}'.format(PyKCS11.CKK[_cka_type]))
+            raise NotImplementedError('Unknown CKA_TYPE: {}'.format(PyKCS11.LowLevel.CKK[_cka_type]))
 
 
 def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) -> bytes:
@@ -314,11 +314,11 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) ->
         data = sha384(data).digest()
 
     logger.debug(f'Signing {len(data)} bytes with key {key}')
-    _mechs = {AlgorithmDNSSEC.RSASHA1: PyKCS11.CKM_SHA1_RSA_PKCS,
-              AlgorithmDNSSEC.RSASHA256: PyKCS11.CKM_SHA256_RSA_PKCS,
-              AlgorithmDNSSEC.RSASHA512: PyKCS11.CKM_SHA512_RSA_PKCS,
-              AlgorithmDNSSEC.ECDSAP256SHA256: PyKCS11.CKM_ECDSA,
-              AlgorithmDNSSEC.ECDSAP384SHA384: PyKCS11.CKM_ECDSA,
+    _mechs = {AlgorithmDNSSEC.RSASHA1: PyKCS11.LowLevel.CKM_SHA1_RSA_PKCS,
+              AlgorithmDNSSEC.RSASHA256: PyKCS11.LowLevel.CKM_SHA256_RSA_PKCS,
+              AlgorithmDNSSEC.RSASHA512: PyKCS11.LowLevel.CKM_SHA512_RSA_PKCS,
+              AlgorithmDNSSEC.ECDSAP256SHA256: PyKCS11.LowLevel.CKM_ECDSA,
+              AlgorithmDNSSEC.ECDSAP384SHA384: PyKCS11.LowLevel.CKM_ECDSA,
               }
     mechanism = _mechs.get(algorithm)
     if mechanism is None:
