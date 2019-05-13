@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 def key_inventory(p11modules: KSKM_P11) -> List[str]:
-    res = []
+    res: List[str] = []
     for module in p11modules:
         res += [str(module)]
         for slot, session in module.sessions.items():

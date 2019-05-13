@@ -16,20 +16,26 @@ import kskm.misc
 from kskm.common.config import KSKMConfig, get_config
 from kskm.common.data import FlagsDNSKEY
 from kskm.common.logging import get_logger
+from kskm.keymaster.delete import wrapkey_delete
 from kskm.keymaster.inventory import key_inventory
-from kskm.keymaster.keygen import generate_rsa_key
+from kskm.keymaster.keygen import generate_ec_key, generate_rsa_key, generate_wrapping_key
+from kskm.keymaster.wrap import key_backup
 from kskm.misc.hsm import KSKM_P11
 
-SUPPORTED_ALGORITMS = ['RSA', 'EC']
+SUPPORTED_ALGORITHMS = ['RSA', 'EC']
 SUPPORTED_SIZES = [2048]
 SUPPORTED_CURVES = ['secp256r1', 'secp384r1']
+SUPPORTED_WRAPPING_ALGORITHMS = ['AES256', '3DES']  # SoftHSM2 only supports AES
 
 
 def keygen(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
     """Generate new signing key."""
     logger.info('Generate key')
     flags = FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value
-    generate_rsa_key(flags, args.key_size, p11modules)
+    if args.key_alg == 'RSA':
+        generate_rsa_key(flags, args.key_size, p11modules)
+    elif args.key_alg == 'EC':
+        generate_ec_key(flags, args.key_crv, p11modules)
     pass
 
 
@@ -42,7 +48,8 @@ def keydel(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, l
 def keybackup(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
     """Backup key."""
     logger.info('Backup (export) key')
-    pass
+    # TODO: Make key_alg an Enum
+    key_backup(args.key_label, args.wrap_key_label, args.key_alg, p11modules)
 
 
 def keyrestore(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
@@ -54,12 +61,15 @@ def keyrestore(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P1
 def wrapgen(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
     """Generate new wrapping key."""
     logger.info('Generate wrapping key')
+    # TODO: Make key_alg an Enum
+    generate_wrapping_key(args.key_label, args.key_alg, p11modules)
     pass
 
 
 def wrapdel(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
     """Delete wrapping key."""
     logger.info('Delete wrapping key')
+    wrapkey_delete(args.key_label, p11modules, args.force)
     pass
 
 
@@ -101,6 +111,7 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
     parser_keygen = subparsers.add_parser('keygen')
     parser_keygen.set_defaults(func=keygen)
     # TODO: pass in label, or generate it from current time like the old tool does?
+    # TODO: set CKA_ID?
     parser_keygen.add_argument('--label',
                                dest='key_label',
                                metavar='LABEL',
@@ -111,7 +122,7 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
                                dest='key_alg',
                                metavar='ALGORITHM',
                                type=str,
-                               choices=SUPPORTED_ALGORITMS,
+                               choices=SUPPORTED_ALGORITHMS,
                                required=True,
                                help='Key algorithm')
     parser_keygen.add_argument('--size',
@@ -130,7 +141,7 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
                                help='Key curve')
     # TODO: Add option to identify HSM, if multiple are configured?
     # TODO: Add option to specify slot, instead of just picking the first one?
-    # TODO: DNSKEY flags as option?
+    # TODO: DNSKEY flags as option? Affects generated label.
 
     parser_wrapgen = subparsers.add_parser('wrapgen')
     parser_wrapgen.set_defaults(func=wrapgen)
@@ -140,6 +151,13 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
                                 type=str,
                                 required=True,
                                 help='Key label')
+    parser_wrapgen.add_argument('--algorithm',
+                                dest='key_alg',
+                                metavar='ALGORITHM',
+                                type=str,
+                                choices=SUPPORTED_WRAPPING_ALGORITHMS,
+                                required=True,
+                                help='Wrapping key algorithm')
 
     parser_keydel = subparsers.add_parser('keydelete')
     parser_keydel.set_defaults(func=keydel)
@@ -149,6 +167,12 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
                                type=str,
                                required=True,
                                help='Key label')
+    parser_keydel.add_argument('--force',
+                               dest='force',
+                               action='store_true',
+                               default=False,
+                               help='Don\'t ask for confirmation',
+                               )
 
     parser_wrapdel = subparsers.add_parser('wrapdelete')
     parser_wrapdel.set_defaults(func=wrapdel)
@@ -158,6 +182,12 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
                                 type=str,
                                 required=True,
                                 help='Key label')
+    parser_wrapdel.add_argument('--force',
+                                dest='force',
+                                action='store_true',
+                                default=False,
+                                help='Don\'t ask for confirmation',
+                                )
 
     parser_keybackup = subparsers.add_parser('backup')
     parser_keybackup.set_defaults(func=keybackup)
@@ -168,11 +198,18 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
                                   required=True,
                                   help='Backup (export) key label')
     parser_keybackup.add_argument('--wrap-label',
-                                  dest='wrap-key_label',
+                                  dest='wrap_key_label',
                                   metavar='LABEL',
                                   type=str,
                                   required=True,
                                   help='Wrapping key label')
+    parser_keybackup.add_argument('--algorithm',
+                                  dest='key_alg',
+                                  metavar='ALGORITHM',
+                                  type=str,
+                                  choices=SUPPORTED_WRAPPING_ALGORITHMS,
+                                  required=True,
+                                  help='Wrapping key algorithm')
 
     parser_keyrestore = subparsers.add_parser('restore')
     parser_keyrestore.set_defaults(func=keyrestore)
@@ -183,7 +220,7 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
                                    required=True,
                                    help='Restore (import) key label')
     parser_keyrestore.add_argument('--wrap-label',
-                                   dest='wrap-key_label',
+                                   dest='wrap_key_label',
                                    metavar='LABEL',
                                    type=str,
                                    required=True,

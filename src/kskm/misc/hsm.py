@@ -41,6 +41,7 @@ class KeyInfo(object):
     Inventory information about a key found in a slot.
 
     TODO: Not sure what to save for SECRET keys yet.
+    TODO: Give KSKM_P11Key a way to properly represent SECRET keys, and remove this class?
     """
     key_class: KeyClass
     key_id: int
@@ -54,7 +55,7 @@ class KSKM_P11Key(object):
 
     label: str  # for debugging
     public_key: Optional[KSKM_PublicKey]
-    private_key: Any = field(repr=False)  # PyKCS11 opaque data
+    private_key: Optional[PyKCS11.CK_OBJECT_HANDLE] = field(repr=False)  # PyKCS11 opaque data
     session: Any = field(repr=False)  # PyKCS11 opaque data
 
 
@@ -123,7 +124,7 @@ class KSKM_P11Module(object):
         # Mapping from slot number to session
         self._sessions: Dict[int, Any] = {}
 
-        self._slots = self._lib.getSlotList(tokenPresent=True)
+        self._slots: List[int] = self._lib.getSlotList(tokenPresent=True)
         logger.debug(f'P11 slots: {self._slots}')
         if self._slots:
             _info = self._lib.getTokenInfo(self._slots[0])
@@ -136,7 +137,7 @@ class KSKM_P11Module(object):
                 logger.info(f'    Serial:          {info.get("serialNumber")}')
                 logger.info('')
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'<{self.__class__.__name__}: {self.label} ({self.module})>'
 
     def close(self) -> None:
@@ -150,7 +151,7 @@ class KSKM_P11Module(object):
         return self._slots
 
     @property
-    def sessions(self) -> Mapping[int, Any]:
+    def sessions(self) -> Mapping[int, PyKCS11.Session]:
         """Get sessions for all slots."""
         if not self._sessions:
             _success_count = 0
@@ -176,29 +177,30 @@ class KSKM_P11Module(object):
                         # not an error if one or more slots succeeded before this one
                         _level = logging.DEBUG
                     logger.log(_level, f'Login to module {self.label} slot {_slot} failed')
+                    self._slots = [x for x in self._slots if x != _slot]
 
         return self._sessions
 
-    def find_key_by_label(self, label: str, public: bool = True) -> Optional[KSKM_P11Key]:
+    def find_key_by_label(self, label: str, key_class: KeyClass) -> Optional[KSKM_P11Key]:
         """
         Query the PKCS#11 module for a key with CKA_LABEL matching 'label'.
-
-        If 'public' is True, a CKO_PUBLIC_KEY will be sought, otherwise CKO_PRIVATE_KEY.
         """
         _slots: list = []
         for _slot, _session in self.sessions.items():
-            template = [(PyKCS11.LowLevel.CKA_LABEL, label)]
-            if public:
-                template += [(PyKCS11.LowLevel.CKA_CLASS, PyKCS11.LowLevel.CKO_PUBLIC_KEY)]
-            else:
-                template += [(PyKCS11.LowLevel.CKA_CLASS, PyKCS11.LowLevel.CKO_PRIVATE_KEY)]
+            template = [(PyKCS11.LowLevel.CKA_LABEL, label),
+                        (PyKCS11.LowLevel.CKA_CLASS, key_class.value)]
             _slots += [_slot]
             res = _session.findObjects(template)
             if res:
+                if len(res) > 1:
+                    logger.warning(f'More than one ({len(res)}) keys with label {repr(label)} found in slot {_slot}')
                 # logger.debug(f'Found key with label {label!r} in slot {_slot}')
+                _pubkey = None
+                if key_class != KeyClass.SECRET:
+                    _pubkey = self._p11_object_to_public_key(_session, res[0])
                 key = KSKM_P11Key(label=label,
-                                  public_key=self._p11_object_to_public_key(_session, res[0]),
-                                  private_key=res if not public else None,
+                                  public_key=_pubkey,
+                                  private_key=res if key_class != KeyClass.PUBLIC else None,
                                   session=_session,
                                   )
                 return key
@@ -211,7 +213,7 @@ class KSKM_P11Module(object):
         Query the PKCS#11 module for a key with CKA_ID matching 'key_id'.
         """
         template = [(PyKCS11.LowLevel.CKA_ID, key_id)]
-        res = []
+        res: List[KSKM_P11Key] = []
         objs = session.findObjects(template)
         for this in objs:
             cls, label = session.getAttributeValue(this, [PyKCS11.LowLevel.CKA_CLASS,
@@ -234,11 +236,11 @@ class KSKM_P11Module(object):
                 res += [key]
         return res
 
-    def get_key_inventory(self, session) -> List[KeyInfo]:
+    def get_key_inventory(self, session: PyKCS11.Session) -> List[KeyInfo]:
         """Enumerate all keys found in a slot."""
         # TODO: Should this function return CKA_IDs too? This tool suite relies on addressing keys
         #       only with CKA_LABEL in general, so probably no point in returning CKA_ID.
-        res = []
+        res: List[KeyInfo] = []
 
         for this in session.findObjects([]):
             cls, label, key_id = session.getAttributeValue(this, [PyKCS11.LowLevel.CKA_CLASS,
@@ -248,11 +250,13 @@ class KSKM_P11Module(object):
             if cls == PyKCS11.LowLevel.CKO_SECRET_KEY:
                 res += [KeyInfo(key_class=KeyClass.SECRET, label=label, key_id=key_id)]
             elif cls == PyKCS11.LowLevel.CKO_PUBLIC_KEY:
-                res += [KeyInfo(key_class=KeyClass.PUBLIC, label=label, key_id=key_id,
-                                p11key=self.find_key_by_id(key_id, session))]
+                for this in self.find_key_by_id(key_id, session):
+                    res += [KeyInfo(key_class=KeyClass.PUBLIC, label=label, key_id=key_id, p11key=this)]
+                    break  # this skips other keys with the same label (public+private is two keys)
             elif cls == PyKCS11.LowLevel.CKO_PRIVATE_KEY:
-                res += [KeyInfo(key_class=KeyClass.PRIVATE, label=label, key_id=key_id,
-                                p11key=self.find_key_by_id(key_id, session))]
+                for this in self.find_key_by_id(key_id, session):
+                    res += [KeyInfo(key_class=KeyClass.PRIVATE, label=label, key_id=key_id, p11key=this)]
+                    break  # this skips other keys with the same label (public+private is two keys)
 
         return res
 
@@ -293,7 +297,7 @@ class KSKM_P11Module(object):
                 raise RuntimeError(f'Unexpected ECDSA key length: {_ec_len}')
             return KSKM_PublicKey_ECDSA(bits=_ec_len, q=ec_point, algorithm=alg)
         else:
-            raise NotImplementedError('Unknown CKA_TYPE: {}'.format(PyKCS11.LowLevel.CKK[_cka_type]))
+            raise NotImplementedError('Unknown CKA_TYPE: {}'.format(PyKCS11.CKK[_cka_type]))
 
 
 def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) -> bytes:
@@ -324,6 +328,8 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) ->
     if mechanism is None:
         raise RuntimeError(f'Can\'t PKCS#11 sign data with algorithm {algorithm.name}')
 
+    if not key.private_key:
+        raise RuntimeError(f'No private key supplied in {key}')
     sig = key.session.sign(key.private_key[0], data, PyKCS11.Mechanism(mechanism, None))
     return bytes(sig)
 
@@ -464,8 +470,27 @@ def get_p11_key(label: str, p11modules: KSKM_P11, public: bool) -> Optional[KSKM
     :param public: Try to locate a public/private key
     :return: None or a PKCS#11 key object reference
     """
+    key_class = KeyClass.PUBLIC if public else KeyClass.PRIVATE
     for module in p11modules:
-        p11key = module.find_key_by_label(label, public=public)
+        p11key = module.find_key_by_label(label, key_class)
+        if p11key is not None:
+            return p11key
+    return None
+
+
+def get_p11_secret_key(label: str, p11modules: KSKM_P11) -> Optional[KSKM_P11Key]:
+    """
+    Look for a secret key (wrapping key) with CKA_LABEL matching 'label'.
+
+    Iterates through all the available PKCS#11 modules, and returns a reference to the
+    first key found with the right label.
+
+    :param label: CKA_LABEL to look for
+    :param p11modules: The list of PKCS#11 modules
+    :return: None or a PKCS#11 key object reference
+    """
+    for module in p11modules:
+        p11key = module.find_key_by_label(label, key_class=KeyClass.SECRET)
         if p11key is not None:
             return p11key
     return None
