@@ -1,10 +1,24 @@
 """Functions to display data to humans."""
+
+import logging
 from typing import List, Sequence, Union
 
 import kskm.common
 from kskm.common.data import BundleType
 
 __author__ = 'ft'
+
+
+def log_file_contents(filename: str, contents: bytes, logger: logging.Logger) -> None:
+    """Log file contents with filename and line number"""
+    lineno = 0
+    lines = contents.decode().splitlines()
+    digits_in_lineno = len(str(len(lines)))
+    format_str = f"{{0}} {{1:0{digits_in_lineno}}}: {{2}}"
+    print(format_str)
+    for line in lines:
+        logger.info(format_str.format(filename, lineno, line))
+        lineno += 1
 
 
 def format_bundles_for_humans(bundles: Sequence[BundleType]) -> Sequence[str]:

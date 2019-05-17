@@ -3,6 +3,7 @@
 import logging
 import os
 
+from kskm.common.display import log_file_contents
 from kskm.common.integrity import checksum_bytes2str
 from kskm.common.parse_utils import signature_policy_from_dict
 from kskm.common.validate import PolicyViolation
@@ -26,6 +27,7 @@ def load_skr(filename: str, policy: ResponsePolicy) -> Response:
             raise RuntimeError(f"SKR exceeding maximum size of {MAX_SKR_SIZE} bytes")
         xml_bytes = fd.read(MAX_SKR_SIZE)  # impose upper limit on how much memory/CPU can be spent loading a file
     logger.info("Loaded SKR from file %s %s", filename, checksum_bytes2str(xml_bytes))
+    log_file_contents(filename, xml_bytes, logger)
     response = response_from_xml(xml_bytes.decode())
     try:
         validate_response(response, policy)

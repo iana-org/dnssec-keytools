@@ -3,6 +3,7 @@
 import logging
 import os
 
+from kskm.common.display import log_file_contents
 from kskm.common.integrity import checksum_bytes2str
 from kskm.common.parse_utils import signature_policy_from_dict
 from kskm.common.validate import PolicyViolation
@@ -28,6 +29,7 @@ def load_ksr(filename: str, policy: RequestPolicy, raise_original: bool = False)
             raise RuntimeError(f"KSR exceeding maximum size of {MAX_KSR_SIZE} bytes")
         xml_bytes = fd.read(MAX_KSR_SIZE)  # impose upper limit on how much memory/CPU can be spent loading a file
     logger.info("Loaded KSR from file %s %s", filename, checksum_bytes2str(xml_bytes))
+    log_file_contents(filename, xml_bytes, logger)
     request = request_from_xml(xml_bytes.decode())
     try:
         if validate_request(request, policy) is not True:
