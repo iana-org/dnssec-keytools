@@ -15,7 +15,6 @@ def log_file_contents(filename: str, contents: bytes, logger: logging.Logger) ->
     lines = contents.decode().splitlines()
     digits_in_lineno = len(str(len(lines)))
     format_str = f"{{0}} {{1:0{digits_in_lineno}}}: {{2}}"
-    print(format_str)
     for line in lines:
         logger.info(format_str.format(filename, lineno, line))
         lineno += 1
