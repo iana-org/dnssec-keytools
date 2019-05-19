@@ -101,7 +101,7 @@ signer = element Signer {
 }
 
 signature = element Signature {
-  attribute keyIdentifier { keyid }?,
+  attribute keyIdentifier { keyid },
   element TTL { ttl },
   element TypeCovered { xsd:string },
   element Algorithm { algorithm },
@@ -115,7 +115,7 @@ signature = element Signature {
 }
 
 key = element Key {
-  attribute keyIdentifier { keyid }?,
+  attribute keyIdentifier { keyid },
   attribute keyTag { keytag  },
   element TTL { ttl },
   element Flags { flags },
