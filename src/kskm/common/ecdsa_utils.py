@@ -8,6 +8,12 @@ from kskm.common.public_key import KSKM_PublicKey
 __author__ = 'ft'
 
 
+ALGORITHM_TO_CURVE = {
+    AlgorithmDNSSEC.ECDSAP256SHA256: 'P-256',
+    AlgorithmDNSSEC.ECDSAP384SHA384: 'P-384'
+}
+
+
 @dataclass(frozen=True)
 class KSKM_PublicKey_ECDSA(KSKM_PublicKey):
     """A parsed DNSSEC ECDSA public key."""
@@ -15,12 +21,23 @@ class KSKM_PublicKey_ECDSA(KSKM_PublicKey):
     q: bytes = field(repr=False)
     algorithm: AlgorithmDNSSEC
 
+    def __str__(self) -> str:
+        return f"alg=EC bits={self.bits} curve={algorithm_to_curve(self.algorithm)}"
+
 
 def is_algorithm_ecdsa(alg: AlgorithmDNSSEC) -> bool:
     """Check if `alg' is one of the ECDSA algorithms."""
     return alg in [AlgorithmDNSSEC.ECDSAP256SHA256,
                    AlgorithmDNSSEC.ECDSAP384SHA384,
                    ]
+
+
+def algorithm_to_curve(alg: AlgorithmDNSSEC) -> str:
+    """Return EC Curve of ECDSA key"""
+    if alg in ALGORITHM_TO_CURVE:
+        return ALGORITHM_TO_CURVE[alg]
+    else:
+        raise ValueError("Unsupported algorithm")
 
 
 def parse_signature_policy_ecdsa(data: dict) -> AlgorithmPolicyECDSA:

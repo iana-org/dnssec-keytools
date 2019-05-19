@@ -43,6 +43,9 @@ class KSKM_PublicKey_RSA(KSKM_PublicKey):
     exponent: int
     n: bytes = field(repr=False)
 
+    def __str__(self) -> str:
+        return f"algo=RSA bits={self.bits} exp={self.exponent}"
+
 
 def decode_rsa_public_key(key: bytes) -> KSKM_PublicKey_RSA:
     """Parse DNSSEC RSA public_key, as specified in RFC3110."""

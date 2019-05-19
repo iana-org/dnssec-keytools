@@ -77,7 +77,6 @@ def inventory(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11
     """Show HSM inventory."""
     logger.info('Show HSM inventory')
     key_inventory(p11modules)
-    pass
 
 
 def main(progname='keymaster', args: Optional[List[str]] = None, config: Optional[KSKMConfig] = None) -> bool:
