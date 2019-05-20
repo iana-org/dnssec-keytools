@@ -55,9 +55,9 @@ class KSKM_P11Key(object):
 
     label: str  # for debugging
     public_key: Optional[KSKM_PublicKey]
-    private_key: Optional[PyKCS11.CK_OBJECT_HANDLE] = field(repr=False)  # PyKCS11 opaque data
     session: Any = field(repr=False)  # PyKCS11 opaque data
-    pubkey_handle: Optional[List[PyKCS11.CK_OBJECT_HANDLE]] = field(repr=False, default=None)  # PyKCS11 opaque data
+    privkey_handle: Optional[List[PyKCS11.CK_OBJECT_HANDLE]] = field(repr=False)  # PyKCS11 opaque data
+    pubkey_handle: Optional[List[PyKCS11.CK_OBJECT_HANDLE]] = field(repr=False)  # PyKCS11 opaque data
 
     def __str__(self):
         s = f"key_label={self.label}"
@@ -209,8 +209,8 @@ class KSKM_P11Module(object):
                     _pubkey_handle = res
                 key = KSKM_P11Key(label=label,
                                   public_key=_pubkey,
-                                  private_key=res if key_class != KeyClass.PUBLIC else None,
                                   session=_session,
+                                  privkey_handle=res if key_class != KeyClass.PUBLIC else None,
                                   pubkey_handle=_pubkey_handle
                                   )
                 return key
@@ -338,9 +338,9 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) ->
     if mechanism is None:
         raise RuntimeError(f'Can\'t PKCS#11 sign data with algorithm {algorithm.name}')
 
-    if not key.private_key:
+    if not key.privkey_handle:
         raise RuntimeError(f'No private key supplied in {key}')
-    sig = key.session.sign(key.private_key[0], data, PyKCS11.Mechanism(mechanism, None))
+    sig = key.session.sign(key.privkey_handle[0], data, PyKCS11.Mechanism(mechanism, None))
     return bytes(sig)
 
 

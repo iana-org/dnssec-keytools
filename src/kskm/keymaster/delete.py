@@ -29,8 +29,8 @@ def key_delete(label: str, p11modules: KSKM_P11, force: bool=False) -> bool:
 
     # Handles seem to get invalidated when calling destroyObject, so do another search for a private key
     existing_key = get_p11_key(label, p11modules, public=False)
-    if existing_key.private_key:
-        res = session.destroyObject(existing_key.private_key[0])
+    if existing_key.privkey_handle:
+        res = session.destroyObject(existing_key.privkey_handle[0])
         logger.debug(f'Private key C_DestroyObject result: {res}')
         return True
     return False
@@ -51,7 +51,7 @@ def wrapkey_delete(label: str, p11modules: KSKM_P11, force: bool=False) -> bool:
 
     logger.info(f'Deleting secret key {existing_key}')
     session = get_session(p11modules, logger)
-    if existing_key.private_key:
-        res = session.destroyObject(existing_key.private_key[0])
+    if existing_key.privkey_handle:
+        res = session.destroyObject(existing_key.privkey_handle[0])
         logger.debug(f'Private key C_DestroyObject result: {res}')
     return True

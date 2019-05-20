@@ -34,9 +34,9 @@ def key_backup(label: str, wrap_label: str, algorithm: str, p11modules: KSKM_P11
     else:
         raise RuntimeError(f'Unknown wrapping algorithm: {algorithm}')
 
-    if not wrap_key.private_key:
+    if not wrap_key.privkey_handle:
         raise RuntimeError('Wrapping key has no private key ')
-    res = session.wrapKey(wrap_key.private_key[0], existing_key.private_key[0], mecha=_mech)
+    res = session.wrapKey(wrap_key.privkey_handle[0], existing_key.privkey_handle[0], mecha=_mech)
     #logger.debug(f'Wrap result: {res}')
     return bytes(res)
 
@@ -62,10 +62,10 @@ def key_restore(wrapped_key: bytes, label: str, unwrap_label: str, algorithm: st
     else:
         raise RuntimeError(f'Unknown wrapping algorithm: {algorithm}')
 
-    if not unwrap_key.private_key:
+    if not unwrap_key.privkey_handle:
         raise RuntimeError('Unwrapping key has no private key ')
     
     privateKeyTemplate = private_key_template(label, CKK_RSA)
-    res = session.unwrapKey(unwrap_key.private_key[0], wrapped_key, privateKeyTemplate, mecha=_mech)
+    res = session.unwrapKey(unwrap_key.privkey_handle[0], wrapped_key, privateKeyTemplate, mecha=_mech)
     logger.debug(f'Unwrap result: {res}')
     return True
