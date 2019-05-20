@@ -17,16 +17,17 @@ import kskm.misc
 from kskm.common.config import KSKMConfig, get_config
 from kskm.common.data import FlagsDNSKEY
 from kskm.common.logging import get_logger
-from kskm.keymaster.delete import wrapkey_delete, key_delete
+from kskm.keymaster.delete import key_delete, wrapkey_delete
 from kskm.keymaster.inventory import key_inventory
-from kskm.keymaster.keygen import generate_ec_key, generate_rsa_key, generate_wrapping_key
+from kskm.keymaster.keygen import generate_ec_key, generate_rsa_key, \
+    generate_wrapping_key
 from kskm.keymaster.wrap import key_backup, key_restore
-from kskm.misc.hsm import KSKM_P11
+from kskm.misc.hsm import KSKM_P11, KeyType, WrappingAlgorithm
 
-SUPPORTED_ALGORITHMS = ['RSA', 'EC']
+SUPPORTED_ALGORITHMS = [x.value for x in KeyType]
 SUPPORTED_SIZES = [2048, 3072, 4096]
 SUPPORTED_CURVES = ['secp256r1', 'secp384r1']
-SUPPORTED_WRAPPING_ALGORITHMS = ['AES256', '3DES']  # SoftHSM2 only supports AES
+SUPPORTED_WRAPPING_ALGORITHMS = [x.value for x in WrappingAlgorithm]  # SoftHSM2 only supports AES
 
 
 def keygen(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
@@ -54,7 +55,7 @@ def keybackup(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11
     """Backup key."""
     logger.info('Backup (export) key')
     # TODO: Make key_alg an Enum
-    wrapped = key_backup(args.key_label, args.wrap_key_label, args.key_alg, p11modules)
+    wrapped = key_backup(args.key_label, args.wrap_key_label, p11modules)
     if wrapped:
         print('WRAPPED: {}'.format(base64.b64encode(wrapped)))
 
@@ -62,15 +63,16 @@ def keybackup(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11
 def keyrestore(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
     """Restore key."""
     logger.info('Restore (import) key')
-    if key_restore(wrapped_key, args.key_label, args.wrap_key_label, args.key_alg, p11modules):
+    alg = WrappingAlgorithm[args.key_alg]
+    if key_restore(wrapped_key, args.key_label, args.wrap_key_label, alg, p11modules):
         logger.info('Key restored successfully')
 
 
 def wrapgen(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
     """Generate new wrapping key."""
     logger.info('Generate wrapping key')
-    # TODO: Make key_alg an Enum
-    generate_wrapping_key(args.key_label, args.key_alg, p11modules)
+    alg = WrappingAlgorithm[args.key_alg]
+    generate_wrapping_key(args.key_label, alg, p11modules)
 
 
 def wrapdel(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
@@ -208,13 +210,6 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
                                   type=str,
                                   required=True,
                                   help='Wrapping key label')
-    parser_keybackup.add_argument('--algorithm',
-                                  dest='key_alg',
-                                  metavar='ALGORITHM',
-                                  type=str,
-                                  choices=SUPPORTED_WRAPPING_ALGORITHMS,
-                                  required=True,
-                                  help='Wrapping key algorithm')
 
     parser_keyrestore = subparsers.add_parser('restore')
     parser_keyrestore.set_defaults(func=keyrestore)

@@ -8,7 +8,7 @@ import os
 import re
 from copy import copy
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import Enum, IntEnum
 from getpass import getpass
 from hashlib import sha256, sha384
 from typing import (Any, Dict, Iterator, List, Mapping, MutableMapping,
@@ -35,6 +35,13 @@ class KeyClass(Enum):
     SECRET = PyKCS11.LowLevel.CKO_SECRET_KEY
 
 
+class KeyType(Enum):
+    RSA = PyKCS11.LowLevel.CKK_RSA
+    EC = PyKCS11.LowLevel.CKK_EC
+    AES = PyKCS11.LowLevel.CKK_AES
+    DES3 = PyKCS11.LowLevel.CKK_DES3
+
+
 @dataclass
 class KeyInfo(object):
     """
@@ -49,21 +56,46 @@ class KeyInfo(object):
     p11key: Optional[KSKM_P11Key] = field(repr=False, default=None)
 
 
+class WrappingAlgorithm(Enum):
+    AES256 = 'AES256'
+    DES3 = '3DES'
+
+
 @dataclass
 class KSKM_P11Key(object):
     """A reference to a key object loaded from a PKCS#11 module."""
 
     label: str  # for debugging
+    key_type: KeyType
+    key_class: KeyClass
     public_key: Optional[KSKM_PublicKey]
     session: Any = field(repr=False)  # PyKCS11 opaque data
-    privkey_handle: Optional[List[PyKCS11.CK_OBJECT_HANDLE]] = field(repr=False)  # PyKCS11 opaque data
-    pubkey_handle: Optional[List[PyKCS11.CK_OBJECT_HANDLE]] = field(repr=False)  # PyKCS11 opaque data
+    privkey_handle: Optional[List[PyKCS11.CK_OBJECT_HANDLE]] = field(repr=False, default=None)  # PyKCS11 opaque data
+    pubkey_handle: Optional[List[PyKCS11.CK_OBJECT_HANDLE]] = field(repr=False, default=None)  # PyKCS11 opaque data
 
     def __str__(self):
-        s = f"key_label={self.label}"
-        if hasattr(self, 'public_key'):
-            s += f" {str(self.public_key)}"
+        s = f'key_label={self.label}'
+        if self.public_key:
+            s += ' ' + str(self.public_key)
         return s
+
+    def key_wrap_mechanism(self):
+        """Get key wrap mechanism for this key."""
+        if self.key_type == KeyType.AES:
+            return PyKCS11.Mechanism(PyKCS11.LowLevel.CKM_AES_KEY_WRAP, None)
+        elif self.key_type == KeyType.DES3:
+            return PyKCS11.Mechanism(PyKCS11.LowLevel.CKM_DES3_ECB, None)
+        else:
+            raise RuntimeError(f'Don\'t know a wrapping mechanism for key type {self.key_type}')
+
+    def key_wrap_algorithm(self) -> WrappingAlgorithm:
+        """Get key wrap algorithm for this key."""
+        if self.key_type == KeyType.AES:
+            return WrappingAlgorithm.AES256
+        elif self.key_type == KeyType.DES3:
+            return WrappingAlgorithm.DES3
+        else:
+            raise RuntimeError(f'Don\'t know a wrapping algorithm for key type {self.key_type}')
 
 
 class KSKM_P11Module(object):
@@ -207,7 +239,10 @@ class KSKM_P11Module(object):
                 if key_class != KeyClass.SECRET:
                     _pubkey = self._p11_object_to_public_key(_session, res[0])
                     _pubkey_handle = res
+                _cka_type = _session.getAttributeValue(res[0], [PyKCS11.LowLevel.CKA_KEY_TYPE])[0]
                 key = KSKM_P11Key(label=label,
+                                  key_type = KeyType(_cka_type),
+                                  key_class = key_class,
                                   public_key=_pubkey,
                                   session=_session,
                                   privkey_handle=res if key_class != KeyClass.PUBLIC else None,
@@ -229,20 +264,13 @@ class KSKM_P11Module(object):
             cls, label = session.getAttributeValue(this, [PyKCS11.LowLevel.CKA_CLASS,
                                                           PyKCS11.LowLevel.CKA_LABEL,
                                                           ])
-            key = None
-            if cls == PyKCS11.LowLevel.CKO_PRIVATE_KEY:
+            if cls in [PyKCS11.LowLevel.CKO_PRIVATE_KEY,
+                       PyKCS11.LowLevel.CKO_PUBLIC_KEY]:
                 key = KSKM_P11Key(label=label,
                                    public_key=self._p11_object_to_public_key(session, this),
-                                   private_key=this,
+                                   privkey_handle=this if cls == PyKCS11.LowLevel.CKO_PRIVATE_KEY else None,
                                    session=session,
                                    )
-            elif cls == PyKCS11.LowLevel.CKO_PUBLIC_KEY:
-                key = KSKM_P11Key(label=label,
-                                  public_key=self._p11_object_to_public_key(session, this),
-                                  private_key=None,
-                                  session=session,
-                                  )
-            if key is not None:
                 res += [key]
         return res
 

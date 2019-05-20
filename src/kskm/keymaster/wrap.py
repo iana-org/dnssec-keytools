@@ -1,19 +1,34 @@
 import logging
+from dataclasses import dataclass, field
 from typing import Optional
 
-from PyKCS11 import Mechanism
-from PyKCS11.LowLevel import CKK_RSA, CKM_AES_KEY_WRAP, CKM_DES3_ECB
-
 from kskm.keymaster.common import get_session
-from kskm.keymaster.keygen import private_key_template
-from kskm.misc.hsm import KSKM_P11, get_p11_key, get_p11_secret_key
+from kskm.keymaster.keygen import private_key_template, public_key_template
+from kskm.misc.hsm import KSKM_P11, KeyType, WrappingAlgorithm, get_p11_key, get_p11_secret_key
 
 __author__ = 'ft'
 
 logger = logging.getLogger(__name__)
 
 
-def key_backup(label: str, wrap_label: str, algorithm: str, p11modules: KSKM_P11) -> Optional[bytes]:
+@dataclass
+class WrappedKey(object):
+    key_label: str
+    key_type: KeyType
+    public_wrapped: Optional[bytes] = field(repr=False)
+    private_wrapped: Optional[bytes] = field(repr=False)
+    wrap_key_label: str
+    # TODO: add HSM serial number here?
+
+
+@dataclass
+class WrappedKeyRSA(WrappedKey):
+    bits: int
+    exponent: int
+    modulus: bytes
+
+
+def key_backup(label: str, wrap_label: str, p11modules: KSKM_P11) -> Optional[WrappedKey]:
     wrap_key = get_p11_secret_key(wrap_label, p11modules)
     if not wrap_key:
         logger.error(f'No secret key with label {repr(wrap_label)} found')
@@ -27,45 +42,55 @@ def key_backup(label: str, wrap_label: str, algorithm: str, p11modules: KSKM_P11
     logger.info(f'Backing up key {existing_key} using wrapping key {wrap_key}')
     session = get_session(p11modules, logger)
 
-    if algorithm == 'AES256':
-        _mech = Mechanism(CKM_AES_KEY_WRAP, None)
-    elif algorithm == '3DES':
-        _mech = Mechanism(CKM_DES3_ECB, None)
-    else:
-        raise RuntimeError(f'Unknown wrapping algorithm: {algorithm}')
-
     if not wrap_key.privkey_handle:
-        raise RuntimeError('Wrapping key has no private key ')
-    res = session.wrapKey(wrap_key.privkey_handle[0], existing_key.privkey_handle[0], mecha=_mech)
-    #logger.debug(f'Wrap result: {res}')
-    return bytes(res)
+        raise RuntimeError('Wrapping key has no private key')
+    private_wrapped = session.wrapKey(wrap_key.privkey_handle[0], existing_key.privkey_handle[0],
+                                      mecha=wrap_key.key_wrap_mechanism())
+    public_wrapped = session.wrapKey(wrap_key.privkey_handle[0], existing_key.pubkey_handle[0],
+                                     mecha=wrap_key.key_wrap_mechanism())
+    if existing_key.key_type == KeyType.RSA:
+        return WrappedKeyRSA(key_label=existing_key.label,
+                             key_type=existing_key.key_type,
+                             wrap_key_label=wrap_key.label,
+                             private_wrapped=bytes(private_wrapped),
+                             public_wrapped=bytes(public_wrapped),
+                             bits=existing_key.public_key.bits,
+                             exponent=existing_key.public_key.exponent,
+                             modulus=existing_key.public_key.n,
+                             )
+    raise RuntimeError(f'Can\'t create WrappedKey from {existing_key}')
 
 
-def key_restore(wrapped_key: bytes, label: str, unwrap_label: str, algorithm: str, p11modules: KSKM_P11) -> bool:
-    unwrap_key = get_p11_secret_key(unwrap_label, p11modules)
+def key_restore(wrapped_key: WrappedKey, p11modules: KSKM_P11) -> bool:
+    unwrap_key = get_p11_secret_key(wrapped_key.wrap_key_label, p11modules)
     if not unwrap_key:
-        logger.error(f'No secret key with label {repr(unwrap_label)} found')
+        logger.error(f'No secret key with label {repr(wrapped_key.wrap_key_label)} found')
         return False
 
-    existing_key = get_p11_key(label, p11modules, public=False)
+    existing_key = get_p11_key(wrapped_key.key_label, p11modules, public=False)
     if existing_key:
-        logger.error(f'A key with label {label} already exists')
+        logger.error(f'A key with label {wrapped_key.key_label} already exists')
         return False
 
-    logger.info(f'Restoring key {label} using wrapping key {unwrap_key}')
+    logger.info(f'Restoring key {wrapped_key.key_label} using wrapping key {unwrap_key}')
     session = get_session(p11modules, logger)
 
-    if algorithm == 'AES256':
-        _mech = Mechanism(CKM_AES_KEY_WRAP, None)
-    elif algorithm == '3DES':
-        _mech = Mechanism(CKM_DES3_ECB, None)
-    else:
-        raise RuntimeError(f'Unknown wrapping algorithm: {algorithm}')
-
     if not unwrap_key.privkey_handle:
-        raise RuntimeError('Unwrapping key has no private key ')
+        raise RuntimeError('Unwrapping key has no private key')
     
-    privateKeyTemplate = private_key_template(label, CKK_RSA)
-    res = session.unwrapKey(unwrap_key.privkey_handle[0], wrapped_key, privateKeyTemplate, mecha=_mech)
-    logger.debug(f'Unwrap result: {res}')
+    privateKeyTemplate = private_key_template(wrapped_key.key_label, wrapped_key.key_type.value)
+    res = session.unwrapKey(unwrap_key.privkey_handle[0], wrapped_key.private_wrapped, privateKeyTemplate,
+                            mecha=unwrap_key.key_wrap_mechanism())
+    logger.debug(f'Private key unwrap result: {res}')
+
+    if isinstance(wrapped_key, WrappedKeyRSA):
+        publicKeyTemplate = public_key_template(wrapped_key.key_label, wrapped_key.key_type.value,
+                                                rsa_exponent=wrapped_key.exponent,
+                                                rsa_modulus=wrapped_key.modulus)
+    else:
+        raise RuntimeError(f'Can\'t get a public key template for {wrapped_key}')
+    res = session.createObject(publicKeyTemplate)
+    logger.debug(f'Public key createObject result: {res}')
+
+    logger.info(f'Unwrapped key {wrapped_key}')
     return True
