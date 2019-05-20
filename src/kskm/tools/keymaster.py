@@ -23,7 +23,7 @@ from kskm.keymaster.wrap import key_backup
 from kskm.misc.hsm import KSKM_P11
 
 SUPPORTED_ALGORITHMS = ['RSA', 'EC']
-SUPPORTED_SIZES = [2048]
+SUPPORTED_SIZES = [2048, 3072, 4096]
 SUPPORTED_CURVES = ['secp256r1', 'secp384r1']
 SUPPORTED_WRAPPING_ALGORITHMS = ['AES256', '3DES']  # SoftHSM2 only supports AES
 
