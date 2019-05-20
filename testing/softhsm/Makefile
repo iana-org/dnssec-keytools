@@ -47,16 +47,16 @@ $(STATUSFILE): $(SOFTHSM_CONF) $(TOKENDIR) $(KEYS_PKCS8)
 	$(SOFTHSM_BIN) $(SOFTHSM_INIT) --free --label $(LABEL_TOKEN_1)
 	$(SOFTHSM_BIN) $(SOFTHSM_INIT) --free --label $(LABEL_TOKEN_2)
 	# token 0
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa-$(RSA_SIZE)-1.p8 --token $(LABEL_TOKEN_0) --id 01 --label RSA-1-token-0
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa-$(RSA_SIZE)-2.p8 --token $(LABEL_TOKEN_0) --id 02 --label RSA-2-token-0
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ec-$(EC_CURVE)-1.p8 --token $(LABEL_TOKEN_0) --id 03 --label EC-1-token-0
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ec-$(EC_CURVE)-2.p8 --token $(LABEL_TOKEN_0) --id 04 --label EC-2-token-0
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa-$(RSA_SIZE)-1.p8 --token $(LABEL_TOKEN_0) --id 01 --label RSA1
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa-$(RSA_SIZE)-2.p8 --token $(LABEL_TOKEN_0) --id 02 --label RSA2
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ec-$(EC_CURVE)-1.p8 --token $(LABEL_TOKEN_0) --id 03 --label EC1
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ec-$(EC_CURVE)-2.p8 --token $(LABEL_TOKEN_0) --id 04 --label EC2
 	# token 1
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa-$(RSA_SIZE)-3.p8 --token $(LABEL_TOKEN_1) --id 05 --label RSA-3-token-1
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ec-$(EC_CURVE)-3.p8 --token $(LABEL_TOKEN_1) --id 06 --label EC-3-token-1
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa-$(RSA_SIZE)-3.p8 --token $(LABEL_TOKEN_1) --id 05 --label RSA3
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ec-$(EC_CURVE)-3.p8 --token $(LABEL_TOKEN_1) --id 06 --label EC3
 	# token 2
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa-$(RSA_SIZE)-4.p8 --token $(LABEL_TOKEN_2) --id 07 --label RSA-4-token-2
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ec-$(EC_CURVE)-4.p8 --token $(LABEL_TOKEN_2) --id 08 --label EC-4-token-2
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa-$(RSA_SIZE)-4.p8 --token $(LABEL_TOKEN_2) --id 07 --label RSA4
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ec-$(EC_CURVE)-4.p8 --token $(LABEL_TOKEN_2) --id 08 --label EC4
 	touch $(STATUSFILE)
 
 inventory:
