@@ -58,6 +58,12 @@ class KSKM_P11Key(object):
     private_key: Optional[PyKCS11.CK_OBJECT_HANDLE] = field(repr=False)  # PyKCS11 opaque data
     session: Any = field(repr=False)  # PyKCS11 opaque data
 
+    def __str__(self):
+        s = f"key_label={self.label}"
+        if hasattr(self, 'public_key'):
+            s += f" {str(self.public_key)}"
+        return s
+
 
 class KSKM_P11Module(object):
     """KSKM interface to a PKCS#11 module."""
