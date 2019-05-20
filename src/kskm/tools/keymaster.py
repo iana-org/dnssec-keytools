@@ -7,6 +7,7 @@ Tool to create, delete, backup, restore keys as well as perform a key inventory.
 """
 
 import argparse
+import base64
 import logging
 import sys
 from typing import List, Optional
@@ -16,10 +17,10 @@ import kskm.misc
 from kskm.common.config import KSKMConfig, get_config
 from kskm.common.data import FlagsDNSKEY
 from kskm.common.logging import get_logger
-from kskm.keymaster.delete import wrapkey_delete
+from kskm.keymaster.delete import wrapkey_delete, key_delete
 from kskm.keymaster.inventory import key_inventory
 from kskm.keymaster.keygen import generate_ec_key, generate_rsa_key, generate_wrapping_key
-from kskm.keymaster.wrap import key_backup
+from kskm.keymaster.wrap import key_backup, key_restore
 from kskm.misc.hsm import KSKM_P11
 
 SUPPORTED_ALGORITHMS = ['RSA', 'EC']
@@ -46,20 +47,23 @@ def keygen(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, l
 def keydel(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
     """Delete signing key."""
     logger.info('Delete signing key')
-    pass
+    key_delete(args.key_label, p11modules)
 
 
 def keybackup(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
     """Backup key."""
     logger.info('Backup (export) key')
     # TODO: Make key_alg an Enum
-    key_backup(args.key_label, args.wrap_key_label, args.key_alg, p11modules)
+    wrapped = key_backup(args.key_label, args.wrap_key_label, args.key_alg, p11modules)
+    if wrapped:
+        print('WRAPPED: {}'.format(base64.b64encode(wrapped)))
 
 
 def keyrestore(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
     """Restore key."""
     logger.info('Restore (import) key')
-    pass
+    if key_restore(wrapped_key, args.key_label, args.wrap_key_label, args.key_alg, p11modules):
+        logger.info('Key restored successfully')
 
 
 def wrapgen(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
@@ -67,14 +71,12 @@ def wrapgen(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, 
     logger.info('Generate wrapping key')
     # TODO: Make key_alg an Enum
     generate_wrapping_key(args.key_label, args.key_alg, p11modules)
-    pass
 
 
 def wrapdel(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
     """Delete wrapping key."""
     logger.info('Delete wrapping key')
     wrapkey_delete(args.key_label, p11modules, args.force)
-    pass
 
 
 def inventory(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):

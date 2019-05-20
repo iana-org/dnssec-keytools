@@ -44,7 +44,7 @@ def generate_key_label(flags: int, now: Optional[int] = None) -> str:
     return 'U' + data
 
 
-def generate_wrapping_key(label: str, algorithm: str, p11modules: KSKM_P11) -> None:
+def generate_wrapping_key(label: str, algorithm: str, p11modules: KSKM_P11) -> bool:
     """Generate a SECRET (wrapping) key (3DES)."""
     template = [
         (CKA_LABEL,       label),
@@ -70,13 +70,15 @@ def generate_wrapping_key(label: str, algorithm: str, p11modules: KSKM_P11) -> N
     existing_key = get_p11_secret_key(label, p11modules)
     if existing_key:
         logger.error(f'A secret key with label {repr(label)} already exists: {existing_key}')
-        return None
+        return False
 
     session = get_session(p11modules, logger)
     logger.debug(f'Generating secret key using session {session}')
-    session.generateKey(template, _mech)
+    res = session.generateKey(template, _mech)
+    logger.debug(f'generateKey result {res}')
     new_key = get_p11_secret_key(label, p11modules)
     logger.info(f'Generated key: {new_key}')
+    return True
 
 
 def generate_rsa_key(flags: int, bits: int, p11modules: KSKM_P11, exponent: int = 65537) -> Optional[KSKM_P11Key]:
@@ -102,22 +104,28 @@ def generate_rsa_key(flags: int, bits: int, p11modules: KSKM_P11, exponent: int 
         (CKA_PUBLIC_EXPONENT, exponent_tuple)
     ]
 
+    privateKeyTemplate = private_key_template(label, CKK_RSA)
+
+    return generate_key_from_templates(publicKeyTemplate, privateKeyTemplate, label, p11modules)
+
+
+def private_key_template(label: str, key_type: int) -> List:
+    """Return a template used when generating or unwrapping private keys."""
     privateKeyTemplate = [
         (CKA_LABEL,       label),
-        #(CKA_ID,          (0x0,)),
+        # (CKA_ID,          (0x0,)),
         (CKA_CLASS,       CKO_PRIVATE_KEY),
-        (CKA_KEY_TYPE,    CKK_RSA),
-        (CKA_TOKEN,       CK_TRUE),   # True if put in HSM
+        (CKA_KEY_TYPE,    key_type),
+        (CKA_TOKEN,       CK_TRUE),  # True if put in HSM
         (CKA_DECRYPT,     CK_TRUE),
         (CKA_SIGN,        CK_TRUE),
-        (CKA_EXTRACTABLE, CK_TRUE),   # if API EXPORT enabled
+        (CKA_EXTRACTABLE, CK_TRUE),  # if API EXPORT enabled
         (CKA_UNWRAP,      CK_FALSE),
         (CKA_DERIVE,      CK_FALSE),  # was true - ensure FIPS mode
         (CKA_SENSITIVE,   CK_TRUE),
         (CKA_PRIVATE,     CK_TRUE),
     ]
-
-    return generate_key_from_templates(publicKeyTemplate, privateKeyTemplate, label, p11modules)
+    return privateKeyTemplate
 
 
 def generate_ec_key(flags: int, curve: str, p11modules: KSKM_P11) -> Optional[KSKM_P11Key]:

@@ -57,6 +57,7 @@ class KSKM_P11Key(object):
     public_key: Optional[KSKM_PublicKey]
     private_key: Optional[PyKCS11.CK_OBJECT_HANDLE] = field(repr=False)  # PyKCS11 opaque data
     session: Any = field(repr=False)  # PyKCS11 opaque data
+    pubkey_handle: Optional[List[PyKCS11.CK_OBJECT_HANDLE]] = field(repr=False, default=None)  # PyKCS11 opaque data
 
     def __str__(self):
         s = f"key_label={self.label}"
@@ -202,12 +203,15 @@ class KSKM_P11Module(object):
                     logger.warning(f'More than one ({len(res)}) keys with label {repr(label)} found in slot {_slot}')
                 # logger.debug(f'Found key with label {label!r} in slot {_slot}')
                 _pubkey = None
+                _pubkey_handle = None
                 if key_class != KeyClass.SECRET:
                     _pubkey = self._p11_object_to_public_key(_session, res[0])
+                    _pubkey_handle = res
                 key = KSKM_P11Key(label=label,
                                   public_key=_pubkey,
                                   private_key=res if key_class != KeyClass.PUBLIC else None,
                                   session=_session,
+                                  pubkey_handle=_pubkey_handle
                                   )
                 return key
 
