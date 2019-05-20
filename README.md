@@ -41,7 +41,7 @@ N.B. You will need to ensure that SWIG is installed, as pykcs11 depends on it.
 
 - Code documentation through the use of [Doxygen](http://www.doxygen.nl/).
 - Documentation include core method's description, arguments and return values in line with the code.
-- The code shall be a [PEP 8](https://www.python.org/dev/peps/pep-0008/) complaint and docstring conventions [PEP 257](https://www.python.org/dev/peps/pep-0257/).
+- The code shall be a [PEP 8](https://www.python.org/dev/peps/pep-0008/) compliant and docstring conventions [PEP 257](https://www.python.org/dev/peps/pep-0257/).
 
 
 ## Design choices
