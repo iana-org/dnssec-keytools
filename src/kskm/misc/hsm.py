@@ -8,7 +8,7 @@ import os
 import re
 from copy import copy
 from dataclasses import dataclass, field
-from enum import Enum, IntEnum
+from enum import Enum
 from getpass import getpass
 from hashlib import sha256, sha384
 from typing import (Any, Dict, Iterator, List, Mapping, MutableMapping,

@@ -4,7 +4,7 @@ from typing import Optional
 
 from kskm.keymaster.common import get_session
 from kskm.keymaster.keygen import private_key_template, public_key_template
-from kskm.misc.hsm import KSKM_P11, KeyType, WrappingAlgorithm, get_p11_key, get_p11_secret_key
+from kskm.misc.hsm import KSKM_P11, KeyType, get_p11_key, get_p11_secret_key
 
 __author__ = 'ft'
 
