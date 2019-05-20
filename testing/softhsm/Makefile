@@ -11,7 +11,7 @@ SOFTHSM_BIN=		env $(SOFTHSM_ENV) softhsm2-util
 TOKENDIR=		${CURDIR}/tokens
 STATUSFILE=		$(TOKENDIR)/.initialized
 
-P11MODULE?=		/usr/lib/softhsm/libsofthsm2.so
+P11MODULE?=		$(shell sh find_libsofthsm2.sh)
 PKCS11TOOL=		env $(SOFTHSM_ENV) pkcs11-tool --module $(P11MODULE) --login --pin $(SOFTHSM_PIN)
 
 RSA_SIZE=		2048
@@ -22,7 +22,7 @@ KEYS=			rsa-$(RSA_SIZE)-1.key rsa-$(RSA_SIZE)-2.key rsa-$(RSA_SIZE)-3.key rsa-$(
 KEYS_PKCS8=		rsa-$(RSA_SIZE)-1.p8 rsa-$(RSA_SIZE)-2.p8 rsa-$(RSA_SIZE)-3.p8 rsa-$(RSA_SIZE)-4.p8 \
 			ec-$(EC_CURVE)-1.p8 ec-$(EC_CURVE)-2.p8 ec-$(EC_CURVE)-3.p8 ec-$(EC_CURVE)-4.p8
 
-CLEANFILES=		*.p8 *.key softhsm.initialized $(TOKENDIR) $(SOFTHSM_CONF)
+CLEANFILES=		*.p8 *.key softhsm.initialized $(TOKENDIR) $(SOFTHSM_CONF) ksrsigner.yaml
 
 LABEL_TOKEN_0=		"SoftHSM-0"
 LABEL_TOKEN_1=		"SoftHSM-1"
@@ -34,6 +34,12 @@ LABEL_TOKEN_2=		"SoftHSM-2"
 softhsm: $(STATUSFILE)
 
 keys: $(KEYS)
+
+ksrsigner.yaml: ksrsigner.template.yaml
+	sed -e 's,__P11MODULE__,$(P11MODULE),' -e 's,__SOFTHSM_PIN__,$(SOFTHSM_PIN),' < $< > $@
+
+inventory: ksrsigner.yaml $(STATUSFILE)
+	 kskm-keymaster --config ksrsigner.yaml inventory
 
 $(SOFTHSM_CONF):
 	echo "directories.tokendir = $(TOKENDIR)" > $@
@@ -59,7 +65,7 @@ $(STATUSFILE): $(SOFTHSM_CONF) $(TOKENDIR) $(KEYS_PKCS8)
 	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ec-$(EC_CURVE)-4.p8 --token $(LABEL_TOKEN_2) --id 08 --label EC4
 	touch $(STATUSFILE)
 
-inventory:
+show:
 	$(SOFTHSM_BIN) --show-slots
 
 keylist:

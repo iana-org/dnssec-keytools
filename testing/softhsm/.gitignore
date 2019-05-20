@@ -2,3 +2,4 @@
 *.p8
 softhsm.conf
 tokens
+ksrsigner.yaml

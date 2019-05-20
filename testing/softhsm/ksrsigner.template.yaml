@@ -1,0 +1,6 @@
+hsm:
+  softhsm:
+    module: __P11MODULE__
+    pin: __SOFTHSM_PIN__
+    env:
+      SOFTHSM2_CONF: softhsm.conf
