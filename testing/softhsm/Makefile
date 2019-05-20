@@ -14,8 +14,13 @@ STATUSFILE=		$(TOKENDIR)/.initialized
 P11MODULE?=		/usr/lib/softhsm/libsofthsm2.so
 PKCS11TOOL=		env $(SOFTHSM_ENV) pkcs11-tool --module $(P11MODULE) --login --pin $(SOFTHSM_PIN)
 
-KEYS=			rsa2048-1.key rsa2048-2.key ecp256-1.key ecp256-2.key ecp256-3.key
-KEYS_PKCS8=		rsa2048-1.p8 rsa2048-2.p8 ecp256-1.p8 ecp256-2.p8 ecp256-3.p8
+RSA_SIZE=		2048
+EC_CURVE=		prime256v1
+
+KEYS=			rsa-$(RSA_SIZE)-1.key rsa-$(RSA_SIZE)-2.key rsa-$(RSA_SIZE)-3.key rsa-$(RSA_SIZE)-4.key \
+			ec-$(EC_CURVE)-1.key ec-$(EC_CURVE)-2.key ec-$(EC_CURVE)-3.key ec-$(EC_CURVE)-4.key
+KEYS_PKCS8=		rsa-$(RSA_SIZE)-1.p8 rsa-$(RSA_SIZE)-2.p8 rsa-$(RSA_SIZE)-3.p8 rsa-$(RSA_SIZE)-4.p8 \
+			ec-$(EC_CURVE)-1.p8 ec-$(EC_CURVE)-2.p8 ec-$(EC_CURVE)-3.p8 ec-$(EC_CURVE)-4.p8
 
 CLEANFILES=		*.p8 *.key softhsm.initialized $(TOKENDIR) $(SOFTHSM_CONF)
 
@@ -36,23 +41,22 @@ $(SOFTHSM_CONF):
 	echo "log.level = DEBUG" >> $@
 	echo "slots.removable = false" >> $@
 
-# fill slot 0 with both *-1.key & *-2.key
-# fill slot 1 with *-1.key only
-# fill slot 2 with *-2.key only
 $(STATUSFILE): $(SOFTHSM_CONF) $(TOKENDIR) $(KEYS_PKCS8)
 	rm -fr $(TOKENDIR)/*
 	$(SOFTHSM_BIN) $(SOFTHSM_INIT) --free --label $(LABEL_TOKEN_0)
 	$(SOFTHSM_BIN) $(SOFTHSM_INIT) --free --label $(LABEL_TOKEN_1)
 	$(SOFTHSM_BIN) $(SOFTHSM_INIT) --free --label $(LABEL_TOKEN_2)
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-1.p8 --token $(LABEL_TOKEN_0) --id 01 --label RSA1
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-2.p8 --token $(LABEL_TOKEN_0) --id 02 --label RSA2
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-1.p8 --token $(LABEL_TOKEN_1) --id 01 --label RSA1x
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa2048-2.p8 --token $(LABEL_TOKEN_2) --id 02 --label RSA2x
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-1.p8 --token $(LABEL_TOKEN_0) --id 03 --label EC1
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-2.p8 --token $(LABEL_TOKEN_0) --id 04 --label EC2
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-3.p8 --token $(LABEL_TOKEN_0) --id 05 --label EC3
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-1.p8 --token $(LABEL_TOKEN_1) --id 03 --label EC1x
-	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ecp256-2.p8 --token $(LABEL_TOKEN_2) --id 04 --label EC2x
+	# token 0
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa-$(RSA_SIZE)-1.p8 --token $(LABEL_TOKEN_0) --id 01 --label RSA-1-token-0
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa-$(RSA_SIZE)-2.p8 --token $(LABEL_TOKEN_0) --id 02 --label RSA-2-token-0
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ec-$(EC_CURVE)-1.p8 --token $(LABEL_TOKEN_0) --id 03 --label EC-1-token-0
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ec-$(EC_CURVE)-2.p8 --token $(LABEL_TOKEN_0) --id 04 --label EC-2-token-0
+	# token 1
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa-$(RSA_SIZE)-3.p8 --token $(LABEL_TOKEN_1) --id 05 --label RSA-3-token-1
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ec-$(EC_CURVE)-3.p8 --token $(LABEL_TOKEN_1) --id 06 --label EC-3-token-1
+	# token 2
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import rsa-$(RSA_SIZE)-4.p8 --token $(LABEL_TOKEN_2) --id 07 --label RSA-4-token-2
+	$(SOFTHSM_BIN) $(SOFTHSM_IMPORT) --import ec-$(EC_CURVE)-4.p8 --token $(LABEL_TOKEN_2) --id 08 --label EC-4-token-2
 	touch $(STATUSFILE)
 
 inventory:
@@ -67,25 +71,38 @@ keylist:
 $(TOKENDIR):
 	mkdir $@
 
-rsa2048-1.p8: rsa2048-1.key
-rsa2048-2.p8: rsa2048-2.key
-ecp256-1.p8: ecp256-2.key
-ecp256-2.p8: ecp256-2.key
-ecp256-3.p8: ecp256-3.key
+rsa-$(RSA_SIZE)-1.p8: rsa-$(RSA_SIZE)-1.key
+rsa-$(RSA_SIZE)-2.p8: rsa-$(RSA_SIZE)-2.key
+rsa-$(RSA_SIZE)-3.p8: rsa-$(RSA_SIZE)-3.key
+rsa-$(RSA_SIZE)-4.p8: rsa-$(RSA_SIZE)-4.key
 
-rsa2048-1.key:
-	openssl genrsa 2048 > $@
+ec-$(EC_CURVE)-1.p8: ec-$(EC_CURVE)-1.key
+ec-$(EC_CURVE)-2.p8: ec-$(EC_CURVE)-2.key
+ec-$(EC_CURVE)-3.p8: ec-$(EC_CURVE)-3.key
+ec-$(EC_CURVE)-4.p8: ec-$(EC_CURVE)-4.key
 
-rsa2048-2.key:
-	openssl genrsa 2048 > $@
+rsa-$(RSA_SIZE)-1.key:
+	openssl genrsa $(RSA_SIZE) > $@
 
-ecp256-1.key:
+rsa-$(RSA_SIZE)-2.key:
+	openssl genrsa $(RSA_SIZE) > $@
+
+rsa-$(RSA_SIZE)-3.key:
+	openssl genrsa $(RSA_SIZE) > $@
+
+rsa-$(RSA_SIZE)-4.key:
+	openssl genrsa $(RSA_SIZE) > $@
+
+ec-$(EC_CURVE)-1.key:
 	openssl ecparam -name prime256v1 -genkey -noout -out $@
 
-ecp256-2.key:
+ec-$(EC_CURVE)-2.key:
 	openssl ecparam -name prime256v1 -genkey -noout -out $@
 
-ecp256-3.key:
+ec-$(EC_CURVE)-3.key:
+	openssl ecparam -name prime256v1 -genkey -noout -out $@
+
+ec-$(EC_CURVE)-4.key:
 	openssl ecparam -name prime256v1 -genkey -noout -out $@
 
 .key.p8:
