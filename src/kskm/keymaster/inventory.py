@@ -19,10 +19,7 @@ def key_inventory(p11modules: KSKM_P11) -> List[str]:
                 res += [f'  Slot {slot}:']
             for key in keys:
                 res += [f'    Key {key}']
-                if key.p11key.public_key:
-                    logger.info("hsm=%s key_label=%s %s", module.label, key.label, key.p11key.public_key)
-                else:
-                    logger.info("hsm=%s key_label=%s unknown %s", module.label, key.label, key.p11key)
+                logger.info("hsm=%s %s", module.label, key.p11key)
 
     inv_str = '\n'.join(res)
     logger.debug(f'Key inventory:\n{inv_str}')
