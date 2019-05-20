@@ -33,8 +33,12 @@ def keygen(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, l
     logger.info('Generate key')
     flags = FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value
     if args.key_alg == 'RSA':
+        if args.key_size is None:
+            raise argparse.ArgumentError(args.key_size, 'RSA key generation requires key size')
         generate_rsa_key(flags, args.key_size, p11modules)
     elif args.key_alg == 'EC':
+        if args.key_crv is None:
+            raise argparse.ArgumentError(args.key_crv, 'EC key generation requires curve')
         generate_ec_key(flags, args.key_crv, p11modules)
     pass
 
@@ -245,7 +249,10 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
         parser.print_help()
         return False
 
-    return mode_function(args, config, p11modules, logger)
+    try:
+        return mode_function(args, config, p11modules, logger)
+    except argparse.ArgumentError as exc:
+        parser.error(exc.message)
 
 
 if __name__ == '__main__':
