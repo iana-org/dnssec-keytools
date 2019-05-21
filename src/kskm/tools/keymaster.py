@@ -95,6 +95,7 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
                         dest='config',
                         metavar='CFGFILE',
                         type=str,
+                        default='ksrsigner.yaml',
                         help='Path to the KSR signer configuration file',
                         )
     parser.add_argument('--hsm',
@@ -227,18 +228,26 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
                                    help='Wrapping key label')
 
     args = parser.parse_args(args=args)
+    logger = get_logger(progname, debug=args.debug, syslog=False)
 
     #
     # Load configuration, if not provided already
     #
     if config is None:
-        config = get_config(args.config)
+        try:
+            config = get_config(args.config)
+        except FileNotFoundError as exc:
+            logger.error(str(exc))
+            sys.exit(2)
 
     #
     # Initialise PKCS#11 modules (HSMs)
     #
     p11modules = kskm.misc.hsm.init_pkcs11_modules_from_dict(config.hsm, rw_session=True)
-    logger = get_logger(progname, debug=args.debug, syslog=False)
+
+    if len(p11modules) <=0:
+        logger.error("No HSM configured")
+        sys.exit(2)
 
     try:
         mode_function = args.func
