@@ -12,6 +12,7 @@ import logging
 import sys
 from typing import List, Optional
 
+from PyKCS11 import PyKCS11Error
 import kskm
 import kskm.misc
 from kskm.common.config import KSKMConfig, get_config
@@ -237,8 +238,8 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
         try:
             config = get_config(args.config)
         except FileNotFoundError as exc:
-            logger.error(str(exc))
-            sys.exit(2)
+            logger.critical(str(exc))
+            return False
 
     #
     # Initialise PKCS#11 modules (HSMs)
@@ -246,8 +247,8 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
     p11modules = kskm.misc.hsm.init_pkcs11_modules_from_dict(config.hsm, rw_session=True)
 
     if len(p11modules) <=0:
-        logger.error("No HSM configured")
-        sys.exit(2)
+        logger.critical("No HSM configured")
+        return False
 
     try:
         mode_function = args.func
@@ -257,6 +258,9 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
 
     try:
         return mode_function(args, config, p11modules, logger)
+    except PyKCS11Error as exc:
+        logger.critical(str(exc))
+        return False
     except argparse.ArgumentError as exc:
         parser.error(exc.message)
 
