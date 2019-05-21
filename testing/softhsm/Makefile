@@ -28,6 +28,9 @@ LABEL_TOKEN_0=		"SoftHSM-0"
 LABEL_TOKEN_1=		"SoftHSM-1"
 LABEL_TOKEN_2=		"SoftHSM-2"
 
+LABEL_WRAP=		backup
+LABEL_RSA=		test_rsa
+
 .SUFFIXES:		.p8 .key
 
 
@@ -39,7 +42,12 @@ ksrsigner.yaml: ksrsigner.template.yaml
 	sed -e 's,__P11MODULE__,$(P11MODULE),' -e 's,__SOFTHSM_PIN__,$(SOFTHSM_PIN),' < $< > $@
 
 inventory: ksrsigner.yaml $(STATUSFILE)
-	 kskm-keymaster --config ksrsigner.yaml inventory
+	kskm-keymaster inventory
+
+test-backup: ksrsigner.yaml $(STATUSFILE)
+	kskm-keymaster wrapgen --label $(LABEL_WRAP) --algorithm AES256
+	kskm-keymaster keygen --label $(LABEL_RSA) --algorithm RSA --size 2048
+	kskm-keymaster backup --wrap-label $(LABEL_WRAP) --label $(LABEL_RSA)
 
 $(SOFTHSM_CONF):
 	echo "directories.tokendir = $(TOKENDIR)" > $@
