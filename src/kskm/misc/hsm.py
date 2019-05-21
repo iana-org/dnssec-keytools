@@ -169,12 +169,10 @@ class KSKM_P11Module(object):
             _info = self._lib.getTokenInfo(self._slots[0])
             if _info:
                 info = _info.to_dict()
-                logger.info('HSM information:')
-                logger.info(f'    Label:           {info.get("label")}')
-                logger.info(f'    ManufacturerID:  {info.get("manufacturerID")}')
-                logger.info(f'    Model:           {info.get("model")}')
-                logger.info(f'    Serial:          {info.get("serialNumber")}')
-                logger.info('')
+                logger.info(f'HSM Label:           {info.get("label")}')
+                logger.info(f'HSM ManufacturerID:  {info.get("manufacturerID")}')
+                logger.info(f'HSM Model:           {info.get("model")}')
+                logger.info(f'HSM Serial:          {info.get("serialNumber")}')
 
     def __str__(self) -> str:
         return f'<{self.__class__.__name__}: {self.label} ({self.module})>'
