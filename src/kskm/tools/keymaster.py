@@ -141,7 +141,7 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
                                choices=SUPPORTED_SIZES,
                                required=False,
                                help='Key size')
-    parser_keygen.add_argument('--crv',
+    parser_keygen.add_argument('--curve',
                                dest='key_crv',
                                metavar='CURVE',
                                type=str,
