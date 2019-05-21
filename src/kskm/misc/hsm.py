@@ -239,8 +239,8 @@ class KSKM_P11Module(object):
                     _pubkey_handle = res
                 _cka_type = _session.getAttributeValue(res[0], [PyKCS11.LowLevel.CKA_KEY_TYPE])[0]
                 key = KSKM_P11Key(label=label,
-                                  key_type = KeyType(_cka_type),
-                                  key_class = key_class,
+                                  key_type=KeyType(_cka_type),
+                                  key_class=key_class,
                                   public_key=_pubkey,
                                   session=_session,
                                   privkey_handle=res if key_class != KeyClass.PUBLIC else None,
@@ -259,16 +259,20 @@ class KSKM_P11Module(object):
         res: List[KSKM_P11Key] = []
         objs = session.findObjects(template)
         for this in objs:
-            cls, label = session.getAttributeValue(this, [PyKCS11.LowLevel.CKA_CLASS,
-                                                          PyKCS11.LowLevel.CKA_LABEL,
-                                                          ])
-            if cls in [PyKCS11.LowLevel.CKO_PRIVATE_KEY,
-                       PyKCS11.LowLevel.CKO_PUBLIC_KEY]:
+            key_class, label = session.getAttributeValue(this, [PyKCS11.LowLevel.CKA_CLASS,
+                                                                PyKCS11.LowLevel.CKA_LABEL,
+                                                                ])
+            if key_class in [PyKCS11.LowLevel.CKO_PRIVATE_KEY,
+                             PyKCS11.LowLevel.CKO_PUBLIC_KEY]:
+                _cka_type = session.getAttributeValue(this, [PyKCS11.LowLevel.CKA_KEY_TYPE])[0]
                 key = KSKM_P11Key(label=label,
-                                   public_key=self._p11_object_to_public_key(session, this),
-                                   privkey_handle=this if cls == PyKCS11.LowLevel.CKO_PRIVATE_KEY else None,
-                                   session=session,
-                                   )
+                                  key_type=KeyType(_cka_type),
+                                  key_class=KeyClass(key_class),
+                                  public_key=self._p11_object_to_public_key(session, this),
+                                  privkey_handle=this if key_class == PyKCS11.LowLevel.CKO_PRIVATE_KEY else None,
+                                  pubkey_handle=this if key_class == PyKCS11.LowLevel.CKO_PUBLIC_KEY else None,
+                                  session=session,
+                                  )
                 res += [key]
         return res
 
