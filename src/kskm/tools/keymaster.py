@@ -38,11 +38,11 @@ def keygen(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, l
     if args.key_alg == 'RSA':
         if args.key_size is None:
             raise argparse.ArgumentError(args.key_size, 'RSA key generation requires key size')
-        generate_rsa_key(flags, args.key_size, p11modules)
+        generate_rsa_key(flags, args.key_size, p11modules, label=args.key_label)
     elif args.key_alg == 'EC':
         if args.key_crv is None:
             raise argparse.ArgumentError(args.key_crv, 'EC key generation requires curve')
-        generate_ec_key(flags, args.key_crv, p11modules)
+        generate_ec_key(flags, args.key_crv, p11modules, label=args.key_label)
     pass
 
 
@@ -125,7 +125,7 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
                                dest='key_label',
                                metavar='LABEL',
                                type=str,
-                               required=True,
+                               required=False,
                                help='Key label')
     parser_keygen.add_argument('--algorithm',
                                dest='key_alg',

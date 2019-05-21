@@ -81,8 +81,10 @@ def generate_wrapping_key(label: str, algorithm: WrappingAlgorithm, p11modules: 
     return True
 
 
-def generate_rsa_key(flags: int, bits: int, p11modules: KSKM_P11, exponent: int = 65537) -> Optional[KSKM_P11Key]:
-    label = generate_key_label(flags)
+def generate_rsa_key(flags: int, bits: int, p11modules: KSKM_P11, exponent: int = 65537, label: Optional[str] = None) -> Optional[KSKM_P11Key]:
+    """Generate RSA key."""
+    if label is None:
+        label = generate_key_label(flags)
 
     publicKeyTemplate = public_key_template(label, CKK_RSA, bits=bits, rsa_exponent=exponent)
     privateKeyTemplate = private_key_template(label, CKK_RSA)
@@ -137,7 +139,8 @@ def private_key_template(label: str, key_type: int) -> List:
     return privateKeyTemplate
 
 
-def generate_ec_key(flags: int, curve: str, p11modules: KSKM_P11) -> Optional[KSKM_P11Key]:
+def generate_ec_key(flags: int, curve: str, p11modules: KSKM_P11, label: Optional[str] = None) -> Optional[KSKM_P11Key]:
+    """Generate EC key."""
     raise NotImplementedError('EC key generation not implemented yet')
 
 
