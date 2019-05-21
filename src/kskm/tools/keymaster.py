@@ -25,7 +25,7 @@ from kskm.keymaster.keygen import generate_ec_key, generate_rsa_key, \
 from kskm.keymaster.wrap import key_backup, key_restore
 from kskm.misc.hsm import KSKM_P11, KeyType, WrappingAlgorithm
 
-SUPPORTED_ALGORITHMS = [x.value for x in KeyType]
+SUPPORTED_ALGORITHMS = [str(x.name) for x in KeyType]
 SUPPORTED_SIZES = [2048, 3072, 4096]
 SUPPORTED_CURVES = ['secp256r1', 'secp384r1']
 SUPPORTED_WRAPPING_ALGORITHMS = [x.value for x in WrappingAlgorithm]  # SoftHSM2 only supports AES
