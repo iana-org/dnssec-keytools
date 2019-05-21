@@ -1,6 +1,6 @@
 import logging
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass, field, asdict
+from typing import Optional, Mapping
 
 from kskm.keymaster.common import get_session
 from kskm.keymaster.keygen import private_key_template, public_key_template
@@ -19,6 +19,17 @@ class WrappedKey(object):
     private_wrapped: Optional[bytes] = field(repr=False)
     wrap_key_label: str
     # TODO: add HSM serial number here?
+
+    def to_dict(self) -> dict:
+        res = asdict(self)
+        res['key_type'] = res['key_type'].name
+        return res
+
+    @classmethod
+    def from_dict(cls, data: Mapping):
+        if 'key_type' in data:
+            data['key_type'] = KeyType[data['key_type']]
+        return cls(**data)
 
 
 @dataclass

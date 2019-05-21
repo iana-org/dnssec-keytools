@@ -47,13 +47,17 @@ inventory: ksrsigner.yaml $(STATUSFILE)
 test-backup: ksrsigner.yaml $(STATUSFILE)
 	kskm-keymaster wrapgen --label $(LABEL_WRAP) --algorithm AES256
 	kskm-keymaster keygen --label $(LABEL_RSA) --algorithm RSA --size 2048
-	kskm-keymaster backup --wrap-label $(LABEL_WRAP) --label $(LABEL_RSA)
+	kskm-keymaster backup --wrap-label $(LABEL_WRAP) --label $(LABEL_RSA) --outfile wrapped_key.yaml
 
 $(SOFTHSM_CONF):
 	echo "directories.tokendir = $(TOKENDIR)" > $@
 	echo "objectstore.backend = file" >> $@
 	echo "log.level = DEBUG" >> $@
 	echo "slots.removable = false" >> $@
+
+empty: $(SOFTHSM_CONF) $(TOKENDIR) $(KEYS_PKCS8)
+	rm -fr $(TOKENDIR)/*
+	$(SOFTHSM_BIN) $(SOFTHSM_INIT) --free --label $(LABEL_TOKEN_0)  --module $(P11MODULE)
 
 $(STATUSFILE): $(SOFTHSM_CONF) $(TOKENDIR) $(KEYS_PKCS8)
 	rm -fr $(TOKENDIR)/*

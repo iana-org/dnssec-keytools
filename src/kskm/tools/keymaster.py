@@ -7,12 +7,13 @@ Tool to create, delete, backup, restore keys as well as perform a key inventory.
 """
 
 import argparse
-import base64
 import logging
 import sys
 from typing import List, Optional
 
+import yaml
 from PyKCS11 import PyKCS11Error
+
 import kskm
 import kskm.misc
 from kskm.common.config import KSKMConfig, get_config
@@ -22,7 +23,7 @@ from kskm.keymaster.delete import key_delete, wrapkey_delete
 from kskm.keymaster.inventory import key_inventory
 from kskm.keymaster.keygen import generate_ec_key, generate_rsa_key, \
     generate_wrapping_key
-from kskm.keymaster.wrap import key_backup, key_restore
+from kskm.keymaster.wrap import WrappedKey, key_backup, key_restore
 from kskm.misc.hsm import KSKM_P11, KeyType, WrappingAlgorithm
 
 SUPPORTED_ALGORITHMS = [str(x.name) for x in KeyType]
@@ -31,7 +32,7 @@ SUPPORTED_CURVES = ['secp256r1', 'secp384r1']
 SUPPORTED_WRAPPING_ALGORITHMS = [x.value for x in WrappingAlgorithm]  # SoftHSM2 only supports AES
 
 
-def keygen(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
+def keygen(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger) -> bool:
     """Generate new signing key."""
     logger.info('Generate key')
     flags = FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value
@@ -43,49 +44,61 @@ def keygen(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, l
         if args.key_crv is None:
             raise argparse.ArgumentError(args.key_crv, 'EC key generation requires curve')
         generate_ec_key(flags, args.key_crv, p11modules, label=args.key_label)
-    pass
+    return True
 
 
-def keydel(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
+def keydel(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger) -> bool:
     """Delete signing key."""
     logger.info('Delete signing key')
     key_delete(args.key_label, p11modules)
+    return True
 
 
-def keybackup(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
+def keybackup(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger) -> bool:
     """Backup key."""
     logger.info('Backup (export) key')
-    # TODO: Make key_alg an Enum
-    wrapped = key_backup(args.key_label, args.wrap_key_label, p11modules)
-    if wrapped:
-        print('WRAPPED: {}'.format(base64.b64encode(wrapped)))
+    wrapped_key = key_backup(args.key_label, args.wrap_key_label, p11modules)
+    with open(args.outfile, 'w') as fd:
+        fd.write('---\n')
+        yaml.safe_dump(wrapped_key.to_dict(), fd)
+    logger.info(f'Wrote wrapped key to file {args.outfile}')
+    return True
 
 
-def keyrestore(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
+def keyrestore(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger) -> bool:
     """Restore key."""
     logger.info('Restore (import) key')
+    with open(args.infile, 'r') as fd:
+        data = yaml.safe_load(fd)
+    wrapped_key = WrappedKey.from_dict(data)
+    logger.info(f'Loaded wrapped key: {wrapped_key}')
+    # TODO: load wrapped_key from YAML file
     alg = WrappingAlgorithm[args.key_alg]
-    if key_restore(wrapped_key, args.key_label, args.wrap_key_label, alg, p11modules):
+    if key_restore(wrapped_key, p11modules):
         logger.info('Key restored successfully')
+    return True
 
 
-def wrapgen(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
+def wrapgen(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger) -> bool:
     """Generate new wrapping key."""
     logger.info('Generate wrapping key')
     alg = WrappingAlgorithm[args.key_alg]
     generate_wrapping_key(args.key_label, alg, p11modules)
+    return True
 
 
-def wrapdel(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
+def wrapdel(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger) -> bool:
     """Delete wrapping key."""
     logger.info('Delete wrapping key')
     wrapkey_delete(args.key_label, p11modules, args.force)
+    return True
 
 
-def inventory(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger):
+def inventory(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger) -> bool:
     """Show HSM inventory."""
     logger.info('Show HSM inventory')
     key_inventory(p11modules)
+    return True
 
 
 def main(progname='keymaster', args: Optional[List[str]] = None, config: Optional[KSKMConfig] = None) -> bool:
@@ -212,6 +225,12 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
                                   type=str,
                                   required=True,
                                   help='Wrapping key label')
+    parser_keybackup.add_argument('--outfile',
+                                  dest='outfile',
+                                  metavar='FILE',
+                                  type=str,
+                                  required=True,
+                                  help='Filename to write wrapped key to')
 
     parser_keyrestore = subparsers.add_parser('restore')
     parser_keyrestore.set_defaults(func=keyrestore)
@@ -227,6 +246,12 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
                                    type=str,
                                    required=True,
                                    help='Wrapping key label')
+    parser_keyrestore.add_argument('--infile',
+                                   dest='infile',
+                                   metavar='FILE',
+                                   type=str,
+                                   required=True,
+                                   help='Filename to read wrapped key from')
 
     args = parser.parse_args(args=args)
     logger = get_logger(progname, debug=args.debug, syslog=False)
