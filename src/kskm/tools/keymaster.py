@@ -234,12 +234,6 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
 
     parser_keyrestore = subparsers.add_parser('restore')
     parser_keyrestore.set_defaults(func=keyrestore)
-    parser_keyrestore.add_argument('--label',
-                                   dest='key_label',
-                                   metavar='LABEL',
-                                   type=str,
-                                   required=True,
-                                   help='Restore (import) key label')
     parser_keyrestore.add_argument('--wrap-label',
                                    dest='wrap_key_label',
                                    metavar='LABEL',
