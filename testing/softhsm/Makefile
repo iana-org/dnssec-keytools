@@ -49,6 +49,9 @@ test-backup: ksrsigner.yaml $(STATUSFILE)
 	kskm-keymaster keygen --label $(LABEL_RSA) --algorithm RSA --size 2048
 	kskm-keymaster backup --wrap-label $(LABEL_WRAP) --label $(LABEL_RSA) --outfile wrapped_key.yaml
 
+test-restore: ksrsigner.yaml $(STATUSFILE)
+	kskm-keymaster restore --wrap-label $(LABEL_WRAP) --infile wrapped_key.yaml
+
 $(SOFTHSM_CONF):
 	echo "directories.tokendir = $(TOKENDIR)" > $@
 	echo "objectstore.backend = file" >> $@
