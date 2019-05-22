@@ -282,19 +282,19 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
         return False
 
     try:
-        return mode_function(args, config, p11modules, logger)
-    except PyKCS11Error as exc:
-        logger.critical(str(exc))
-        return False
-    except argparse.ArgumentError as exc:
-        parser.error(exc.message)
-
-
-if __name__ == '__main__':
-    try:
-        res = main()
+        res = mode_function(args, config, p11modules, logger)
         if res is True:
             sys.exit(0)
+    except PyKCS11Error as exc:
+        logger.critical(str(exc))
         sys.exit(1)
+    except argparse.ArgumentError as exc:
+        parser.error(exc.message)
     except KeyboardInterrupt:
         sys.exit(0)
+
+    sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
