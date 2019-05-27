@@ -1,5 +1,6 @@
 """Sign request bundles and return response bundles."""
 import base64
+import binascii
 import hashlib
 import logging
 from dataclasses import replace
@@ -18,6 +19,7 @@ from kskm.misc.hsm import KSKM_P11, KSKM_P11Key, sign_using_p11
 from kskm.signer.key import CompositeKey, load_pkcs11_key
 from kskm.skr.data import ResponseBundle
 from kskm.skr.validate import check_valid_signatures
+from kskm.ta.keydigest import create_trustanchor_keydigest
 
 __author__ = 'ft'
 
@@ -106,12 +108,26 @@ def _fetch_keys(key_names: Iterable[str], bundle: RequestBundle, p11modules: KSK
                 ksk_policy: KSKPolicy, ksk_keys: KSKKeysType, public: bool) -> Iterable[CompositeKey]:
     res: List[CompositeKey] = []
     for _name in key_names:
-        _key = ksk_keys[_name]
-        this_key = load_pkcs11_key(_key, p11modules, ksk_policy, bundle, public=public)
+        ksk = ksk_keys[_name]
+        this_key = load_pkcs11_key(ksk, p11modules, ksk_policy, bundle, public=public)
         if not this_key:
-            logger.error(f'Could not find key {repr(_name)} ({_key.label}/{_key.description}) '
+            logger.error(f'Could not find key {repr(_name)} ({ksk.label}/{ksk.description}) '
                          f'for bundle {bundle.id}')
             raise ConfigurationError(f'Key {repr(_name)} not found')
+        #
+        # Ensure the right key was located
+        #
+        if not ksk.ds_sha256:
+            logger.warning('Key {} does not have a DS SHA256 specified - can\'t ensure the right key was in the HSM')
+        else:
+            _ds = create_trustanchor_keydigest(ksk, this_key.dns)
+            digest = binascii.hexlify(_ds.digest).decode('UTF-8').upper()
+            ksk_digest = ksk.ds_sha256.upper()
+            if ksk_digest != digest:
+                logger.error(f'Configured KSK key {ksk.label} DS SHA256 {ksk_digest} does not match computed '
+                             f'DS SHA256 {digest} for key loaded using PKCS#11: {this_key}')
+                raise RuntimeError('Key {} has unexpected DS'.format(ksk.label))
+
         res += [this_key]
     return res
 

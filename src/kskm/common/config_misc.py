@@ -147,6 +147,7 @@ class KSKKey(object):
     valid_until: Optional[datetime] = None
     rsa_size: Optional[int] = None
     rsa_exponent: Optional[int] = None
+    ds_sha256: Optional[str] = None
 
     @classmethod
     def from_dict(cls: Type[KSKKey], data: dict) -> KSKKey:
