@@ -4,14 +4,14 @@ from typing import Dict, Optional
 
 from cryptography.exceptions import InvalidSignature
 
+from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import AlgorithmPolicy, AlgorithmPolicyRSA, Key
 from kskm.common.dnssec import calculate_key_tag
 from kskm.common.rsa_utils import (KSKM_PublicKey_RSA, decode_rsa_public_key,
                                    is_algorithm_rsa)
 from kskm.common.signature import validate_signatures
-from kskm.common.validate import PolicyViolation, fail
+from kskm.common.validate import PolicyViolation
 from kskm.ksr import Request
-from kskm.common.config_misc import RequestPolicy
 
 __author__ = 'ft'
 
@@ -73,8 +73,7 @@ def check_unique_ids(request: Request, policy: RequestPolicy, logger: Logger) ->
     seen: Dict[str, int] = {}
     for bundle in request.bundles:
         if bundle.id in seen:
-            fail(policy, KSR_BUNDLE_UNIQUE_Violation,
-                 f'More than one bundle with id {bundle.id}')
+            raise KSR_BUNDLE_UNIQUE_Violation(f'More than one bundle with id {bundle.id}')
         seen[bundle.id] = 1
 
     _num_bundles = len(request.bundles)
@@ -92,7 +91,7 @@ def check_keys_match_zsk_policy(request: Request, policy: RequestPolicy, logger:
     """
     # TODO: Not all implemented - need clarification of specification
     if not policy.keys_match_zsk_policy:
-        logger.info('KSR-BUNDLE-KEYS: Disabled by policy (keys_match_zsk_policy)')
+        logger.warning('KSR-BUNDLE-KEYS: Disabled by policy (keys_match_zsk_policy)')
         return
 
     seen: Dict[int, Key] = {}
@@ -105,8 +104,8 @@ def check_keys_match_zsk_policy(request: Request, policy: RequestPolicy, logger:
                     continue
                 logger.debug(f'Key as seen before : {seen[key.key_tag]}')
                 logger.debug(f'Key in bundle {bundle.id}: {key}')
-                fail(policy, KSR_BUNDLE_KEYS_Violation,
-                     f'Key tag {key.key_tag} matches two different keys (the second one in bundle {bundle.id})')
+                raise KSR_BUNDLE_KEYS_Violation(f'Key tag {key.key_tag} matches two different keys '
+                                                f'(the second one in bundle {bundle.id})')
 
             if is_algorithm_rsa(key.algorithm):
                 pubkey = decode_rsa_public_key(key.public_key)
@@ -121,20 +120,20 @@ def check_keys_match_zsk_policy(request: Request, policy: RequestPolicy, logger:
                         logger.warning(f'KSR-BUNDLE-KEYS: Key {key.key_identifier} in bundle {bundle.id} has '
                                        f'exponent {pubkey.exponent}, not matching the ZSK SignaturePolicy')
                 if not _matching_alg:
-                    fail(policy, KSR_BUNDLE_KEYS_Violation,
-                         f'Key {key.key_identifier} in bundle {bundle.id} does not match the ZSK SignaturePolicy')
+                    raise KSR_BUNDLE_KEYS_Violation(f'Key {key.key_identifier} in bundle {bundle.id} '
+                                                    f'does not match the ZSK SignaturePolicy')
                 else:
                     logger.debug(f'Key {key.key_tag}/{key.key_identifier} parameters accepted')
                     seen[key.key_tag] = key
             else:
                 # TODO: Not exactly a policy violation as much as maybe a contract violation
-                fail(policy, PolicyViolation,
-                     f'Key {key.key_identifier} in bundle {bundle.id} uses unhandled algorithm: {key.algorithm}')
+                raise PolicyViolation(f'Key {key.key_identifier} in bundle {bundle.id} '
+                                      f'uses unhandled algorithm: {key.algorithm}')
 
             _key_tag = calculate_key_tag(key)
             if _key_tag != key.key_tag:
-                fail(policy, KSR_BUNDLE_KEYS_Violation,
-                     f'Key {key.key_identifier} in bundle {bundle.id} has key tag {key.key_tag}, should be {_key_tag}')
+                raise KSR_BUNDLE_KEYS_Violation(f'Key {key.key_identifier} in bundle {bundle.id} '
+                                                f'has key tag {key.key_tag}, should be {_key_tag}')
 
     _num_keys = len(seen)
     logger.info(f'KSR-BUNDLE-KEYS: All {_num_keys} unique keys in the bundles accepted by policy')
@@ -162,16 +161,14 @@ def check_proof_of_possession(request: Request, policy: RequestPolicy, logger: L
       The inception and expiration times of the RRSIGs in the KSR are ignored when checking proof-of-possession.
     """
     if not policy.validate_signatures:
-        logger.info('KSR-BUNDLE-POP: Disabled by policy (validate_signatures)')
+        logger.warning('KSR-BUNDLE-POP: Disabled by policy (validate_signatures)')
         return
     for bundle in request.bundles:
         try:
             if not validate_signatures(bundle):
-                fail(policy, KSR_BUNDLE_POP_Violation,
-                     f'Unknown signature validation result in bundle {bundle.id}')
+                raise KSR_BUNDLE_POP_Violation(f'Unknown signature validation result in bundle {bundle.id}')
         except InvalidSignature:
-            fail(policy, KSR_BUNDLE_POP_Violation,
-                 f'Invalid signature encountered in bundle {bundle.id}')
+            raise KSR_BUNDLE_POP_Violation(f'Invalid signature encountered in bundle {bundle.id}')
     _num_bundles = len(request.bundles)
     logger.info(f'KSR-BUNDLE-POP: All {_num_bundles} bundles contain proof-of-possession')
 
@@ -185,5 +182,5 @@ def check_bundle_count(request: Request, policy: RequestPolicy, logger: Logger) 
     """
     if policy.num_bundles is not None and len(request.bundles) != policy.num_bundles:
         _num_bundles = len(request.bundles)
-        fail(policy, KSR_BUNDLE_COUNT_Violation,
-             f'Wrong number of bundles in request ({_num_bundles}, expected {policy.num_bundles})')
+        raise KSR_BUNDLE_COUNT_Violation(f'Wrong number of bundles in request ({_num_bundles}, '
+                                         f'expected {policy.num_bundles})')

@@ -2,12 +2,12 @@
 from datetime import timedelta
 from logging import Logger
 
+from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyRSA
 from kskm.common.rsa_utils import is_algorithm_rsa
-from kskm.common.validate import PolicyViolation, fail
+from kskm.common.validate import PolicyViolation
 from kskm.ksr import Request
 from kskm.ksr.data import RequestBundle
-from kskm.common.config_misc import RequestPolicy
 
 
 class KSR_PolicyViolation(PolicyViolation):
@@ -58,8 +58,8 @@ def verify_policy(request: Request, policy: RequestPolicy, logger: Logger) -> No
 
     # TODO: This check isn't part of the specification
     if policy.num_bundles is not None and len(request.bundles) != policy.num_bundles:
-        fail(policy, KSR_PolicyViolation, 'Wrong number of bundles in request ({}, expected {})'.format(
-            len(request.bundles), policy.num_bundles))
+        raise KSR_PolicyViolation(f'Wrong number of bundles in request '
+                                  f'({len(request.bundles)}, expected {policy.num_bundles})')
 
     logger.debug('End "Verify KSR policy parameters"')
 
@@ -88,9 +88,8 @@ def check_keys_in_bundles(request: Request, policy: RequestPolicy, logger: Logge
             ))
         if num_keys in policy.acceptable_key_set_lengths:
             return
-        fail(policy, KSR_POLICY_KEYS_Violation,
-             f'Unacceptable number of key sets in request {request.id} '
-             f'({num_keys} not one of {policy.acceptable_key_set_lengths})')
+        raise KSR_POLICY_KEYS_Violation(f'Unacceptable number of key sets in request {request.id} '
+                                        f'({num_keys} not one of {policy.acceptable_key_set_lengths})')
 
 
 def check_signature_validity(request: Request, policy: RequestPolicy, logger: Logger) -> None:
@@ -116,16 +115,14 @@ def check_signature_validity(request: Request, policy: RequestPolicy, logger: Lo
         if validity < request.zsk_policy.max_signature_validity:
             _validity_str = _fmt_timedelta(validity)
             _overlap_str = _fmt_timedelta(request.zsk_policy.min_signature_validity)
-            return fail(policy, KSR_POLICY_SIG_VALIDITY_Violation,
-                        f'Bundle validity {_validity_str} < claimed min_signature_validity {_overlap_str} '
-                        f'(in bundle {bundle.id})')
+            raise KSR_POLICY_SIG_VALIDITY_Violation(f'Bundle validity {_validity_str} < claimed '
+                                                    f'min_signature_validity {_overlap_str} (in bundle {bundle.id})')
 
         if validity > request.zsk_policy.max_signature_validity:
             _validity_str = _fmt_timedelta(validity)
             _overlap_str = _fmt_timedelta(request.zsk_policy.max_signature_validity)
-            return fail(policy, KSR_POLICY_SIG_VALIDITY_Violation,
-                        f'Bundle validity {_validity_str} > claimed max_signature_validity {_overlap_str} '
-                        f'(in bundle {bundle.id})')
+            raise KSR_POLICY_SIG_VALIDITY_Violation(f'Bundle validity {_validity_str} > claimed '
+                                                    f'max_signature_validity {_overlap_str} (in bundle {bundle.id})')
 
     _num_bundles = len(request.bundles)
     _min_str = _fmt_timedelta(request.zsk_policy.min_signature_validity)
@@ -147,11 +144,11 @@ def check_zsk_policy_signature_algorithms(request: Request, policy: RequestPolic
     _approved_algorithms = [AlgorithmDNSSEC[x] for x in policy.approved_algorithms]
     for alg in request.zsk_policy.algorithms:
         if alg.algorithm == AlgorithmDNSSEC.DSA:
-            fail(policy, KSR_POLICY_ALG_Violation, 'Algorithm DSA is not allowed')
+            raise KSR_POLICY_ALG_Violation('Algorithm DSA is not allowed')
 
         if alg.algorithm not in _approved_algorithms:
-            fail(policy, KSR_POLICY_ALG_Violation,
-                 f'ZSK policy is {alg.algorithm}, but policy only allows {_approved_algorithms}')
+            raise KSR_POLICY_ALG_Violation(f'ZSK policy is {alg.algorithm}, but policy only allows '
+                                           f'{_approved_algorithms}')
 
     _num_algs = len(request.zsk_policy.algorithms)
     logger.info(f'KSR-POLICY-ALG: All {_num_algs} ZSK operator signature algorithms accepted by policy')
@@ -177,20 +174,15 @@ def check_zsk_policy_signature_parameters(request: Request, policy: RequestPolic
             assert isinstance(alg, AlgorithmPolicyRSA)
 
             count += 1
-            validated = True
             if alg.bits not in policy.rsa_approved_key_sizes:
-                validated = False
-                fail(policy, KSR_POLICY_PARAMS_Violation,
-                     f'ZSK policy is RSA-{alg.bits}, but policy dictates {policy.rsa_approved_key_sizes}')
+                raise KSR_POLICY_PARAMS_Violation(f'ZSK policy is RSA-{alg.bits}, but policy dictates '
+                                                  f'{policy.rsa_approved_key_sizes}')
 
             if alg.exponent not in policy.rsa_approved_exponents:
-                validated = False
-                fail(policy, KSR_POLICY_PARAMS_Violation,
-                     f'ZSK policy has RSA exponent {alg.exponent}, but policy dictates '
-                     f'{policy.rsa_approved_exponents}')
+                raise KSR_POLICY_PARAMS_Violation(f'ZSK policy has RSA exponent {alg.exponent}, but policy dictates '
+                                                  f'{policy.rsa_approved_exponents}')
 
-            if validated:
-                logger.debug(f'ZSK policy algorithm {alg} parameters accepted')
+            logger.debug(f'ZSK policy algorithm {alg} parameters accepted')
 
     logger.info(f'KSR-POLICY-PARAMS: {count} signature algorithms parameters accepted by policy')
 
@@ -229,20 +221,17 @@ def check_bundle_overlaps(request: Request, policy: RequestPolicy, logger: Logge
         previous = request.bundles[i - 1]
         this = request.bundles[i]
         if this.inception > previous.expiration:
-            return fail(policy, KSR_POLICY_SIG_OVERLAP_Violation,
-                        'Bundle "{}" does not overlap with previous bundle "{}"'.format(this, previous)
-                        )
+            raise KSR_POLICY_SIG_OVERLAP_Violation(f'Bundle "{this}" does not overlap with previous bundle '
+                                                   f'"{previous}"')
         overlap = previous.expiration - this.inception
         if overlap < request.zsk_policy.min_validity_overlap:
-            return fail(policy, KSR_POLICY_SIG_OVERLAP_Violation,
-                        'Bundle "{}" overlap {} with "{}" is < claimed minimum {}'.format(
+            raise KSR_POLICY_SIG_OVERLAP_Violation('Bundle "{}" overlap {} with "{}" is < claimed minimum {}'.format(
                             _fmt_bundle(this), _fmt_timedelta(overlap), _fmt_bundle(previous),
                             _fmt_timedelta(request.zsk_policy.min_validity_overlap)
                         ))
         overlap = previous.expiration - this.inception
         if overlap > request.zsk_policy.max_validity_overlap:
-            return fail(policy, KSR_POLICY_SIG_OVERLAP_Violation,
-                        'Bundle "{}" overlap {} with "{}" is > claimed maximum {}'.format(
+            raise KSR_POLICY_SIG_OVERLAP_Violation('Bundle "{}" overlap {} with "{}" is > claimed maximum {}'.format(
                             _fmt_bundle(this), _fmt_timedelta(overlap), _fmt_bundle(previous),
                             _fmt_timedelta(request.zsk_policy.max_validity_overlap),
                         ))

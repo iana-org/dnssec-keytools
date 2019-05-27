@@ -1,9 +1,9 @@
 """The checks defined in the 'Verify KSR header' section of docs/ksr-processing.md."""
 from logging import Logger
 
-from kskm.common.validate import PolicyViolation, fail
-from kskm.ksr import Request
 from kskm.common.config_misc import RequestPolicy
+from kskm.common.validate import PolicyViolation
+from kskm.ksr import Request
 
 
 class KSR_HeaderPolicyViolation(PolicyViolation):
@@ -37,9 +37,8 @@ def check_domain(request: Request, policy: RequestPolicy, logger: Logger) -> Non
       Verify that the KSR domain name is correct.
     """
     if request.domain not in policy.acceptable_domains:
-        fail(policy, KSR_HeaderPolicyViolation,
-             f'KSR-DOMAIN: Request domain {request.domain!r} not in '
-             f'policy\'s acceptable domains {policy.acceptable_domains}')
+        raise KSR_HeaderPolicyViolation(f'KSR-DOMAIN: Request domain {request.domain!r} not in '
+                                        f'policy\'s acceptable domains {policy.acceptable_domains}')
     else:
         logger.info(f'KSR-DOMAIN: Verified domain {request.domain!r}')
 
@@ -59,7 +58,7 @@ def check_serial(request: Request, policy: RequestPolicy, logger: Logger) -> Non
     Check the serial in the request.
 
     KSR-SERIAL:
-      Verify that the KSR SERIAL is unique and incresing for the the KSR ID.
+      Verify that the KSR SERIAL is unique and increasing for the the KSR ID.
     """
     # TODO: Implement check of unique request SERAIL.
     logger.info('KSR-SERIAL: Not implemented yet')
