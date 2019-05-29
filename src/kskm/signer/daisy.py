@@ -8,7 +8,7 @@ from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import Key
 from kskm.common.display import format_bundles_for_humans
 from kskm.common.parse_utils import is_zsk_key
-from kskm.common.validate import PolicyViolation, fail
+from kskm.common.validate import PolicyViolation
 from kskm.ksr.data import Bundle, Request
 from kskm.skr.data import Response
 
@@ -49,6 +49,8 @@ class DaisyChain(object):
 def check_daisy_chain(ksr: Request, last_skr: Response, policy: RequestPolicy) -> None:
     """Validate that the current request continues a timeline ending with the previous response."""
     if not policy.check_request_daisy_chain:
+        # TODO: Figure out which part of ksr-processing.md this is, and label it accordingly
+        logger.warning('Daisy-chain checking of KSR and last SKR disabled by policy (check_request_daisy_chain)')
         return
 
     logger.debug('Last SKR (response):')
@@ -60,9 +62,8 @@ def check_daisy_chain(ksr: Request, last_skr: Response, policy: RequestPolicy) -
     if ksr_chain.prev.key != last_chain.curr[-1].key:
         logger.info(f'KSR {ksr.id} previous key: {ksr_chain.prev.key}')
         logger.info(f'Last SKR {last_skr.id} current key: {last_chain.curr[-1].key}')
-        fail(policy, DaisyChainOrderViolation,
-             f'KSR previous key {ksr_chain.prev.key.key_tag} does not match '
-             f'last SKR current key {last_chain.curr[-1].key.key_tag}')
+        raise DaisyChainOrderViolation(f'KSR previous key {ksr_chain.prev.key.key_tag} does not match '
+                                       f'last SKR current key {last_chain.curr[-1].key.key_tag}')
     else:
         _this = ksr_chain.prev.key
         logger.debug(f'KSR previous key matches last SKR current key: {_this.key_tag}({_this.key_identifier})')
@@ -70,9 +71,8 @@ def check_daisy_chain(ksr: Request, last_skr: Response, policy: RequestPolicy) -
     if ksr_chain.curr[0].key != last_chain.next.key:
         logger.info(f'KSR {ksr.id} current key: {ksr_chain.curr[0].key}')
         logger.info(f'Last SKR {last_skr.id} next key: {last_chain.next.key}')
-        fail(policy, DaisyChainOrderViolation,
-             f'KSR current key {ksr_chain.curr[0].key.key_tag} does not match '
-             f'last SKR next key {last_chain.next.key.key_tag}')
+        raise DaisyChainOrderViolation(f'KSR current key {ksr_chain.curr[0].key.key_tag} does not match '
+                                       f'last SKR next key {last_chain.next.key.key_tag}')
     else:
         _this = ksr_chain.curr[0].key
         logger.debug('KSR current key matches last SKR next key: {_this.key_tag}({_this.key_identifier})')
