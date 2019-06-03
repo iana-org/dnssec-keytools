@@ -49,6 +49,8 @@ class Test_Full_Wrapping_Cycle(unittest.TestCase):
             this.close()
 
     @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
+    @unittest.skipIf(os.environ.get('TEST_SOFTHSM2_SKIP_KEYWRAP'),
+                     'Skipping keywrap test because TEST_SOFTHSM2_SKIP_KEYWRAP is set')
     def test_full_wrapping_cycle(self) -> None:
         """Test generating a key, wrapping it, deleting it and then restoring it."""
 
