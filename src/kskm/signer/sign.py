@@ -47,6 +47,9 @@ def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
         bundle_num += 1
         this_schema = schema.actions[bundle_num]
 
+        if _bundle.signers:
+            logger.warning(f'Bundle {_bundle.id} has signers specified - those will be ignored')
+
         # All DNSKEY RRs in a set *has* to have the same TTL. Ensure all keys have the TTL
         # configured by the KSK operator. A warning is logged for any discrepancies found,
         # because an earlier policy check (KSR-POLICY-KEYS) should have found this unless disabled.
