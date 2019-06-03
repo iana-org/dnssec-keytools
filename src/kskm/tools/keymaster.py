@@ -17,8 +17,11 @@ from PyKCS11 import PyKCS11Error
 import kskm
 import kskm.misc
 from kskm.common.config import KSKMConfig, get_config
-from kskm.common.data import FlagsDNSKEY
+from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY
+from kskm.common.dnssec import public_key_to_dnssec_key
+from kskm.common.ecdsa_utils import is_algorithm_ecdsa
 from kskm.common.logging import get_logger
+from kskm.common.rsa_utils import is_algorithm_rsa
 from kskm.keymaster.delete import key_delete, wrapkey_delete
 from kskm.keymaster.inventory import key_inventory
 from kskm.keymaster.keygen import generate_ec_key, generate_rsa_key, \
@@ -36,14 +39,44 @@ def keygen(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, l
     """Generate new signing key."""
     logger.info('Generate key')
     flags = FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value
-    if args.key_alg == 'RSA':
+    if is_algorithm_rsa(AlgorithmDNSSEC[args.key_alg]):
         if args.key_size is None:
             raise argparse.ArgumentError(args.key_size, 'RSA key generation requires key size')
-        generate_rsa_key(flags, args.key_size, p11modules, label=args.key_label)
-    elif args.key_alg == 'EC':
+        p11key = generate_rsa_key(flags, args.key_size, p11modules, label=args.key_label)
+    elif is_algorithm_ecdsa(args.key_alg):
         if args.key_crv is None:
             raise argparse.ArgumentError(args.key_crv, 'EC key generation requires curve')
-        generate_ec_key(flags, args.key_crv, p11modules, label=args.key_label)
+        p11key = generate_ec_key(flags, args.key_crv, p11modules, label=args.key_label)
+    else:
+        raise ValueError(f'Unknown key algorithm {repr(args.key_alg)}')
+
+    # Calculate the DNSSEC key tag of the new key and look for a collision in the configuration
+    key_tags = []
+    _key = public_key_to_dnssec_key(key=p11key.public_key,
+                                    key_identifier=p11key.label,
+                                    algorithm=AlgorithmDNSSEC[args.key_alg],
+                                    flags=FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value,  # TODO: correct flags?
+                                    ttl=config.ksk_policy.ttl,
+                                    )
+    logger.info(f'Generated key {p11key.label} has key tag {_key.key_tag} for algorithm={_key.algorithm}, '
+                f'flags=0x{_key.flags:x}')
+    key_tags += [_key.key_tag]
+    _key = public_key_to_dnssec_key(key=p11key.public_key,
+                                    key_identifier=p11key.label,
+                                    algorithm=AlgorithmDNSSEC[args.key_alg],
+                                    flags=FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value | FlagsDNSKEY.REVOKE.value,
+                                    ttl=config.ksk_policy.ttl,
+                                    )
+    logger.info(f'Generated key {p11key.label} has key tag {_key.key_tag} with the REVOKE bit set '
+                f'(flags 0x{_key.flags:x})')
+    key_tags += [_key.key_tag]
+
+    for _name, ksk in config.ksk_keys.items():
+        if ksk.key_tag in key_tags:
+            logger.error(f'Generated key {p11key.label} has key tags {key_tags} matching '
+                         f'KSK key in configuration: {ksk}')
+            raise RuntimeError('Key tag collision detected')
+
     return True
 
 
@@ -134,6 +167,9 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
     parser_keygen.set_defaults(func=keygen)
     # TODO: pass in label, or generate it from current time like the old tool does?
     # TODO: set CKA_ID?
+    # Make a list of DNSSEC algorithms we allow generating keys for. RSASHA1 is obsoleted.
+    valid_algorithms = [x.name for x in AlgorithmDNSSEC if x.name != 'RSASHA1' and
+                        (is_algorithm_rsa(x) or is_algorithm_ecdsa(x))]
     parser_keygen.add_argument('--label',
                                dest='key_label',
                                metavar='LABEL',
@@ -144,9 +180,9 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
                                dest='key_alg',
                                metavar='ALGORITHM',
                                type=str,
-                               choices=SUPPORTED_ALGORITHMS,
+                               choices=valid_algorithms,
                                required=True,
-                               help='Key algorithm')
+                               help='DNSSEC Key algorithm')
     parser_keygen.add_argument('--size',
                                dest='key_size',
                                metavar='BITS',
