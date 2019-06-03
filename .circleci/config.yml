@@ -6,6 +6,7 @@ jobs:
       - image: python:3.7
     environment:
       SOFTHSM2_MODULE: /usr/lib/softhsm/libsofthsm2.so
+      TEST_SOFTHSM2_SKIP_KEYWRAP: 1
     steps:
       - run: apt -y update
       - run: apt -y install swig softhsm2 libsofthsm2
