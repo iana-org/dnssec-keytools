@@ -9,7 +9,8 @@ hsm:
       SOFTHSM2_CONF: softhsm.conf
   aep:
     module: /usr/local/lib/pkcs11.GCC4.0.2.so.4.07
-    pin: 000000
+    pin: 123456
+    so_pin: 123456
     env:
       KEYPER_LIBRARY_PATH: /var/dnssec/ksr/AEP
 
