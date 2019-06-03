@@ -142,6 +142,7 @@ class KSKKey(object):
 
     description: str
     label: str
+    key_tag: int
     algorithm: AlgorithmDNSSEC
     valid_from: datetime
     valid_until: Optional[datetime] = None

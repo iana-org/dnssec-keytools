@@ -94,6 +94,7 @@ class KSKMConfig(object):
           ksk_current:
             description: Root DNSSEC KSK 2010
             label: Kjqmt7v
+            key_tag: 19036
             algorithm: RSASHA256
             rsa_size: 2048
             rsa_exponent: 65537

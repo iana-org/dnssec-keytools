@@ -43,6 +43,7 @@ keys:
   zsk_test_key:
     description: A SoftHSM key used in tests
     label: RSA1
+    key_tag: 31
     algorithm: RSASHA256
     rsa_size: 2048
     rsa_exponent: 65537
@@ -52,6 +53,7 @@ keys:
   ksk_test_key:
     description: A SoftHSM key used in tests
     label: RSA2
+    key_tag: 6664
     algorithm: RSASHA256
     rsa_size: 2048
     rsa_exponent: 65537
@@ -170,6 +172,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
           zsk_test_key:
             description: A SoftHSM key used in tests
             label: EC1
+            key_tag: 22
             algorithm: ECDSAP256SHA256
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
@@ -177,6 +180,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
           ksk_test_key:
             description: A SoftHSM key used in tests
             label: EC2
+            key_tag: 59723
             algorithm: ECDSAP256SHA256
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
@@ -184,6 +188,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
           ksk_prepublish_key:
             description: A SoftHSM key used in tests
             label: EC3
+            key_tag: 56884
             algorithm: ECDSAP256SHA256
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
@@ -254,6 +259,7 @@ class Test_SignWithSoftHSM_DualAlgorithm(SignWithSoftHSM_Baseclass):
           zsk_rsa1:
             description: A SoftHSM key used in tests
             label: RSA1
+            key_tag: 11
             algorithm: RSASHA256
             rsa_size: 2048
             rsa_exponent: 65537
@@ -263,6 +269,7 @@ class Test_SignWithSoftHSM_DualAlgorithm(SignWithSoftHSM_Baseclass):
           zsk_ec1:
             description: A SoftHSM key used in tests
             label: EC1
+            key_tag: 12
             algorithm: ECDSAP256SHA256
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
@@ -270,6 +277,7 @@ class Test_SignWithSoftHSM_DualAlgorithm(SignWithSoftHSM_Baseclass):
           ksk_rsa2:
             description: A SoftHSM key used in tests
             label: RSA2
+            key_tag: 6664
             algorithm: RSASHA256
             rsa_size: 2048
             rsa_exponent: 65537
@@ -279,6 +287,7 @@ class Test_SignWithSoftHSM_DualAlgorithm(SignWithSoftHSM_Baseclass):
           ksk_ec2:
             description: A SoftHSM key used in tests
             label: EC2
+            key_tag: 59723
             algorithm: ECDSAP256SHA256
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
@@ -336,6 +345,7 @@ class Test_SignWithSoftHSM_Errorhandling(SignWithSoftHSM_Baseclass):
           ksk_test_key:
             description: A key that does not exist in SoftHSM
             label: NO_SUCH_KEY
+            key_tag: 15
             algorithm: RSASHA256
             rsa_size: 2048
             rsa_exponent: 65537
@@ -381,6 +391,7 @@ class Test_SignWithSoftHSM_Errorhandling(SignWithSoftHSM_Baseclass):
           ksk_test_key:
             description: An EC key with algorithm RSA
             label: EC1
+            key_tag: 16
             algorithm: RSASHA256
             rsa_size: 2048
             rsa_exponent: 65537
@@ -402,6 +413,7 @@ class Test_SignWithSoftHSM_Errorhandling(SignWithSoftHSM_Baseclass):
           ksk_test_key:
             description: An RSA key with wrong size
             label: RSA1
+            key_tag: 17
             algorithm: RSASHA256
             rsa_size: 1234
             rsa_exponent: 65537
@@ -423,6 +435,7 @@ class Test_SignWithSoftHSM_Errorhandling(SignWithSoftHSM_Baseclass):
           ksk_test_key:
             description: An RSA key with wrong exponent
             label: RSA1
+            key_tag: 18
             algorithm: RSASHA256
             rsa_size: 2048
             rsa_exponent: 17
@@ -444,6 +457,7 @@ class Test_SignWithSoftHSM_Errorhandling(SignWithSoftHSM_Baseclass):
           ksk_test_key:
             description: An EC key with algorithm RSA
             label: RSA1
+            key_tag: 19
             algorithm: ECDSAP256SHA256
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00

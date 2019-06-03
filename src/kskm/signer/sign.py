@@ -121,7 +121,8 @@ def _fetch_keys(key_names: Iterable[str], bundle: RequestBundle, p11modules: KSK
         # Ensure the right key was located
         #
         if not ksk.ds_sha256:
-            logger.warning('Key {} does not have a DS SHA256 specified - can\'t ensure the right key was in the HSM')
+            logger.warning(f'Key {ksk.label} does not have a DS SHA256 specified - '
+                           f'can\'t ensure the right key was in the HSM')
         else:
             _ds = create_trustanchor_keydigest(ksk, this_key.dns)
             digest = binascii.hexlify(_ds.digest).decode('UTF-8').upper()
@@ -129,8 +130,12 @@ def _fetch_keys(key_names: Iterable[str], bundle: RequestBundle, p11modules: KSK
             if ksk_digest != digest:
                 logger.error(f'Configured KSK key {ksk.label} DS SHA256 {ksk_digest} does not match computed '
                              f'DS SHA256 {digest} for key loaded using PKCS#11: {this_key}')
-                raise RuntimeError('Key {} has unexpected DS'.format(ksk.label))
+                raise RuntimeError(f'Key {ksk.label} has unexpected DS')
 
+        if this_key.dns.key_tag != ksk.key_tag:
+            logger.error(f'Configured KSK key {ksk.label} key tag {ksk.key_tag} does not match key tag '
+                         f'{this_key.dns.key_tag} for key loaded using PKCS#11: {this_key}')
+            raise RuntimeError(f'Key {ksk.label} has unexpected key tag')
         res += [this_key]
     return res
 

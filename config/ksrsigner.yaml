@@ -24,6 +24,7 @@ keys:
   ksk_current:
     description: Root DNSSEC KSK 2010
     label: Kjqmt7v
+    key_tag: 19036
     algorithm: RSASHA256
     rsa_size: 2048
     rsa_exponent: 65537
@@ -33,6 +34,7 @@ keys:
   ksk_next:
     description: Root DNSSEC KSK 2017
     label: Klajeyz
+    key_tag: 20326
     algorithm: RSASHA256
     rsa_size: 2048
     rsa_exponent: 65537
