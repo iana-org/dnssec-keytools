@@ -161,6 +161,9 @@ def ksrsigner(logger: logging.Logger, args: Optional[ArgsType], config: Optional
     new_skr = create_skr(request, schema, p11modules, config)
     check_last_skr_and_new_skr(skr, new_skr, config.request_policy)
 
+    logger.info('Generated SKR:')
+    [logger.info(x) for x in format_bundles_for_humans(new_skr.bundles)]
+
     _skr_fn = _skr_filename(args, config)
     output_skr_xml(new_skr, _skr_fn)
 
