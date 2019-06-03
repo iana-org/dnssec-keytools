@@ -6,8 +6,6 @@ which returns a nested dict with all the data. The functions in this
 module know how to interpret parts of that dict and turn it into the
 dataclasses from kskm.ksr.data.
 """
-from __future__ import absolute_import
-
 import logging
 from typing import List
 

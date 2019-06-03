@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 import os
 import unittest
 from dataclasses import replace
@@ -8,8 +6,8 @@ import pkg_resources
 
 import kskm.ksr.verify_bundles
 import kskm.ksr.verify_policy
-from kskm.ksr import load_ksr, request_from_xml
 from kskm.common.config_misc import RequestPolicy
+from kskm.ksr import load_ksr, request_from_xml
 
 
 class TestParseRealKSRs(unittest.TestCase):
