@@ -4,10 +4,10 @@ import time
 from typing import List, Optional
 
 from PyKCS11 import Mechanism
-from PyKCS11.LowLevel import CKA_CLASS, CKA_DECRYPT, CKA_DERIVE, CKA_ENCRYPT, CKA_EXTRACTABLE, CKA_KEY_TYPE, CKA_LABEL, \
-    CKA_MODULUS, CKA_MODULUS_BITS, CKA_PRIVATE, CKA_PUBLIC_EXPONENT, CKA_SENSITIVE, CKA_SIGN, CKA_TOKEN, CKA_UNWRAP, \
-    CKA_VALUE_LEN, CKA_VERIFY, CKA_WRAP, CKK_AES, CKK_DES3, CKK_RSA, CKM_AES_KEY_GEN, CKM_DES3_KEY_GEN, CKO_PRIVATE_KEY, \
-    CKO_PUBLIC_KEY, CKO_SECRET_KEY, CK_FALSE, CK_TRUE
+from PyKCS11.LowLevel import CKA_CLASS, CKA_DECRYPT, CKA_DERIVE, CKA_ENCRYPT, CKA_EXTRACTABLE, CKA_KEY_TYPE, \
+    CKA_LABEL, CKA_MODULUS, CKA_MODULUS_BITS, CKA_PRIVATE, CKA_PUBLIC_EXPONENT, CKA_SENSITIVE, CKA_SIGN, CKA_TOKEN, \
+    CKA_UNWRAP, CKA_VALUE_LEN, CKA_VERIFY, CKA_WRAP, CKK_AES, CKK_DES3, CKK_RSA, CKM_AES_KEY_GEN, CKM_DES3_KEY_GEN, \
+    CKO_PRIVATE_KEY, CKO_PUBLIC_KEY, CKO_SECRET_KEY, CK_FALSE, CK_TRUE
 
 from kskm.common.data import FlagsDNSKEY
 from kskm.keymaster.common import get_session
@@ -81,7 +81,8 @@ def generate_wrapping_key(label: str, algorithm: WrappingAlgorithm, p11modules: 
     return True
 
 
-def generate_rsa_key(flags: int, bits: int, p11modules: KSKM_P11, exponent: int = 65537, label: Optional[str] = None) -> Optional[KSKM_P11Key]:
+def generate_rsa_key(flags: int, bits: int, p11modules: KSKM_P11, exponent: int = 65537,
+                     label: Optional[str] = None) -> Optional[KSKM_P11Key]:
     """Generate RSA key."""
     if label is None:
         label = generate_key_label(flags)
