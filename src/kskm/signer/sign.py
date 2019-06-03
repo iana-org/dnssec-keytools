@@ -10,7 +10,8 @@ from cryptography.exceptions import InvalidSignature
 
 from kskm.common.config import (ConfigurationError, KSKMConfig)
 from kskm.common.config_misc import KSKKeysType, KSKPolicy, Schema
-from kskm.common.data import AlgorithmDNSSEC, Signature, TypeDNSSEC
+from kskm.common.data import AlgorithmDNSSEC, Signature, TypeDNSSEC, FlagsDNSKEY
+from kskm.common.dnssec import calculate_key_tag
 from kskm.common.signature import dndepth, make_raw_rrsig
 from kskm.ksr import Request
 from kskm.ksr.data import RequestBundle
@@ -68,6 +69,13 @@ def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
         for this_key in _fetch_keys(this_schema.publish, _bundle, p11modules, ksk_policy, config.ksk_keys, True):
             _new_keys.add(this_key.dns)
         #
+        # Add all the 'revoke' keys (same as 'publish' but the key gets the revoke flag bit set)
+        #
+        for this_key in _fetch_keys(this_schema.revoke, _bundle, p11modules, ksk_policy, config.ksk_keys, True):
+            revoked_key = replace(this_key.dns, flags=this_key.dns.flags | FlagsDNSKEY.REVOKE.value)
+            revoked_key = replace(revoked_key, key_tag=calculate_key_tag(revoked_key))
+            _new_keys.add(revoked_key)
+        #
         # All the signing keys sign the complete DNSKEY RRSET, so first add them to the bundles keys
         #
         signing_keys = _fetch_keys(this_schema.sign, _bundle, p11modules, ksk_policy, config.ksk_keys, False)
@@ -81,7 +89,10 @@ def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
         #
         signatures = set()
         for _sign_key in signing_keys:
-            logger.debug(f'Signing keys {updated_bundle.keys} with sign_key {_sign_key}')
+            logger.debug(f'Signing {len(updated_bundle.keys)} bundle keys:')
+            for _this in updated_bundle.keys:
+                logger.debug(f'  {_this}')
+            logger.debug(f'Signing above {len(updated_bundle.keys)} bundle keys with sign_key {_sign_key}')
             _sig = _sign_keys(updated_bundle, _sign_key, ksk_policy)
             if _sig:
                 signatures.add(_sig)
