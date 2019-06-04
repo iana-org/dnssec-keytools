@@ -19,7 +19,7 @@ import kskm.misc
 from kskm.common.config import KSKMConfig, get_config
 from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY
 from kskm.common.dnssec import public_key_to_dnssec_key
-from kskm.common.ecdsa_utils import is_algorithm_ecdsa
+from kskm.common.ecdsa_utils import is_algorithm_ecdsa, algorithm_to_curve
 from kskm.common.logging import get_logger
 from kskm.common.rsa_utils import is_algorithm_rsa
 from kskm.keymaster.delete import key_delete, wrapkey_delete
@@ -39,14 +39,14 @@ def keygen(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, l
     """Generate new signing key."""
     logger.info('Generate key')
     flags = FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value
-    if is_algorithm_rsa(AlgorithmDNSSEC[args.key_alg]):
+    dnssec_alg = AlgorithmDNSSEC[args.key_alg]
+    if is_algorithm_rsa(dnssec_alg):
         if args.key_size is None:
             raise argparse.ArgumentError(args.key_size, 'RSA key generation requires key size')
         p11key = generate_rsa_key(flags, args.key_size, p11modules, label=args.key_label)
-    elif is_algorithm_ecdsa(args.key_alg):
-        if args.key_crv is None:
-            raise argparse.ArgumentError(args.key_crv, 'EC key generation requires curve')
-        p11key = generate_ec_key(flags, args.key_crv, p11modules, label=args.key_label)
+    elif is_algorithm_ecdsa(dnssec_alg):
+        crv = algorithm_to_curve(dnssec_alg)
+        p11key = generate_ec_key(flags, crv, p11modules, label=args.key_label)
     else:
         raise ValueError(f'Unknown key algorithm {repr(args.key_alg)}')
 

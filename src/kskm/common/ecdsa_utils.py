@@ -9,8 +9,8 @@ __author__ = 'ft'
 
 
 ALGORITHM_TO_CURVE = {
-    AlgorithmDNSSEC.ECDSAP256SHA256: 'P-256',
-    AlgorithmDNSSEC.ECDSAP384SHA384: 'P-384'
+    AlgorithmDNSSEC.ECDSAP256SHA256: 'secp256r1',
+    AlgorithmDNSSEC.ECDSAP384SHA384: 'secp384r1'
 }
 
 
