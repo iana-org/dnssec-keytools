@@ -10,7 +10,8 @@ from cryptography.exceptions import InvalidSignature
 
 from kskm.common.config import (ConfigurationError, KSKMConfig)
 from kskm.common.config_misc import KSKKeysType, KSKPolicy, Schema
-from kskm.common.data import AlgorithmDNSSEC, Signature, TypeDNSSEC
+from kskm.common.data import AlgorithmDNSSEC, Signature, TypeDNSSEC, FlagsDNSKEY
+from kskm.common.dnssec import calculate_key_tag
 from kskm.common.signature import dndepth, make_raw_rrsig
 from kskm.ksr import Request
 from kskm.ksr.data import RequestBundle
@@ -47,6 +48,9 @@ def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
         bundle_num += 1
         this_schema = schema.actions[bundle_num]
 
+        if _bundle.signers:
+            logger.warning(f'Bundle {_bundle.id} has signers specified - those will be ignored')
+
         # All DNSKEY RRs in a set *has* to have the same TTL. Ensure all keys have the TTL
         # configured by the KSK operator. A warning is logged for any discrepancies found,
         # because an earlier policy check (KSR-POLICY-KEYS) should have found this unless disabled.
@@ -65,6 +69,13 @@ def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
         for this_key in _fetch_keys(this_schema.publish, _bundle, p11modules, ksk_policy, config.ksk_keys, True):
             _new_keys.add(this_key.dns)
         #
+        # Add all the 'revoke' keys (same as 'publish' but the key gets the revoke flag bit set)
+        #
+        for this_key in _fetch_keys(this_schema.revoke, _bundle, p11modules, ksk_policy, config.ksk_keys, True):
+            revoked_key = replace(this_key.dns, flags=this_key.dns.flags | FlagsDNSKEY.REVOKE.value)
+            revoked_key = replace(revoked_key, key_tag=calculate_key_tag(revoked_key))
+            _new_keys.add(revoked_key)
+        #
         # All the signing keys sign the complete DNSKEY RRSET, so first add them to the bundles keys
         #
         signing_keys = _fetch_keys(this_schema.sign, _bundle, p11modules, ksk_policy, config.ksk_keys, False)
@@ -78,7 +89,10 @@ def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
         #
         signatures = set()
         for _sign_key in signing_keys:
-            logger.debug(f'Signing keys {updated_bundle.keys} with sign_key {_sign_key}')
+            logger.debug(f'Signing {len(updated_bundle.keys)} bundle keys:')
+            for _this in updated_bundle.keys:
+                logger.debug(f'  {_this}')
+            logger.debug(f'Signing above {len(updated_bundle.keys)} bundle keys with sign_key {_sign_key}')
             _sig = _sign_keys(updated_bundle, _sign_key, ksk_policy)
             if _sig:
                 signatures.add(_sig)
@@ -118,7 +132,8 @@ def _fetch_keys(key_names: Iterable[str], bundle: RequestBundle, p11modules: KSK
         # Ensure the right key was located
         #
         if not ksk.ds_sha256:
-            logger.warning('Key {} does not have a DS SHA256 specified - can\'t ensure the right key was in the HSM')
+            logger.warning(f'Key {ksk.label} does not have a DS SHA256 specified - '
+                           f'can\'t ensure the right key was in the HSM')
         else:
             _ds = create_trustanchor_keydigest(ksk, this_key.dns)
             digest = binascii.hexlify(_ds.digest).decode('UTF-8').upper()
@@ -126,8 +141,12 @@ def _fetch_keys(key_names: Iterable[str], bundle: RequestBundle, p11modules: KSK
             if ksk_digest != digest:
                 logger.error(f'Configured KSK key {ksk.label} DS SHA256 {ksk_digest} does not match computed '
                              f'DS SHA256 {digest} for key loaded using PKCS#11: {this_key}')
-                raise RuntimeError('Key {} has unexpected DS'.format(ksk.label))
+                raise RuntimeError(f'Key {ksk.label} has unexpected DS')
 
+        if this_key.dns.key_tag != ksk.key_tag:
+            logger.error(f'Configured KSK key {ksk.label} key tag {ksk.key_tag} does not match key tag '
+                         f'{this_key.dns.key_tag} for key loaded using PKCS#11: {this_key}')
+            raise RuntimeError(f'Key {ksk.label} has unexpected key tag')
         res += [this_key]
     return res
 

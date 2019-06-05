@@ -27,12 +27,11 @@ __author__ = 'ft'
 
 _DEFAULTS = {'debug': False,
              'syslog': False,
-             'request_policy': None,
-             'response_policy': None,
              'previous_skr': None,
              'config': None,
              'ksr': None,
              'skr': None,
+             'schema': 'normal'
              }
 
 
@@ -64,17 +63,11 @@ def parse_args(defaults: dict) -> ArgsType:
                         help='SKR output filename',
                         )
     # Optional arguments
-    parser.add_argument('--request_policy',
-                        dest='request_policy',
-                        metavar='POLICYFILE', type=str,
-                        default=defaults['request_policy'],
-                        help='Path to YAML file with request policy',
-                        )
-    parser.add_argument('--response_policy',
-                        dest='response_policy',
-                        metavar='POLICYFILE', type=str,
-                        default=defaults['response_policy'],
-                        help='Path to YAML file with response policy',
+    parser.add_argument('--schema',
+                        dest='schema',
+                        metavar='NAME', type=str,
+                        default=defaults['schema'],
+                        help='Name of schema (defined in config) to follow',
                         )
     parser.add_argument('--previous_skr',
                         dest='previous_skr',
@@ -164,9 +157,12 @@ def ksrsigner(logger: logging.Logger, args: Optional[ArgsType], config: Optional
     #
     # Create a new SKR
     #
-    schema = config.get_schema('normal')
+    schema = config.get_schema(args.schema)
     new_skr = create_skr(request, schema, p11modules, config)
     check_last_skr_and_new_skr(skr, new_skr, config.request_policy)
+
+    logger.info('Generated SKR:')
+    [logger.info(x) for x in format_bundles_for_humans(new_skr.bundles)]
 
     _skr_fn = _skr_filename(args, config)
     output_skr_xml(new_skr, _skr_fn)

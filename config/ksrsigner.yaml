@@ -9,7 +9,8 @@ hsm:
       SOFTHSM2_CONF: softhsm.conf
   aep:
     module: /usr/local/lib/pkcs11.GCC4.0.2.so.4.07
-    pin: 000000
+    pin: 123456
+    so_pin: 123456
     env:
       KEYPER_LIBRARY_PATH: /var/dnssec/ksr/AEP
 
@@ -23,6 +24,7 @@ keys:
   ksk_current:
     description: Root DNSSEC KSK 2010
     label: Kjqmt7v
+    key_tag: 19036
     algorithm: RSASHA256
     rsa_size: 2048
     rsa_exponent: 65537
@@ -32,6 +34,7 @@ keys:
   ksk_next:
     description: Root DNSSEC KSK 2017
     label: Klajeyz
+    key_tag: 20326
     algorithm: RSASHA256
     rsa_size: 2048
     rsa_exponent: 65537

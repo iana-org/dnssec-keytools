@@ -63,7 +63,6 @@ def parse_args(defaults: dict) -> ArgsType:
     parser.add_argument('--trustanchor',
                         dest='trustanchor',
                         metavar='XMLFILE', type=str,
-                        default=defaults['config'],
                         help='Path to write trust anchor XML to',
                         )
     args = parser.parse_args()
@@ -105,6 +104,9 @@ def trustanchor(logger: logging.Logger, args: Optional[ArgsType], config: Option
 
     for _name, ksk in config.ksk_keys.items():
         p11key = get_p11_key(ksk.label, p11modules, public=True)
+        if not p11key:
+            logger.warning(f'KSK key with label {ksk.label} could not be loaded using PKCS#11')
+            continue
         _key = public_key_to_dnssec_key(key=p11key.public_key,
                                         key_identifier=ksk.label,
                                         algorithm=ksk.algorithm,

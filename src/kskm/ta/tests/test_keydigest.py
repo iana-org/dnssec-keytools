@@ -13,6 +13,7 @@ class Test_KeyDigest(unittest.TestCase):
         kskkey = KSKKey(algorithm=AlgorithmDNSSEC.RSASHA256,
                         description='ICANN key from 2017',
                         label='Klajeyz',
+                        key_tag=1,
                         valid_from=datetime.fromisoformat("2017-02-02T00:00:00+00:00"),
                         )
         key = Key(algorithm=AlgorithmDNSSEC.RSASHA256,
