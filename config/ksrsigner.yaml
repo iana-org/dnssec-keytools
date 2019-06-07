@@ -259,3 +259,150 @@ schemas:
     9:
       publish: ksk_next
       sign: ksk_next
+
+  # stay in publication (extend phase D)
+  publish+:
+    1:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+    2:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+    3:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+    4:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+    5:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+    6:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+    7:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+    8:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+    9:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+
+  # stay in rollover (extend phase E)
+  rollover+:
+    1:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+    2:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+    3:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+    4:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+    5:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+    6:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+    7:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+    8:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+    9:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+
+    # stay in revocation (extend phase F)
+    revoke+:
+      1:
+        publish: ksk_next
+        sign: ksk_next
+      2:
+        publish: ksk_next
+        revoke: ksk_current
+        sign:
+          - ksk_current
+          - ksk_next
+      3:
+        publish: ksk_next
+        revoke: ksk_current
+        sign:
+          - ksk_current
+          - ksk_next
+      4:
+        publish: ksk_next
+        revoke: ksk_current
+        sign:
+          - ksk_current
+          - ksk_next
+      5:
+        publish: ksk_next
+        revoke: ksk_current
+        sign:
+          - ksk_current
+          - ksk_next
+      6:
+        publish: ksk_next
+        revoke: ksk_current
+        sign:
+          - ksk_current
+          - ksk_next
+      7:
+        publish: ksk_next
+        revoke: ksk_current
+        sign:
+          - ksk_current
+          - ksk_next
+      8:
+        publish: ksk_next
+        revoke: ksk_current
+        sign:
+          - ksk_current
+          - ksk_next
+      9:
+        publish: ksk_next
+        sign: ksk_next
