@@ -1,3 +1,5 @@
+---
+
 # example ksrsigner configuration/policy file
 
 # per HSM PKCS#11 configuration; module required, pin and env is optional
@@ -48,16 +50,16 @@ request_policy:
   # number of bundles in KSR
   num_bundles: 9
   # validate ZSK proof-of-possession
-  validate_signatures: True
-  keys_match_zsk_policy: True
-  check_bundle_overlap: True
-  signature_validity_match_zsk_policy: True
+  validate_signatures: true
+  keys_match_zsk_policy: true
+  check_bundle_overlap: true
+  signature_validity_match_zsk_policy: true
   # number of unique ZSKs in request
   acceptable_key_set_lengths:
     - 2
     - 3
   # validate that the current request continues a timeline ending with the previous response
-  check_request_daisy_chain: True
+  check_request_daisy_chain: true
   acceptable_dnssec_algorithms:
     - RSASHA256
   rsa_acceptable_exponents:
@@ -68,7 +70,7 @@ request_policy:
 
 response_policy:
   num_bundles: 9
-  validate_signatures: True
+  validate_signatures: true
 
 ksk_policy:
   publish_safety: PT0S
@@ -80,7 +82,7 @@ ksk_policy:
   ttl: 172800
 
 # SKR signature schemes, each scheme defines what
-# 
+#
 schemas:
 
   # normal key bundle
@@ -259,3 +261,150 @@ schemas:
     9:
       publish: ksk_next
       sign: ksk_next
+
+  # stay in publication (extend phase D)
+  publish+:
+    1:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+    2:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+    3:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+    4:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+    5:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+    6:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+    7:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+    8:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+    9:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_current
+
+  # stay in rollover (extend phase E)
+  rollover+:
+    1:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+    2:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+    3:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+    4:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+    5:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+    6:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+    7:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+    8:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+    9:
+      publish:
+        - ksk_current
+        - ksk_next
+      sign: ksk_next
+
+    # stay in revocation (extend phase F)
+    revoke+:
+      1:
+        publish: ksk_next
+        sign: ksk_next
+      2:
+        publish: ksk_next
+        revoke: ksk_current
+        sign:
+          - ksk_current
+          - ksk_next
+      3:
+        publish: ksk_next
+        revoke: ksk_current
+        sign:
+          - ksk_current
+          - ksk_next
+      4:
+        publish: ksk_next
+        revoke: ksk_current
+        sign:
+          - ksk_current
+          - ksk_next
+      5:
+        publish: ksk_next
+        revoke: ksk_current
+        sign:
+          - ksk_current
+          - ksk_next
+      6:
+        publish: ksk_next
+        revoke: ksk_current
+        sign:
+          - ksk_current
+          - ksk_next
+      7:
+        publish: ksk_next
+        revoke: ksk_current
+        sign:
+          - ksk_current
+          - ksk_next
+      8:
+        publish: ksk_next
+        revoke: ksk_current
+        sign:
+          - ksk_current
+          - ksk_next
+      9:
+        publish: ksk_next
+        sign: ksk_next
