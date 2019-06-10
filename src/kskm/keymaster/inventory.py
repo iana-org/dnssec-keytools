@@ -57,11 +57,12 @@ def _format_keys(data: dict, config: KSKMConfig) -> List[str]:
                     # Check that key found in HSM matches the configuration
                     try:
                         validate_dnskey_matches_ksk(ksk, dnskey)
-                    except RuntimeError:
-                        ksk_info = f'KSK \'{ksk.description}\' key tag or DS DOES NOT MATCH this key'
+                    except RuntimeError as exc:
+                        ksk_info = f'BAD KSK \'{ksk.label}/{ksk.description}\': {str(exc)}'
                         break
 
-                    ksk_info = f'KSK \'{ksk.description}\', key tag {ksk.key_tag}, algorithm={ksk.algorithm.name}'
+                    ksk_info = f'KSK \'{ksk.label}/{ksk.description}\', key tag {ksk.key_tag}, ' \
+                        f'algorithm={ksk.algorithm.name}'
 
             if key_id in data[KeyClass.PRIVATE]:
                 pairs += [f'      {this.label:7s} id={this.key_id} {str(this.pubkey)} -- {ksk_info}']

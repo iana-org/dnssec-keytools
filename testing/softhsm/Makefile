@@ -55,7 +55,9 @@ test-restore: $(KSRSIGNER_YAML) $(STATUSFILE)
 	kskm-keymaster restore --wrap-label $(LABEL_WRAP) --infile wrapped_key.yaml
 
 $(KSRSIGNER_YAML): $(KSRSIGNER_TEMPLATE)
-	sed -e 's,__P11MODULE__,$(P11MODULE),' -e 's,__SOFTHSM_PIN__,$(SOFTHSM_PIN),' < $< > $@
+	sed -e 's,__P11MODULE__,$(P11MODULE),' \
+	    -e 's,__SOFTHSM_PIN__,$(SOFTHSM_PIN),' \
+	    -e 's,__SOFTHSM_CONF__,$(SOFTHSM_CONF),' < $< > $@
 
 $(SOFTHSM_CONF):
 	echo "directories.tokendir = $(TOKENDIR)" > $@
@@ -108,10 +110,10 @@ ec-$(EC_CURVE)-3.p8: ec-$(EC_CURVE)-3.key
 ec-$(EC_CURVE)-4.p8: ec-$(EC_CURVE)-4.key
 
 rsa-$(RSA_SIZE)-1.key:
-	openssl genrsa $(RSA_SIZE) > $@
+	cp $@.in $@
 
 rsa-$(RSA_SIZE)-2.key:
-	openssl genrsa $(RSA_SIZE) > $@
+	cp $@.in $@
 
 rsa-$(RSA_SIZE)-3.key:
 	openssl genrsa $(RSA_SIZE) > $@
@@ -120,10 +122,10 @@ rsa-$(RSA_SIZE)-4.key:
 	openssl genrsa $(RSA_SIZE) > $@
 
 ec-$(EC_CURVE)-1.key:
-	openssl ecparam -name prime256v1 -genkey -noout -out $@
+	cp $@.in $@
 
 ec-$(EC_CURVE)-2.key:
-	openssl ecparam -name prime256v1 -genkey -noout -out $@
+	cp $@.in $@
 
 ec-$(EC_CURVE)-3.key:
 	openssl ecparam -name prime256v1 -genkey -noout -out $@

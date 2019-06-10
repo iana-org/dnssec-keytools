@@ -29,7 +29,7 @@ wheel:
 
 softhsm:
 	test -f $(SOFTHSM2_MODULE) || echo "Failed to find SoftHSM module"
-	(cd testing/softhsm; make SOFTHSM_CONF=$(SOFTHSM2_CONF) softhsm)
+	(cd testing/softhsm; make SOFTHSM_CONF=$(SOFTHSM2_CONF) all)
 
 test: $(VENV) softhsm
 	env $(TEST_ENV) $(VENV)/bin/green $(GREEN_FLAGS)

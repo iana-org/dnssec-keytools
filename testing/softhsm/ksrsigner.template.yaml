@@ -1,6 +1,45 @@
+---
 hsm:
   softhsm:
     module: __P11MODULE__
     pin: __SOFTHSM_PIN__
     env:
-      SOFTHSM2_CONF: softhsm.conf
+      SOFTHSM2_CONF: __SOFTHSM_CONF__
+
+# inventory of key signing keys
+keys:
+  ksk_RSA1:
+    description: A SoftHSM key used in tests
+    label: RSA1
+    key_tag: 25486
+    algorithm: RSASHA256
+    rsa_size: 2048
+    rsa_exponent: 65537
+    valid_from: 2010-07-15T00:00:00+00:00
+    ds_sha256: 6E20853E0BA510D0C70B2792C889E0D97EB4E67FB0C5D33106A3DFCF4D65E06C
+
+  ksk_RSA2:
+    description: A SoftHSM key used in tests
+    label: RSA2
+    key_tag: 33946
+    algorithm: RSASHA256
+    rsa_size: 2048
+    rsa_exponent: 65537
+    valid_from: 2010-07-15T00:00:00+00:00
+    ds_sha256: 8E4F8BBB4ABD19CFFA153782D90CAA891F1AC103A5C12E6A1DFD4A0C66D1D008
+
+  ksk_EC1:
+    description: A SoftHSM key used in tests
+    label: EC1
+    key_tag: 25486
+    algorithm: ECDSAP256SHA256
+    valid_from: 2010-07-15T00:00:00+00:00
+    ds_sha256: X
+
+  ksk_EC2:
+    description: A SoftHSM key used in tests
+    label: EC2
+    key_tag: 24391
+    algorithm: ECDSAP256SHA256
+    valid_from: 2010-07-15T00:00:00+00:00
+    ds_sha256: 306F7D0D2932C4C5C5F57AF9E910DF28BA7DA45B0870F09DD541794D6B0DC478

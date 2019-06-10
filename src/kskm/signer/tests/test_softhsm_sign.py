@@ -10,6 +10,7 @@ import os
 import unittest
 from typing import Set
 
+import pkg_resources
 import yaml
 
 from kskm.common.config import ConfigurationError, KSKMConfig
@@ -33,44 +34,17 @@ else:
 
 
 _TEST_CONFIG = """
----
-hsm:
-  softhsm:
-    module: $SOFTHSM2_MODULE
-    pin: 123456
-
-keys:
-  zsk_test_key:
-    description: A SoftHSM key used in tests
-    label: RSA1
-    key_tag: 31
-    algorithm: RSASHA256
-    rsa_size: 2048
-    rsa_exponent: 65537
-    valid_from: 2010-07-15T00:00:00+00:00
-    valid_until: 2019-01-11T00:00:00+00:00
-
-  ksk_test_key:
-    description: A SoftHSM key used in tests
-    label: RSA2
-    key_tag: 6664
-    algorithm: RSASHA256
-    rsa_size: 2048
-    rsa_exponent: 65537
-    valid_from: 2010-07-15T00:00:00+00:00
-    valid_until: 2019-01-11T00:00:00+00:00
-
 schemas:
   test:
-    1: {publish: [], sign: ksk_test_key}
-    2: {publish: [], sign: ksk_test_key}
-    3: {publish: [], sign: ksk_test_key}
-    4: {publish: [], sign: ksk_test_key}
-    5: {publish: [], sign: ksk_test_key}
-    6: {publish: [], sign: ksk_test_key}
-    7: {publish: [], sign: ksk_test_key}
-    8: {publish: [], sign: ksk_test_key}
-    9: {publish: [], sign: ksk_test_key}
+    1: {publish: [], sign: ksk_RSA2}
+    2: {publish: [], sign: ksk_RSA2}
+    3: {publish: [], sign: ksk_RSA2}
+    4: {publish: [], sign: ksk_RSA2}
+    5: {publish: [], sign: ksk_RSA2}
+    6: {publish: [], sign: ksk_RSA2}
+    7: {publish: [], sign: ksk_RSA2}
+    8: {publish: [], sign: ksk_RSA2}
+    9: {publish: [], sign: ksk_RSA2}
 
 ksk_policy:
   publish_safety: PT0S
@@ -91,7 +65,11 @@ class SignWithSoftHSM_Baseclass(unittest.TestCase):
         self.zsk_key_label = 'RSA1'
         self.ksk_key_label = 'RSA2'
         self.p11modules: KSKM_P11 = KSKM_P11([])
-        conf = io.StringIO(_TEST_CONFIG)
+        self.softhsm_dir = pkg_resources.resource_filename(__name__, '../../../../testing/softhsm')
+        _cfg_fn = os.path.join(self.softhsm_dir, 'ksrsigner.yaml')
+
+        with open(_cfg_fn, 'r') as fd:
+            conf = io.StringIO(fd.read() + _TEST_CONFIG)
         self.config = KSKMConfig.from_yaml(conf)
         self.p11modules = init_pkcs11_modules_from_dict(self.config.hsm)
         self.schema = self.config.get_schema('test')
@@ -107,6 +85,8 @@ class SignWithSoftHSM_Baseclass(unittest.TestCase):
                                           }
                    }
         self.request_zsk_policy = signature_policy_from_dict(_policy)
+
+
 
     def tearDown(self) -> None:
         """Unload PKCS#11 modules, lest they might not work for the next test that starts."""
@@ -167,34 +147,30 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
         """ Prepare for tests. """
         super().setUp()
 
-        _EC_KEYS = """---
+        _EC_CONF = """---
+        schemas:
+          test:
+            1: {publish: [], sign: ksk_EC2}
+            2: {publish: [], sign: ksk_EC2}
+            3: {publish: [], sign: ksk_EC2}
+            4: {publish: [], sign: ksk_EC2}
+            5: {publish: [], sign: ksk_EC2}
+            6: {publish: [], sign: ksk_EC2}
+            7: {publish: [], sign: ksk_EC2}
+            8: {publish: [], sign: ksk_EC2}
+            9: {publish: [], sign: ksk_EC2}
+        
         keys:
-          zsk_test_key:
-            description: A SoftHSM key used in tests
-            label: EC1
-            key_tag: 22
-            algorithm: ECDSAP256SHA256
-            valid_from: 2010-07-15T00:00:00+00:00
-            valid_until: 2019-01-11T00:00:00+00:00
-
-          ksk_test_key:
-            description: A SoftHSM key used in tests
-            label: EC2
-            key_tag: 59723
-            algorithm: ECDSAP256SHA256
-            valid_from: 2010-07-15T00:00:00+00:00
-            valid_until: 2019-01-11T00:00:00+00:00
-
-          ksk_prepublish_key:
+          ksk_EC3:
             description: A SoftHSM key used in tests
             label: EC3
-            key_tag: 56884
+            key_tag: null
             algorithm: ECDSAP256SHA256
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
         """
-
-        self.config.update(yaml.safe_load(io.StringIO(_EC_KEYS)))
+        self.config.merge_update(yaml.safe_load(io.StringIO(_EC_CONF)))
+        self.schema = self.config.get_schema('test')
 
         # CKA_LABEL for one of the keys loaded into SoftHSM using testing/Makefile
         self.zsk_key_label = 'EC1'
@@ -224,17 +200,18 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
         _PUBLISH_SCHEMA = """---
         schemas:
           test:
-            1: {publish: ksk_prepublish_key, sign: ksk_test_key}
-            2: {publish: ksk_prepublish_key, sign: ksk_test_key}
-            3: {publish: ksk_prepublish_key, sign: ksk_test_key}
-            4: {publish: ksk_prepublish_key, sign: ksk_test_key}
-            5: {publish: ksk_prepublish_key, sign: ksk_test_key}
-            6: {publish: ksk_prepublish_key, sign: ksk_test_key}
-            7: {publish: ksk_prepublish_key, sign: ksk_test_key}
-            8: {publish: ksk_prepublish_key, sign: ksk_test_key}
-            9: {publish: ksk_prepublish_key, sign: ksk_test_key}
+            1: {publish: ksk_EC3, sign: ksk_EC2}
+            2: {publish: ksk_EC3, sign: ksk_EC2}
+            3: {publish: ksk_EC3, sign: ksk_EC2}
+            4: {publish: ksk_EC3, sign: ksk_EC2}
+            5: {publish: ksk_EC3, sign: ksk_EC2}
+            6: {publish: ksk_EC3, sign: ksk_EC2}
+            7: {publish: ksk_EC3, sign: ksk_EC2}
+            8: {publish: ksk_EC3, sign: ksk_EC2}
+            9: {publish: ksk_EC3, sign: ksk_EC2}
         """
         self.config.update(yaml.safe_load(io.StringIO(_PUBLISH_SCHEMA)))
+        self.schema = self.config.get_schema('test')
         zsk_keys = {self._p11_to_dnskey('EC1', AlgorithmDNSSEC.ECDSAP256SHA256, flags=0)}
         request = self._make_request(zsk_keys=zsk_keys)
         new_bundles = sign_bundles(request=request, schema=self.config.get_schema('test'),
@@ -254,58 +231,20 @@ class Test_SignWithSoftHSM_DualAlgorithm(SignWithSoftHSM_Baseclass):
         """ Prepare for tests. """
         super().setUp()
 
-        _DUAL_CONF = """---
-        keys:
-          zsk_rsa1:
-            description: A SoftHSM key used in tests
-            label: RSA1
-            key_tag: 11
-            algorithm: RSASHA256
-            rsa_size: 2048
-            rsa_exponent: 65537
-            valid_from: 2010-07-15T00:00:00+00:00
-            valid_until: 2019-01-11T00:00:00+00:00
-
-          zsk_ec1:
-            description: A SoftHSM key used in tests
-            label: EC1
-            key_tag: 12
-            algorithm: ECDSAP256SHA256
-            valid_from: 2010-07-15T00:00:00+00:00
-            valid_until: 2019-01-11T00:00:00+00:00
-
-          ksk_rsa2:
-            description: A SoftHSM key used in tests
-            label: RSA2
-            key_tag: 6664
-            algorithm: RSASHA256
-            rsa_size: 2048
-            rsa_exponent: 65537
-            valid_from: 2010-07-15T00:00:00+00:00
-            valid_until: 2019-01-11T00:00:00+00:00
-
-          ksk_ec2:
-            description: A SoftHSM key used in tests
-            label: EC2
-            key_tag: 59723
-            algorithm: ECDSAP256SHA256
-            valid_from: 2010-07-15T00:00:00+00:00
-            valid_until: 2019-01-11T00:00:00+00:00
-
+        _SCHEMAS = """
         schemas:
           test:
-            1: {publish: [], sign: [ksk_ec2, ksk_rsa2]}
-            2: {publish: [], sign: [ksk_ec2, ksk_rsa2]}
-            3: {publish: [], sign: [ksk_ec2, ksk_rsa2]}
-            4: {publish: [], sign: [ksk_ec2, ksk_rsa2]}
-            5: {publish: [], sign: [ksk_ec2, ksk_rsa2]}
-            6: {publish: [], sign: [ksk_ec2, ksk_rsa2]}
-            7: {publish: [], sign: [ksk_ec2, ksk_rsa2]}
-            8: {publish: [], sign: [ksk_ec2, ksk_rsa2]}
-            9: {publish: [], sign: [ksk_ec2, ksk_rsa2]}
+            1: {publish: [], sign: [ksk_EC2, ksk_RSA2]}
+            2: {publish: [], sign: [ksk_EC2, ksk_RSA2]}
+            3: {publish: [], sign: [ksk_EC2, ksk_RSA2]}
+            4: {publish: [], sign: [ksk_EC2, ksk_RSA2]}
+            5: {publish: [], sign: [ksk_EC2, ksk_RSA2]}
+            6: {publish: [], sign: [ksk_EC2, ksk_RSA2]}
+            7: {publish: [], sign: [ksk_EC2, ksk_RSA2]}
+            8: {publish: [], sign: [ksk_EC2, ksk_RSA2]}
+            9: {publish: [], sign: [ksk_EC2, ksk_RSA2]}
         """
-
-        self.config.update(yaml.safe_load(io.StringIO(_DUAL_CONF)))
+        self.config.update(yaml.safe_load(io.StringIO(_SCHEMAS)))
 
     @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
     def test_single_zsk_dual_ksk(self) -> None:
@@ -342,7 +281,7 @@ class Test_SignWithSoftHSM_Errorhandling(SignWithSoftHSM_Baseclass):
         """ Test referring to a key that does not exist in the PKCS#11 module (SoftHSM). """
         _BAD_KEYS = """---
         keys:
-          ksk_test_key:
+          ksk_RSA2:
             description: A key that does not exist in SoftHSM
             label: NO_SUCH_KEY
             key_tag: 15
@@ -352,7 +291,7 @@ class Test_SignWithSoftHSM_Errorhandling(SignWithSoftHSM_Baseclass):
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
         """
-        self.config.update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
+        self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
         zsk_keys = {self._p11_to_dnskey('EC1', AlgorithmDNSSEC.ECDSAP256SHA256, flags=0)}
         request = self._make_request(zsk_keys=zsk_keys)
         with self.assertRaises(ConfigurationError):
@@ -363,7 +302,7 @@ class Test_SignWithSoftHSM_Errorhandling(SignWithSoftHSM_Baseclass):
     def test_not_yet_valid_key(self):
         """ Test referring to a key that is not yet valid. """
         zsk_keys = {self._p11_to_dnskey('RSA1', AlgorithmDNSSEC.RSASHA256, flags=0)}
-        ksk_key = self.config.ksk_keys['ksk_test_key']
+        ksk_key = self.config.ksk_keys['ksk_EC2']
         request = self._make_request(zsk_keys=zsk_keys,
                                      inception=ksk_key.valid_from - datetime.timedelta(days=1),
                                      )
@@ -374,8 +313,21 @@ class Test_SignWithSoftHSM_Errorhandling(SignWithSoftHSM_Baseclass):
 
     def test_expired_key(self):
         """ Test referring to a key that has expired the same second. """
+        _BAD_KEYS = """---
+        keys:
+          ksk_RSA2:
+            description: A key that does not exist in SoftHSM
+            label: NO_SUCH_KEY
+            key_tag: 15
+            algorithm: RSASHA256
+            rsa_size: 2048
+            rsa_exponent: 65537
+            valid_from: 2010-07-15T00:00:00+00:00
+            valid_until: 2019-01-11T00:00:00+00:00
+        """
+        self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
         zsk_keys = {self._p11_to_dnskey('RSA1', AlgorithmDNSSEC.RSASHA256, flags=0)}
-        ksk_key = self.config.ksk_keys['ksk_test_key']
+        ksk_key = self.config.ksk_keys['ksk_RSA2']
         request = self._make_request(zsk_keys=zsk_keys,
                                      expiration=ksk_key.valid_until + datetime.timedelta(seconds=1),
                                      )
@@ -388,7 +340,7 @@ class Test_SignWithSoftHSM_Errorhandling(SignWithSoftHSM_Baseclass):
         """ Test referring to a key that is EC instead of the expected RSA. """
         _BAD_KEYS = """---
         keys:
-          ksk_test_key:
+          ksk_RSA2:
             description: An EC key with algorithm RSA
             label: EC1
             key_tag: 16
@@ -398,7 +350,7 @@ class Test_SignWithSoftHSM_Errorhandling(SignWithSoftHSM_Baseclass):
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
         """
-        self.config.update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
+        self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
         zsk_keys = {self._p11_to_dnskey('RSA1', AlgorithmDNSSEC.RSASHA256, flags=0)}
         request = self._make_request(zsk_keys=zsk_keys)
         with self.assertRaises(ValueError):
@@ -410,17 +362,17 @@ class Test_SignWithSoftHSM_Errorhandling(SignWithSoftHSM_Baseclass):
         """ Test referring to an RSA key that has incorrect size in the config. """
         _BAD_KEYS = """---
         keys:
-          ksk_test_key:
+          ksk_RSA2:
             description: An RSA key with wrong size
-            label: RSA1
-            key_tag: 17
+            label: RSA2
+            key_tag: null
             algorithm: RSASHA256
             rsa_size: 1234
             rsa_exponent: 65537
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
         """
-        self.config.update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
+        self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
         zsk_keys = {self._p11_to_dnskey('RSA1', AlgorithmDNSSEC.RSASHA256, flags=0)}
         request = self._make_request(zsk_keys=zsk_keys)
         with self.assertRaises(ValueError):
@@ -432,17 +384,17 @@ class Test_SignWithSoftHSM_Errorhandling(SignWithSoftHSM_Baseclass):
         """ Test referring to an RSA key that has incorrect exponent in the config. """
         _BAD_KEYS = """---
         keys:
-          ksk_test_key:
+          ksk_RSA2:
             description: An RSA key with wrong exponent
             label: RSA1
-            key_tag: 18
+            key_tag: null
             algorithm: RSASHA256
             rsa_size: 2048
             rsa_exponent: 17
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
         """
-        self.config.update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
+        self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
         zsk_keys = {self._p11_to_dnskey('RSA1', AlgorithmDNSSEC.RSASHA256, flags=0)}
         request = self._make_request(zsk_keys=zsk_keys)
         with self.assertRaises(ValueError):
@@ -454,15 +406,15 @@ class Test_SignWithSoftHSM_Errorhandling(SignWithSoftHSM_Baseclass):
         """ Test referring to a key that is RSA instead of the expected EC. """
         _BAD_KEYS = """---
         keys:
-          ksk_test_key:
+          ksk_RSA2:
             description: An EC key with algorithm RSA
             label: RSA1
-            key_tag: 19
+            key_tag: null
             algorithm: ECDSAP256SHA256
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
         """
-        self.config.update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
+        self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
         zsk_keys = {self._p11_to_dnskey('RSA1', AlgorithmDNSSEC.RSASHA256, flags=0)}
         request = self._make_request(zsk_keys=zsk_keys)
         with self.assertRaises(ValueError):

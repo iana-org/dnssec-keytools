@@ -22,8 +22,11 @@ def validate_dnskey_matches_ksk(ksk: KSKKey, dnskey: Key) -> None:
         if ksk_digest != digest:
             logger.error(f'Configured KSK key {ksk.label} DS SHA256 {ksk_digest} does not match computed '
                          f'DS SHA256 {digest} for DNSSEC key: {dnskey}')
-            raise RuntimeError(f'Key {ksk.label} has unexpected DS')
-    if dnskey.key_tag != ksk.key_tag:
+            raise RuntimeError(f'Key {ksk.label} has unexpected DS ({digest}, not {ksk_digest})')
+    if ksk.key_tag is None:
+        logger.warning(f'Key {ksk.label} does not have a key tag specified - '
+                       f'can\'t ensure the right key was in the HSM')
+    elif dnskey.key_tag != ksk.key_tag:
         logger.error(f'Configured KSK key {ksk.label} key tag {ksk.key_tag} does not match key tag '
                      f'{dnskey.key_tag} for DNSSEC key: {dnskey}')
-        raise RuntimeError(f'Key {ksk.label} has unexpected key tag')
+        raise RuntimeError(f'Key {ksk.label} has unexpected key tag ({dnskey.key_tag}, not {ksk.key_tag})')

@@ -216,6 +216,14 @@ class KSKMConfig(object):
         logger.warning(f'Updating configuration (sections {data.keys()})')
         self._data.update(data)
 
+    def merge_update(self, data: Mapping) -> None:
+        """Merge-update configuration on the fly. Usable in tests."""
+        logger.warning(f'Merging configuration (sections {data.keys()})')
+        for k,v in data.items():
+            logger.debug(f'Updating config section {k} with {v}')
+            self._data[k].update(v)
+            logger.debug(f'Config now: {self._data[k]}')
+
     @classmethod
     def from_yaml(cls: Type[KSKMConfig], stream: IO) -> KSKMConfig:
         """Load configuration from a YAML stream."""
