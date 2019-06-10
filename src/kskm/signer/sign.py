@@ -1,6 +1,5 @@
 """Sign request bundles and return response bundles."""
 import base64
-import binascii
 import hashlib
 import logging
 from dataclasses import replace
@@ -9,8 +8,9 @@ from typing import Dict, Iterable, List, Optional
 from cryptography.exceptions import InvalidSignature
 
 from kskm.common.config import (ConfigurationError, KSKMConfig)
+from kskm.common.config_ksk import validate_dnskey_matches_ksk
 from kskm.common.config_misc import KSKKeysType, KSKPolicy, Schema
-from kskm.common.data import AlgorithmDNSSEC, Signature, TypeDNSSEC, FlagsDNSKEY
+from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY, Signature, TypeDNSSEC
 from kskm.common.dnssec import calculate_key_tag
 from kskm.common.signature import dndepth, make_raw_rrsig
 from kskm.ksr import Request
@@ -20,7 +20,6 @@ from kskm.misc.hsm import KSKM_P11, KSKM_P11Key, sign_using_p11
 from kskm.signer.key import CompositeKey, load_pkcs11_key
 from kskm.skr.data import ResponseBundle
 from kskm.skr.validate import check_valid_signatures
-from kskm.ta.keydigest import create_trustanchor_keydigest
 
 __author__ = 'ft'
 
@@ -128,25 +127,9 @@ def _fetch_keys(key_names: Iterable[str], bundle: RequestBundle, p11modules: KSK
             logger.error(f'Could not find key {repr(_name)} ({ksk.label}/{ksk.description}) '
                          f'for bundle {bundle.id}')
             raise ConfigurationError(f'Key {repr(_name)} not found')
-        #
-        # Ensure the right key was located
-        #
-        if not ksk.ds_sha256:
-            logger.warning(f'Key {ksk.label} does not have a DS SHA256 specified - '
-                           f'can\'t ensure the right key was in the HSM')
-        else:
-            _ds = create_trustanchor_keydigest(ksk, this_key.dns)
-            digest = binascii.hexlify(_ds.digest).decode('UTF-8').upper()
-            ksk_digest = ksk.ds_sha256.upper()
-            if ksk_digest != digest:
-                logger.error(f'Configured KSK key {ksk.label} DS SHA256 {ksk_digest} does not match computed '
-                             f'DS SHA256 {digest} for key loaded using PKCS#11: {this_key}')
-                raise RuntimeError(f'Key {ksk.label} has unexpected DS')
 
-        if this_key.dns.key_tag != ksk.key_tag:
-            logger.error(f'Configured KSK key {ksk.label} key tag {ksk.key_tag} does not match key tag '
-                         f'{this_key.dns.key_tag} for key loaded using PKCS#11: {this_key}')
-            raise RuntimeError(f'Key {ksk.label} has unexpected key tag')
+        # Ensure the right key was located
+        validate_dnskey_matches_ksk(ksk, this_key.dns)
         res += [this_key]
     return res
 

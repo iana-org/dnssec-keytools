@@ -1,6 +1,10 @@
 import logging
 from typing import List
 
+from kskm.common.config import KSKMConfig
+from kskm.common.config_ksk import validate_dnskey_matches_ksk
+from kskm.common.data import FlagsDNSKEY
+from kskm.common.dnssec import public_key_to_dnssec_key
 from kskm.misc.hsm import KSKM_P11, KeyClass
 
 __author__ = 'ft'
@@ -9,7 +13,7 @@ __author__ = 'ft'
 logger = logging.getLogger(__name__)
 
 
-def key_inventory(p11modules: KSKM_P11) -> List[str]:
+def key_inventory(p11modules: KSKM_P11, config: KSKMConfig) -> List[str]:
     res: List[str] = []
     for module in p11modules:
         res += [f'HSM {module.label}:']
@@ -23,22 +27,44 @@ def key_inventory(p11modules: KSKM_P11) -> List[str]:
                     continue
                 keys[this.key_class][this.key_id] = this
 
-            formatted = _format_keys(keys)
+            formatted = _format_keys(keys, config)
 
             if formatted:
                 res += [f'  Slot {slot}:']
                 res += formatted
     return res
 
-def _format_keys(data: dict) -> List[str]:
+
+def _format_keys(data: dict, config: KSKMConfig) -> List[str]:
     res = []
     pairs = []
     # First, find all pairs (CKA_ID present in both PRIVATE and PUBLIC)
     if KeyClass.PUBLIC in data and KeyClass.PRIVATE in data:
         for key_id in sorted(list(data[KeyClass.PUBLIC].keys())):
             this = data[KeyClass.PUBLIC][key_id]
+
+            ksk_info = 'Matching KSK not found in configuration'
+            # Look for the key in the config
+            for _name, ksk in config.ksk_keys.items():
+                if ksk.label == this.label:
+                    dnskey = public_key_to_dnssec_key(key=this.pubkey,
+                                                      key_identifier=this.label,
+                                                      algorithm=ksk.algorithm,
+                                                      flags=FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value,
+                                                      ttl=0,
+                                                      )
+
+                    # Check that key found in HSM matches the configuration
+                    try:
+                        validate_dnskey_matches_ksk(ksk, dnskey)
+                    except RuntimeError:
+                        ksk_info = f'KSK \'{ksk.description}\' key tag or DS DOES NOT MATCH this key'
+                        break
+
+                    ksk_info = f'KSK \'{ksk.description}\', key tag {ksk.key_tag}, algorithm={ksk.algorithm.name}'
+
             if key_id in data[KeyClass.PRIVATE]:
-                pairs += [f'      {this.label:7s} id={this.key_id} {str(this.pubkey)}']
+                pairs += [f'      {this.label:7s} id={this.key_id} {str(this.pubkey)} -- {ksk_info}']
                 del data[KeyClass.PRIVATE][key_id]
             del data[KeyClass.PUBLIC][key_id]
     if pairs:

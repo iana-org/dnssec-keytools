@@ -19,7 +19,7 @@ import kskm.misc
 from kskm.common.config import KSKMConfig, get_config
 from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY
 from kskm.common.dnssec import public_key_to_dnssec_key
-from kskm.common.ecdsa_utils import is_algorithm_ecdsa, algorithm_to_curve
+from kskm.common.ecdsa_utils import algorithm_to_curve, is_algorithm_ecdsa
 from kskm.common.logging import get_logger
 from kskm.common.rsa_utils import is_algorithm_rsa
 from kskm.keymaster.delete import key_delete, wrapkey_delete
@@ -130,7 +130,7 @@ def wrapdel(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, 
 def inventory(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger) -> bool:
     """Show HSM inventory."""
     logger.info('Show HSM inventory')
-    inv = key_inventory(p11modules)
+    inv = key_inventory(p11modules, config)
     inv_str = '\n'.join(inv)
     logger.info(f'Key inventory:\n{inv_str}')
 
