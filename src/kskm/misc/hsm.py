@@ -54,6 +54,7 @@ class KeyInfo(object):
     key_id: int
     label: str
     p11key: Optional[KSKM_P11Key] = field(repr=False, default=None)
+    pubkey: Optional[KSKM_PublicKey] = field(repr=False, default=None)
 
 
 class WrappingAlgorithm(Enum):
@@ -278,8 +279,6 @@ class KSKM_P11Module(object):
 
     def get_key_inventory(self, session: PyKCS11.Session) -> List[KeyInfo]:
         """Enumerate all keys found in a slot."""
-        # TODO: Should this function return CKA_IDs too? This tool suite relies on addressing keys
-        #       only with CKA_LABEL in general, so probably no point in returning CKA_ID.
         res: List[KeyInfo] = []
 
         for this in session.findObjects([]):
@@ -287,16 +286,16 @@ class KSKM_P11Module(object):
                                                                   PyKCS11.LowLevel.CKA_LABEL,
                                                                   PyKCS11.LowLevel.CKA_ID,
                                                                   ])
+            if len(key_id) == 1:  # CKA_ID is represented as a tuple like (7,)
+                key_id = key_id[0]
+
             if cls == PyKCS11.LowLevel.CKO_SECRET_KEY:
                 res += [KeyInfo(key_class=KeyClass.SECRET, label=label, key_id=key_id)]
             elif cls == PyKCS11.LowLevel.CKO_PUBLIC_KEY:
-                for this in self.find_key_by_id(key_id, session):
-                    res += [KeyInfo(key_class=KeyClass.PUBLIC, label=label, key_id=key_id, p11key=this)]
-                    break  # this skips other keys with the same label (public+private is two keys)
+                pub = self._p11_object_to_public_key(session, this)
+                res += [KeyInfo(key_class=KeyClass.PUBLIC, label=label, key_id=key_id, p11key=this, pubkey=pub)]
             elif cls == PyKCS11.LowLevel.CKO_PRIVATE_KEY:
-                for this in self.find_key_by_id(key_id, session):
-                    res += [KeyInfo(key_class=KeyClass.PRIVATE, label=label, key_id=key_id, p11key=this)]
-                    break  # this skips other keys with the same label (public+private is two keys)
+                res += [KeyInfo(key_class=KeyClass.PRIVATE, label=label, key_id=key_id, p11key=this)]
 
         return res
 

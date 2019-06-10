@@ -130,7 +130,10 @@ def wrapdel(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, 
 def inventory(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger) -> bool:
     """Show HSM inventory."""
     logger.info('Show HSM inventory')
-    key_inventory(p11modules)
+    inv = key_inventory(p11modules)
+    inv_str = '\n'.join(inv)
+    logger.info(f'Key inventory:\n{inv_str}')
+
     return True
 
 

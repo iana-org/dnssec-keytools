@@ -44,7 +44,7 @@ class KSKM_PublicKey_RSA(KSKM_PublicKey):
     n: bytes = field(repr=False)
 
     def __str__(self) -> str:
-        return f"algo=RSA bits={self.bits} exp={self.exponent}"
+        return f'alg=RSA bits={self.bits} exp={self.exponent}'
 
 
 def decode_rsa_public_key(key: bytes) -> KSKM_PublicKey_RSA:
