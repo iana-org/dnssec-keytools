@@ -45,10 +45,10 @@ class Test_Key_Inventory(unittest.TestCase):
 
     @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
     def test_inventory(self):
-        res = key_inventory(self.p11modules)
-        # key inventory is expected to be at least 15 (20) lines when loaded with
+        res = key_inventory(self.p11modules, self.config)
+        # key inventory is expected to be at least 10 (15) lines when loaded with
         # the test keys from testing/softhsm/Makefile.
-        self.assertGreater(len(res), 15)
+        self.assertGreater(len(res), 10)
         output_str = '\n'.join(res)
         # check for two well known key labels
         self.assertIn('RSA1', output_str)
