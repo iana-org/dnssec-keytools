@@ -10,7 +10,7 @@ from copy import copy
 from dataclasses import dataclass, field
 from enum import Enum
 from getpass import getpass
-from hashlib import sha256, sha384
+from hashlib import sha1, sha256, sha384, sha512
 from typing import (Any, Dict, Iterator, List, Mapping, MutableMapping,
                     NewType, Optional)
 
@@ -286,6 +286,7 @@ class KSKM_P11Module(object):
                                                                   PyKCS11.LowLevel.CKA_LABEL,
                                                                   PyKCS11.LowLevel.CKA_ID,
                                                                   ])
+            logger.debug(f'Found key of class {cls}, label {label} and id {key_id}')
             if len(key_id) == 1:  # CKA_ID is represented as a tuple like (7,)
                 key_id = key_id[0]
 
@@ -340,32 +341,48 @@ class KSKM_P11Module(object):
 
 
 def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) -> bytes:
-    """
-    Sign some data using a PKCS#11 key.
-
-    NOTE: The old code seemed to be pretty deliberately made to create the raw data
-          itself and then ask the HSM to sign raw data (using CKM_RSA_X_509), but the
-          documentation (/* = Raw.  NOT CKM_RSA_PKCS;*/) did not give a reason for this.
-          Since CKM_SHA256_RSA_PKCS works fine with SoftHSM2, I did not put time into
-          implementing PKCS#1 1.5 padding again here, but if this is needed the data
-          structure is shown in e.g. RFC8017, A.2.4. RSASSA-PKCS-v1_5.
-    """
+    """Sign some data using a PKCS#11 key."""
     # Mechanism CKM_ECDSA is without hashing, so pre-hash data if using ECDSA
     if algorithm == AlgorithmDNSSEC.ECDSAP256SHA256:
         data = sha256(data).digest()
     elif algorithm == AlgorithmDNSSEC.ECDSAP384SHA384:
         data = sha384(data).digest()
 
-    logger.debug(f'Signing {len(data)} bytes with key {key}')
-    _mechs = {AlgorithmDNSSEC.RSASHA1: PyKCS11.LowLevel.CKM_SHA1_RSA_PKCS,
-              AlgorithmDNSSEC.RSASHA256: PyKCS11.LowLevel.CKM_SHA256_RSA_PKCS,
-              AlgorithmDNSSEC.RSASHA512: PyKCS11.LowLevel.CKM_SHA512_RSA_PKCS,
-              AlgorithmDNSSEC.ECDSAP256SHA256: PyKCS11.LowLevel.CKM_ECDSA,
-              AlgorithmDNSSEC.ECDSAP384SHA384: PyKCS11.LowLevel.CKM_ECDSA,
-              }
-    mechanism = _mechs.get(algorithm)
+    logger.debug(f'Signing {len(data)} bytes with key {key}, algorithm {algorithm.name}')
+    # With SoftHSMv2, the following PKCS#11 mechanisms would be available, but
+    # not with the AEP Keyper, so we implement RSA PKCS#1 1.5 padding ourselves here
+    # and instead use the 'raw' RSA signing mechanism CKM_RSA_X_509.
+    #  {AlgorithmDNSSEC.RSASHA1: PyKCS11.LowLevel.CKM_SHA1_RSA_PKCS,
+    #   AlgorithmDNSSEC.RSASHA256: PyKCS11.LowLevel.CKM_SHA256_RSA_PKCS,
+    #   AlgorithmDNSSEC.RSASHA512: PyKCS11.LowLevel.CKM_SHA512_RSA_PKCS,
+    #  }
+    mechanism = {AlgorithmDNSSEC.RSASHA1: PyKCS11.LowLevel.CKM_RSA_X_509,
+                 AlgorithmDNSSEC.RSASHA256: PyKCS11.LowLevel.CKM_RSA_X_509,
+                 AlgorithmDNSSEC.RSASHA512: PyKCS11.LowLevel.CKM_RSA_X_509,
+                 AlgorithmDNSSEC.ECDSAP256SHA256: PyKCS11.LowLevel.CKM_ECDSA,
+                 AlgorithmDNSSEC.ECDSAP384SHA384: PyKCS11.LowLevel.CKM_ECDSA,
+                 }.get(algorithm)
     if mechanism is None:
         raise RuntimeError(f'Can\'t PKCS#11 sign data with algorithm {algorithm.name}')
+
+    if mechanism == PyKCS11.LowLevel.CKM_RSA_X_509:
+        # Pad according to RFC3447  9.2 EMSA-PKCS1-v1_5
+        if algorithm == AlgorithmDNSSEC.RSASHA1:
+            digest = sha1(data).digest()
+            oid = b'\x30\x21\x30\x09\x06\x05\x2b\x0e\x03\x02\x1a\x05\x00\x04\x14'
+        elif algorithm == AlgorithmDNSSEC.RSASHA256:
+            digest = sha256(data).digest()
+            oid = b'\x30\x31\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x01\x05\x00\x04\x20'
+        elif algorithm == AlgorithmDNSSEC.RSASHA512:
+            digest = sha512(data).digest()
+            oid = b'\x30\x51\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x03\x05\x00\x04\x40',
+        else:
+            raise RuntimeError(f'Don\'t know how to pad algorithm {algorithm}')
+        T = oid + digest
+        sig_len = key.public_key.bits // 8
+        pad_len = sig_len - len(T) - 3
+        pad = b'\xff' * pad_len
+        data = bytes([0x0, 0x1]) + pad + b'\x00' + T
 
     if not key.privkey_handle:
         raise RuntimeError(f'No private key supplied in {key}')
