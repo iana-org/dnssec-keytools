@@ -11,6 +11,7 @@ NOTE: Only validation that can be performed with _only the KSR_ are done here.
       package importing the SKR package.
 """
 import logging
+from dataclasses import asdict
 
 from kskm.ksr import Request
 from kskm.common.config_misc import RequestPolicy
@@ -32,6 +33,9 @@ def validate_request(request: Request, policy: RequestPolicy) -> bool:
     on errors. Dealing with return values to determine outcome makes it too easy
     to screw up.
     """
+    logger.info('Validating KSR using request policy:')
+    for k,v in sorted(asdict(policy).items()):
+        logger.info(f'  {k}: {v}')
     verify_header(request, policy, logger)
     verify_bundles(request, policy, logger)
     verify_policy(request, policy, logger)
