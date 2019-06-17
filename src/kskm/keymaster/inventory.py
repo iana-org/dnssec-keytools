@@ -40,7 +40,7 @@ def _format_keys(data: dict, config: KSKMConfig) -> List[str]:
     pairs = []
     # First, find all pairs (CKA_ID present in both PRIVATE and PUBLIC)
     if KeyClass.PUBLIC in data and KeyClass.PRIVATE in data:
-        for key_id in sorted(list(data[KeyClass.PUBLIC].keys())):
+        for key_id in data[KeyClass.PUBLIC].keys():
             this = data[KeyClass.PUBLIC][key_id]
 
             ksk_info = 'Matching KSK not found in configuration'
@@ -66,16 +66,18 @@ def _format_keys(data: dict, config: KSKMConfig) -> List[str]:
 
             if key_id in data[KeyClass.PRIVATE]:
                 pairs += [f'      {this.label:7s} id={this.key_id} {str(this.pubkey)} -- {ksk_info}']
-                del data[KeyClass.PRIVATE][key_id]
-            del data[KeyClass.PUBLIC][key_id]
+                data[KeyClass.PRIVATE][key_id] = None
+            data[KeyClass.PUBLIC][key_id] = None
     if pairs:
         res += ['    Signing key pairs:'] + pairs
 
     # Now, add all leftover keys
     for cls in data.keys():
         _res = []
-        for key_id in sorted(list(data[cls].keys())):
+        for key_id in list(data[cls].keys()):
             this = data[cls][key_id]
+            if this is None:
+                continue
             _res += [f'      {this.label:7s} id={this.key_id}']
         if _res:
             res += [f'    {cls.name} keys:'] + _res
