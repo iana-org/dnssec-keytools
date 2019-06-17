@@ -126,8 +126,6 @@ Git clone icann-kskm:
     git clone git@github.com:iana-org/dnssec-keytools-2019-dev.git
 
 
-## Perform KSR Signer testing
-
 ### Basic configuration
 
 Use 'make venv' to create a Python virtualenv.
@@ -150,12 +148,13 @@ Create a `ksrsigner.yaml` configuration file for KSKM:
           LD_LIBRARY_PATH: /opt/Keyper/PKCS11Provider
     EOF
 
+
+### Generate a KSK keypair
+
 Activate the KSR signer venv using `. ~/dnssec-keytools-2019-dev/venv/bin/activate`.
 
 <!-- TODO: run ksk-keymaster here to check connectivity? -->
 
-
-### Generate a KSK keypair
 
 Generate a KSK keypair using `kskm-keymaster`:
 
@@ -195,7 +194,7 @@ Try the key inventory mode using `kskm-keymaster`:
 
 ### Add generated KSK to configuration
 
-Add the generated KSK key to the configuration (with the key tag from above):
+Add the generated KSK key to the configuration (with the key tag from the generation step above):
 
     (venv) root@vm-1804:~# cat >> ksrsigner.yaml << EOF
 
@@ -299,7 +298,7 @@ to the configuration:
       check_bundle_overlap: False
 
 
-Actually sign a KSR:
+### Actually sign a KSR:
 
     (venv) root@vm-1604:~# kskm-ksrsigner --config ksrsigner.yaml ~/dnssec-keytools-2019-dev/src/kskm/ksr/tests/data/ksr-root-2018-q1-0-d_to_e.xml
     2019-06-17 14:21:41,725: kskm.common.config: INFO Loaded configuration from file ksrsigner.yaml SHA-256 405c0be19a7a42910c893fee88029beed150091d50a40499682b44be52284b9c WORDS crackdown fascinate alone tolerance pupil infancy crowfoot miracle ammo matchmaker cowbell universe newborn aftermath puppy universe stairway embezzle Algol breakaway drumbeat Pandora adrift nebula frighten Cherokee crumpled racketeer Dupont cellulose dragnet October
