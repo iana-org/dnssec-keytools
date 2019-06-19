@@ -151,10 +151,7 @@ Create a `ksrsigner.yaml` configuration file for KSKM:
 
 ### Generate a KSK keypair
 
-Activate the KSR signer venv using `. ~/dnssec-keytools-2019-dev/venv/bin/activate`.
-
-<!-- TODO: run ksk-keymaster here to check connectivity? -->
-
+Activate the KSR signer venv using `. venv/bin/activate`.
 
 Generate a KSK keypair using `kskm-keymaster`:
 
