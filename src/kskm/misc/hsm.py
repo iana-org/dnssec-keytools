@@ -74,13 +74,13 @@ class KSKM_P11Key(object):
     privkey_handle: Optional[List[PyKCS11.CK_OBJECT_HANDLE]] = field(repr=False, default=None)  # PyKCS11 opaque data
     pubkey_handle: Optional[List[PyKCS11.CK_OBJECT_HANDLE]] = field(repr=False, default=None)  # PyKCS11 opaque data
 
-    def __str__(self):
+    def __str__(self) -> str:
         s = f'key_label={self.label}'
         if self.public_key:
             s += ' ' + str(self.public_key)
         return s
 
-    def key_wrap_mechanism(self):
+    def key_wrap_mechanism(self) -> PyKCS11.Mechanism:
         """Get key wrap mechanism for this key."""
         if self.key_type == KeyType.AES:
             return PyKCS11.Mechanism(PyKCS11.LowLevel.CKM_AES_KEY_WRAP, None)
@@ -349,13 +349,15 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) ->
         data = sha384(data).digest()
 
     logger.debug(f'Signing {len(data)} bytes with key {key}, algorithm {algorithm.name}')
-    # With SoftHSMv2, the following PKCS#11 mechanisms would be available, but
-    # not with the AEP Keyper, so we implement RSA PKCS#1 1.5 padding ourselves here
-    # and instead use the 'raw' RSA signing mechanism CKM_RSA_X_509.
+    # With SoftHSMv2, the following PKCS#11 mechanisms would be available,
+    #
     #  {AlgorithmDNSSEC.RSASHA1: PyKCS11.LowLevel.CKM_SHA1_RSA_PKCS,
     #   AlgorithmDNSSEC.RSASHA256: PyKCS11.LowLevel.CKM_SHA256_RSA_PKCS,
     #   AlgorithmDNSSEC.RSASHA512: PyKCS11.LowLevel.CKM_SHA512_RSA_PKCS,
     #  }
+    #
+    # but not with the AEP Keyper, so we implement RSA PKCS#1 1.5 padding ourselves here
+    # and instead use the 'raw' RSA signing mechanism CKM_RSA_X_509.
     mechanism = {AlgorithmDNSSEC.RSASHA1: PyKCS11.LowLevel.CKM_RSA_X_509,
                  AlgorithmDNSSEC.RSASHA256: PyKCS11.LowLevel.CKM_RSA_X_509,
                  AlgorithmDNSSEC.RSASHA512: PyKCS11.LowLevel.CKM_RSA_X_509,
@@ -375,9 +377,11 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) ->
             oid = b'\x30\x31\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x01\x05\x00\x04\x20'
         elif algorithm == AlgorithmDNSSEC.RSASHA512:
             digest = sha512(data).digest()
-            oid = b'\x30\x51\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x03\x05\x00\x04\x40',
+            oid = b'\x30\x51\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x03\x05\x00\x04\x40'
         else:
             raise RuntimeError(f'Don\'t know how to pad algorithm {algorithm}')
+        if not isinstance(key.public_key, KSKM_PublicKey_RSA):
+            raise ValueError(f'Can\'t RSA sign with non-RSA key {key}')
         T = oid + digest
         sig_len = key.public_key.bits // 8
         pad_len = sig_len - len(T) - 3

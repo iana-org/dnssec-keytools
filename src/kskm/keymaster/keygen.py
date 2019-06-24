@@ -1,7 +1,7 @@
 import base64
 import logging
 import time
-from typing import List, Optional
+from typing import List, Optional, Tuple, Any
 
 from PyKCS11 import Mechanism
 from PyKCS11.LowLevel import CKA_CLASS, CKA_DECRYPT, CKA_DERIVE, CKA_ENCRYPT, CKA_EXTRACTABLE, CKA_KEY_TYPE, \
@@ -94,8 +94,8 @@ def generate_rsa_key(flags: int, bits: int, p11modules: KSKM_P11, exponent: int 
 
 
 def public_key_template(label: str, key_type: int, bits: Optional[int]=None, rsa_exponent: Optional[int]=None,
-                        rsa_modulus: Optional[bytes] = None):
-    publicKeyTemplate = [
+                        rsa_modulus: Optional[bytes] = None) -> List[Tuple]:
+    publicKeyTemplate: List[Tuple[Any, ...]] = [
         (CKA_LABEL, label),
         # (CKA_ID,              (0x0,)),
         (CKA_CLASS, CKO_PUBLIC_KEY),

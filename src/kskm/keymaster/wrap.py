@@ -1,7 +1,11 @@
-import logging
-from dataclasses import dataclass, field, asdict
-from typing import Optional, Mapping
+from __future__ import annotations
 
+import logging
+from copy import copy
+from dataclasses import asdict, dataclass, field
+from typing import Mapping, Optional, Type, cast
+
+from kskm.common.rsa_utils import KSKM_PublicKey_RSA
 from kskm.keymaster.common import get_session
 from kskm.keymaster.keygen import private_key_template, public_key_template
 from kskm.misc.hsm import KSKM_P11, KeyType, get_p11_key, get_p11_secret_key
@@ -26,10 +30,11 @@ class WrappedKey(object):
         return res
 
     @classmethod
-    def from_dict(cls, data: Mapping):
+    def from_dict(cls: Type[WrappedKey], data: Mapping) -> WrappedKey:
+        _data = dict(copy(data))  # do not modify caller's data
         if 'key_type' in data:
-            data['key_type'] = KeyType[data['key_type']]
-        return cls(**data)
+            _data['key_type'] = KeyType[data['key_type']]
+        return cls(**_data)
 
 
 @dataclass
@@ -55,16 +60,24 @@ def key_backup(label: str, wrap_label: str, p11modules: KSKM_P11) -> Optional[Wr
 
     if not wrap_key.privkey_handle:
         raise RuntimeError('Wrapping key has no private key')
-    private_wrapped = session.wrapKey(wrap_key.privkey_handle[0], existing_key.privkey_handle[0],
-                                      mecha=wrap_key.key_wrap_mechanism())
-    public_wrapped = session.wrapKey(wrap_key.privkey_handle[0], existing_key.pubkey_handle[0],
-                                     mecha=wrap_key.key_wrap_mechanism())
-    if existing_key.key_type == KeyType.RSA:
+    private_wrapped = None
+    public_wrapped = None
+    if wrap_key.privkey_handle and existing_key.privkey_handle:
+        _wrap = session.wrapKey(cast(int, wrap_key.privkey_handle[0]),
+                                cast(int, existing_key.privkey_handle[0]),
+                                mecha=wrap_key.key_wrap_mechanism())
+        private_wrapped = bytes(_wrap)
+    if wrap_key.privkey_handle and existing_key.pubkey_handle:
+        _wrap = session.wrapKey(cast(int, wrap_key.privkey_handle[0]),
+                                cast(int, existing_key.pubkey_handle[0]),
+                                mecha=wrap_key.key_wrap_mechanism())
+        public_wrapped = bytes(_wrap)
+    if existing_key.key_type == KeyType.RSA and isinstance(existing_key.public_key, KSKM_PublicKey_RSA):
         return WrappedKeyRSA(key_label=existing_key.label,
                              key_type=existing_key.key_type,
                              wrap_key_label=wrap_key.label,
-                             private_wrapped=bytes(private_wrapped),
-                             public_wrapped=bytes(public_wrapped),
+                             private_wrapped=private_wrapped,
+                             public_wrapped=public_wrapped,
                              bits=existing_key.public_key.bits,
                              exponent=existing_key.public_key.exponent,
                              modulus=existing_key.public_key.n,

@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import Dict, List
 
 from kskm.common.config import KSKMConfig
 from kskm.common.config_ksk import validate_dnskey_matches_ksk
@@ -18,7 +18,7 @@ def key_inventory(p11modules: KSKM_P11, config: KSKMConfig) -> List[str]:
     for module in p11modules:
         res += [f'HSM {module.label}:']
         for slot, session in sorted(module.sessions.items()):
-            keys = dict()
+            keys: Dict[KeyClass, dict] = dict()
             for this in module.get_key_inventory(session):
                 if this.key_class not in keys:
                     keys[this.key_class] = {}
@@ -36,8 +36,8 @@ def key_inventory(p11modules: KSKM_P11, config: KSKMConfig) -> List[str]:
 
 
 def _format_keys(data: dict, config: KSKMConfig) -> List[str]:
-    res = []
-    pairs = []
+    res: List[str] = []
+    pairs: List[str] = []
     # First, find all pairs (CKA_ID present in both PRIVATE and PUBLIC)
     if KeyClass.PUBLIC in data and KeyClass.PRIVATE in data:
         for key_id in data[KeyClass.PUBLIC].keys():
@@ -73,7 +73,7 @@ def _format_keys(data: dict, config: KSKMConfig) -> List[str]:
 
     # Now, add all leftover keys
     for cls in data.keys():
-        _res = []
+        _res: List[str] = []
         for key_id in list(data[cls].keys()):
             this = data[cls][key_id]
             if this is None:
