@@ -43,7 +43,7 @@ def calculate_key_tag(key: Key) -> int:
 
 
 def public_key_to_dnssec_key(key: KSKM_PublicKey,
-                             key_identifier: Optional[str], algorithm: AlgorithmDNSSEC,
+                             key_identifier: str, algorithm: AlgorithmDNSSEC,
                              ttl: int, flags: int) -> Key:
     """Make a Key instance from an RSAPublicKeyData, and some other values."""
     if isinstance(key, KSKM_PublicKey_RSA):

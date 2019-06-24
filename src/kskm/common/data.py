@@ -74,7 +74,7 @@ class Signer(object):
 
 @dataclass(frozen=True)
 class Signature(object):
-    key_identifier: Optional[str]
+    key_identifier: str
     ttl: int
     type_covered: TypeDNSSEC
     algorithm: AlgorithmDNSSEC
@@ -89,7 +89,7 @@ class Signature(object):
 
 @dataclass(frozen=True)
 class Key(object):
-    key_identifier: Optional[str]  # TODO: Some checks compare keys using the identifier, won't work if it is None
+    key_identifier: str
     key_tag: int
     ttl: int
     flags: int
