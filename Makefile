@@ -38,7 +38,7 @@ container:
 	docker build --tag wksr .
 
 coverage: $(VENV) softhsm
-	env $(TEST_ENV) $(VENV)/bin/coverage run --source $(SOURCE) -m unittest discover -s $(SOURCE) --verbose
+	env $(TEST_ENV) $(VENV)/bin/coverage run --source $(SOURCE) -m nose -w $(SOURCE) --verbose
 	$(VENV)/bin/coverage html
 
 lint: $(VENV)
