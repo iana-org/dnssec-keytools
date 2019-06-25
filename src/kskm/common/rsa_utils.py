@@ -1,8 +1,9 @@
 """Various functions relating to the RSA algorithm."""
 import base64
-import math
 import struct
 from dataclasses import dataclass, field
+
+import math
 
 from kskm.common.data import (AlgorithmDNSSEC, AlgorithmPolicyRSA)
 from kskm.common.public_key import KSKM_PublicKey
@@ -66,13 +67,17 @@ def decode_rsa_public_key(key: bytes) -> KSKM_PublicKey_RSA:
 
 
 def encode_rsa_public_key(key: KSKM_PublicKey_RSA) -> bytes:
-    """Encode a public key (probably loaded from an HSM) into base64 encoded Key.public_key form."""
+    """
+    Encode a public key (probably loaded from an HSM) into base64 encoded Key.public_key form.
+
+    This is specified in RFC 3110, section 2.
+    """
     _exp_len = math.ceil(int.bit_length(key.exponent) / 8)
     exp = int.to_bytes(key.exponent, length=_exp_len, byteorder='big')
-    if _exp_len > 1:
+    if _exp_len > 255:
+        # A value larger than 255 can't be represented using a single byte. Use long variant
+        # of encoding, which is a zero byte followed by the value in two bytes.
         exp_header = b'\0' + struct.pack('!H', _exp_len)
     else:
-        # TODO: None of the public keys in the KSR archive use this short form of exponent encoding -
-        #       is it not meant to be used?
         exp_header = struct.pack('!B', _exp_len)
     return base64.b64encode(exp_header + exp + key.n)
