@@ -23,7 +23,7 @@ def create_trustanchor_keydigest(ksk_key: KSKKey, key: Key, domain: str = '.') -
     """
     rr = _dn2wire(domain)
     rr += key_to_rdata(key)
-    logger.debug(f'Creating DS record using domain + DNSKEY RDATA\n{binascii.hexlify(rr)}')
+    logger.debug(f'Creating DS record for key {ksk_key.label} using domain + DNSKEY RDATA\n{binascii.hexlify(rr)}')
     digest = sha256(rr).digest()
     return KeyDigest(algorithm=key.algorithm,
                      digest=digest,
