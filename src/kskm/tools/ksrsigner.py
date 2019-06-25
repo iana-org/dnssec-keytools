@@ -141,6 +141,9 @@ def ksrsigner(logger: logging.Logger, args: Optional[ArgsType], config: Optional
     # Load the KSR request
     #
     _ksr_fn = _ksr_filename(args, config)
+    if _ksr_fn is None:
+        logger.error("No KSR filename specified")
+        return False
     request = kskm.ksr.load_ksr(_ksr_fn, config.request_policy)
     logger.info('Request:')
     [logger.info(x) for x in format_bundles_for_humans(request.bundles)]
