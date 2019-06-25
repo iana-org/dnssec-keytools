@@ -110,7 +110,7 @@ def trustanchor(logger: logging.Logger, args: Optional[ArgsType], config: Option
         _key = public_key_to_dnssec_key(key=p11key.public_key,
                                         key_identifier=ksk.label,
                                         algorithm=ksk.algorithm,
-                                        flags=FlagsDNSKEY.SEP.value,
+                                        flags=FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value,
                                         ttl=config.ksk_policy.ttl,
                                         )
         this = create_trustanchor_keydigest(ksk, _key)
