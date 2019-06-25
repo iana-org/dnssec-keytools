@@ -91,6 +91,12 @@ def parse_args(defaults: dict) -> ArgsType:
                         action='store_true', default=defaults['syslog'],
                         help='Enable syslog output',
                         )
+    parser.add_argument('--force',
+                        dest='force',
+                        action='store_true',
+                        default=False,
+                        help='Don\'t ask for confirmation',
+                        )
     args = parser.parse_args()
     return args
 
@@ -153,6 +159,12 @@ def ksrsigner(logger: logging.Logger, args: Optional[ArgsType], config: Optional
     else:
         logger.info('KSR-CHAIN-PRE/KSR-CHAIN-POST: Previous SKR *NOT* loaded - daisy chain not validated')
         logger.info('KSR-PREVIOUS: Previous SKR *NOT* loaded - presence of SKR(n-1) in HSM not validated')
+
+    if not args.force:
+        ack = input(f'Sign KSR? Confirm with "Yes" (exactly) or anything else to abort: ')
+        if ack.strip('\n') != 'Yes':
+            logger.info(f'KSR signing aborted')
+            return False
 
     #
     # Create a new SKR
