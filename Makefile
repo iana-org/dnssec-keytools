@@ -45,7 +45,7 @@ lint: $(VENV)
 	$(VENV)/bin/pylama $(SOURCE)
 
 typecheck: $(VENV)
-	$(VENV)/bin/mypy $(SOURCE)
+	$(VENV)/bin/mypy $(SOURCE) $(SOURCE)/kskm/tools
 
 clean:
 	(cd testing/softhsm; make SOFTHSM_CONF=$(SOFTHSM2_CONF) clean)
