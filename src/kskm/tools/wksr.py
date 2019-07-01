@@ -27,7 +27,9 @@ from kskm.ksr import load_ksr
 DEFAULT_CONFIG = 'wksr.yaml'
 DEFAULT_CIPHERS = 'ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384'
 
+# TODO: Neater to have this in an 'init_app' function, or move it into main()
 app = Flask(__name__)
+# TODO: These can be moved onto the 'app' instance, and accessed using the Flask 'current_app' Application Context.
 client_whitelist: Set[str] = set()
 ksr_config = None
 notify_config = None
@@ -38,10 +40,13 @@ def authz() -> None:
     """Check TLS client whitelist."""
     digest = PeerCertWSGIRequestHandler.client_digest()
     # we allow no certificate for now
+    # TODO: Disable no-cert mode.
     if digest is None:
         logging.warning("Allowed client=%s digest=%s", request.remote_addr, digest)
         return
     if digest not in client_whitelist:
+        # TODO: use format strings consistently.
+        #       Saving cycles on logging isn't justifiable in this code base. Consistency improves auditability.
         logging.warning("Denied client=%s digest=%s", request.remote_addr, digest)
         raise Forbidden
     logging.info("Allowed client=%s digest=%s", request.remote_addr, digest)
@@ -141,12 +146,19 @@ def save_ksr(upload_file: FileStorage) -> Tuple[str, str]:
     filehash = m.hexdigest()
 
     # save file
+    # TODO: using a client supplied filename would of course add to the attack surface, and need sanitation,
+    # but wouldn't the KSK operator want to preserve the name of the request from the ZSK operator?
+    # Alternatively, maybe use ISO8601 datetime (with microseconds, or a counter) as filename,
+    # to at least make them sortable.
+    # TODO: use os.path.join
     filename = f"{ksr_config.get('prefix','')}{str(uuid.uuid4())}.xml"
     with open(filename, 'wb') as ksr_file:
         ksr_file.write(upload_file.stream.read())
 
     logging.info("Saved filename=%s size=%d hash=%s", filename, filesize, filehash)
 
+    # TODO: Borderline OCD in this case, but I've actually started returning instances of small dataclasses
+    #       whenever I want to return multiple values.
     return (filename, filehash)
 
 
