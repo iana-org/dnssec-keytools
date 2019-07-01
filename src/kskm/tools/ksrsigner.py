@@ -101,25 +101,25 @@ def parse_args(defaults: dict) -> ArgsType:
     return args
 
 
-def _previous_skr_filename(args: Optional[ArgsType], config: KSKMConfig) -> Optional[str]:
+def _previous_skr_filename(args: ArgsType, config: KSKMConfig) -> Optional[str]:
     if args and args.previous_skr:
-        return args.previous_skr
+        return str(args.previous_skr)
     return config.get_filename('previous_skr')
 
 
-def _ksr_filename(args: Optional[ArgsType], config: KSKMConfig) -> Optional[str]:
+def _ksr_filename(args: ArgsType, config: KSKMConfig) -> Optional[str]:
     if args and args.ksr:
-        return args.ksr
+        return str(args.ksr)
     return config.get_filename('input_ksr')
 
 
-def _skr_filename(args: Optional[ArgsType], config: KSKMConfig) -> Optional[str]:
+def _skr_filename(args: ArgsType, config: KSKMConfig) -> Optional[str]:
     if args and args.skr:
-        return args.skr
+        return str(args.skr)
     return config.get_filename('output_skr')
 
 
-def ksrsigner(logger: logging.Logger, args: Optional[ArgsType], config: Optional[KSKMConfig] = None) -> bool:
+def ksrsigner(logger: logging.Logger, args: ArgsType, config: Optional[KSKMConfig] = None) -> bool:
     """Parse KSR and previous SKR. Produce a new SKR."""
     #
     # Load configuration, if not provided already
@@ -135,7 +135,8 @@ def ksrsigner(logger: logging.Logger, args: Optional[ArgsType], config: Optional
     if _previous_skr:
         skr = kskm.skr.load_skr(_previous_skr, config.response_policy)
         logger.info('Previous SKR:')
-        [logger.info(x) for x in format_bundles_for_humans(skr.bundles)]
+        for x in format_bundles_for_humans(skr.bundles):
+            logger.info(x)
 
     #
     # Load the KSR request
@@ -146,7 +147,8 @@ def ksrsigner(logger: logging.Logger, args: Optional[ArgsType], config: Optional
         return False
     request = kskm.ksr.load_ksr(_ksr_fn, config.request_policy)
     logger.info('Request:')
-    [logger.info(x) for x in format_bundles_for_humans(request.bundles)]
+    for x in format_bundles_for_humans(request.bundles):
+        logger.info(x)
 
     #
     # Initialise PKCS#11 modules (HSMs)
@@ -174,10 +176,12 @@ def ksrsigner(logger: logging.Logger, args: Optional[ArgsType], config: Optional
     #
     schema = config.get_schema(args.schema)
     new_skr = create_skr(request, schema, p11modules, config)
-    check_last_skr_and_new_skr(skr, new_skr, config.request_policy)
+    if skr:
+        check_last_skr_and_new_skr(skr, new_skr, config.request_policy)
 
     logger.info('Generated SKR:')
-    [logger.info(x) for x in format_bundles_for_humans(new_skr.bundles)]
+    for x in format_bundles_for_humans(new_skr.bundles):
+        logger.info(x)
 
     _skr_fn = _skr_filename(args, config)
     output_skr_xml(new_skr, _skr_fn)

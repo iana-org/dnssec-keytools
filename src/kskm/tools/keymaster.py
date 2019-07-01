@@ -50,8 +50,11 @@ def keygen(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, l
     else:
         raise ValueError(f'Unknown key algorithm {repr(args.key_alg)}')
 
+    if not p11key or not p11key.public_key:
+        raise RuntimeError('No public key returned by key generation')
+
     # Calculate the DNSSEC key tag of the new key and look for a collision in the configuration
-    key_tags = []
+    key_tags: List[int] = []
     _key = public_key_to_dnssec_key(key=p11key.public_key,
                                     key_identifier=p11key.label,
                                     algorithm=AlgorithmDNSSEC[args.key_alg],
@@ -91,6 +94,8 @@ def keybackup(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11
     """Backup key."""
     logger.info('Backup (export) key')
     wrapped_key = key_backup(args.key_label, args.wrap_key_label, p11modules)
+    if not wrapped_key:
+        return False
     with open(args.outfile, 'w') as fd:
         fd.write('---\n')
         yaml.safe_dump(wrapped_key.to_dict(), fd)
@@ -137,7 +142,7 @@ def inventory(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11
     return True
 
 
-def main(progname='keymaster', args: Optional[List[str]] = None, config: Optional[KSKMConfig] = None) -> bool:
+def main(progname: str='keymaster', argv: Optional[List[str]] = None, config: Optional[KSKMConfig] = None) -> bool:
     """Main function."""
     parser = argparse.ArgumentParser(description='Keymaster')
 
@@ -286,7 +291,7 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
                                    required=True,
                                    help='Filename to read wrapped key from')
 
-    args = parser.parse_args(args=args)
+    args = parser.parse_args(args=argv)
     logger = get_logger(progname, debug=args.debug, syslog=False)
 
     #
@@ -321,8 +326,6 @@ def main(progname='keymaster', args: Optional[List[str]] = None, config: Optiona
     except PyKCS11Error as exc:
         logger.critical(str(exc))
         sys.exit(1)
-    except argparse.ArgumentError as exc:
-        parser.error(exc.message)
     except KeyboardInterrupt:
         sys.exit(0)
 

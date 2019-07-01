@@ -71,7 +71,7 @@ def parse_args(defaults: dict) -> ArgsType:
 
 def _trustanchor_filename(args: Optional[ArgsType], config: KSKMConfig) -> Optional[str]:
     if args and args.trustanchor:
-        return args.trustanchor
+        return str(args.trustanchor)
     return config.get_filename('output_trustanchor')
 
 
@@ -93,7 +93,8 @@ def trustanchor(logger: logging.Logger, args: Optional[ArgsType], config: Option
     # Load configuration, if not provided already
     #
     if config is None:
-        config = get_config(args.config)
+        _filename = args.config if args else None
+        config = get_config(_filename)
 
     #
     # Initialise PKCS#11 modules (HSMs)
@@ -104,7 +105,7 @@ def trustanchor(logger: logging.Logger, args: Optional[ArgsType], config: Option
 
     for _name, ksk in config.ksk_keys.items():
         p11key = get_p11_key(ksk.label, p11modules, public=True)
-        if not p11key:
+        if not p11key or not p11key.public_key:
             logger.warning(f'KSK key with label {ksk.label} could not be loaded using PKCS#11')
             continue
         _key = public_key_to_dnssec_key(key=p11key.public_key,
