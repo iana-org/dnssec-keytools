@@ -10,10 +10,10 @@ import ssl
 import uuid
 from datetime import datetime
 from email.message import EmailMessage
-from typing import Optional, Tuple
+from typing import Dict, Optional, Set, Tuple
 
-import jinja2
 import OpenSSL
+import jinja2
 import werkzeug.serving
 import yaml
 from flask import Flask, render_template, request
@@ -28,13 +28,13 @@ DEFAULT_CONFIG = 'wksr.yaml'
 DEFAULT_CIPHERS = 'ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384'
 
 app = Flask(__name__)
-client_whitelist = set()
+client_whitelist: Set[str] = set()
 ksr_config = None
 notify_config = None
 
 
 @app.before_request
-def authz():
+def authz() -> None:
     """Check TLS client whitelist."""
     digest = PeerCertWSGIRequestHandler.client_digest()
     # we allow no certificate for now
@@ -48,7 +48,7 @@ def authz():
 
 
 @app.route('/', methods=['GET'])
-def index():
+def index() -> str:
     """Present homepage."""
     if 'peercert' in request.environ:
         subject = str(request.environ['peercert'].get_subject().commonName)
@@ -58,10 +58,10 @@ def index():
 
 
 @app.route('/upload', methods=['GET', 'POST'])
-def upload():
+def upload() -> str:
     """Handle manual file upload."""
     if request.method == 'GET':
-        return render_template("upload.html", action=request.base_url)
+        return str(render_template("upload.html", action=request.base_url))
 
     if 'ksr' not in request.files:
         raise BadRequest
@@ -81,22 +81,22 @@ def upload():
         'timestamp': datetime.utcnow()
     }
 
-    if notify_config is not None:
-        notify(env)
+    notify(env)
 
-    return render_template("result.html", **env)
+    return str(render_template("result.html", **env))
 
 
 def validate_ksr(filename: str) -> dict:
     """Validate incoming KSR."""
-    global ksk_config
-    config_fn = ksk_config.get('ksrsigner_configfile')
+    global ksr_config
+    config_fn = None
+    if ksr_config:
+        config_fn = ksr_config.get('ksrsigner_configfile')
     # If config_fn is None, get_request_policy returns a default policy
     _config = get_config(config_fn)
-    request_policy = _config.get_request_policy()
     result = {}
     try:
-        ksr = load_ksr(filename, request_policy, raise_original=True)
+        ksr = load_ksr(filename, _config.request_policy, raise_original=True)
         result['status'] = 'OK'
         result['message'] = f'KSR with id {ksr.id} loaded successfully'
     except PolicyViolation as exc:
@@ -107,6 +107,8 @@ def validate_ksr(filename: str) -> dict:
 
 def notify(env: dict) -> None:
     """Send notification about incoming KSR."""
+    if notify_config is None:
+        return
     msg = EmailMessage()
     body = render_template("email.txt", **env)
     msg.set_content(body)
@@ -120,6 +122,8 @@ def notify(env: dict) -> None:
 
 def save_ksr(upload_file: FileStorage) -> Tuple[str, str]:
     """Process incoming KSR."""
+    if ksr_config is None:
+        raise RuntimeError('Missing configuration')
     # check content type
     if upload_file.content_type != ksr_config.get('content_type'):
         raise BadRequest
@@ -160,7 +164,7 @@ class PeerCertWSGIRequestHandler(werkzeug.serving.WSGIRequestHandler):
     in the application.
     """
 
-    def make_environ(self):
+    def make_environ(self) -> dict:
         """
         Create request environment.
 
@@ -171,8 +175,12 @@ class PeerCertWSGIRequestHandler(werkzeug.serving.WSGIRequestHandler):
         peer certificate into the hash. That exposes it to us later in
         the request variable that Flask provides
         """
-        environ = super().make_environ()
-        x509_binary = self.connection.getpeercert(True)
+        environ: Dict = super().make_environ()
+        try:
+            x509_binary = self.connection.getpeercert(True)  # type: ignore
+        except AttributeError:
+            # Not a TLS connection
+            x509_binary = None
         if x509_binary is not None:
             x509 = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_ASN1, x509_binary)
             environ['peercert'] = x509
@@ -183,7 +191,7 @@ class PeerCertWSGIRequestHandler(werkzeug.serving.WSGIRequestHandler):
         """Find TLS client certificate subject."""
         peercert = request.environ['peercert']
         if peercert is None:
-            return
+            return None
         c = peercert.get_subject().get_components()
         return str(c)
 
@@ -192,11 +200,11 @@ class PeerCertWSGIRequestHandler(werkzeug.serving.WSGIRequestHandler):
         """Find TLS client certficate digest."""
         peercert = request.environ['peercert']
         if peercert is None:
-            return
-        return peercert.digest('sha256').decode().replace(':', '').lower()
+            return None
+        return str(peercert.digest('sha256').decode().replace(':', '').lower())
 
 
-def main():
+def main() -> None:
     """Main program function."""
     global ksr_config, notify_config
 
@@ -230,7 +238,7 @@ def main():
         client_whitelist.add(client)
 
     ssl_context = ssl.create_default_context(purpose=ssl.Purpose.CLIENT_AUTH, cafile=tls_config['ca_cert'])
-    ssl_context.minimum_version = ssl.PROTOCOL_TLSv1_2
+    ssl_context.minimum_version = ssl.PROTOCOL_TLSv1_2  # type: ignore
     ssl_context.set_ciphers(tls_config.get('ciphers', DEFAULT_CIPHERS))
     if tls_config.get('require_client_cert', True):
         ssl_context.verify_mode = ssl.CERT_REQUIRED
@@ -238,7 +246,7 @@ def main():
         ssl_context.verify_mode = ssl.CERT_OPTIONAL
     ssl_context.load_cert_chain(certfile=tls_config['cert'], keyfile=tls_config['key'])
 
-    app.jinja_loader = jinja2.FileSystemLoader(".")
+    app.jinja_loader = jinja2.FileSystemLoader(".")  # type: ignore
     app.jinja_env.globals['client_subject'] = PeerCertWSGIRequestHandler.client_subject
     app.jinja_env.globals['client_digest'] = PeerCertWSGIRequestHandler.client_digest
 
