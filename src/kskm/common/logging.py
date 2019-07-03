@@ -6,7 +6,7 @@ import sys
 __author__ = 'ft'
 
 
-def get_logger(progname: str, debug: bool, syslog: bool) -> logging.Logger:
+def get_logger(progname: str, debug: bool = False, syslog: bool = False) -> logging.Logger:
     """Initialize a logger."""
     level = logging.INFO if not debug else logging.DEBUG
     logging.basicConfig(level=level, stream=sys.stderr,
