@@ -1,4 +1,4 @@
-WKSR=		../../src/tools/wksr.py
+WKSR=		../../src/kskm/tools/wksr.py
 NEW_CERT=	openssl req -new -x509 -newkey rsa:2048 -nodes -days 30
 
 
