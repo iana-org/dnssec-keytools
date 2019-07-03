@@ -260,7 +260,7 @@ WORDS = [
     ("wayside", "Wilmington"),
     ("willow", "Wyoming"),
     ("woodlark", "yesteryear"),
-    ("Zulu", "Yucatán")
+    ("Zulu", "Yucatan")
 ]
 
 
