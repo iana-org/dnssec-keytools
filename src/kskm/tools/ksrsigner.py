@@ -194,7 +194,7 @@ def main() -> None:
     try:
         progname = os.path.basename(sys.argv[0])
         args = parse_args(_DEFAULTS)
-        logger = get_logger(progname, debug=args.debug, syslog=args.syslog)
+        logger = get_logger(progname, debug=args.debug, syslog=args.syslog, filelog=True)
         res = ksrsigner(logger, args)
         if res is True:
             sys.exit(0)

@@ -292,7 +292,7 @@ def main(progname: str='keymaster', argv: Optional[List[str]] = None, config: Op
                                    help='Filename to read wrapped key from')
 
     args = parser.parse_args(args=argv)
-    logger = get_logger(progname, debug=args.debug, syslog=False)
+    logger = get_logger(progname, debug=args.debug, syslog=False, filelog=True)
 
     #
     # Load configuration, if not provided already
