@@ -26,3 +26,6 @@ class Request(KSR):
     # 'bundles' is supposed to be a Set, but a set cannot contain other sets
     # (TypeError: unhashable type: 'set')
     bundles: List[RequestBundle]
+
+    xml_filename: Optional[str] = None
+    xml_hash: Optional[bytes] = None

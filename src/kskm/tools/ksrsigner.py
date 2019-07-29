@@ -6,6 +6,7 @@ Process a KSR received from the ZSK operator and produce an SKR response
 with signatures created using the KSK keys.
 """
 import argparse
+import binascii
 import logging.handlers
 import os
 import sys
@@ -16,12 +17,12 @@ import kskm.common
 import kskm.ksr
 import kskm.misc
 import kskm.skr
-from kskm.common.config import KSKMConfig
-from kskm.common.config import get_config
+from kskm.common.config import KSKMConfig, get_config
 from kskm.common.display import format_bundles_for_humans
 from kskm.common.logging import get_logger
+from kskm.common.wordlist import pgp_wordlist
 from kskm.signer import create_skr, output_skr_xml
-from kskm.signer.policy import check_skr_and_ksr, check_last_skr_and_new_skr
+from kskm.signer.policy import check_last_skr_and_new_skr, check_skr_and_ksr
 
 __author__ = 'ft'
 
@@ -166,6 +167,11 @@ def ksrsigner(logger: logging.Logger, args: ArgsType, config: Optional[KSKMConfi
         logger.info('KSR-PREVIOUS: Previous SKR *NOT* loaded - presence of SKR(n-1) in HSM not validated')
 
     if not args.force:
+        print("")
+        print("FILENAME:      ", request.xml_filename)
+        print("SHA-256 HEX:   ", binascii.hexlify(request.xml_hash).decode())
+        print("SHA-256 WORDS: ", ' '.join(pgp_wordlist(request.xml_hash)))
+        print("")
         ack = input(f'Sign KSR? Confirm with "Yes" (exactly) or anything else to abort: ')
         if ack.strip('\n') != 'Yes':
             logger.info(f'KSR signing aborted')
