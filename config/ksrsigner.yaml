@@ -52,20 +52,23 @@ request_policy:
   # validate ZSK proof-of-possession
   validate_signatures: true
   keys_match_zsk_policy: true
+  rsa_exponent_match_zsk_policy: true
   check_bundle_overlap: true
   signature_validity_match_zsk_policy: true
+  signature_algorithms_match_zsk_policy: true
+  check_keys_match_ksk_operator_policy: true
   # number of unique ZSKs in request
   acceptable_key_set_lengths:
     - 2
     - 3
   # validate that the current request continues a timeline ending with the previous response
   check_request_daisy_chain: true
-  acceptable_dnssec_algorithms:
+  approved_algorithms:
     - RSASHA256
-  rsa_acceptable_exponents:
+  rsa_approved_exponents:
     - 3
     - 65537
-  rsa_acceptable_key_sizes:
+  rsa_approved_key_sizes:
     - 2048
 
 response_policy:
