@@ -1,11 +1,10 @@
 """Various functions relating to the RSA algorithm."""
 import base64
+import math
 import struct
 from dataclasses import dataclass, field
 
-import math
-
-from kskm.common.data import (AlgorithmDNSSEC, AlgorithmPolicyRSA)
+from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyRSA
 from kskm.common.public_key import KSKM_PublicKey
 
 __author__ = 'ft'

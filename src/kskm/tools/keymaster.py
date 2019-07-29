@@ -24,8 +24,8 @@ from kskm.common.logging import get_logger
 from kskm.common.rsa_utils import is_algorithm_rsa
 from kskm.keymaster.delete import key_delete, wrapkey_delete
 from kskm.keymaster.inventory import key_inventory
-from kskm.keymaster.keygen import generate_ec_key, generate_rsa_key, \
-    generate_wrapping_key
+from kskm.keymaster.keygen import (generate_ec_key, generate_rsa_key,
+                                   generate_wrapping_key)
 from kskm.keymaster.wrap import WrappedKey, key_backup, key_restore
 from kskm.misc.hsm import KSKM_P11, KeyType, WrappingAlgorithm
 

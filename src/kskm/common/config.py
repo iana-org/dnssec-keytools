@@ -3,12 +3,13 @@ from __future__ import annotations
 
 import logging
 from dataclasses import replace
-from typing import (Dict, IO, Mapping, Optional, Type, cast)
+from typing import IO, Dict, Mapping, Optional, Type, cast
 
 import yaml
 
-from kskm.common.config_misc import KSKKey, KSKKeysType, KSKPolicy, RequestPolicy, \
-    ResponsePolicy, Schema, SchemaAction, _parse_keylist
+from kskm.common.config_misc import (KSKKey, KSKKeysType, KSKPolicy,
+                                     RequestPolicy, ResponsePolicy, Schema,
+                                     SchemaAction, _parse_keylist)
 from kskm.common.integrity import checksum_bytes2str
 
 __author__ = 'ft'

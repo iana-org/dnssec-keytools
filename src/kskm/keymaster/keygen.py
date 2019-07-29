@@ -1,17 +1,23 @@
 import base64
 import logging
 import time
-from typing import List, Optional, Tuple, Any
+from typing import Any, List, Optional, Tuple
 
 from PyKCS11 import Mechanism
-from PyKCS11.LowLevel import CKA_CLASS, CKA_DECRYPT, CKA_DERIVE, CKA_ENCRYPT, CKA_EXTRACTABLE, CKA_KEY_TYPE, \
-    CKA_LABEL, CKA_MODULUS, CKA_MODULUS_BITS, CKA_PRIVATE, CKA_PUBLIC_EXPONENT, CKA_SENSITIVE, CKA_SIGN, CKA_TOKEN, \
-    CKA_UNWRAP, CKA_VALUE_LEN, CKA_VERIFY, CKA_WRAP, CKK_AES, CKK_DES3, CKK_RSA, CKM_AES_KEY_GEN, CKM_DES3_KEY_GEN, \
-    CKO_PRIVATE_KEY, CKO_PUBLIC_KEY, CKO_SECRET_KEY, CK_FALSE, CK_TRUE
+from PyKCS11.LowLevel import (CK_FALSE, CK_TRUE, CKA_CLASS, CKA_DECRYPT,
+                              CKA_DERIVE, CKA_ENCRYPT, CKA_EXTRACTABLE,
+                              CKA_KEY_TYPE, CKA_LABEL, CKA_MODULUS,
+                              CKA_MODULUS_BITS, CKA_PRIVATE,
+                              CKA_PUBLIC_EXPONENT, CKA_SENSITIVE, CKA_SIGN,
+                              CKA_TOKEN, CKA_UNWRAP, CKA_VALUE_LEN, CKA_VERIFY,
+                              CKA_WRAP, CKK_AES, CKK_DES3, CKK_RSA,
+                              CKM_AES_KEY_GEN, CKM_DES3_KEY_GEN,
+                              CKO_PRIVATE_KEY, CKO_PUBLIC_KEY, CKO_SECRET_KEY)
 
 from kskm.common.data import FlagsDNSKEY
 from kskm.keymaster.common import get_session
-from kskm.misc.hsm import KSKM_P11, KSKM_P11Key, WrappingAlgorithm, get_p11_key, get_p11_secret_key
+from kskm.misc.hsm import (KSKM_P11, KSKM_P11Key, WrappingAlgorithm,
+                           get_p11_key, get_p11_secret_key)
 
 __author__ = 'ft'
 

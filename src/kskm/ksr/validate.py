@@ -13,8 +13,8 @@ NOTE: Only validation that can be performed with _only the KSR_ are done here.
 import logging
 from dataclasses import asdict
 
-from kskm.ksr import Request
 from kskm.common.config_misc import RequestPolicy
+from kskm.ksr import Request
 from kskm.ksr.verify_bundles import verify_bundles
 from kskm.ksr.verify_header import verify_header
 from kskm.ksr.verify_policy import verify_policy

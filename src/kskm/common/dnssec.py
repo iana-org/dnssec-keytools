@@ -4,7 +4,8 @@ import struct
 from dataclasses import replace
 
 from kskm.common.data import AlgorithmDNSSEC, Key
-from kskm.common.ecdsa_utils import KSKM_PublicKey_ECDSA, encode_ecdsa_public_key
+from kskm.common.ecdsa_utils import (KSKM_PublicKey_ECDSA,
+                                     encode_ecdsa_public_key)
 from kskm.common.public_key import KSKM_PublicKey
 from kskm.common.rsa_utils import KSKM_PublicKey_RSA, encode_rsa_public_key
 

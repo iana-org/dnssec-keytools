@@ -2,8 +2,8 @@
 
 import logging
 import logging.handlers
-import sys
 import os
+import sys
 import time
 
 __author__ = 'ft'

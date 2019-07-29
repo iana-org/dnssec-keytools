@@ -7,10 +7,11 @@ from typing import Dict, Iterable, List, Optional
 
 from cryptography.exceptions import InvalidSignature
 
-from kskm.common.config import (ConfigurationError, KSKMConfig)
+from kskm.common.config import ConfigurationError, KSKMConfig
 from kskm.common.config_ksk import validate_dnskey_matches_ksk
 from kskm.common.config_misc import KSKKeysType, KSKPolicy, Schema
-from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY, Signature, TypeDNSSEC
+from kskm.common.data import (AlgorithmDNSSEC, FlagsDNSKEY, Signature,
+                              TypeDNSSEC)
 from kskm.common.dnssec import calculate_key_tag
 from kskm.common.signature import dndepth, make_raw_rrsig
 from kskm.ksr import Request
