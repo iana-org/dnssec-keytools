@@ -167,10 +167,12 @@ class KSKM_P11Module(object):
         self._slots: List[int] = self._lib.getSlotList(tokenPresent=True)
         logger.debug(f'P11 slots: {self._slots}')
         if self._slots:
+            # Need to log in for the AEP keyper to show a serial number
+            _ = self.sessions
             _info = self._lib.getTokenInfo(self._slots[0])
             if _info:
                 info = _info.to_dict()
-                logger.info(f'HSM Label:           {info.get("label")}')
+                logger.info(f'HSM First slot:      {info.get("label")}')
                 logger.info(f'HSM ManufacturerID:  {info.get("manufacturerID")}')
                 logger.info(f'HSM Model:           {info.get("model")}')
                 logger.info(f'HSM Serial:          {info.get("serialNumber")}')
