@@ -83,7 +83,8 @@ def _skr_bundle_to_xml(bundle: ResponseBundle) -> str:
 
 
 def _skr_keys_to_xml(bundle: ResponseBundle) -> str:
-    return ''.join([_skr_key_to_xml(key) for key in bundle.keys])
+    # Output keys in deterministic order to facilitate external SKR validation
+    return ''.join([_skr_key_to_xml(key) for key in sorted(bundle.keys, key=lambda x: x.key_tag)])
 
 
 def _skr_key_to_xml(key: Key) -> str:
