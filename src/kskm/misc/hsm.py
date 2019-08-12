@@ -51,7 +51,7 @@ class KeyInfo(object):
     TODO: Give KSKM_P11Key a way to properly represent SECRET keys, and remove this class?
     """
     key_class: KeyClass
-    key_id: int
+    key_id: Tuple[int]
     label: str
     p11key: Optional[KSKM_P11Key] = field(repr=False, default=None)
     pubkey: Optional[KSKM_PublicKey] = field(repr=False, default=None)
@@ -59,7 +59,7 @@ class KeyInfo(object):
 
 class WrappingAlgorithm(Enum):
     AES256 = 'AES256'
-    DES3 = '3DES'
+    DES3 = '3DES'  # 3DES is an invalid token in Python
 
 
 @dataclass

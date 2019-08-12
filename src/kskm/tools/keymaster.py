@@ -121,7 +121,7 @@ def keyrestore(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P1
 def wrapgen(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, logger: logging.Logger) -> bool:
     """Generate new wrapping key."""
     logger.info('Generate wrapping key')
-    alg = WrappingAlgorithm[args.key_alg]
+    alg = WrappingAlgorithm(args.key_alg)
     generate_wrapping_key(args.key_label, alg, p11modules)
     return True
 
