@@ -26,7 +26,7 @@ from kskm.keymaster.delete import key_delete, wrapkey_delete
 from kskm.keymaster.inventory import key_inventory
 from kskm.keymaster.keygen import (generate_ec_key, generate_rsa_key,
                                    generate_wrapping_key)
-from kskm.keymaster.wrap import WrappedKey, key_backup, key_restore
+from kskm.keymaster.wrap import WrappedKey, WrappedKeyRSA, key_backup, key_restore
 from kskm.misc.hsm import KSKM_P11, KeyType, WrappingAlgorithm
 
 SUPPORTED_ALGORITHMS = [str(x.name) for x in KeyType]
@@ -108,10 +108,11 @@ def keyrestore(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P1
     logger.info('Restore (import) key')
     with open(args.infile, 'r') as fd:
         data = yaml.safe_load(fd)
-    wrapped_key = WrappedKey.from_dict(data)
+    if data.get('key_type') == 'RSA':
+        wrapped_key = WrappedKeyRSA.from_dict(data)
+    else:
+        wrapped_key = WrappedKey.from_dict(data)
     logger.info(f'Loaded wrapped key: {wrapped_key}')
-    # TODO: load wrapped_key from YAML file
-    alg = WrappingAlgorithm[args.key_alg]
     if key_restore(wrapped_key, p11modules):
         logger.info('Key restored successfully')
     return True

@@ -41,7 +41,7 @@ class WrappedKey(object):
 class WrappedKeyRSA(WrappedKey):
     bits: int
     exponent: int
-    modulus: bytes
+    modulus: bytes = field(repr=False)
 
 
 def key_backup(label: str, wrap_label: str, p11modules: KSKM_P11) -> Optional[WrappedKey]:
