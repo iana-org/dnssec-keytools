@@ -29,7 +29,7 @@ __author__ = 'ft'
 _DEFAULTS = {'debug': False,
              'syslog': False,
              'previous_skr': None,
-             'config': None,
+             'config': 'ksrsigner.yaml',
              'ksr': None,
              'skr': None,
              'schema': 'normal'
