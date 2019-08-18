@@ -129,6 +129,15 @@ def ksrsigner(logger: logging.Logger, args: ArgsType, config: Optional[KSKMConfi
         config = get_config(args.config)
 
     #
+    # Prepare schema
+    #
+    try:
+        schema = config.get_schema(args.schema)
+    except KeyError:
+        logging.critical("Schema '%s' not found", args.schema)
+        return False
+
+    #
     # Load the previous SKR
     #
     skr = None
@@ -180,7 +189,6 @@ def ksrsigner(logger: logging.Logger, args: ArgsType, config: Optional[KSKMConfi
     #
     # Create a new SKR
     #
-    schema = config.get_schema(args.schema)
     new_skr = create_skr(request, schema, p11modules, config)
     if skr:
         check_last_skr_and_new_skr(skr, new_skr, config.request_policy)
