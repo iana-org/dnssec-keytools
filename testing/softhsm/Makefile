@@ -25,7 +25,7 @@ KEYS=			rsa-$(RSA_SIZE)-1.key rsa-$(RSA_SIZE)-2.key rsa-$(RSA_SIZE)-3.key rsa-$(
 KEYS_PKCS8=		rsa-$(RSA_SIZE)-1.p8 rsa-$(RSA_SIZE)-2.p8 rsa-$(RSA_SIZE)-3.p8 rsa-$(RSA_SIZE)-4.p8 \
 			ec-$(EC_CURVE)-1.p8 ec-$(EC_CURVE)-2.p8 ec-$(EC_CURVE)-3.p8 ec-$(EC_CURVE)-4.p8
 
-CLEANFILES=		*.p8 *.key softhsm.initialized $(TOKENDIR) $(SOFTHSM_CONF) $(KSRSIGNER_YAML)
+CLEANFILES=		*.p8 *.key softhsm.initialized $(TOKENDIR) $(SOFTHSM_CONF) $(KSRSIGNER_YAML) *.log
 
 LABEL_TOKEN_0=		"SoftHSM-0"
 LABEL_TOKEN_1=		"SoftHSM-1"
