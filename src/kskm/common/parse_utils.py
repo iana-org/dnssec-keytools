@@ -30,7 +30,7 @@ def signature_policy_from_dict(policy: dict) -> SignaturePolicy:
         max_signature_validity=_get_timedelta(policy, 'MaxSignatureValidity'),
         min_signature_validity=_get_timedelta(policy, 'MinSignatureValidity'),
         max_validity_overlap=_get_timedelta(policy, 'MaxValidityOverlap'),
-        min_validity_overlap=_get_timedelta(policy, 'MaxValidityOverlap'),
+        min_validity_overlap=_get_timedelta(policy, 'MinValidityOverlap'),
         algorithms=_parse_signature_algorithms(policy['SignatureAlgorithm']),
     )
 
