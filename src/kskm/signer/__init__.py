@@ -4,6 +4,7 @@ from dataclasses import replace
 from typing import Iterable, Optional, Set
 
 from kskm.common.config import KSKMConfig
+from kskm.common.display import log_file_contents
 from kskm.common.config_misc import KSKPolicy, Schema
 from kskm.common.data import (AlgorithmPolicy, AlgorithmPolicyRSA,
                               SignaturePolicy)
@@ -31,7 +32,7 @@ def create_skr(request: Request, schema: Schema, p11modules: KSKM_P11, config: K
                     zsk_policy=request.zsk_policy)
 
 
-def output_skr_xml(skr: Response, output_filename: Optional[str]) -> None:
+def output_skr_xml(skr: Response, output_filename: Optional[str], log_contents: bool = False) -> None:
     """Return SKR as XML."""
     xml = skr_to_xml(skr)
     if output_filename:
@@ -39,6 +40,8 @@ def output_skr_xml(skr: Response, output_filename: Optional[str]) -> None:
         with open(output_filename, 'wb') as fd:
             fd.write(xml_bytes)
         logger.info("Wrote SKR to file %s %s", output_filename, checksum_bytes2str(xml_bytes))
+        if log_contents:
+            log_file_contents(output_filename, xml_bytes, logger.getChild('skr'))
     else:
         print(xml)
 

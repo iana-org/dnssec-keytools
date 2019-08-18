@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 MAX_KSR_SIZE = 1024 * 1024
 
 
-def load_ksr(filename: str, policy: RequestPolicy, raise_original: bool = False) -> Request:
+def load_ksr(filename: str, policy: RequestPolicy, raise_original: bool = False, log_contents: bool = False) -> Request:
     """Load a KSR request XML file, and check it according to the RequestPolicy."""
     with open(filename, 'rb') as fd:
         ksr_file_size = os.fstat(fd.fileno()).st_size
@@ -29,7 +29,8 @@ def load_ksr(filename: str, policy: RequestPolicy, raise_original: bool = False)
             raise RuntimeError(f"KSR exceeding maximum size of {MAX_KSR_SIZE} bytes")
         xml_bytes = fd.read(MAX_KSR_SIZE)  # impose upper limit on how much memory/CPU can be spent loading a file
     logger.info("Loaded KSR from file %s %s", filename, checksum_bytes2str(xml_bytes))
-    log_file_contents(filename, xml_bytes, logger.getChild('ksr'))
+    if log_contents:
+        log_file_contents(filename, xml_bytes, logger.getChild('ksr'))
     request = request_from_xml_file(filename, xml_bytes)
     try:
         if validate_request(request, policy) is not True:

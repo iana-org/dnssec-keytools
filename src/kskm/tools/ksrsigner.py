@@ -32,7 +32,9 @@ _DEFAULTS = {'debug': False,
              'config': 'ksrsigner.yaml',
              'ksr': None,
              'skr': None,
-             'schema': 'normal'
+             'log_ksr_contents': False,
+             'log_skr_contents': False,
+             'schema': 'normal',
              }
 
 
@@ -75,6 +77,16 @@ def parse_args(defaults: dict) -> ArgsType:
                         metavar='SKRFILE', type=str,
                         default=defaults['previous_skr'],
                         help='Path to the previous SKR to use for validation',
+                        )
+    parser.add_argument('--log-ksr',
+                        dest='log_ksr_contents',
+                        action='store_true', default=defaults['log_ksr_contents'],
+                        help='Log KSR contents',
+                        )
+    parser.add_argument('--log-skr',
+                        dest='log_skr_contents',
+                        action='store_true', default=defaults['log_skr_contents'],
+                        help='Log SKR contents',
                         )
     parser.add_argument('--config',
                         dest='config',
@@ -155,7 +167,7 @@ def ksrsigner(logger: logging.Logger, args: ArgsType, config: Optional[KSKMConfi
     if _ksr_fn is None:
         logger.error("No KSR filename specified")
         return False
-    request = kskm.ksr.load_ksr(_ksr_fn, config.request_policy)
+    request = kskm.ksr.load_ksr(_ksr_fn, config.request_policy, log_contents=args.log_ksr_contents)
     logger.info('Request:')
     for x in format_bundles_for_humans(request.bundles):
         logger.info(x)
@@ -198,7 +210,7 @@ def ksrsigner(logger: logging.Logger, args: ArgsType, config: Optional[KSKMConfi
         logger.info(x)
 
     _skr_fn = _skr_filename(args, config)
-    output_skr_xml(new_skr, _skr_fn)
+    output_skr_xml(new_skr, _skr_fn, log_contents=args.log_skr_contents)
 
     return True
 
