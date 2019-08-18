@@ -1,11 +1,17 @@
 """Output SKR XML documents."""
-from datetime import timedelta
+
+from datetime import datetime, timezone, timedelta
 from typing import List, Set
 
 from kskm.common.data import (AlgorithmPolicy, AlgorithmPolicyRSA, Key,
                               Signature, SignaturePolicy)
 from kskm.skr import Response
 from kskm.skr.data import ResponseBundle
+
+
+def format_datetime(dt: datetime) -> str:
+    """Return datetime as xsd:dateTime."""
+    return dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S+00:00")
 
 
 def skr_to_xml(skr: Response) -> str:
@@ -74,8 +80,8 @@ def _skr_response_bundles_to_xml(skr: Response) -> str:
 def _skr_bundle_to_xml(bundle: ResponseBundle) -> str:
     return f'''
 <ResponseBundle id="{bundle.id}">
-    <Inception>{bundle.inception}</Inception>
-    <Expiration>{bundle.expiration}</Expiration>
+    <Inception>{format_datetime(bundle.inception)}</Inception>
+    <Expiration>{format_datetime(bundle.expiration)}</Expiration>
     {_indent(_skr_keys_to_xml(bundle))}
     {_indent(_skr_signatures_to_xml(bundle))}
 </ResponseBundle>
@@ -111,8 +117,8 @@ def _skr_signature_to_xml(sig: Signature) -> str:
     <Algorithm>{sig.algorithm.value}</Algorithm>
     <Labels>{sig.labels}</Labels>
     <OriginalTTL>{sig.original_ttl}</OriginalTTL>
-    <SignatureExpiration>{sig.signature_expiration}</SignatureExpiration>
-    <SignatureInception>{sig.signature_inception}</SignatureInception>
+    <SignatureExpiration>{format_datetime(sig.signature_expiration)}</SignatureExpiration>
+    <SignatureInception>{format_datetime(sig.signature_inception)}</SignatureInception>
     <KeyTag>{sig.key_tag}</KeyTag>
     <SignersName>{sig.signers_name}</SignersName>
     <SignatureData>{sig.signature_data.decode('UTF-8')}</SignatureData>
