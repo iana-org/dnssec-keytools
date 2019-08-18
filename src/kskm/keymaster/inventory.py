@@ -93,5 +93,5 @@ def _id_to_str(key_id: Tuple[int]) -> str:
     :return: A string suitable for printing (prefixed with 'id=' and suffixed with ' '), or an empty string.
     """
     if key_id:
-        return f'id={key_id}'
+        return f'id={key_id} '
     return ''
