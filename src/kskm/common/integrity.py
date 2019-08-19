@@ -17,7 +17,7 @@ def sha2wordlist(message: bytes) -> Tuple[str, List[str]]:
     digest = sha256(message)
     hexdigest = binascii.hexlify(digest).decode()
     words = pgp_wordlist(digest)
-    return (hexdigest, words)
+    return hexdigest, words
 
 
 def _format_digest(digest: bytes) -> str:

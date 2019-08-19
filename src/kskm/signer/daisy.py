@@ -84,23 +84,23 @@ def _daisychain_from_bundle(bundles: Sequence[Bundle]) -> DaisyChain:
     if len(_curr_keylist) != 1:
         raise RuntimeError(f'The second bundle ({bundles[1].id}) did not contain exactly one ZSK key')
     curr_key = _curr_keylist[0]
-    prev = None
-    next = None
+    prev_dt = None
+    next_dt = None
     curr: List[DaisyTime] = []
     for this in bundles:
         for key in [x for x in this.keys if is_zsk_key(x)]:
-            _res = DaisyTime(this.inception, this.expiration, key)
+            _daisytime = DaisyTime(this.inception, this.expiration, key)
             if key == curr_key:
-                curr += [_res]
+                curr += [_daisytime]
             elif this == bundles[0]:
-                assert prev is None
-                prev = _res
+                assert prev_dt is None
+                prev_dt = _daisytime
             elif this == bundles[-1]:
-                assert next is None
-                next = _res
+                assert next_dt is None
+                next_dt = _daisytime
             else:
                 raise RuntimeError('More than three keys in bundles')
     # TODO: Think there was one KSR in the archive where next was the same as curr?
-    assert prev is not None
-    assert next is not None
-    return DaisyChain(prev=prev, curr=sorted(curr, key=lambda x: x.expiration), next=next)
+    assert prev_dt is not None
+    assert next_dt is not None
+    return DaisyChain(prev=prev_dt, curr=sorted(curr, key=lambda x: x.expiration), next=next_dt)

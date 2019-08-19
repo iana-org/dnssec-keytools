@@ -143,7 +143,7 @@ def inventory(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11
     return True
 
 
-def main(progname: str='keymaster', argv: Optional[List[str]] = None, config: Optional[KSKMConfig] = None) -> bool:
+def main(progname: str = 'keymaster', argv: Optional[List[str]] = None, config: Optional[KSKMConfig] = None) -> bool:
     """Main function."""
     parser = argparse.ArgumentParser(description='Keymaster')
 
@@ -310,7 +310,7 @@ def main(progname: str='keymaster', argv: Optional[List[str]] = None, config: Op
     #
     p11modules = kskm.misc.hsm.init_pkcs11_modules_from_dict(config.hsm, rw_session=True)
 
-    if len(p11modules) <=0:
+    if len(p11modules) <= 0:
         logger.critical("No HSM configured")
         return False
 

@@ -39,7 +39,7 @@ def generate_key_label(flags: int, now: Optional[int] = None) -> str:
         now = int(time.time())
 
     _b64data = base64.b32encode(now.to_bytes(length=4, byteorder='big')).lower()
-    data = _b64data[:6].decode('utf-8') # six characters time, plus prefix character below
+    data = _b64data[:6].decode('utf-8')  # six characters time, plus prefix character below
 
     if flags == FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value:
         return 'K' + data
@@ -99,7 +99,7 @@ def generate_rsa_key(flags: int, bits: int, p11modules: KSKM_P11, exponent: int 
     return generate_key_from_templates(publicKeyTemplate, privateKeyTemplate, label, p11modules)
 
 
-def public_key_template(label: str, key_type: int, bits: Optional[int]=None, rsa_exponent: Optional[int]=None,
+def public_key_template(label: str, key_type: int, bits: Optional[int] = None, rsa_exponent: Optional[int] = None,
                         rsa_modulus: Optional[bytes] = None) -> List[Tuple]:
     publicKeyTemplate: List[Tuple[Any, ...]] = [
         (CKA_LABEL, label),

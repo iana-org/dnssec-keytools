@@ -1,7 +1,7 @@
 """Combined policy checks for last SKR+KSR."""
 import logging
 
-from kskm.common.config_misc import RequestPolicy, Schema
+from kskm.common.config_misc import RequestPolicy
 from kskm.ksr import Request
 from kskm.ksr.verify_header import KSR_ID_Violation
 from kskm.signer.daisy import check_daisy_chain

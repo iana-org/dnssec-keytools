@@ -57,17 +57,17 @@ class TestParseRealKSRs(unittest.TestCase):
                                signature_validity_match_zsk_policy=_signature_validity_match_zsk_policy,
                                )
 
-        dir = archive_dir('ksr')
-        for fn in sorted(glob.glob(dir + '/*')):
+        _dir = archive_dir('ksr')
+        for fn in sorted(glob.glob(_dir + '/*')):
             print('Loading file {}'.format(fn))
             load_ksr(fn, policy)
 
     @unittest.skipUnless(archive_dir('ksr'), 'KSKM_KSR_ARCHIVE_PATH not set or invalid')
     def test_load_and_validate_all_ksrs_in_archive(self):
         """Parse and validate all the KSRs in the ICANN archive."""
-        dir = archive_dir('ksr')
+        _dir = archive_dir('ksr')
         res = True
-        for fn in sorted(glob.glob(dir + '/*')):
+        for fn in sorted(glob.glob(_dir + '/*')):
             try:
                 self._test_file(fn)
             except InvalidSignature:
@@ -75,13 +75,13 @@ class TestParseRealKSRs(unittest.TestCase):
         if not res:
             self.fail()
 
-    def _test_file(self, fn, filter=None):
+    def _test_file(self, fn, filter_ids=None):
         fn = os.path.join(self.data_dir, fn)
         with open(fn, 'r') as fd:
             xml = fd.read()
         ksr = request_from_xml(xml)
         for bundle in ksr.bundles:
-            if filter and bundle.id not in filter:
+            if filter_ids and bundle.id not in filter_ids:
                 continue
             try:
                 validate_signatures(bundle)

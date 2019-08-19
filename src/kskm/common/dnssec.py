@@ -31,15 +31,15 @@ def calculate_key_tag(key: Key) -> int:
     """
     rdata = key_to_rdata(key)
 
-    odd = False
-    sum = 0
+    _odd = False
+    _sum = 0
     for this in rdata:
-        if odd:
-            sum += this
+        if _odd:
+            _sum += this
         else:
-            sum += this << 8
-        odd = not odd
-    return ((sum & 0xffff) + (sum >> 16)) & 0xffff
+            _sum += this << 8
+        _odd = not _odd
+    return ((_sum & 0xffff) + (_sum >> 16)) & 0xffff
 
 
 def public_key_to_dnssec_key(key: KSKM_PublicKey,

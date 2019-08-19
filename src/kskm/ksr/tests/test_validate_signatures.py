@@ -35,7 +35,7 @@ class TestValidate_signatures(TestCase):
     def test_keysize_change(self):
         """ Test file where ZSK changed from RSA1024 to RSA2048 """
         # This bundle used to trigger a bug in the RDATA sorting before hashing
-        self._test_file('ksr-root-2016-q3-0.xml', filter=['a6b6162e-b299-427e-b11b-1a8c54a08910'])
+        self._test_file('ksr-root-2016-q3-0.xml', filter_ids=['a6b6162e-b299-427e-b11b-1a8c54a08910'])
 
     def test_invalid_signature(self):
         """ Change a key to break the signature """
@@ -110,22 +110,22 @@ class TestValidate_signatures(TestCase):
         with self.assertRaises(ValueError):
             validate_signatures(bundle)
 
-    def _load_bundle_from_file(self, fn, id):
+    def _load_bundle_from_file(self, fn, bundle_id):
         fn = os.path.join(self.data_dir, fn)
         with open(fn, 'r') as fd:
             xml = fd.read()
         ksr = request_from_xml(xml)
         for bundle in ksr.bundles:
-            if bundle.id == id:
+            if bundle.id == bundle_id:
                 return bundle
 
-    def _test_file(self, fn, filter=None):
+    def _test_file(self, fn, filter_ids=None):
         fn = os.path.join(self.data_dir, fn)
         with open(fn, 'r') as fd:
             xml = fd.read()
         ksr = request_from_xml(xml)
         for bundle in ksr.bundles:
-            if filter and bundle.id not in filter:
+            if filter_ids and bundle.id not in filter_ids:
                 continue
             try:
                 validate_signatures(bundle)

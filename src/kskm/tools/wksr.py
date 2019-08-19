@@ -159,7 +159,7 @@ def save_ksr(upload_file: FileStorage) -> Tuple[str, str]:
 
     # TODO: Borderline OCD in this case, but I've actually started returning instances of small dataclasses
     #       whenever I want to return multiple values.
-    return (filename, filehash)
+    return filename, filehash
 
 
 # TLS client auth based on post at https://www.ajg.id.au/2018/01/01/mutual-tls-with-python-flask-and-werkzeug/

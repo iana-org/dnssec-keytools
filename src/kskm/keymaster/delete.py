@@ -8,7 +8,7 @@ __author__ = 'ft'
 logger = logging.getLogger(__name__)
 
 
-def key_delete(label: str, p11modules: KSKM_P11, force: bool=False) -> bool:
+def key_delete(label: str, p11modules: KSKM_P11, force: bool = False) -> bool:
     """Delete a signing key pair from the HSM."""
     existing_key = get_p11_key(label, p11modules, public=True)
     if not existing_key:
@@ -36,7 +36,7 @@ def key_delete(label: str, p11modules: KSKM_P11, force: bool=False) -> bool:
     return False
 
 
-def wrapkey_delete(label: str, p11modules: KSKM_P11, force: bool=False) -> bool:
+def wrapkey_delete(label: str, p11modules: KSKM_P11, force: bool = False) -> bool:
     """Delete a wrapping (secret) key from the HSM."""
     existing_key = get_p11_secret_key(label, p11modules)
     if not existing_key:

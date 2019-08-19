@@ -31,13 +31,13 @@ class TestDnsPythonValidate_signatures(TestCase):
         """ Test file where ZSK changed from RSA1024 to RSA2048 using dnspython """
         self._test_file('ksr-root-2016-q3-0.xml', 'a6b6162e-b299-427e-b11b-1a8c54a08910')
 
-    def _test_file(self, fn, filter=None):
+    def _test_file(self, fn, filter_ids=None):
         fn = os.path.join(self.data_dir, fn)
         with open(fn, 'r') as fd:
             xml = fd.read()
         ksr = request_from_xml(xml)
         for bundle in ksr.bundles:
-            if filter and bundle.id not in filter:
+            if filter_ids and bundle.id not in filter_ids:
                 continue
             try:
                 dnspython_validate_bundle(bundle)
@@ -61,7 +61,7 @@ def dnspython_validate_bundle(bundle: RequestBundle) -> bool:
 
     for sig in bundle.signatures:
         if sig.key_tag not in _keys:
-            raise ValueError('No key with key_tag {} in bundle {}'.format(sig.keytag, bundle.id))
+            raise ValueError('No key with key_tag {} in bundle {}'.format(sig.key_tag, bundle.id))
         _keys.pop(sig.key_tag)
 
         try:

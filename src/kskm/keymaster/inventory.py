@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List, Mapping, Tuple
+from typing import Dict, List, Tuple
 
 from kskm.common.config import KSKMConfig
 from kskm.common.config_ksk import validate_dnskey_matches_ksk

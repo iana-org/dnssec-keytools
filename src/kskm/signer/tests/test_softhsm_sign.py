@@ -87,7 +87,6 @@ class SignWithSoftHSM_Baseclass(unittest.TestCase):
         self.request_zsk_policy = signature_policy_from_dict(_policy)
 
 
-
     def tearDown(self) -> None:
         """Unload PKCS#11 modules, lest they might not work for the next test that starts."""
         for this in self.p11modules:

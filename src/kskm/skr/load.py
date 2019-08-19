@@ -23,7 +23,7 @@ def load_skr(filename: str, policy: ResponsePolicy) -> Response:
     """Load a SKR response XML file."""
     with open(filename, 'rb') as fd:
         skr_file_size = os.fstat(fd.fileno()).st_size
-        if (skr_file_size > MAX_SKR_SIZE):
+        if skr_file_size > MAX_SKR_SIZE:
             raise RuntimeError(f"SKR exceeding maximum size of {MAX_SKR_SIZE} bytes")
         xml_bytes = fd.read(MAX_SKR_SIZE)  # impose upper limit on how much memory/CPU can be spent loading a file
     logger.info("Loaded SKR from file %s %s", filename, checksum_bytes2str(xml_bytes))

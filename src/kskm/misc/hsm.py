@@ -12,7 +12,7 @@ from enum import Enum
 from getpass import getpass
 from hashlib import sha1, sha256, sha384, sha512
 from typing import (Any, Dict, Iterator, List, Mapping, MutableMapping,
-                    NewType, Optional)
+                    NewType, Optional, Tuple)
 
 import PyKCS11
 from PyKCS11.LowLevel import CKF_RW_SESSION, CKU_SO, CKU_USER

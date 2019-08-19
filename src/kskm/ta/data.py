@@ -65,7 +65,7 @@ class TrustAnchor(object):
         """Export trust anchor as XML sniplet."""
         xml = f'<TrustAnchor id="{self.id}" source="{self.source}">\n'
         xml += f'<Zone>{self.zone}</Zone>\n'
-        for ks in sorted(self.keydigests, key=lambda ks: ks.valid_from):
+        for ks in sorted(self.keydigests, key=lambda _ks: _ks.valid_from):
             xml += ks.to_xml()
         xml += '</TrustAnchor>'
         return xml
