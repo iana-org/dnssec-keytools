@@ -145,19 +145,7 @@ class TestParseRealKSRs(unittest.TestCase):
         # Exception: Failed validating KSR request in file ksr-root-2018-q1-0-d_to_e.xml:
         #            Bundle "id=4c05c9b8 2018-01-11->2018-02-01" overlap 11 days with
         #                   "id=0a8f7774 2018-01-01->2018-01-22" is < claimed minimum 12 days
-        _check_bundle_overlap = False
-        policy = RequestPolicy(check_bundle_overlap=_check_bundle_overlap,
-                               )
+        policy = RequestPolicy()
         fn = os.path.join(self.data_dir, 'ksr-root-2018-q1-0-d_to_e.xml')
         ksr = load_ksr(fn, policy)
         self.assertEqual('4fe9bb10-6f6b-4503-8575-7824e2d66925', ksr.id)
-
-    def test_load_ksr_2018_bundle_overlap_fail(self):
-        """ Test complete load and validate 2018 with expected failure on bundle overlap parameters """
-        policy = RequestPolicy()
-        fn = os.path.join(self.data_dir, 'ksr-root-2018-q1-0-d_to_e.xml')
-        with self.assertRaises(kskm.ksr.verify_policy.KSR_POLICY_SIG_OVERLAP_Violation):
-            # Exception: Failed validating KSR request in file ksr-root-2018-q1-0-d_to_e.xml:
-            #            Bundle "id=4c05c9b8 2018-01-11->2018-02-01" overlap 11 days with
-            #                   "id=0a8f7774 2018-01-01->2018-01-22" is < claimed minimum 12 days
-            load_ksr(fn, policy, raise_original=True)
