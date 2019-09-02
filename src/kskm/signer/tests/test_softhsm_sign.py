@@ -47,8 +47,8 @@ schemas:
     9: {publish: [], sign: ksk_RSA2}
 
 ksk_policy:
-  publish_safety: PT0S
-  retire_safety: P28D
+  publish_safety: P10D
+  retire_safety: P10D
   max_signature_validity: P21D
   min_signature_validity: P21D
   max_validity_overlap: P16D
