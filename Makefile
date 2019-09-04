@@ -17,6 +17,7 @@ $(VENV): $(VENV)/.depend
 
 $(VENV)/.depend: setup.py
 	$(PYTHON) -m venv $(VENV)
+	$(VENV)/bin/pip install wheel
 	$(VENV)/bin/pip install -e ".[online,testing]"
 	touch $(VENV)/.depend
 
