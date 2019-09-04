@@ -29,6 +29,10 @@ For testing and independent DNSSEC validation of KSRs, the following modules are
 - [dnspython](http://www.dnspython.org/)
 - [pycryptodome](https://pycryptodome.readthedocs.io/)
 
+### Debian Dependencies
+
+    apt-get install python3 python3-dev python3-venv swig
+
 
 ## Setup
 
