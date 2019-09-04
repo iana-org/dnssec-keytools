@@ -34,6 +34,7 @@ _DEFAULTS = {'debug': False,
              'skr': None,
              'log_ksr_contents': False,
              'log_skr_contents': False,
+             'log_previous_skr_contents': False,
              'schema': 'normal',
              }
 
@@ -87,6 +88,11 @@ def parse_args(defaults: dict) -> ArgsType:
                         dest='log_skr_contents',
                         action='store_true', default=defaults['log_skr_contents'],
                         help='Log SKR contents',
+                        )
+    parser.add_argument('--log-previous-skr',
+                        dest='log_previous_skr_contents',
+                        action='store_true', default=defaults['log_previous_skr_contents'],
+                        help='Log previus SKR contents',
                         )
     parser.add_argument('--config',
                         dest='config',
@@ -155,7 +161,7 @@ def ksrsigner(logger: logging.Logger, args: ArgsType, config: Optional[KSKMConfi
     skr = None
     _previous_skr = _previous_skr_filename(args, config)
     if _previous_skr:
-        skr = kskm.skr.load_skr(_previous_skr, config.response_policy)
+        skr = kskm.skr.load_skr(_previous_skr, config.response_policy, log_contents=args.log_previous_skr_contents)
         logger.info('Previous SKR:')
         for x in format_bundles_for_humans(skr.bundles):
             logger.info(x)

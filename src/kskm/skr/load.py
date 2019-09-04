@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 MAX_SKR_SIZE = 1024 * 1024
 
 
-def load_skr(filename: str, policy: ResponsePolicy) -> Response:
+def load_skr(filename: str, policy: ResponsePolicy, log_contents: bool = False) -> Response:
     """Load a SKR response XML file."""
     with open(filename, 'rb') as fd:
         skr_file_size = os.fstat(fd.fileno()).st_size
@@ -27,7 +27,8 @@ def load_skr(filename: str, policy: ResponsePolicy) -> Response:
             raise RuntimeError(f"SKR exceeding maximum size of {MAX_SKR_SIZE} bytes")
         xml_bytes = fd.read(MAX_SKR_SIZE)  # impose upper limit on how much memory/CPU can be spent loading a file
     logger.info("Loaded SKR from file %s %s", filename, checksum_bytes2str(xml_bytes))
-    log_file_contents(filename, xml_bytes, logger.getChild('skr'))
+    if log_contents:
+        log_file_contents(filename, xml_bytes, logger.getChild('skr'))
     response = response_from_xml(xml_bytes.decode())
     try:
         validate_response(response, policy)
