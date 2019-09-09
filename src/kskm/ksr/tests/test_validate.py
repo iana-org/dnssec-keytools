@@ -8,8 +8,8 @@ import pkg_resources
 from kskm.ksr import load_ksr, request_from_xml
 from kskm.common.config_misc import RequestPolicy
 from kskm.ksr.validate import validate_request
-from kskm.ksr.verify_bundles import KSR_BUNDLE_POP_Violation
-from kskm.ksr.verify_policy import KSR_POLICY_ALG_Violation
+from kskm.ksr.verify_bundles import KSR_BUNDLE_POP_Violation, KSR_BUNDLE_COUNT_Violation
+from kskm.ksr.verify_policy import KSR_POLICY_ALG_Violation, KSR_PolicyViolation
 
 
 class Test_Validate_KSR(unittest.TestCase):
@@ -45,12 +45,12 @@ class Test_Validate_KSR(unittest.TestCase):
         validate_request(ksr, replace(policy, validate_signatures=False))
 
     def test_load_ksr_with_policy_violation(self):
-        """ Test loading an SKR failing the supplied policy """
+        """ Test loading a KSR failing the supplied policy """
         fn = os.path.join(self.data_dir, 'ksr-root-2018-q1-0-d_to_e.xml')
         policy = RequestPolicy(warn_instead_of_fail=False,
                                num_bundles=99)
-        with self.assertRaises(RuntimeError):
-            load_ksr(fn, policy)
+        with self.assertRaises(KSR_BUNDLE_COUNT_Violation):
+            load_ksr(fn, policy, raise_original=True)
 
     def test_DSA_algorithm_not_allowed(self):
         """ Test validating a KSR with the DSA algorithm """

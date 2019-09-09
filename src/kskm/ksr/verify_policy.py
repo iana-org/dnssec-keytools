@@ -56,10 +56,6 @@ def verify_policy(request: Request, policy: RequestPolicy, logger: Logger) -> No
     check_bundle_overlaps(request, policy, logger)
     check_signature_validity(request, policy, logger)
 
-    # TODO: This check isn't part of the specification
-    if policy.num_bundles is not None and len(request.bundles) != policy.num_bundles:
-        raise KSR_PolicyViolation(f'Wrong number of bundles in request '
-                                  f'({len(request.bundles)}, expected {policy.num_bundles})')
 
     logger.debug('End "Verify KSR policy parameters"')
 
