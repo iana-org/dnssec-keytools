@@ -1,4 +1,5 @@
 """The checks defined in the 'Verify KSR policy parameters' section of docs/ksr-processing.md."""
+import datetime
 from datetime import timedelta
 from logging import Logger
 
@@ -56,6 +57,23 @@ def verify_policy(request: Request, policy: RequestPolicy, logger: Logger) -> No
     check_bundle_overlaps(request, policy, logger)
     check_signature_validity(request, policy, logger)
 
+    dt_now = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
+    for bundle in request.bundles:
+        expire_days = (bundle.expiration - dt_now).days
+        # DPS section 5.1.4: Any RRSIG record generated as a result of a KSK signing operation will not have
+        # a validity period longer than 21 days, and will never expire more than 180 days in the future.
+        if policy.signature_horizon_days and expire_days > policy.signature_horizon_days:
+            logger.error(f'Bundle {bundle.id} signature expires in {expire_days} days ({bundle.expiration}), '
+                        f'above maximum of {policy.signature_horizon_days}')
+            raise KSR_PolicyViolation('Bundle signature expire too far into the future')
+
+        # If we're checking that signatures don't expire too long into the future, it makes
+        # sense to also check that they don't expire in the past which could indicate the clock
+        # is wrong on the system performing the checks.
+        if policy.signature_horizon_days > 0 and expire_days < 0:
+            logger.error(f'Bundle {bundle.id} signature expires {abs(expire_days)} days in the past '
+                         f'({bundle.expiration})')
+            raise KSR_PolicyViolation('Bundle signature expire in the past')
 
     logger.debug('End "Verify KSR policy parameters"')
 

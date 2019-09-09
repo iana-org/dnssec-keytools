@@ -1,4 +1,5 @@
 import base64
+import datetime
 import os
 import unittest
 from dataclasses import replace
@@ -22,7 +23,11 @@ class Test_Validate_KSR(unittest.TestCase):
     def test_validate_ksr_with_invalid_signature(self):
         """ Test manipulating SKR signature """
         fn = os.path.join(self.data_dir, 'ksr-root-2018-q1-0-d_to_e.xml')
+        # Exception: Failed validating KSR request in file icann-ksr-archive/ksr/ksr-root-2010-q3-2.xml:
+        #            Bundle signature expire in the past
+        _signature_horizon = 0
         policy = RequestPolicy(warn_instead_of_fail=False,
+                               signature_horizon_days=_signature_horizon,
                                )
         ksr = load_ksr(fn, policy)
 
@@ -82,3 +87,32 @@ class Test_Validate_KSR(unittest.TestCase):
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
             validate_request(request, policy)
         self.assertIn('DSA is not allowed', str(exc.exception))
+
+    def test_load_ksr_with_signatures_in_the_past(self):
+        """ Test loading a KSR requesting signatures that has expired already """
+        fn = os.path.join(self.data_dir, 'ksr-root-2018-q1-0-d_to_e.xml')
+        policy = RequestPolicy(signature_horizon_days=180)
+        with self.assertRaises(KSR_PolicyViolation):
+            load_ksr(fn, policy, raise_original=True)
+
+    def test_load_ksr_with_signatures_in_the_past2(self):
+        """ Test loading a KSR requesting signatures that has expired already, but allowing it """
+        fn = os.path.join(self.data_dir, 'ksr-root-2018-q1-0-d_to_e.xml')
+        policy = RequestPolicy(signature_horizon_days=-1)
+        load_ksr(fn, policy, raise_original=True)
+
+    def test_load_ksr_with_signatures_in_the_past3(self):
+        """ Test loading a KSR requesting signatures just outside of policy """
+        fn = os.path.join(self.data_dir, 'ksr-root-2018-q1-0-d_to_e.xml')
+        # first load the KSR, allowing the old signatures
+        policy = RequestPolicy(signature_horizon_days=-1)
+        ksr = load_ksr(fn, policy, raise_original=True)
+        first_expire = ksr.bundles[0].expiration
+        dt_now = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
+        # Now, try load the KSR again but say the last allowed expiration date is that
+        # of the first bundles signature expiration date. This should fail all but the
+        # first bundle.
+        expire_days = (first_expire - dt_now).days
+        policy = RequestPolicy(signature_horizon_days=expire_days)
+        with self.assertRaises(KSR_PolicyViolation):
+            load_ksr(fn, policy, raise_original=True)

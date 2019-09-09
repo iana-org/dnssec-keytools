@@ -72,6 +72,7 @@ class TestParseRealKSRs(unittest.TestCase):
                                rsa_approved_key_sizes=[1024],
                                check_bundle_overlap=False,
                                signature_validity_match_zsk_policy=False,
+                               signature_horizon_days=0,
                                )
         ksr = load_ksr(fn, policy, raise_original=True)
         self.assertEqual('14d45450-618c-4414-8e1e-9078ffb0ed51', ksr.id)
@@ -132,9 +133,13 @@ class TestParseRealKSRs(unittest.TestCase):
         #            Bundle validity 14 days, 23:59:59 < claimed min_signature_validity 15 days
         #            (in bundle df64b6da-c1c7-49df-9958-bef478c095d4)
         _signature_validity_match_zsk_policy = False
+        # Exception: Failed validating KSR request in file icann-ksr-archive/ksr/ksr-root-2010-q3-2.xml:
+        #            Bundle signature expire in the past
+        _signature_horizon = 0
         policy = RequestPolicy(rsa_approved_key_sizes=_rsa_approved_key_sizes,
                                check_bundle_overlap=_check_bundle_overlap,
                                signature_validity_match_zsk_policy=_signature_validity_match_zsk_policy,
+                               signature_horizon_days=_signature_horizon,
                                )
         fn = os.path.join(self.data_dir, 'ksr-root-2016-q3-0.xml')
         ksr = load_ksr(fn, policy)
@@ -142,10 +147,11 @@ class TestParseRealKSRs(unittest.TestCase):
 
     def test_load_ksr_2018(self):
         """ Test complete load and validate 2018 """
-        # Exception: Failed validating KSR request in file ksr-root-2018-q1-0-d_to_e.xml:
-        #            Bundle "id=4c05c9b8 2018-01-11->2018-02-01" overlap 11 days with
-        #                   "id=0a8f7774 2018-01-01->2018-01-22" is < claimed minimum 12 days
-        policy = RequestPolicy()
+        # Exception: Failed validating KSR request in file icann-ksr-archive/ksr/ksr-root-2010-q3-2.xml:
+        #            Bundle signature expire in the past
+        _signature_horizon = 0
+        policy = RequestPolicy(signature_horizon_days=_signature_horizon,
+                               )
         fn = os.path.join(self.data_dir, 'ksr-root-2018-q1-0-d_to_e.xml')
         ksr = load_ksr(fn, policy)
         self.assertEqual('4fe9bb10-6f6b-4503-8575-7824e2d66925', ksr.id)

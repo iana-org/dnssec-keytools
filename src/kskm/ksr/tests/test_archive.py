@@ -51,10 +51,14 @@ class TestParseRealKSRs(unittest.TestCase):
         #            Bundle validity 14 days, 23:59:59 < claimed min_signature_validity 15 days
         #            (in bundle 755af55c-e9fd-4a4d-9335-212647115222)
         _signature_validity_match_zsk_policy = False
+        # Exception: Failed validating KSR request in file icann-ksr-archive/ksr/ksr-root-2010-q3-2.xml:
+        #            Bundle signature expire in the past
+        _signature_horizon = 0
         policy = RequestPolicy(rsa_exponent_match_zsk_policy=_rsa_exponent_match_zsk_policy,
                                rsa_approved_key_sizes=_rsa_approved_key_sizes,
                                check_bundle_overlap=_check_bundle_overlap,
                                signature_validity_match_zsk_policy=_signature_validity_match_zsk_policy,
+                               signature_horizon_days=_signature_horizon,
                                )
 
         _dir = archive_dir('ksr')
