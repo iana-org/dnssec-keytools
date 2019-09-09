@@ -23,12 +23,6 @@ class Test_Validate_KSR(unittest.TestCase):
         """ Test manipulating SKR signature """
         fn = os.path.join(self.data_dir, 'ksr-root-2018-q1-0-d_to_e.xml')
         policy = RequestPolicy(warn_instead_of_fail=False,
-                               # get around the issue of
-                               # 'Signature validity 60 days > claimed max_signature_validity 21 days'
-                               signature_validity_match_zsk_policy=False,
-                               # get around the issue of
-                               # 'Bundle X overlap 11 days, 0:00:00 with Y is < claimed minimum 12 days, 0:00:00'
-                               check_bundle_overlap=False,
                                )
         ksr = load_ksr(fn, policy)
 
@@ -79,8 +73,7 @@ class Test_Validate_KSR(unittest.TestCase):
   </Request>
 </KSR>
 """
-        policy = RequestPolicy(check_bundle_overlap=False,
-                               num_bundles=0,
+        policy = RequestPolicy(num_bundles=0,
                                acceptable_key_set_lengths=[0],
                                approved_algorithms=['RSASHA256', 'DSA']
                                )
