@@ -52,14 +52,7 @@ Validate the policy parameters present in the KSR against the KSK operator's own
 
 ### Verify KSR/SKR chaining
 
-- **KSR-PREVIOUS**: Check the integrity of last SKR, SKR(n-1), by verifying the KSK signature over each key bundle. This verifies the integrity of all the ZSKs in SKR(n-1). When this check is performed as part of the KSR signing process, the signatures should be verified using the KSK used for signing the KSR (i.e., using the HSM).
-
-- **KSR-CHAIN-PRE**: Compare the pre-published ZSK from the last key bundle of SKR(n-1) with the ZSKs published in the first key bundle of KSR(n). These keys must be identical.
-
-- **KSR-CHAIN-POST**: Compare the post-published ZSK from the first key bundle of KSR(n) with the ZSKs published in the last key bundle of SKR(n-1). These keys must be identical.
-
-**KSR-CHAIN-PRE** and **KSR-CHAIN-POST** effectively means that the last slot of SKR(n-1) must have all the same ZSKs as the first slot of KSR(n).
-
+- **KSR-CHAIN**: Check the integrity of all ZSKs in the last SKR, SKR(n-1), by verifying the KSK signature over each key bundle using the KSK stored in the HSM. Then, to build the chain of trust linking the previous KSR to the current, the pre-published ZSK from the last key bundle of SKR(n-1) must match the ZSK published in the first key bundle of KSR(n), and the post-published ZSK from the first key bundle of KSR(n) must match the ZSKs published in the last key bundle of SKR(n-1).
 
 ## Signing the Key Signing Request
 
