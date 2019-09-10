@@ -47,6 +47,12 @@ class KSR_POLICY_SIG_VALIDITY_Violation(KSR_PolicyViolation):
     pass
 
 
+class KSR_POLICY_SIG_HORIZON_Violation(KSR_PolicyViolation):
+    """KSR-POLICY-SIG-HORIZON policy violation."""
+
+    pass
+
+
 def verify_policy(request: Request, policy: RequestPolicy, logger: Logger) -> None:
     """Verify that the bundles in a request are acceptable with the KSK operators configured policy."""
     logger.debug('Begin "Verify KSR policy parameters"')
@@ -65,7 +71,7 @@ def verify_policy(request: Request, policy: RequestPolicy, logger: Logger) -> No
         if policy.signature_horizon_days and expire_days > policy.signature_horizon_days:
             logger.error(f'Bundle {bundle.id} signature expires in {expire_days} days ({bundle.expiration}), '
                         f'above maximum of {policy.signature_horizon_days}')
-            raise KSR_PolicyViolation('Bundle signature expire too far into the future')
+            raise KSR_POLICY_SIG_HORIZON_Violation('Bundle signature expire too far into the future')
 
         # If we're checking that signatures don't expire too long into the future, it makes
         # sense to also check that they don't expire in the past which could indicate the clock

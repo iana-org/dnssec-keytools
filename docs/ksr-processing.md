@@ -46,6 +46,8 @@ Validate the policy parameters present in the KSR against the KSK operator's own
 
 - **KSR-POLICY-SIG-VALIDITY**: Verify that each requested signature (bundle inception/expiration) has a validity period between _MinSignatureValidity_ and _MaxSignatureValidity_.
 
+- **KSR-POLICY-SIG-HORIZON**: Verify that each requested signature has a maximum validity horizon counting 180 days from now.
+
 - **KSR-POLICY-SIG-OVERLAP**: Verify that the requested signature inceptions/expirations has an overlap period between _MinValidityOverlap_ and _MaxValidityOverlap_. This check ensures that no gaps exists in the KSR timeline.
 
 ### Verify KSR/SKR chaining
