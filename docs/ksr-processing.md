@@ -35,9 +35,7 @@ Validate the policy parameters present in the KSR against the KSK operator's own
     - TTL matches KSK operators configured value
     - Number of keys per bundle are within bounds
 
-- **KSR-POLICY-ALG**: Verify that only signature algorithms listed in the KSK operators policy are used in the request.
-
-- **KSR-POLICY-PARAMS**: Verify that the signature algorithms listed in the KSR policy have parameters allowed by the KSK operators policy. Parameters checked are different for different algorithms. For RSA, the following parameters applies:
+- **KSR-POLICY-ALG**: Verify that only signature algorithms listed in the KSK operators policy are used in the request and that the the signature algorithms listed in the KSR policy have parameters allowed by the KSK operators policy. Parameters checked are different for different algorithms. For RSA, the following parameters applies:
 
     - key size
     - exponent

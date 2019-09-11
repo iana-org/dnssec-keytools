@@ -29,12 +29,6 @@ class KSR_POLICY_ALG_Violation(KSR_PolicyViolation):
     pass
 
 
-class KSR_POLICY_PARAMS_Violation(KSR_PolicyViolation):
-    """KSR-POLICY-PARAMS policy violation."""
-
-    pass
-
-
 class KSR_POLICY_SIG_OVERLAP_Violation(KSR_PolicyViolation):
     """KSR-POLICY-SIG-OVERLAP policy violation."""
 
@@ -58,8 +52,7 @@ def verify_policy(request: Request, policy: RequestPolicy, logger: Logger) -> No
     logger.debug('Begin "Verify KSR policy parameters"')
 
     check_keys_in_bundles(request, policy, logger)
-    check_zsk_policy_signature_algorithms(request, policy, logger)
-    check_zsk_policy_signature_parameters(request, policy, logger)
+    check_zsk_policy_algorithm(request, policy, logger)
     check_bundle_overlaps(request, policy, logger)
     check_signature_validity(request, policy, logger)
 
@@ -150,13 +143,15 @@ def check_signature_validity(request: Request, policy: RequestPolicy, logger: Lo
     logger.info(f'KSR-POLICY-SIG-VALIDITY: All {_num_bundles} bundles have {_min_str} <= validity >= {_max_str}')
 
 
-def check_zsk_policy_signature_algorithms(request: Request, policy: RequestPolicy, logger: Logger) -> None:
+def check_zsk_policy_algorithm(request: Request, policy: RequestPolicy, logger: Logger) -> None:
     """
-    Check that the key parameters in the ZSK operators policy are accepted by KSK operator policy.
+    KSR-POLICY-SIGALG:
+    Verify that only signature algorithms listed in the KSK operators policy
+    are used in the request and that the the signature algorithms listed in
+    the KSR policy have parameters allowed by the KSK operators policy.
+    Parameters checked are different for different algorithms.
+    """
 
-    KSR-POLICY-ALG:
-    Verify that only signature algorithms listed in the policy are used in the bundle.
-    """
     if not policy.signature_algorithms_match_zsk_policy:
         logger.warning('KSR-POLICY-ALG: Disabled by policy (signature_algorithms_match_zsk_policy)')
         return
@@ -171,40 +166,24 @@ def check_zsk_policy_signature_algorithms(request: Request, policy: RequestPolic
                                            f'{_approved_algorithms}')
 
     _num_algs = len(request.zsk_policy.algorithms)
-    logger.info(f'KSR-POLICY-ALG: All {_num_algs} ZSK operator signature algorithms accepted by policy')
 
-
-def check_zsk_policy_signature_parameters(request: Request, policy: RequestPolicy, logger: Logger) -> None:
-    """
-    Check that the key parameters in the ZSK operators policy are accepted by KSK operator policy.
-
-    KSR-POLICY-PARAMS:
-    Verify that the signature algorithms listed in the KSR policy have parameters allowed
-    by the KSK operators policy. Parameters checked are different for different algorithms.
-
-      RSA:
-        - key size
-        - exponent
-    """
-    count = 0
     for alg in request.zsk_policy.algorithms:
         if is_algorithm_rsa(alg.algorithm):
-            # help the type checking realise that alg will be the RSA subclass of
-            # AlgorithmDNSSEC (which means it has the 'exponent' field)
+            # help the type checking realise that alg will be the RSA subclass
+            # of AlgorithmDNSSEC (which means it has the 'exponent' field)
             assert isinstance(alg, AlgorithmPolicyRSA)
 
-            count += 1
             if alg.bits not in policy.rsa_approved_key_sizes:
-                raise KSR_POLICY_PARAMS_Violation(f'ZSK policy is RSA-{alg.bits}, but policy dictates '
-                                                  f'{policy.rsa_approved_key_sizes}')
+                raise KSR_POLICY_ALG_Violation(f'ZSK policy is RSA-{alg.bits}, but policy dictates '
+                                               f'{policy.rsa_approved_key_sizes}')
 
             if alg.exponent not in policy.rsa_approved_exponents:
-                raise KSR_POLICY_PARAMS_Violation(f'ZSK policy has RSA exponent {alg.exponent}, but policy dictates '
-                                                  f'{policy.rsa_approved_exponents}')
+                raise KSR_POLICY_ALG_Violation(f'ZSK policy has RSA exponent {alg.exponent}, but policy dictates '
+                                               f'{policy.rsa_approved_exponents}')
 
             logger.debug(f'ZSK policy algorithm {alg} parameters accepted')
 
-    logger.info(f'KSR-POLICY-PARAMS: {count} signature algorithms parameters accepted by policy')
+    logger.info(f'KSR-POLICY-ALG: All {_num_algs} ZSK operator signature algorithms accepted by policy')
 
 
 def check_bundle_overlaps(request: Request, policy: RequestPolicy, logger: Logger) -> None:
