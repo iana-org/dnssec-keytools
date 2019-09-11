@@ -65,8 +65,7 @@ Validate the policy parameters present in the KSR against the KSK operator's own
 
 Before signing the request, the KSK operator calculates a SHA-256 hash (**HASH#1**) over the KSR XML file as received from the ZSK operator and verifies this hash out-of-band with the hash (**HASH#2**) previously calculated by the ZSK operator. If the hashes do not match, the KSR MUST NOT processed by the KSK operator and no corresponding SKR should be produced.
 
-The KSK operator constructs a Signed Key Response (SKR) by building a ResponsePolicy consisting of a KSK policy and a ZSK policy (copied from the KSR), together with a set of ResponseBundles. Each ResponseBundle is constructed by the appropriate KSKs and ZSKs (copied from the
-KSR), together with a set of RRSIGs created with the Inception/Expiration
+The KSK operator constructs a Signed Key Response (SKR) by building a ResponsePolicy consisting of a KSK policy and a ZSK policy (copied from the KSR), together with a set of ResponseBundles. Each ResponseBundle is constructed by the appropriate KSKs and ZSKs (copied from the KSR), together with a set of RRSIGs created with the Inception/Expiration
 specified in the KSR.
 
 The SKR is sent back to the ZSK operator for further processing.
@@ -74,13 +73,9 @@ The SKR is sent back to the ZSK operator for further processing.
 
 ## Validating the Signed Key Response
 
-The following checks are performed by the ZSK operator to validate the Signed
-Key Response. The validation may be done before accepting a SKR from the the
-KSK operator (i.e. as part of the transmission process) and must be done before
-SKR is authorized and activated.
+The following checks are performed by the ZSK operator to validate the Signed Key Response. The validation may be done before accepting a SKR from the KSK operator (i.e. as part of the transmission process) and must be done beforeSKR is authorized and activated.
 
-- **SKR-MATCH**: Verify that the SKR received corresponds to the most recent KSR sent by the ZSK operator; verify that the ID, serialNumber, and Domain parameters in the SKR and its corresponding KSR match, verify that number of request bundles in the SKR matches that of the
-  corresponding KSR, and verify that for each request bundle the following parameters in the response match those in the request:
+- **SKR-MATCH**: Verify that the SKR received corresponds to the most recent KSR sent by the ZSK operator; verify that the ID, serialNumber, and Domain parameters in the SKR and its corresponding KSR match, verify that number of request bundles in the SKR matches that of the corresponding KSR, and verify that for each request bundle the following parameters in the response match those in the request:
 
     - bundle id
     - inception date
