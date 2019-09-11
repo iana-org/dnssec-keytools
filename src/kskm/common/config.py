@@ -235,7 +235,7 @@ def get_config(filename: Optional[str]) -> KSKMConfig:
     """Top-level function to load configuration, or return a default ConfigType instance."""
     if not filename:
         # Avoid having Optional[ConfigType] everywhere by always having a config, even if it is empty
-        logger.info('No configuration filename provided, using default configuration.')
+        logger.warning('No configuration filename provided, using default configuration.')
         return KSKMConfig({})
     with open(filename, 'rb') as fd:
         config_bytes = fd.read()

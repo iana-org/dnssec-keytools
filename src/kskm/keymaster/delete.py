@@ -18,7 +18,7 @@ def key_delete(label: str, p11modules: KSKM_P11, force: bool = False) -> bool:
     if not force:
         ack = input(f'Delete key pair {existing_key}? Confirm with "Yes" (exactly) or anything else to abort: ')
         if ack.strip('\n') != 'Yes':
-            logger.info(f'Deletion of key pair {existing_key} aborted')
+            logger.warning(f'Deletion of key pair {existing_key} aborted')
             return True
 
     logger.info(f'Deleting key pair {existing_key}')
@@ -46,7 +46,7 @@ def wrapkey_delete(label: str, p11modules: KSKM_P11, force: bool = False) -> boo
     if not force:
         ack = input(f'Delete secret key {existing_key}? Confirm with "Yes" (exactly) or anything else to abort: ')
         if ack.strip('\n') != 'Yes':
-            logger.info(f'Deletion of key {existing_key} aborted')
+            logger.warning(f'Deletion of key {existing_key} aborted')
             return True
 
     logger.info(f'Deleting secret key {existing_key}')

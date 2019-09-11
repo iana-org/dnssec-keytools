@@ -208,7 +208,7 @@ class KSKM_P11Module(object):
                         logger.debug(f'Login to module {self.label} slot {_slot} successful')
                         _success_count += 1
                     else:
-                        logger.info(f'Not logging in to module {self.label} slot {_slot} - no PIN provided')
+                        logger.warning(f'Not logging in to module {self.label} slot {_slot} - no PIN provided')
                     self._sessions[_slot] = _session
                 except PyKCS11.PyKCS11Error:
                     if not _success_count:

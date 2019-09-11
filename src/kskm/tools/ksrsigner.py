@@ -190,8 +190,8 @@ def ksrsigner(logger: logging.Logger, args: ArgsType, config: Optional[KSKMConfi
         check_skr_and_ksr(request, skr, config.request_policy)
         # TODO: Verify that the public key that signed the bundles in skr is available in the HSM
     else:
-        logger.info('KSR-CHAIN: Previous SKR *NOT* loaded - daisy chain not validated')
-        logger.info('KSR-CHAIN: Previous SKR *NOT* loaded - presence of SKR(n-1) in HSM not validated')
+        logger.warning('KSR-CHAIN: Previous SKR *NOT* loaded - daisy chain not validated')
+        logger.warning('KSR-CHAIN: Previous SKR *NOT* loaded - presence of SKR(n-1) in HSM not validated')
 
     if not args.force:
         print("")
@@ -201,7 +201,7 @@ def ksrsigner(logger: logging.Logger, args: ArgsType, config: Optional[KSKMConfi
         print("")
         ack = input(f'Sign KSR? Confirm with "Yes" (exactly) or anything else to abort: ')
         if ack.strip('\n') != 'Yes':
-            logger.info(f'KSR signing aborted')
+            logger.warning(f'KSR signing aborted')
             return False
 
     #
