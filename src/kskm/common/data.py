@@ -66,7 +66,6 @@ class SignaturePolicy(object):
     algorithms: Set[AlgorithmPolicy]
 
 
-# TODO: I believe this class is unused/used incorrectly
 @dataclass(frozen=True)
 class Signer(object):
     key_identifier: Optional[str]
