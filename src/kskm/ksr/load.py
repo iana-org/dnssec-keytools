@@ -6,7 +6,7 @@ import os
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.display import log_file_contents
 from kskm.common.integrity import checksum_bytes2str, sha256
-from kskm.common.parse_utils import signature_policy_from_dict
+from kskm.common.parse_utils import signature_policy_from_dict, parse_datetime
 from kskm.common.validate import PolicyViolation
 from kskm.common.xml_parser import parse_ksr
 from kskm.ksr.data import Request
@@ -57,9 +57,13 @@ def request_from_xml(xml: str, **kwargs) -> Request:
     bundles = requestbundles_from_list_of_dicts(data['KSR']['value']['Request'].get('RequestBundle', []))
     zsk_policy = signature_policy_from_dict(data['KSR']['value']['Request']['RequestPolicy']['ZSK'])
     _attrs = data['KSR']['attrs']
+    timestamp = None
+    if 'timestamp' in _attrs:
+        timestamp = parse_datetime(_attrs['timestamp'])
     req = Request(id=_attrs['id'],
                   serial=int(_attrs['serial']),
                   domain=_attrs['domain'],
+                  timestamp=timestamp,
                   zsk_policy=zsk_policy,
                   bundles=bundles,
                   **kwargs

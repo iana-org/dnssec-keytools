@@ -21,12 +21,12 @@ class Test_duration_to_timedelta(TestCase):
         self.assertEqual(td.total_seconds(), 86400)
 
     def test_duration_to_timedelta_day_hour(self):
-        """ Test both day and munite """
+        """ Test hour """
         td = duration_to_timedelta('P1H')
         self.assertEqual(td.total_seconds(), 3600)
 
     def test_duration_to_timedelta_day_minute(self):
-        """ Test both day and munite """
+        """ Test both day and minute """
         td = duration_to_timedelta('P1DT1M')
         self.assertEqual(td.total_seconds(), 86460)
 
@@ -46,7 +46,7 @@ class Test_duration_to_timedelta(TestCase):
         self.assertEqual(td.total_seconds(), 86400 * 7)
 
     def test_bogus(self):
-        """ Test totaly bogus duration """
+        """ Test totally bogus duration """
         with self.assertRaises(ValueError):
             duration_to_timedelta('foo')
 

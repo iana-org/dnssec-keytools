@@ -124,6 +124,7 @@ class SignWithSoftHSM_Baseclass(unittest.TestCase):
                           domain='.',
                           bundles=[bundle],
                           zsk_policy=self.request_zsk_policy,
+                          timestamp=None,
                           )
         return request
 
