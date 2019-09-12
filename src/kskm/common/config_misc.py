@@ -54,6 +54,7 @@ class RequestPolicy(Policy):
     # TODO: Only have 3 as acceptable key set length, and require special policy for special case?
     acceptable_key_set_lengths: List[int] = field(default_factory=lambda: [2, 3])
     dns_ttl: int = 0  # if this is 0, the config value ksk_policy.ttl will be used instead
+    signature_check_expire_horizon: bool = True
     signature_horizon_days: int = 180
 
     # Verify KSR/SKR chaining
