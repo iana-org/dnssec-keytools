@@ -155,7 +155,7 @@ def check_signature_horizon(request, policy, logger):
 
 def check_zsk_policy_algorithm(request: Request, policy: RequestPolicy, logger: Logger) -> None:
     """
-    KSR-POLICY-SIGALG:
+    KSR-POLICY-ALG:
     Verify that only signature algorithms listed in the KSK operators policy
     are used in the request and that the the signature algorithms listed in
     the KSR policy have parameters allowed by the KSK operators policy.
