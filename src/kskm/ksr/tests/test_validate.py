@@ -6,10 +6,10 @@ from dataclasses import replace
 
 import pkg_resources
 
-from kskm.ksr import load_ksr, request_from_xml
 from kskm.common.config_misc import RequestPolicy
+from kskm.ksr import load_ksr, request_from_xml
 from kskm.ksr.validate import validate_request
-from kskm.ksr.verify_bundles import KSR_BUNDLE_POP_Violation, KSR_BUNDLE_COUNT_Violation
+from kskm.ksr.verify_bundles import KSR_BUNDLE_COUNT_Violation, KSR_BUNDLE_KEYS_Violation, KSR_BUNDLE_POP_Violation
 from kskm.ksr.verify_policy import KSR_POLICY_ALG_Violation, KSR_PolicyViolation
 
 
@@ -21,17 +21,17 @@ class Test_Validate_KSR(unittest.TestCase):
         self.policy_fn = os.path.join(self.data_dir, 'response_policy.yaml')
 
     def test_validate_ksr_with_invalid_signature(self):
-        """ Test manipulating SKR signature """
+        """ Test manipulating KSR signature """
         fn = os.path.join(self.data_dir, 'ksr-root-2018-q1-0-d_to_e.xml')
         # Exception: Failed validating KSR request in file icann-ksr-archive/ksr/ksr-root-2010-q3-2.xml:
         #            Bundle signature expire in the past
-        _signature_horizon = 0
+        _signature_check_expire_horizon = False
         policy = RequestPolicy(warn_instead_of_fail=False,
-                               signature_horizon_days=_signature_horizon,
+                               signature_check_expire_horizon=_signature_check_expire_horizon,
                                )
         ksr = load_ksr(fn, policy)
 
-        # The response was successfully validated in load_ksr, now manipulate it
+        # The request was successfully validated in load_ksr, now manipulate it
         first_bundle = ksr.bundles[0]
         sig = first_bundle.signatures.pop()
         # change the last byte of the signature
@@ -42,12 +42,38 @@ class Test_Validate_KSR(unittest.TestCase):
         first_bundle.signatures.add(sig)
         ksr.bundles[0] = first_bundle
 
-        # Now try and verify the SKR again and ensure it fails signature validation
+        # Now try and verify the KSR again and ensure it fails signature validation
         with self.assertRaises(KSR_BUNDLE_POP_Violation):
             validate_request(ksr, policy)
 
-        # Test that the invalid SKR is accepted with signature validations turned off
+        # Test that the invalid KSR is accepted with signature validations turned off
         validate_request(ksr, replace(policy, validate_signatures=False))
+
+    def test_validate_ksr_with_invalid_keys(self):
+        """ Test manipulating KSR keys """
+        fn = os.path.join(self.data_dir, 'ksr-root-2018-q1-0-d_to_e.xml')
+        # Exception: Failed validating KSR request in file icann-ksr-archive/ksr/ksr-root-2010-q3-2.xml:
+        #            Bundle signature expire in the past
+        _signature_check_expire_horizon = False
+        policy = RequestPolicy(warn_instead_of_fail=False,
+                               signature_check_expire_horizon=_signature_check_expire_horizon,
+                               )
+        ksr = load_ksr(fn, policy)
+
+        # The request was successfully validated in load_ksr, now manipulate it
+        ksr_bundles = ksr.bundles
+        first_key = ksr_bundles[0].keys.pop()
+        second_key = ksr_bundles[0].keys.pop()
+        # Now switch the keys while keeping the key identifier. This should trigger
+        # checks that verify that keys presented in multiple bundles stay invariant.
+        new_first_key = replace(first_key, key_identifier=second_key.key_identifier)
+        new_second_key = replace(second_key, key_identifier=first_key.key_identifier)
+        ksr_bundles[0] = replace(ksr_bundles[0], keys = {new_first_key, new_second_key})
+        ksr = replace(ksr, bundles=ksr_bundles)
+
+        # Now try and verify the KSR again and ensure it fails signature validation
+        with self.assertRaises(KSR_BUNDLE_KEYS_Violation):
+            validate_request(ksr, replace(policy, validate_signatures=False))
 
     def test_load_ksr_with_policy_violation(self):
         """ Test loading a KSR failing the supplied policy """

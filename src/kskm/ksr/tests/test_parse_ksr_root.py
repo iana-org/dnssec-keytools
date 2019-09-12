@@ -149,8 +149,8 @@ class TestParseRealKSRs(unittest.TestCase):
         """ Test complete load and validate 2018 """
         # Exception: Failed validating KSR request in file icann-ksr-archive/ksr/ksr-root-2010-q3-2.xml:
         #            Bundle signature expire in the past
-        _signature_horizon = 0
-        policy = RequestPolicy(signature_horizon_days=_signature_horizon,
+        _signature_check_expire_horizon = False
+        policy = RequestPolicy(signature_check_expire_horizon=_signature_check_expire_horizon,
                                )
         fn = os.path.join(self.data_dir, 'ksr-root-2018-q1-0-d_to_e.xml')
         ksr = load_ksr(fn, policy)

@@ -91,7 +91,6 @@ def check_keys_match_zsk_policy(request: Request, policy: RequestPolicy, logger:
       Verify that the keys are consistent (key id, tag, public key parameters etc.)
       across all bundles and that the key tags are correctly calculated.
     """
-    # TODO: Not all implemented - need clarification of specification
     if not policy.keys_match_zsk_policy:
         logger.warning('KSR-BUNDLE-KEYS: Disabled by policy (keys_match_zsk_policy)')
         return
@@ -100,15 +99,17 @@ def check_keys_match_zsk_policy(request: Request, policy: RequestPolicy, logger:
 
     for bundle in request.bundles:
         for key in bundle.keys:
-            if key.key_tag in seen:
+            if key.key_identifier in seen:
                 # verify the key is identical to previous time it was found
-                if key == seen[key.key_tag]:
+                if key == seen[key.key_identifier]:
+                    # We've seen and checked this exact key before, no need to do it again
                     continue
-                logger.debug(f'Key as seen before : {seen[key.key_tag]}')
+                logger.debug(f'Key as seen before : {seen[key.key_identifier]}')
                 logger.debug(f'Key in bundle {bundle.id}: {key}')
-                raise KSR_BUNDLE_KEYS_Violation(f'Key tag {key.key_tag} matches two different keys '
+                raise KSR_BUNDLE_KEYS_Violation(f'Key tag {key.key_identifier} matches two different keys '
                                                 f'(the second one in bundle {bundle.id})')
 
+            # This is a new key - perform more checks on it
             if is_algorithm_rsa(key.algorithm):
                 pubkey = decode_rsa_public_key(key.public_key)
 
@@ -126,11 +127,12 @@ def check_keys_match_zsk_policy(request: Request, policy: RequestPolicy, logger:
                                                     f'does not match the ZSK SignaturePolicy')
                 else:
                     logger.debug(f'Key {key.key_tag}/{key.key_identifier} parameters accepted')
-                    seen[key.key_tag] = key
+                    seen[key.key_identifier] = key
             else:
-                # TODO: Not exactly a policy violation as much as maybe a contract violation
-                raise PolicyViolation(f'Key {key.key_identifier} in bundle {bundle.id} '
-                                      f'uses unhandled algorithm: {key.algorithm}')
+                raise ValueError(f'Key {key.key_identifier} in bundle {bundle.id} uses unhandled algorithm: '
+                                 f'{key.algorithm}')
+
+            # TODO: This seems like a good place to validate the flags of the key, to make sure it is a non-retired ZSK
 
             _key_tag = calculate_key_tag(key)
             if _key_tag != key.key_tag:
