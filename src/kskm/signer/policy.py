@@ -3,6 +3,7 @@ import logging
 
 from kskm.common.config_misc import RequestPolicy
 from kskm.ksr import Request
+from kskm.ksr.verify_bundles import KSR_BUNDLE_UNIQUE_Violation
 from kskm.ksr.verify_header import KSR_ID_Violation
 from kskm.signer.daisy import check_daisy_chain
 from kskm.skr import Response
@@ -31,6 +32,7 @@ def check_unique_ids(ksr: Request, last_skr: Response, policy: RequestPolicy) ->
     Bundle IDs have to be unique within the last SKR and the KSR.
     """
     check_unique_request(ksr, last_skr, policy)
+    check_unique_bundle_ids(ksr, last_skr, policy)
 
 
 def check_unique_request(ksr: Request, last_skr: Response, policy: RequestPolicy) -> None:
@@ -45,6 +47,22 @@ def check_unique_request(ksr: Request, last_skr: Response, policy: RequestPolicy
     """
     if ksr.id == last_skr.id:
         raise KSR_ID_Violation(f'The KSR request ID is the same as the last SKR ID: {ksr.id}')
+
+
+def check_unique_bundle_ids(ksr: Request, last_skr: Response, policy: RequestPolicy) -> None:
+    """
+    Check the Bundle IDs in the request and make sure they are not also present in the last SKR.
+
+    KSR-BUNDLE-UNIQUE:
+      Verify that all requested bundles has unique IDs
+
+    Since we don't keep a database with all the KSRs/SKRs ever seen/generated, this requirement
+    is interpreted as checking for uniqueness where we can.
+    """
+    for ksr_bundle in ksr.bundles:
+        for skr_bundle in last_skr.bundles:
+            if ksr_bundle.id == skr_bundle.id:
+                raise KSR_BUNDLE_UNIQUE_Violation(f'A bundle with id {ksr_bundle.id} was also present in the last SKR')
 
 
 def check_skr_timeline(last_skr: Response, new_skr: Response, policy: RequestPolicy) -> None:

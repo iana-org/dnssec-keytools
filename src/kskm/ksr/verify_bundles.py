@@ -68,8 +68,10 @@ def check_unique_ids(request: Request, policy: RequestPolicy, logger: Logger) ->
     NOTE: This is seen as a fundamental requirement to be able to correctly refer to bundles in logs etc.
           As such, there is no policy option to disable this check.
 
+    NOTE: This only verifies that bundle IDs are not re-used within this request. Later when the last
+          SKR is loaded, another pass will be made to validate that no bundle ID from this request was
+          present in the last SKR.
     """
-    # TODO: Interpreted as 'unique in this request', not in all requests ever processed
     seen: Dict[str, int] = {}
     for bundle in request.bundles:
         if bundle.id in seen:
