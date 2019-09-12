@@ -1,7 +1,8 @@
 """SKR (Response) data classes."""
 from abc import ABC
 from dataclasses import dataclass
-from typing import List
+from datetime import datetime
+from typing import List, Optional
 
 from kskm.common.data import Bundle, SignaturePolicy
 
@@ -16,8 +17,7 @@ class SKR(ABC):
     id: str
     serial: int
     domain: str
-    # TODO: The example KSR does not have a timestamp, and I don't see it in the schema (ksr.rnc)
-    # timestamp: datetime
+    timestamp: Optional[datetime]
 
 
 @dataclass(frozen=True)

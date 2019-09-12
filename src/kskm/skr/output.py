@@ -16,6 +16,10 @@ def format_datetime(dt: datetime) -> str:
 
 def skr_to_xml(skr: Response) -> str:
     """Format an SKR as XML."""
+    if skr.timestamp is not None:
+        # This is an optional feature in the schema that has never been used - we parse
+        # it but don't produce SKRs with it until requested.
+        raise NotImplementedError('SKR timestamp is not supported')
     return f'''<?xml version="1.0" encoding="UTF-8"?>
 <KSR id="{skr.id}" domain="{skr.domain}" serial="{skr.serial}">
     {_indent(_skr_response_to_xml(skr))}

@@ -29,7 +29,9 @@ def create_skr(request: Request, schema: Schema, p11modules: KSKM_P11, config: K
                     domain=request.domain,
                     bundles=list(bundles),
                     ksk_policy=_ksk_signature_policy(config.ksk_policy, bundles),
-                    zsk_policy=request.zsk_policy)
+                    zsk_policy=request.zsk_policy,
+                    timestamp=None,
+                    )
 
 
 def output_skr_xml(skr: Response, output_filename: Optional[str], log_contents: bool = False) -> None:

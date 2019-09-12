@@ -6,7 +6,7 @@ import os
 from kskm.common.config_misc import ResponsePolicy
 from kskm.common.display import log_file_contents
 from kskm.common.integrity import checksum_bytes2str
-from kskm.common.parse_utils import signature_policy_from_dict
+from kskm.common.parse_utils import parse_datetime, signature_policy_from_dict
 from kskm.common.validate import PolicyViolation
 from kskm.common.xml_parser import parse_ksr
 from kskm.skr.data import Response
@@ -44,10 +44,15 @@ def response_from_xml(xml: str) -> Response:
     ksk_policy = signature_policy_from_dict(data['KSR']['value']['Response']['ResponsePolicy']['KSK'])
     zsk_policy = signature_policy_from_dict(data['KSR']['value']['Response']['ResponsePolicy']['ZSK'])
     _attrs = data['KSR']['attrs']
+    timestamp = None
+    if 'timestamp' in _attrs:
+        timestamp = parse_datetime(_attrs['timestamp'])
     res = Response(id=_attrs['id'],
                    serial=int(_attrs['serial']),
                    domain=_attrs['domain'],
+                   timestamp=timestamp,
                    bundles=bundles,
                    ksk_policy=ksk_policy,
-                   zsk_policy=zsk_policy)
+                   zsk_policy=zsk_policy,
+                   )
     return res

@@ -22,6 +22,7 @@ class TestParseRealSKRs(unittest.TestCase):
         skr = response_from_xml(xml)
         self.assertEqual('4fe9bb10-6f6b-4503-8575-7824e2d66925', skr.id)
         self.assertEqual('.', skr.domain)
+        self.assertIsNone(skr.timestamp)
         # There are other test cases covering parts of the parsing in detail, so
         # here we only do cursory checks of the high level. Comparing 'ksr' with
         # a complete 'Request' instance would make it too rigid, at least at this
