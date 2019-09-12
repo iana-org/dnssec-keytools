@@ -209,6 +209,7 @@ def main(progname: str = 'keymaster', argv: Optional[List[str]] = None, config: 
     # TODO: Add option to identify HSM, if multiple are configured?
     # TODO: Add option to specify slot, instead of just picking the first one?
     # TODO: DNSKEY flags as option? Affects generated label.
+    # TODO: Allow choosing RSA exponent? As of now, this will default to 65537.
 
     parser_wrapgen = subparsers.add_parser('wrapgen')
     parser_wrapgen.set_defaults(func=wrapgen)

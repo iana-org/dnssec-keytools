@@ -1,5 +1,6 @@
 import base64
 import logging
+import math
 import time
 from typing import Any, List, Optional, Tuple
 
@@ -115,11 +116,9 @@ def public_key_template(label: str, key_type: int, bits: Optional[int] = None, r
     if bits is not None:
         publicKeyTemplate += [(CKA_MODULUS_BITS, bits)]
     if rsa_exponent is not None:
-        if rsa_exponent == 65537:
-            # TODO: don't use hard-coded value perhaps?
-            exponent_tuple = (0x01, 0x00, 0x01)
-        else:
-            raise RuntimeError(f'RSA exponent {rsa_exponent} not allowed')
+        _exp_len = math.ceil(int.bit_length(rsa_exponent) / 8)
+        _exp = int.to_bytes(rsa_exponent, length=_exp_len, byteorder='big')
+        exponent_tuple = tuple(_exp)
         publicKeyTemplate += [(CKA_PUBLIC_EXPONENT, exponent_tuple)]
     if rsa_modulus is not None:
         publicKeyTemplate += [(CKA_MODULUS, rsa_modulus)]
