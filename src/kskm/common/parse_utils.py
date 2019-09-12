@@ -45,7 +45,6 @@ def signers_from_list(signers: List[dict]) -> Optional[Set[Signer]]:
         ]
     """
     if not signers:
-        # TODO: Should this really be None, or should it be an empty set?
         return None
     return set([Signer(key_identifier=this['attrs']['keyIdentifier'])
                 for this in signers])
