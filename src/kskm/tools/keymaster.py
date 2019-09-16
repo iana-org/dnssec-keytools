@@ -58,7 +58,7 @@ def keygen(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11, l
     _key = public_key_to_dnssec_key(key=p11key.public_key,
                                     key_identifier=p11key.label,
                                     algorithm=AlgorithmDNSSEC[args.key_alg],
-                                    flags=FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value,  # TODO: correct flags?
+                                    flags=FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value,
                                     ttl=config.ksk_policy.ttl,
                                     )
     logger.info(f'Generated key {p11key.label} has key tag {_key.key_tag} for algorithm={_key.algorithm}, '
