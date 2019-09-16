@@ -58,7 +58,8 @@ def check_serial(request: Request, policy: RequestPolicy, logger: Logger) -> Non
     Check the serial in the request.
 
     KSR-SERIAL:
-      Verify that the KSR SERIAL is unique and increasing for the the KSR ID.
+      Verify that the KSR serial is unique and increasing for the KSR ID. This requires a list of all
+      previously seen KSRs with the current KSR ID.
     """
-    # TODO: Implement check of unique request SERAIL.
+    # TODO: Implement check of unique request SERIAL. As specified, this needs a database which we do not have.
     logger.info('KSR-SERIAL: Not implemented yet')
