@@ -37,9 +37,6 @@ def parse_args(defaults: dict) -> ArgsType:
 
     The KSR signer is mostly configured using the config file (--config), but
     some things such as output verbosity is settable using command line arguments.
-
-    TODO: Further, it might be convenient to be able to override certain paths in the config
-          file from the commandline - or?
     """
     parser = argparse.ArgumentParser(description='DNSSEC Trust Anchor exporter',
                                      add_help=True,
