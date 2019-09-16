@@ -46,8 +46,6 @@ class KeyType(Enum):
 class KeyInfo(object):
     """
     Inventory information about a key found in a slot.
-
-    TODO: Give KSKM_P11Key a way to properly represent SECRET keys, and remove this class?
     """
     key_class: KeyClass
     key_id: Tuple[int]
