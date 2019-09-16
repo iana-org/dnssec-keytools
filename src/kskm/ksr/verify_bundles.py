@@ -95,7 +95,7 @@ def check_keys_match_zsk_policy(request: Request, policy: RequestPolicy, logger:
         logger.warning('KSR-BUNDLE-KEYS: Disabled by policy (keys_match_zsk_policy)')
         return
 
-    seen: Dict[int, Key] = {}
+    seen: Dict[str, Key] = {}
 
     for bundle in request.bundles:
         for key in bundle.keys:

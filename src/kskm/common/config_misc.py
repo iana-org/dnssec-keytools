@@ -58,7 +58,8 @@ class RequestPolicy(Policy):
     signature_horizon_days: int = 180
 
     # Verify KSR/SKR chaining
-    check_request_daisy_chain: bool = True
+    check_chain_keys: bool = True
+    check_chain_overlap: bool = True
     # TODO: match policy timers (should we check PublishSafety and RetireSafety in any way?)
     # TODO: protocol, flags match (check flags on ZSKs to make sure they are ZSKs, not retired etcetera?)
     # TODO: TTL limit (I think the TTL on keys in the KSR is only used to verify the signatures today, is this correct?)

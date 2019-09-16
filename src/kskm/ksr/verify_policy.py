@@ -10,6 +10,8 @@ from kskm.common.validate import PolicyViolation
 from kskm.ksr import Request
 from kskm.ksr.data import RequestBundle
 
+__author__ = 'ft'
+
 
 class KSR_PolicyViolation(PolicyViolation):
     """A bundle in the KSR does not conform with the KSK operators policy."""
@@ -238,7 +240,6 @@ def check_bundle_overlaps(request: Request, policy: RequestPolicy, logger: Logge
                             _fmt_bundle(this), _fmt_timedelta(overlap), _fmt_bundle(previous),
                             _fmt_timedelta(request.zsk_policy.min_validity_overlap)
                         ))
-        overlap = previous.expiration - this.inception
         if overlap > request.zsk_policy.max_validity_overlap:
             raise KSR_POLICY_SIG_OVERLAP_Violation('Bundle "{}" overlap {} with "{}" is > claimed maximum {}'.format(
                             _fmt_bundle(this), _fmt_timedelta(overlap), _fmt_bundle(previous),
@@ -256,7 +257,7 @@ def _fmt_bundle(bundle: RequestBundle) -> str:
 
 def _fmt_timedelta(tdelta: timedelta) -> str:
     res = str(tdelta)
-    if res.endswith('days, 0:00:00'):
+    if res.endswith('days, 0:00:00') or res.endswith('day, 0:00:00'):
         # cut off the unnecessary 0:00:00 after "days"
         res = res[:0 - len(', 0:00:00')]
     return res
