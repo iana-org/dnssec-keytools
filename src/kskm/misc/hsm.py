@@ -322,18 +322,25 @@ class KSKM_P11Module(object):
             _prefix = bytes([4, len(ec_point) - 2, 4])
             if ec_point.startswith(_prefix):
                 ec_point = ec_point[2:]
-            ec_params = bytes(session.getAttributeValue(data, [PyKCS11.LowLevel.CKA_EC_PARAMS])[0])
             logger.debug(f'EC_POINT: {binascii.hexlify(ec_point)}')
-            logger.debug(f'EC_PARAMS: {binascii.hexlify(ec_params)}')
+            ec_params = bytes(session.getAttributeValue(data, [PyKCS11.LowLevel.CKA_EC_PARAMS])[0])
+            # The CKA_EC_PARAMS is an ASN.1 encoded OID. To not drag in an ASN.1 dependency, we
+            # keep this lookup table of OIDs to algorithms.
+            _ec_alg_oids = {
+                # OID 1.2.840.10045.3.1.7 / prime256v1
+                b'\x06\x08\x2a\x86\x48\xce\x3d\x03\x01\x07': AlgorithmDNSSEC.ECDSAP256SHA256,
+                # OID 1.3.132.0.34 / prime384v1
+                b'\x06\x05\x2B\x81\x04\x00\x22': AlgorithmDNSSEC.ECDSAP384SHA384,
+            }
+            alg = _ec_alg_oids.get(ec_params)
+            logger.debug(f'EC_PARAMS: {binascii.hexlify(ec_params)} (algorithm: {alg})')
+            if not alg:
+                raise RuntimeError('Unknown EC algorithm')
             # ec_point is an 0x04 prefix byte, and then both x and y points concatenated, so divide by 2
             _ec_len = (len(ec_point) - 1) * 8 // 2
-            # TODO: Get algorithm from EC_PARAMS (contains an OID) instead of guessing based on len
-            if _ec_len == 256:
-                alg = AlgorithmDNSSEC.ECDSAP256SHA256
-            elif _ec_len == 384:
-                alg = AlgorithmDNSSEC.ECDSAP384SHA384
-            else:
-                raise RuntimeError(f'Unexpected ECDSA key length: {_ec_len}')
+            if (alg == AlgorithmDNSSEC.ECDSAP256SHA256 and _ec_len != 256) or \
+                    (alg == AlgorithmDNSSEC.ECDSAP384SHA384 and _ec_len != 384):
+                raise RuntimeError(f'Unexpected ECDSA key length {_ec_len} for algorithm {alg}')
             return KSKM_PublicKey_ECDSA(bits=_ec_len, q=ec_point, algorithm=alg)
         else:
             raise NotImplementedError('Unknown CKA_TYPE: {}'.format(PyKCS11.CKK[_cka_type]))
