@@ -309,7 +309,11 @@ def main(progname: str = 'keymaster', argv: Optional[List[str]] = None, config: 
     #
     # Initialise PKCS#11 modules (HSMs)
     #
-    p11modules = kskm.misc.hsm.init_pkcs11_modules_from_dict(config.hsm, rw_session=True)
+    try:
+        p11modules = kskm.misc.hsm.init_pkcs11_modules_from_dict(config.hsm, rw_session=True)
+    except Exception as e:
+        logger.critical("HSM initialisation error: %s", str(e))
+        return False
 
     if len(p11modules) <= 0:
         logger.critical("No HSM configured")

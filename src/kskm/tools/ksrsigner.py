@@ -178,7 +178,11 @@ def ksrsigner(logger: logging.Logger, args: ArgsType, config: Optional[KSKMConfi
     #
     # Initialise PKCS#11 modules (HSMs)
     #
-    p11modules = kskm.misc.hsm.init_pkcs11_modules_from_dict(config.hsm)
+    try:
+        p11modules = kskm.misc.hsm.init_pkcs11_modules_from_dict(config.hsm)
+    except Exception as e:
+        logger.critical("HSM initialisation error: %s", str(e))
+        return False
 
     #
     # Perform some checks that need both KSR, SKR and PKCS#11 modules
