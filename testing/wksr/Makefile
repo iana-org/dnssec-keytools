@@ -7,7 +7,8 @@ server: wksr.crt wksr.key ca.crt
 certs:
 	$(NEW_CERT) -keyout wksr.key -out wksr.crt -subj '/CN=wksr-server'
 	$(NEW_CERT) -keyout client.key -out client.crt -subj '/CN=wksr-client'
-	cp client.crt ca.crt
+	cp client.crt ca.crt	
+	openssl x509 -in client.crt -outform der | openssl sha256
 
 upload:
 	curl --verbose --insecure --cert client.crt --key client.key \
@@ -15,3 +16,6 @@ upload:
 
 clean:
 	rm -f ksr.*.xml
+
+realclean:
+	rm -f wksr.crt wksr.key ca.crt
