@@ -27,6 +27,11 @@ from kskm.ksr import load_ksr
 DEFAULT_CONFIG = 'wksr.yaml'
 DEFAULT_CIPHERS = 'ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384'
 DEFAULT_CONTENT_TYPE = 'application/xml'
+DEFAULT_TEMPLATES_CONFIG = {
+  'upload': 'upload.html',
+  'result': 'result.html',
+  'email': 'email.txt'
+}
 
 # TODO: Neater to have this in an 'init_app' function, or move it into main()
 app = Flask(__name__)
@@ -34,6 +39,7 @@ app = Flask(__name__)
 client_whitelist: Set[str] = set()
 ksr_config = None
 notify_config = None
+template_config = None
 
 
 @app.before_request
@@ -67,7 +73,7 @@ def index() -> str:
 def upload() -> str:
     """Handle manual file upload."""
     if request.method == 'GET':
-        return str(render_template("upload.html", action=request.base_url))
+        return str(render_template(template_config['upload'], action=request.base_url))
 
     if 'ksr' not in request.files:
         raise BadRequest
@@ -89,7 +95,7 @@ def upload() -> str:
 
     notify(env)
 
-    return str(render_template("result.html", **env))
+    return str(render_template(template_config['result'], **env))
 
 
 def validate_ksr(filename: str) -> dict:
@@ -116,7 +122,7 @@ def notify(env: dict) -> None:
     if notify_config is None:
         return
     msg = EmailMessage()
-    body = render_template("email.txt", **env)
+    body = render_template(template_config['email'], **env)
     msg.set_content(body)
     msg['Subject'] = notify_config.get('subject')
     msg['From'] = notify_config.get('from')
@@ -219,7 +225,7 @@ class PeerCertWSGIRequestHandler(werkzeug.serving.WSGIRequestHandler):
 
 def main() -> None:
     """Main program function."""
-    global ksr_config, notify_config
+    global ksr_config, notify_config, template_config
 
     parser = argparse.ArgumentParser(description='KSR Web Server')
 
@@ -246,6 +252,7 @@ def main() -> None:
     tls_config = config['tls']
     ksr_config = config.get('ksr', {})
     notify_config = config.get('notify')
+    template_config = config.get('notify', DEFAULT_TEMPLATES_CONFIG)
 
     for client in config.get('client_whitelist', []):
         client_whitelist.add(client)
