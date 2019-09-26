@@ -35,6 +35,7 @@ DEFAULT_TEMPLATES_CONFIG = {
   'result': 'result.html',
   'email': 'email.txt'
 }
+DEFAULT_MAX_SIZE = 1024 * 1024
 
 # TODO: Neater to have this in an 'init_app' function, or move it into main()
 app = Flask(__name__)
@@ -145,7 +146,7 @@ def save_ksr(upload_file: FileStorage) -> Tuple[str, str]:
 
     # calculate file size
     filesize = len(upload_file.stream.read())
-    if filesize > ksr_config.get('max_size'):
+    if filesize > ksr_config.get('max_size', DEFAULT_MAX_SIZE):
         raise RequestEntityTooLarge
     upload_file.stream.seek(0)
 
