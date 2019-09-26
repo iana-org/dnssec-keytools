@@ -141,7 +141,11 @@ def ksrsigner(logger: logging.Logger, args: ArgsType, config: Optional[KSKMConfi
     # Load configuration, if not provided already
     #
     if config is None:
-        config = get_config(args.config)
+        try:
+            config = get_config(args.config)
+        except FileNotFoundError:
+            logging.critical("Configuration file %s not found", args.config)
+            return False
 
     #
     # Prepare schema
