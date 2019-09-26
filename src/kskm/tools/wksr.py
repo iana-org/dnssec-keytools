@@ -25,7 +25,10 @@ from kskm.common.validate import PolicyViolation
 from kskm.ksr import load_ksr
 
 DEFAULT_CONFIG = 'wksr.yaml'
-DEFAULT_CIPHERS = 'ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384'
+DEFAULT_CIPHERS = [
+ 'ECDHE-RSA-AES256-GCM-SHA384',
+ 'ECDHE-RSA-AES256-SHA384'
+]
 DEFAULT_CONTENT_TYPE = 'application/xml'
 DEFAULT_TEMPLATES_CONFIG = {
   'upload': 'upload.html',
@@ -261,7 +264,15 @@ def main() -> None:
     ssl_context.options |= ssl.OP_NO_TLSv1
     ssl_context.options |= ssl.OP_NO_TLSv1_1
 
-    ssl_context.set_ciphers(tls_config.get('ciphers', DEFAULT_CIPHERS))
+    if 'ciphers' in tls_config:
+        if isinstance(tls_config['ciphers'], list):
+            ciphers = ':'.join(tls_config['ciphers'])
+        else:
+            ciphers = tls_config['ciphers']
+    else:
+        ciphers = ':'.join(DEFAULT_CIPHERS)
+    ssl_context.set_ciphers(ciphers)
+
     if tls_config.get('require_client_cert', True):
         ssl_context.verify_mode = ssl.CERT_REQUIRED
     else:
