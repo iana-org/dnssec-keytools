@@ -26,6 +26,7 @@ from kskm.ksr import load_ksr
 
 DEFAULT_CONFIG = 'wksr.yaml'
 DEFAULT_CIPHERS = 'ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384'
+DEFAULT_CONTENT_TYPE = 'application/xml'
 
 # TODO: Neater to have this in an 'init_app' function, or move it into main()
 app = Flask(__name__)
@@ -130,7 +131,7 @@ def save_ksr(upload_file: FileStorage) -> Tuple[str, str]:
     if ksr_config is None:
         raise RuntimeError('Missing configuration')
     # check content type
-    if upload_file.content_type != ksr_config.get('content_type'):
+    if upload_file.content_type != ksr_config.get('content_type', DEFAULT_CONTENT_TYPE):
         raise BadRequest
 
     # calculate file size
