@@ -250,7 +250,9 @@ def main() -> None:
         client_whitelist.add(client)
 
     ssl_context = ssl.create_default_context(purpose=ssl.Purpose.CLIENT_AUTH, cafile=tls_config['ca_cert'])
-    ssl_context.minimum_version = ssl.PROTOCOL_TLSv1_2  # type: ignore
+    ssl_context.options |= ssl.OP_NO_TLSv1
+    ssl_context.options |= ssl.OP_NO_TLSv1_1
+
     ssl_context.set_ciphers(tls_config.get('ciphers', DEFAULT_CIPHERS))
     if tls_config.get('require_client_cert', True):
         ssl_context.verify_mode = ssl.CERT_REQUIRED
