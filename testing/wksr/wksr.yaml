@@ -7,7 +7,8 @@ tls:
   ciphers:
     - ECDHE-RSA-AES256-GCM-SHA384
   require_client_cert: True
-
+  client_whitelist:
+    - a1928d53e7d74c5921e0334b84b539ea8b64c28a10504cf624111e1e742250b4
 
 ksr:
   max_size: 65535
@@ -24,6 +25,3 @@ templates:
 #  from: jakob@kirei.se
 #  to: jakob@kirei.se
 #  smtp_server: mail.kirei.se
-
-client_whitelist:
-  - a1928d53e7d74c5921e0334b84b539ea8b64c28a10504cf624111e1e742250b4
