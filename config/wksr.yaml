@@ -32,8 +32,8 @@ ksr:
   # Content type of uploaded KSR files
   content_type: "application/xml"
 
-  #Prefix of saved uploaded KSR files
-  prefix: ksr.
+  # Prefix of saved uploaded KSR files
+  prefix: /var/spool/wksr/ksr.
 
   # KSR signer configuration file
   ksrsigner_configfile: ksrsigner.yaml
