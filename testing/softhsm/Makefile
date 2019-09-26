@@ -39,6 +39,8 @@ LABEL_RSA=		test_rsa
 
 all: softhsm $(KSRSIGNER_YAML)
 
+conf: $(SOFTHSM_CONF) $(KSRSIGNER_YAML)
+
 softhsm: $(STATUSFILE)
 
 keys: $(KEYS)
