@@ -26,19 +26,18 @@ from kskm.ksr import load_ksr
 
 DEFAULT_CONFIG = 'wksr.yaml'
 DEFAULT_CIPHERS = [
- 'ECDHE-RSA-AES256-GCM-SHA384',
- 'ECDHE-RSA-AES256-SHA384'
+    'ECDHE-RSA-AES256-GCM-SHA384',
+    'ECDHE-RSA-AES256-SHA384'
 ]
 DEFAULT_CONTENT_TYPE = 'application/xml'
 DEFAULT_TEMPLATES_CONFIG = {
-  'upload': 'upload.html',
-  'result': 'result.html',
-  'email': 'email.txt'
+    'upload': 'upload.html',
+    'result': 'result.html',
+    'email': 'email.txt'
 }
 DEFAULT_MAX_SIZE = 1024 * 1024
 
-# TODO: Neater to have this in an 'init_app' function, or move it into main()
-app = Flask(__name__)
+app = None
 # TODO: These can be moved onto the 'app' instance, and accessed using the Flask 'current_app' Application Context.
 client_whitelist: Set[str] = set()
 ksr_config = None
@@ -69,8 +68,7 @@ def index() -> str:
     if 'peercert' in request.environ:
         subject = str(request.environ['peercert'].get_subject().commonName)
         return f"Hello world: {subject}"
-    else:
-        return f"Hello world: ANONYMOUS"
+    return f"Hello world: ANONYMOUS"
 
 
 @app.route('/upload', methods=['GET', 'POST'])
@@ -162,7 +160,7 @@ def save_ksr(upload_file: FileStorage) -> Tuple[str, str]:
     # Alternatively, maybe use ISO8601 datetime (with microseconds, or a counter) as filename,
     # to at least make them sortable.
     # TODO: use os.path.join
-    filename = f"{ksr_config.get('prefix','')}{str(uuid.uuid4())}.xml"
+    filename = f"{ksr_config.get('prefix', '')}{str(uuid.uuid4())}.xml"
     with open(filename, 'wb') as ksr_file:
         ksr_file.write(upload_file.stream.read())
 
@@ -279,6 +277,8 @@ def main() -> None:
     else:
         ssl_context.verify_mode = ssl.CERT_OPTIONAL
     ssl_context.load_cert_chain(certfile=tls_config['cert'], keyfile=tls_config['key'])
+
+    app = Flask(__name__)
 
     app.jinja_loader = jinja2.FileSystemLoader(".")  # type: ignore
     app.jinja_env.globals['client_subject'] = PeerCertWSGIRequestHandler.client_subject
