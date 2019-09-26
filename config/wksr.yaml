@@ -1,28 +1,60 @@
 # sample wksr.py configuration file
 
 tls:
+
+  # TLS certificate file
   cert: wksr.crt
+
+  # TLS key file
   key: wksr.key
+
+  # TLS CA certificates bundle file
   ca_cert: ca.crt
-  ciphers: ECDHE-RSA-AES256-GCM-SHA384
+
+  # List of allowed TLS ciphers (OpenSSL syntax)
+  ciphers:
+    - ECDHE-RSA-AES256-GCM-SHA384
+
+  # True if TLS client authentication is required
   require_client_cert: False
 
+  # List of SHA-256 fingerprints of allowed TLS clients
+  client_whitelist:
+    - 517fe805fb9e83254a1666139187ca467b4fc47dbbe9e81b4374ce0887d7ff62
+    - 9bf5fded8e546a4133b4bcec00530b3fe015a121cc4f0d7fc0f9805d20f2dc40
+
+
 ksr:
+
+  # Max number of bytes in upload KSR files
   max_size: 65535
+
+  # Content type of uploaded KSR files
   content_type: "application/xml"
+
+  #Prefix of saved uploaded KSR files
   prefix: ksr.
 
+  # KSR signer configuration file
+  ksrsigner_configfile: ksrsigner.yaml
+
+
 templates:
+  # upload HTML page template file
   upload: upload.html
+
+  # result HTML page template file
   result: result.html
+  
+  # email notification template file
   email: email.txt
 
-#notify:
-#  subject: Hello
-#  from: sender@example.com
-#  to: receiver@example.com
-#  smtp_server: mail.example.com
 
-client_whitelist:
-  - 517fe805fb9e83254a1666139187ca467b4fc47dbbe9e81b4374ce0887d7ff62
-  - 9bf5fded8e546a4133b4bcec00530b3fe015a121cc4f0d7fc0f9805d20f2dc40
+notify:
+  # from/to/subject for notifications  
+  from: sender@example.com
+  to: receiver@example.com
+  subject: Hello
+
+  # Mail server for notifications
+  smtp_server: mail.example.com
