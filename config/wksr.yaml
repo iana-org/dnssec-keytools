@@ -1,0 +1,23 @@
+# sample wksr.py configuration file
+
+tls:
+  cert: wksr.crt
+  key: wksr.key
+  ca_cert: ca.crt
+  ciphers: ECDHE-RSA-AES256-GCM-SHA384
+  require_client_cert: False
+
+ksr:
+  max_size: 65535
+  content_type: "application/xml"
+  prefix: ksr.
+
+#notify:
+#  subject: Hello
+#  from: sender@example.com
+#  to: receiver@example.com
+#  smtp_server: mail.example.com
+
+client_whitelist:
+  - 517fe805fb9e83254a1666139187ca467b4fc47dbbe9e81b4374ce0887d7ff62
+  - 9bf5fded8e546a4133b4bcec00530b3fe015a121cc4f0d7fc0f9805d20f2dc40
