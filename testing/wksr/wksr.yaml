@@ -4,7 +4,8 @@ tls:
   cert: wksr.crt
   key: wksr.key
   ca_cert: ca.crt
-  ciphers: ECDHE-RSA-AES256-GCM-SHA384
+  ciphers:
+    - ECDHE-RSA-AES256-GCM-SHA384
   require_client_cert: True
 
 
