@@ -134,10 +134,8 @@ def private_key_template(label: str, key_type: int) -> List:
         (CKA_CLASS,       CKO_PRIVATE_KEY),
         (CKA_KEY_TYPE,    key_type),
         (CKA_TOKEN,       CK_TRUE),  # True if put in HSM
-        (CKA_ENCRYPT,     CK_TRUE),
         (CKA_DECRYPT,     CK_TRUE),
         (CKA_SIGN,        CK_TRUE),
-        (CKA_VERIFY,      CK_TRUE),
         (CKA_EXTRACTABLE, CK_TRUE),  # if API EXPORT enabled
         (CKA_UNWRAP,      CK_FALSE),
         (CKA_DERIVE,      CK_FALSE),  # was true - ensure FIPS mode
