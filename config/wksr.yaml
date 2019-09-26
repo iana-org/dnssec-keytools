@@ -12,6 +12,11 @@ ksr:
   content_type: "application/xml"
   prefix: ksr.
 
+templates:
+  upload: upload.html
+  result: result.html
+  email: email.txt
+
 #notify:
 #  subject: Hello
 #  from: sender@example.com
