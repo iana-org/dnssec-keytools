@@ -24,6 +24,7 @@ from kskm.common.config import get_config
 from kskm.common.validate import PolicyViolation
 from kskm.ksr import load_ksr
 
+DEFAULT_PORT = 8443
 DEFAULT_CONFIG = 'wksr.yaml'
 DEFAULT_CIPHERS = [
     'ECDHE-RSA-AES256-GCM-SHA384',
@@ -238,8 +239,8 @@ def main() -> None:
                         help='Configuration file')
     parser.add_argument('--port',
                         dest='port',
-                        default=8443,
-                        help='Port to listen on')
+                        default=DEFAULT_PORT,
+                        help=f'Port to listen on (default {DEFAULT_PORT})')
     parser.add_argument('--debug',
                         dest='debug',
                         action='store_true',
