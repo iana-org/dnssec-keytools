@@ -2,20 +2,28 @@
 
 # example ksrsigner configuration/policy file
 
-# per HSM PKCS#11 configuration; module required, pin and env is optional
+# per HSM PKCS#11 configuration
+# module is REQUIRED, pin and env is OPTIONAL
 hsm:
   softhsm:
+    # path to PKCS#11 provider (shared library)
     module: /usr/local/homebrew/lib/softhsm/libsofthsm2.so
+    # PIN, will be queried for if not provided
     pin: 123456
+    # environment variables set when using this HSM
     env:
       SOFTHSM2_CONF: softhsm.conf
   aep:
+    # path to PKCS#11 provider (shared library)
     module: /usr/local/lib/pkcs11.GCC4.0.2.so.4.07
+    # PIN, will be queried for if not provided
     pin: 123456
     so_pin: 123456
+    # environment variables set when using this HSM
     env:
       KEYPER_LIBRARY_PATH: /var/dnssec/ksr/AEP
 
+# filenames for the previous SKR, the input KSR and output SKR
 filenames:
   previous_skr: prev-skr.xml
   input_ksr: ksr.xml
