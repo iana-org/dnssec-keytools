@@ -37,7 +37,7 @@ DEFAULT_TEMPLATES_CONFIG = {
 }
 DEFAULT_MAX_SIZE = 1024 * 1024
 
-app = None
+app = Flask(__name__)
 # TODO: These can be moved onto the 'app' instance, and accessed using the Flask 'current_app' Application Context.
 client_whitelist: Set[str] = set()
 ksr_config = None
@@ -256,8 +256,9 @@ def main() -> None:
     notify_config = config.get('notify')
     template_config = config.get('notify', DEFAULT_TEMPLATES_CONFIG)
 
-    for client in config.get('client_whitelist', []):
+    for client in tls_config.get('client_whitelist', []):
         client_whitelist.add(client)
+        logging.info("Accepting TLS client SHA-256 fingerprint: %s", client)
 
     ssl_context = ssl.create_default_context(purpose=ssl.Purpose.CLIENT_AUTH, cafile=tls_config['ca_cert'])
     ssl_context.options |= ssl.OP_NO_TLSv1
@@ -277,8 +278,6 @@ def main() -> None:
     else:
         ssl_context.verify_mode = ssl.CERT_OPTIONAL
     ssl_context.load_cert_chain(certfile=tls_config['cert'], keyfile=tls_config['key'])
-
-    app = Flask(__name__)
 
     app.jinja_loader = jinja2.FileSystemLoader(".")  # type: ignore
     app.jinja_env.globals['client_subject'] = PeerCertWSGIRequestHandler.client_subject
