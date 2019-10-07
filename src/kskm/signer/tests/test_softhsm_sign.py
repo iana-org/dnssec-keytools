@@ -56,6 +56,8 @@ ksk_policy:
   ttl: 20
 """
 
+FLAGS_ZSK = FlagsDNSKEY.ZONE.value
+
 
 class SignWithSoftHSM_Baseclass(unittest.TestCase):
 
@@ -188,7 +190,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
     @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
     def test_ec_sign_rsa_zsk(self) -> None:
         """ Test mismatching algorithms for ZSK and KSK. """
-        zsk_keys = {self._p11_to_dnskey('RSA1', AlgorithmDNSSEC.RSASHA256, flags=0)}
+        zsk_keys = {self._p11_to_dnskey('RSA1', AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)}
         request = self._make_request(zsk_keys=zsk_keys)
         with self.assertRaises(CreateSignatureError):
             sign_bundles(request=request, schema=self.schema, p11modules=self.p11modules,
@@ -212,7 +214,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
         """
         self.config.update(yaml.safe_load(io.StringIO(_PUBLISH_SCHEMA)))
         self.schema = self.config.get_schema('test')
-        zsk_keys = {self._p11_to_dnskey('EC1', AlgorithmDNSSEC.ECDSAP256SHA256, flags=0)}
+        zsk_keys = {self._p11_to_dnskey('EC1', AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK)}
         request = self._make_request(zsk_keys=zsk_keys)
         new_bundles = sign_bundles(request=request, schema=self.config.get_schema('test'),
                                    p11modules=self.p11modules, config=self.config,
@@ -249,7 +251,7 @@ class Test_SignWithSoftHSM_DualAlgorithm(SignWithSoftHSM_Baseclass):
     @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
     def test_single_zsk_dual_ksk(self) -> None:
         """ Test algorithm mismatch with one ZSK algorithm and two KSK algorithms. """
-        zsk_keys = {self._p11_to_dnskey('EC1', AlgorithmDNSSEC.ECDSAP256SHA256, flags=0)}
+        zsk_keys = {self._p11_to_dnskey('EC1', AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK)}
         request = self._make_request(zsk_keys=zsk_keys)
         with self.assertRaises(CreateSignatureError):
             sign_bundles(request=request, schema=self.config.get_schema('test'),
@@ -259,8 +261,8 @@ class Test_SignWithSoftHSM_DualAlgorithm(SignWithSoftHSM_Baseclass):
     @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
     def test_ec_sign_prepublish_key(self) -> None:
         """ Test signing a full dual algorithm request. """
-        zsk_keys = {self._p11_to_dnskey('EC1', AlgorithmDNSSEC.ECDSAP256SHA256, flags=0),
-                    self._p11_to_dnskey('RSA1', AlgorithmDNSSEC.RSASHA256, flags=0)
+        zsk_keys = {self._p11_to_dnskey('EC1', AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK),
+                    self._p11_to_dnskey('RSA1', AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)
                     }
         request = self._make_request(zsk_keys=zsk_keys)
         new_bundles = sign_bundles(request=request, schema=self.config.get_schema('test'),
@@ -292,7 +294,7 @@ class Test_SignWithSoftHSM_Errorhandling(SignWithSoftHSM_Baseclass):
             valid_until: 2019-01-11T00:00:00+00:00
         """
         self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
-        zsk_keys = {self._p11_to_dnskey('EC1', AlgorithmDNSSEC.ECDSAP256SHA256, flags=0)}
+        zsk_keys = {self._p11_to_dnskey('EC1', AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK)}
         request = self._make_request(zsk_keys=zsk_keys)
         with self.assertRaises(ConfigurationError):
             sign_bundles(request=request, schema=self.config.get_schema('test'),
@@ -301,7 +303,7 @@ class Test_SignWithSoftHSM_Errorhandling(SignWithSoftHSM_Baseclass):
 
     def test_not_yet_valid_key(self):
         """ Test referring to a key that is not yet valid. """
-        zsk_keys = {self._p11_to_dnskey('RSA1', AlgorithmDNSSEC.RSASHA256, flags=0)}
+        zsk_keys = {self._p11_to_dnskey('RSA1', AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)}
         ksk_key = self.config.ksk_keys['ksk_EC2']
         request = self._make_request(zsk_keys=zsk_keys,
                                      inception=ksk_key.valid_from - datetime.timedelta(days=1),
@@ -326,7 +328,7 @@ class Test_SignWithSoftHSM_Errorhandling(SignWithSoftHSM_Baseclass):
             valid_until: 2019-01-11T00:00:00+00:00
         """
         self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
-        zsk_keys = {self._p11_to_dnskey('RSA1', AlgorithmDNSSEC.RSASHA256, flags=0)}
+        zsk_keys = {self._p11_to_dnskey('RSA1', AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)}
         ksk_key = self.config.ksk_keys['ksk_RSA2']
         request = self._make_request(zsk_keys=zsk_keys,
                                      expiration=ksk_key.valid_until + datetime.timedelta(seconds=1),
@@ -351,7 +353,7 @@ class Test_SignWithSoftHSM_Errorhandling(SignWithSoftHSM_Baseclass):
             valid_until: 2019-01-11T00:00:00+00:00
         """
         self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
-        zsk_keys = {self._p11_to_dnskey('RSA1', AlgorithmDNSSEC.RSASHA256, flags=0)}
+        zsk_keys = {self._p11_to_dnskey('RSA1', AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)}
         request = self._make_request(zsk_keys=zsk_keys)
         with self.assertRaises(ValueError):
             sign_bundles(request=request, schema=self.schema,
@@ -373,7 +375,7 @@ class Test_SignWithSoftHSM_Errorhandling(SignWithSoftHSM_Baseclass):
             valid_until: 2019-01-11T00:00:00+00:00
         """
         self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
-        zsk_keys = {self._p11_to_dnskey('RSA1', AlgorithmDNSSEC.RSASHA256, flags=0)}
+        zsk_keys = {self._p11_to_dnskey('RSA1', AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)}
         request = self._make_request(zsk_keys=zsk_keys)
         with self.assertRaises(ValueError):
             sign_bundles(request=request, schema=self.schema,
@@ -395,7 +397,7 @@ class Test_SignWithSoftHSM_Errorhandling(SignWithSoftHSM_Baseclass):
             valid_until: 2019-01-11T00:00:00+00:00
         """
         self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
-        zsk_keys = {self._p11_to_dnskey('RSA1', AlgorithmDNSSEC.RSASHA256, flags=0)}
+        zsk_keys = {self._p11_to_dnskey('RSA1', AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)}
         request = self._make_request(zsk_keys=zsk_keys)
         with self.assertRaises(ValueError):
             sign_bundles(request=request, schema=self.schema,
@@ -415,7 +417,7 @@ class Test_SignWithSoftHSM_Errorhandling(SignWithSoftHSM_Baseclass):
             valid_until: 2019-01-11T00:00:00+00:00
         """
         self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
-        zsk_keys = {self._p11_to_dnskey('RSA1', AlgorithmDNSSEC.RSASHA256, flags=0)}
+        zsk_keys = {self._p11_to_dnskey('RSA1', AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)}
         request = self._make_request(zsk_keys=zsk_keys)
         with self.assertRaises(ValueError):
             sign_bundles(request=request, schema=self.schema,
