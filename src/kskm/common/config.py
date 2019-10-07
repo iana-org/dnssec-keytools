@@ -142,8 +142,6 @@ class KSKMConfig(object):
                 - "."
               num_bundles: 9
               ...
-
-        TODO: Rename this, since the name is also used as a crucial parts in KSR XML.
         """
         if self._request_policy is None:
             policy = RequestPolicy.from_dict(self._data.get('request_policy', {}))
@@ -165,8 +163,6 @@ class KSKMConfig(object):
             response_policy:
               num_bundles: 9
               validate_signatures: True
-
-        TODO: Rename this, since the name is also used as a crucial parts in SKR XML.
         """
         if self._response_policy is None:
             self._response_policy = ResponsePolicy.from_dict(self._data.get('response_policy', {}))
