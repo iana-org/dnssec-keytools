@@ -4,14 +4,21 @@
 </head>
 <body>
 
-ADDR: {{ request.remote_addr }}
-CERT: {{ client_subject() }} / {{ client_digest() }}
+<p>
+<b>Remote Address:</b> {{ request.remote_addr }}<br/>
+<b>Certificate Subject:</b> {{ client_subject() }}<br/>
+<b>Certificate Digest:</b> {{ client_digest() }}
+</p>
 
-Filename: {{ filename }}
-Checksum: {{ filehash }}
-Timestamp: {{ timestamp }}
+<p>
+<b>Filename:</b> {{ filename }}<br/>
+<b>Checksum:</b> {{ filehash }}<br/>
+<b>Timestamp:</b> {{ timestamp }}
+</p>
 
-Result: {{ result }}
+<p>
+<b>Result:</b> {{ result }}
+</p>
 
 </body>
 </html>
