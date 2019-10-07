@@ -93,6 +93,14 @@ class Key(object):
     algorithm: AlgorithmDNSSEC
     public_key: bytes = field(repr=False)
 
+    def __post_init__(self):
+        """Check for valid DNSKEY flags."""
+        if self.flags == FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value or \
+           self.flags == FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value | FlagsDNSKEY.REVOKE.value or \
+           self.flags == FlagsDNSKEY.ZONE.value:
+            return
+        raise ValueError(f"Unsupported DNSSEC key flags combination {self.flags}")
+
 
 @dataclass(frozen=True)
 class Bundle(ABC):
