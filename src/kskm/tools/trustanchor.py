@@ -14,6 +14,7 @@ import argparse
 import logging
 import os
 import sys
+import uuid
 from argparse import Namespace as ArgsType
 from typing import Optional
 
@@ -28,6 +29,7 @@ from kskm.ta import TrustAnchor
 from kskm.ta.keydigest import create_trustanchor_keydigest
 
 _DEFAULTS = {'debug': False,
+             'config': 'ksrsigner.yaml',
              }
 
 
@@ -47,7 +49,7 @@ def parse_args(defaults: dict) -> ArgsType:
     parser.add_argument('--config',
                         dest='config',
                         metavar='CFGFILE', type=str,
-                        required=True,
+                        default=defaults['config'],
                         help='Path to the KSR signer configuration file',
                         )
 
@@ -61,6 +63,11 @@ def parse_args(defaults: dict) -> ArgsType:
                         dest='trustanchor',
                         metavar='XMLFILE', type=str,
                         help='Path to write trust anchor XML to',
+                        )
+    parser.add_argument('--id',
+                        dest='id',
+                        metavar='ID', type=str,
+                        help='Trust anchor identifier',
                         )
     args = parser.parse_args()
     return args
@@ -115,7 +122,7 @@ def trustanchor(logger: logging.Logger, args: Optional[ArgsType], config: Option
         keydigests.add(this)
 
     ta = TrustAnchor(
-        id='TODO',
+        id=args.id or str(uuid.uuid4()),
         source='http://data.iana.org/root-anchors/root-anchors.xml',
         zone='.',
         keydigests=keydigests,

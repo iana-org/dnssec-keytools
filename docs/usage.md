@@ -50,20 +50,20 @@ _Keymaster_ is a tool to create, delete, backup, restore keys as well as perform
 
 ### Command Line Usage
 
-    usage: kskm-keymaster [-h] [--config CFGFILE] [--hsm HSM] [--debug]
-                          {inventory,keygen,wrapgen,keydelete,wrapdelete,backup,restore}
-                          ...
+    usage: kskm-trustanchor [-h] [--config CFGFILE] [--debug]
+                            [--trustanchor XMLFILE] [--id ID]
     
-    Keymaster
-    
-    positional arguments:
-      {inventory,keygen,wrapgen,keydelete,wrapdelete,backup,restore}
+    DNSSEC Trust Anchor exporter
     
     optional arguments:
       -h, --help            show this help message and exit
-      --config CFGFILE      Path to the KSR signer configuration file
-      --hsm HSM             HSM to operate on
-      --debug               Enable debug operation
+      --config CFGFILE      Path to the KSR signer configuration file (default:
+                            ksrsigner.yaml)
+      --debug               Enable debug operation (default: False)
+      --trustanchor XMLFILE
+                            Path to write trust anchor XML to (default: None)
+      --id ID               Trust anchor identifier (default: None)
+
 
 ### Configuration
 
@@ -78,7 +78,7 @@ The _Trust Anchor Exporter_ exports the current set of trust anchors in [RFC 795
 ### Command Line Usage
 
     usage: kskm-trustanchor [-h] --config CFGFILE [--debug]
-                            [--trustanchor XMLFILE]
+                            [--trustanchor XMLFILE] [--id ID]
     
     DNSSEC Trust Anchor exporter
     

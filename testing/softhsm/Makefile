@@ -45,6 +45,9 @@ softhsm: $(STATUSFILE)
 
 keys: $(KEYS)
 
+ta: $(KSRSIGNER_YAML) $(STATUSFILE)
+	kskm-trustanchor
+
 inventory: $(KSRSIGNER_YAML) $(STATUSFILE)
 	kskm-keymaster inventory
 
