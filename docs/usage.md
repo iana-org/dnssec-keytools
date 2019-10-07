@@ -50,19 +50,20 @@ _Keymaster_ is a tool to create, delete, backup, restore keys as well as perform
 
 ### Command Line Usage
 
-    usage: kskm-trustanchor [-h] [--config CFGFILE] [--debug]
-                            [--trustanchor XMLFILE] [--id ID]
+    usage: kskm-keymaster [-h] [--config CFGFILE] [--hsm HSM] [--debug]
+                          {inventory,keygen,wrapgen,keydelete,wrapdelete,backup,restore}
+                          ...
     
-    DNSSEC Trust Anchor exporter
+    Keymaster
+    
+    positional arguments:
+      {inventory,keygen,wrapgen,keydelete,wrapdelete,backup,restore}
     
     optional arguments:
       -h, --help            show this help message and exit
-      --config CFGFILE      Path to the KSR signer configuration file (default:
-                            ksrsigner.yaml)
-      --debug               Enable debug operation (default: False)
-      --trustanchor XMLFILE
-                            Path to write trust anchor XML to (default: None)
-      --id ID               Trust anchor identifier (default: None)
+      --config CFGFILE      Path to the KSR signer configuration file
+      --hsm HSM             HSM to operate on
+      --debug               Enable debug operation
 
 
 ### Configuration
@@ -77,7 +78,7 @@ The _Trust Anchor Exporter_ exports the current set of trust anchors in [RFC 795
 
 ### Command Line Usage
 
-    usage: kskm-trustanchor [-h] --config CFGFILE [--debug]
+    usage: kskm-trustanchor [-h] [--config CFGFILE] [--debug]
                             [--trustanchor XMLFILE] [--id ID]
     
     DNSSEC Trust Anchor exporter
@@ -85,10 +86,12 @@ The _Trust Anchor Exporter_ exports the current set of trust anchors in [RFC 795
     optional arguments:
       -h, --help            show this help message and exit
       --config CFGFILE      Path to the KSR signer configuration file (default:
-                            None)
+                            ksrsigner.yaml)
       --debug               Enable debug operation (default: False)
       --trustanchor XMLFILE
                             Path to write trust anchor XML to (default: None)
+      --id ID               Trust anchor identifier (default: None)
+
 
 ### Configuration
 
