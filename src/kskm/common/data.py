@@ -10,7 +10,6 @@ BundleType = TypeVar('BundleType', bound='Bundle')
 AlgorithmPolicyType = TypeVar('AlgorithmPolicyType', bound='AlgorithmPolicy')
 
 
-# TODO: use https://github.com/rthalley/dnspython/blob/master/dns/dnssec.py if we use it elsewhere
 class AlgorithmDNSSEC(Enum):
     DSA = 3
     RSASHA1 = 5
@@ -22,12 +21,10 @@ class AlgorithmDNSSEC(Enum):
     ED448 = 16
 
 
-# TODO: use https://github.com/rthalley/dnspython/blob/master/dns/rdatatype.py if we use it elsewhere
 class TypeDNSSEC(Enum):
     DNSKEY = 48
 
 
-# TODO: use https://github.com/rthalley/dnspython/blob/master/dns/rdtypes/dnskeybase.py if we use it elsewhere
 class FlagsDNSKEY(Enum):
     SEP = 0x0001
     REVOKE = 0x0080
