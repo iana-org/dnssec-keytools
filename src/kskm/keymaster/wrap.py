@@ -22,7 +22,6 @@ class WrappedKey(object):
     public_wrapped: Optional[bytes] = field(repr=False)
     private_wrapped: Optional[bytes] = field(repr=False)
     wrap_key_label: str
-    # TODO: add HSM serial number here?
 
     def to_dict(self) -> dict:
         res = asdict(self)
