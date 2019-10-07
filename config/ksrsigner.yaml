@@ -29,7 +29,18 @@ filenames:
   input_ksr: ksr.xml
   output_skr: skr.xml
 
-# inventory of key signing keys
+# Inventory of key signing keys. Each key has the following properties:
+#
+# - description: Verbose textual description
+# - label: PKCS#11 label
+# - key_tag: DNSSEC key tag for the unrevoked key
+# - algorithm: DNSSEC key algorithm
+# - rsa_size: RSA modulues size in bits
+# - rsa_exponent: RSA exponent
+# - valid_from: ISO8601 timestamp of key inception
+# - valid_until: ISO8601 timestamp of key expiration
+# - ds_sha256: Delegation Signer SHA-256 digest (hex)
+#
 keys:
   ksk_current:
     description: Root DNSSEC KSK 2010
@@ -51,38 +62,82 @@ keys:
     valid_from: 2017-02-02T00:00:00+00:00
     ds_sha256: E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D
 
+
+# The request policy declares acceptance critiera for incoming KSRs
 request_policy:
-  # permitted domains in KSR
+
+  # Permitted domains in KSR (default is the root zone only)
   acceptable_domains:
     - "."
-  # number of bundles in KSR
+
+  # Number of bundles in KSR (default is 9)
   num_bundles: 9
-  # validate ZSK proof-of-possession
+
+  # Validate ZSK proof-of-possession (default True)
   validate_signatures: true
+
+  # Check that the keys of a bundle match the claims in the SignaturePolicy
   keys_match_zsk_policy: true
+
+  # Check that the RSA exponent match the ZSK policy (default True)
   rsa_exponent_match_zsk_policy: true
+
+  # Check that bundles are continuous and overlap according to policy
+  # (default True)
   check_bundle_overlap: true
+
+  # Check that the signatures in a bundle match the claims in the SignaturePolic
+  # (default True)
   signature_validity_match_zsk_policy: true
+
+  # Verify that only signature algorithms listed in the KSK operators policy
+  # are used in the request and that the the signature algorithms listed in
+  # the KSR policy have parameters allowed by the KSK operators policy.
+  # Parameters checked are different for different algorithms.
+  # (default True) 
   signature_algorithms_match_zsk_policy: true
+
+  # Check that the keys in the bundles match the KSK operator's configured
+  # policy (default True)
   check_keys_match_ksk_operator_policy: true
-  # number of unique ZSKs in request
+
+  # Number of unique ZSKs in request (default [2,3])
   acceptable_key_set_lengths:
     - 2
     - 3
-  # validate that the current request continues a timeline ending with the previous response
+
+  # Check that signatures do not expire too long into the future (default True)
+  signature_check_expire_horizon: True
+  signature_horizon_days: 180
+
+  # Validate that the current request continues a timeline ending with the
+  # previous response (default True)
   check_request_daisy_chain: true
+
+  # Approved algorithms  (default RSASHA256)
   approved_algorithms:
     - RSASHA256
+
+  # Approved RSA exponents (default [3, 65537])
   rsa_approved_exponents:
     - 3
     - 65537
+
+  # Approved RSA modulus sizes (default 2048)
   rsa_approved_key_sizes:
     - 2048
 
+# The response policy describes our SKR validation
 response_policy:
+
+  # Number of bundles in SKR (default is 9)
   num_bundles: 9
+
+  # Validate KSK proof-of-possession (default True)
   validate_signatures: true
 
+
+# the KSK policy describes the policy for the SKRs (no defaults)
 ksk_policy:
   publish_safety: P10D
   retire_safety: P10D
@@ -92,7 +147,11 @@ ksk_policy:
   min_validity_overlap: P9D
   ttl: 172800
 
-# SKR signature schemes, each scheme defines what
+# SKR signature schemes where each scheme defines what key(s) signs the
+# specified KSR slot, what keys are published in each slot and what keys
+# are published as revoked in each slot.
+#
+# Examples below based on current root KSK operating procedures
 #
 schemas:
 

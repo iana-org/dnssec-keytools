@@ -26,10 +26,10 @@ tls:
 
 ksr:
 
-  # Max number of bytes in upload KSR files
+  # Max number of bytes in upload KSR files (default 65535)
   max_size: 65535
 
-  # Content type of uploaded KSR files
+  # Content type of uploaded KSR files (other content types will be ignored)
   content_type: "application/xml"
 
   # Prefix of saved uploaded KSR files
@@ -51,7 +51,7 @@ templates:
 
 
 notify:
-  # from/to/subject for notifications  
+  # from/to/subject for notifications
   from: sender@example.com
   to: receiver@example.com
   subject: Hello
