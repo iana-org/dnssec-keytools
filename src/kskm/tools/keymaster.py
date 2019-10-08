@@ -6,6 +6,15 @@ Key master utility.
 Tool to create, delete, backup, restore keys as well as perform a key inventory.
 """
 
+# Possible future enhancements:
+#
+# pass in label, or generate it from current time (like old tool)
+# set CKA_ID
+# add option to identify HSM if multiple are configured
+# add option to specify slot, instead of just picking the first one
+# DNSKEY flags as option? Affects generated label.
+# Allow choosing RSA exponent? As of now, this will default to 65537.
+
 import argparse
 import logging
 import sys
@@ -174,9 +183,7 @@ def main(progname: str = 'keymaster', argv: Optional[List[str]] = None, config: 
 
     parser_keygen = subparsers.add_parser('keygen')
     parser_keygen.set_defaults(func=keygen)
-    # TODO: pass in label, or generate it from current time like the old tool does?
-    # TODO: set CKA_ID?
-    # Make a list of DNSSEC algorithms we allow generating keys for. RSASHA1 is obsoleted.
+
     valid_algorithms = [x.name for x in AlgorithmDNSSEC if x.name != 'RSASHA1' and
                         (is_algorithm_rsa(x) or is_algorithm_ecdsa(x))]
     parser_keygen.add_argument('--label',
@@ -206,10 +213,6 @@ def main(progname: str = 'keymaster', argv: Optional[List[str]] = None, config: 
                                choices=SUPPORTED_CURVES,
                                required=False,
                                help='Key curve')
-    # TODO: Add option to identify HSM, if multiple are configured?
-    # TODO: Add option to specify slot, instead of just picking the first one?
-    # TODO: DNSKEY flags as option? Affects generated label.
-    # TODO: Allow choosing RSA exponent? As of now, this will default to 65537.
 
     parser_wrapgen = subparsers.add_parser('wrapgen')
     parser_wrapgen.set_defaults(func=wrapgen)
