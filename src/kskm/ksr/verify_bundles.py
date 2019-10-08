@@ -5,7 +5,7 @@ from typing import Dict, Optional
 from cryptography.exceptions import InvalidSignature
 
 from kskm.common.config_misc import RequestPolicy
-from kskm.common.data import AlgorithmPolicy, AlgorithmPolicyRSA, Key
+from kskm.common.data import AlgorithmPolicy, AlgorithmPolicyRSA, Key, FlagsDNSKEY
 from kskm.common.dnssec import calculate_key_tag
 from kskm.common.rsa_utils import (KSKM_PublicKey_RSA, decode_rsa_public_key,
                                    is_algorithm_rsa)
@@ -132,7 +132,12 @@ def check_keys_match_zsk_policy(request: Request, policy: RequestPolicy, logger:
                 raise ValueError(f'Key {key.key_identifier} in bundle {bundle.id} uses unhandled algorithm: '
                                  f'{key.algorithm}')
 
-            # TODO: This seems like a good place to validate the flags of the key, to make sure it is a non-retired ZSK
+            ACCEPTABLE_ZSK_FLAGS = FlagsDNSKEY.ZONE.value
+            if key.flags != ACCEPTABLE_ZSK_FLAGS:
+                raise KSR_BUNDLE_KEYS_Violation(f'Key {key.key_identifier} in bundle {bundle.id} '
+                                                f'has flags {key.flags}, only {ACCEPTABLE_ZSK_FLAGS} acceptable')
+            else:
+                logger.debug(f'Key {key.key_tag}/{key.key_identifier} flags accepted')
 
             _key_tag = calculate_key_tag(key)
             if _key_tag != key.key_tag:
