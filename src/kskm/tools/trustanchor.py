@@ -138,7 +138,7 @@ def main() -> None:
     try:
         progname = os.path.basename(sys.argv[0])
         args = parse_args(_DEFAULTS)
-        logger = get_logger(progname, debug=args.debug, syslog=False, filelog=True)
+        logger = get_logger(progname=progname, debug=args.debug, syslog=False, filelog=True).getChild(__name__)
         res = trustanchor(logger, args)
         if res is True:
             sys.exit(0)

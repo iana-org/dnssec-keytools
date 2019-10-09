@@ -16,7 +16,7 @@ def get_logger(progname: str, debug: bool = False, syslog: bool = False, filelog
     """Initialize a logger."""
     level = logging.INFO if not debug else logging.DEBUG
     logging.basicConfig(level=level, stream=sys.stderr, format=FILE_FORMATTER)
-    logger = logging.getLogger(progname)
+    logger = logging.getLogger()
     # If stderr is not a TTY, change the log level of the StreamHandler (stream = sys.stderr above) to WARNING
     if not sys.stderr.isatty() and not debug:
         for this_h in logging.getLogger('').handlers:
