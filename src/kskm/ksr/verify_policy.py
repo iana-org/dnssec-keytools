@@ -142,7 +142,7 @@ def check_signature_horizon(request, policy, logger):
         if policy.signature_horizon_days and expire_days > policy.signature_horizon_days:
             logger.error(f'Bundle {bundle.id} signature expires in {expire_days} days ({bundle.expiration}), '
                          f'above maximum of {policy.signature_horizon_days}')
-            raise KSR_POLICY_SIG_HORIZON_Violation('Bundle signature expire too far into the future')
+            raise KSR_POLICY_SIG_HORIZON_Violation('Bundle signature expires too far into the future')
 
         # If we're checking that signatures don't expire too long into the future, it makes
         # sense to also check that they don't expire in the past which could indicate the clock
