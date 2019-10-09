@@ -106,7 +106,7 @@ class KSKPolicy(object):
 
     signature_policy: SignaturePolicy
     ttl: int
-    signers_name: str = '.'
+    signers_name: str
 
     @classmethod
     def from_dict(cls, data: Mapping) -> KSKPolicy:
@@ -129,6 +129,7 @@ class KSKPolicy(object):
                               )
         return cls(signature_policy=_sp,
                    ttl=int(data.get('ttl', 172800)),
+                   signers_name=data.get('signers_name', '.')
                    )
 
 

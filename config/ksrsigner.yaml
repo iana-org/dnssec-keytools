@@ -133,8 +133,10 @@ response_policy:
   validate_signatures: true
 
 
-# the KSK policy describes the policy for the SKRs (no defaults)
+# the KSK policy describes the policy for the SKRs
+# (no defaults except for signers_name)
 ksk_policy:
+  signers_name: .
   publish_safety: P10D
   retire_safety: P10D
   max_signature_validity: P21D
