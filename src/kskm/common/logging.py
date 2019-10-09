@@ -28,7 +28,7 @@ def get_logger(progname: str, debug: bool = False, syslog: bool = False, filelog
         logger.addHandler(syslog_h)
     if filelog:
         file_f = logging.Formatter(FILE_FORMATTER)
-        file_h = logging.FileHandler(f"{progname}-{time.strftime('%Y%m%d')}-{os.getpid()}.log")
+        file_h = logging.FileHandler(f"{progname}-{time.strftime('%Y%m%d-%H%M%S')}-{os.getpid()}.log")
         file_h.setFormatter(file_f)
         logger.addHandler(file_h)
     return logger
