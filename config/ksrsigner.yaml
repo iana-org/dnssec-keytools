@@ -110,10 +110,6 @@ request_policy:
   signature_check_expire_horizon: True
   signature_horizon_days: 180
 
-  # Validate that the current request continues a timeline ending with the
-  # previous response (default True)
-  check_request_daisy_chain: true
-
   # Approved algorithms  (default RSASHA256)
   approved_algorithms:
     - RSASHA256
