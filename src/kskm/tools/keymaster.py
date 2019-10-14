@@ -187,6 +187,7 @@ def main(progname: str = 'keymaster', argv: Optional[List[str]] = None, config: 
     parser_keygen = subparsers.add_parser('keygen')
     parser_keygen.set_defaults(func=keygen)
 
+    # Make a list of DNSSEC algorithms we allow generating keys for. RSASHA1 is obsoleted.
     valid_algorithms = [x.name for x in AlgorithmDNSSEC if x.name != 'RSASHA1' and
                         (is_algorithm_rsa(x) or is_algorithm_ecdsa(x))]
     parser_keygen.add_argument('--label',
