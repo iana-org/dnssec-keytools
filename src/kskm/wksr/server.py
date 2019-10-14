@@ -20,6 +20,8 @@ from werkzeug.exceptions import BadRequest, Forbidden, RequestEntityTooLarge
 from kskm.common.config import get_config
 from kskm.common.validate import PolicyViolation
 from kskm.ksr import load_ksr
+from .peercert import PeerCertWSGIRequestHandler
+
 
 DEFAULT_CIPHERS = [
     'ECDHE-RSA-AES256-GCM-SHA384',
@@ -150,60 +152,6 @@ def save_ksr(upload_file: FileStorage) -> Tuple[str, str]:
     logging.info("Saved filename=%s size=%d hash=%s", filename, filesize, filehash)
 
     return filename, filehash
-
-
-# TLS client auth based on post at https://www.ajg.id.au/2018/01/01/mutual-tls-with-python-flask-and-werkzeug/
-class PeerCertWSGIRequestHandler(werkzeug.serving.WSGIRequestHandler):
-    """
-    TLS Client Certificate Authenticator.
-
-    We subclass this class so that we can gain access to the connection
-    property. self.connection is the underlying client socket. When a TLS
-    connection is established, the underlying socket is an instance of
-    SSLSocket, which in turn exposes the getpeercert() method.
-
-    The output from that method is what we want to make available elsewhere
-    in the application.
-    """
-
-    def make_environ(self) -> dict:
-        """
-        Create request environment.
-
-        The superclass method develops the environ hash that eventually
-        forms part of the Flask request object.
-
-        We allow the superclass method to run first, then we insert the
-        peer certificate into the hash. That exposes it to us later in
-        the request variable that Flask provides
-        """
-        environ: Dict = super().make_environ()
-        try:
-            x509_binary = self.connection.getpeercert(True)  # type: ignore
-        except AttributeError:
-            # Not a TLS connection
-            x509_binary = None
-        if x509_binary is not None:
-            x509 = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_ASN1, x509_binary)
-            environ['peercert'] = x509
-        return environ
-
-    @classmethod
-    def client_subject(cls) -> Optional[str]:
-        """Find TLS client certificate subject."""
-        peercert = request.environ['peercert']
-        if peercert is None:
-            return None
-        c = peercert.get_subject().get_components()
-        return str(c)
-
-    @classmethod
-    def client_digest(cls) -> Optional[str]:
-        """Find TLS client certficate digest."""
-        peercert = request.environ['peercert']
-        if peercert is None:
-            return None
-        return str(peercert.digest('sha256').decode().replace(':', '').lower())
 
 
 def generate_ssl_context(config: dict = {}) -> ssl.SSLContext:
