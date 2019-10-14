@@ -65,7 +65,7 @@ The SKR is sent back to the ZSK operator for further processing.
 
 ## Validating the Signed Key Response
 
-The following checks are performed by the ZSK operator to validate the Signed Key Response. The validation may be done before accepting a SKR from the KSK operator (i.e. as part of the transmission process) and must be done beforeSKR is authorized and activated.
+The following checks are performed by the ZSK operator to validate the Signed Key Response. The validation may be done before accepting a SKR from the KSK operator (i.e. as part of the transmission process) and must be done before the SKR is authorized and activated.
 
 - **SKR-MATCH**: Verify that the SKR received corresponds to the most recent KSR sent by the ZSK operator; verify that the ID, serialNumber, and Domain parameters in the SKR and its corresponding KSR match, verify that number of request bundles in the SKR matches that of the corresponding KSR, and verify that for each request bundle the following parameters in the response match those in the request:
 
