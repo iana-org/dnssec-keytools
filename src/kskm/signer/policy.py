@@ -1,10 +1,13 @@
 """Combined policy checks for last SKR+KSR."""
 import logging
+from datetime import datetime, timedelta
+from logging import Logger
 
 from kskm.common.config_misc import RequestPolicy
 from kskm.ksr import Request
 from kskm.ksr.verify_bundles import KSR_BUNDLE_UNIQUE_Violation
 from kskm.ksr.verify_header import KSR_ID_Violation
+from kskm.ksr.verify_policy import KSR_PolicyViolation
 from kskm.signer.verify_chain import check_chain
 from kskm.skr import Response
 
@@ -18,6 +21,8 @@ def check_skr_and_ksr(ksr: Request, last_skr: Response, policy: RequestPolicy) -
     """Perform some policy checks that validates consistency from last SKR to this KSR."""
     check_unique_ids(ksr, last_skr, policy)
     check_chain(ksr, last_skr, policy)
+    check_cycle_durations(ksr, last_skr, policy, logger)
+
 
 
 def check_last_skr_and_new_skr(last_skr: Response, new_skr: Response, policy: RequestPolicy) -> None:
@@ -78,3 +83,54 @@ def check_skr_timeline(last_skr: Response, new_skr: Response, policy: RequestPol
     #       within the safety parameters.
     logger.warning('Check KSR-POLICY-SAFETY not implemented yet')
     pass
+
+
+class KSR_POLICY_CYCLE_DURATION_Violation(KSR_PolicyViolation):
+    """KSR-POLICY-CYCLE violation."""
+
+    pass
+
+
+def check_cycle_durations(ksr: Request, last_skr: Response, policy: RequestPolicy, logger: Logger) -> None:
+    """
+    Check that the whole cycles duration fall within expected limits.
+
+    TODO: Add this to ksr-processing.md, and update description here.
+    TODO: Add test cases for this, once we have finalised the specification.
+    """
+    if not policy.check_cycle_durations:
+        logger.warning('KSR-POLICY-CYCLE-DURATION: Disabled by policy (check_cycle_durations)')
+        return
+
+    _min_str = _fmt_timedelta(policy.min_cycle_duration)
+    _max_str = _fmt_timedelta(policy.max_cycle_duration)
+
+    duration = ksr.bundles[0].inception - last_skr.bundles[0].inception
+    _duration_str = _fmt_timedelta(duration)
+
+    logger.debug(f'Verifying that the cycle duration is no less than {_min_str}, and no more than {_max_str}')
+    logger.debug('Last SKR first bundle:  {inception}  {duration}'.format(
+        inception=_fmt_timestamp(last_skr.bundles[0].inception), duration='-'))
+    logger.debug('KSR first bundle:       {inception}  {duration}'.format(
+        inception=_fmt_timestamp(ksr.bundles[0].inception),  duration=duration))
+
+    if duration < policy.min_cycle_duration:
+        raise KSR_POLICY_CYCLE_DURATION_Violation(f'Cycle duration ({_duration_str}) '
+                                                  f'less than minimum acceptable duration {_min_str}')
+    if duration > policy.max_cycle_duration:
+        raise KSR_POLICY_CYCLE_DURATION_Violation(f'Cycle duration ({_duration_str}) '
+                                                  f'greater than maximum acceptable duration {_max_str}')
+
+    logger.info(f'KSR-POLICY-CYCLE-DURATION: The cycles duration is in accordance with the KSK operator policy')
+
+
+def _fmt_timedelta(tdelta: timedelta) -> str:
+    res = str(tdelta)
+    if res.endswith('days, 0:00:00') or res.endswith('day, 0:00:00'):
+        # cut off the unnecessary 0:00:00 after "days"
+        res = res[:0 - len(', 0:00:00')]
+    return res
+
+
+def _fmt_timestamp(ts: datetime) -> str:
+    return ts.isoformat().split('+')[0]

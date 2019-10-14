@@ -49,6 +49,12 @@ class KSR_POLICY_SIG_HORIZON_Violation(KSR_PolicyViolation):
     pass
 
 
+class KSR_POLICY_BUNDLE_INTERVAL_Violation(KSR_PolicyViolation):
+    """KSR-POLICY-BUNDLE-DURATION violation."""
+
+    pass
+
+
 def verify_policy(request: Request, policy: RequestPolicy, logger: Logger) -> None:
     """Verify that the bundles in a request are acceptable with the KSK operators configured policy."""
     logger.debug('Begin "Verify KSR policy parameters"')
@@ -58,6 +64,7 @@ def verify_policy(request: Request, policy: RequestPolicy, logger: Logger) -> No
     check_bundle_overlaps(request, policy, logger)
     check_signature_validity(request, policy, logger)
     check_signature_horizon(request, policy, logger)
+    check_bundle_intervals(request, policy, logger)
 
     logger.debug('End "Verify KSR policy parameters"')
 
@@ -103,8 +110,8 @@ def check_signature_validity(request: Request, policy: RequestPolicy, logger: Lo
         validity = bundle.expiration - bundle.inception
         logger.debug('{num:<2} {inception:29} {expiration:30} {validity}'.format(
             num=num,
-            inception=bundle.inception.isoformat().split('+')[0],
-            expiration=bundle.expiration.isoformat().split('+')[0],
+            inception=_fmt_timestamp(bundle.inception),
+            expiration=_fmt_timestamp(bundle.expiration),
             validity=validity))
 
     for bundle in request.bundles:
@@ -223,8 +230,8 @@ def check_bundle_overlaps(request: Request, policy: RequestPolicy, logger: Logge
         logger.debug('{num:<2} {id:8} {inception:19} {expiration:20} {overlap}'.format(
             num=i+1,
             id=this.id[:8],
-            inception=this.inception.isoformat().split('+')[0],
-            expiration=this.expiration.isoformat().split('+')[0],
+            inception=_fmt_timestamp(this.inception),
+            expiration=_fmt_timestamp(this.expiration),
             overlap=overlap_str))
 
     # check that bundles overlap, and with how much
@@ -248,6 +255,46 @@ def check_bundle_overlaps(request: Request, policy: RequestPolicy, logger: Logge
     logger.info(f'KSR-POLICY-SIG-OVERLAP: All bundles overlap in accordance with the stated ZSK operator policy')
 
 
+def check_bundle_intervals(request: Request, policy: RequestPolicy, logger: Logger) -> None:
+    """
+    Check that the bundles intervals fall within expected limits.
+
+    TODO: Add this to ksr-processing.md, and update description here.
+    TODO: Add test cases for this, once we have finalised the specification.
+    """
+    if not policy.check_bundle_intervals:
+        logger.warning('KSR-POLICY-BUNDLE-INTERVALS: Disabled by policy (check_bundle_intervals)')
+        return
+
+    _min_str = _fmt_timedelta(policy.min_bundle_interval)
+    _max_str = _fmt_timedelta(policy.max_bundle_interval)
+
+    logger.debug(f'Verifying that bundles intervals is no less than {_min_str}, and no more than {_max_str}')
+    for num in range(len(request.bundles)):
+        interval = '-'
+        if num:
+            interval = request.bundles[num].inception - request.bundles[num - 1].inception
+        logger.debug('{num:<2} {inception:29} {interval}'.format(
+            num=num + 1,
+            inception=_fmt_timestamp(request.bundles[num].inception),
+            interval=interval))
+
+    for num in range(1, len(request.bundles)):
+        interval = request.bundles[num].inception - request.bundles[num - 1].inception
+        _interval_str = _fmt_timedelta(interval)
+        if interval < policy.min_bundle_interval:
+            bundle = request.bundles[num]
+            raise KSR_POLICY_BUNDLE_INTERVAL_Violation(f'Bundle #{num + 1} ({bundle.id}) interval ({_interval_str}) '
+                                                       f'less than minimum acceptable interval {_min_str}')
+        if interval > policy.max_bundle_interval:
+            # TODO: Is it perhaps only the _last_ interval in a cycle that should be permitted to be 9 or 11 days?
+            bundle = request.bundles[num]
+            raise KSR_POLICY_BUNDLE_INTERVAL_Violation(f'Bundle #{num + 1} ({bundle.id}) interval ({_interval_str}) '
+                                                       f'greater than maximum acceptable interval {_max_str}')
+
+    logger.info(f'KSR-POLICY-BUNDLE-INTERVALS: All bundles intervals in accordance with the KSK operator policy')
+
+
 def _fmt_bundle(bundle: RequestBundle) -> str:
     return 'id={} {}->{}'.format(bundle.id[:8],
                                  bundle.inception.isoformat().split('T')[0],
@@ -261,3 +308,7 @@ def _fmt_timedelta(tdelta: timedelta) -> str:
         # cut off the unnecessary 0:00:00 after "days"
         res = res[:0 - len(', 0:00:00')]
     return res
+
+
+def _fmt_timestamp(ts: datetime) -> str:
+    return ts.isoformat().split('+')[0]

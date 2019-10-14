@@ -27,7 +27,13 @@ class Policy(ABC):
     @classmethod
     def from_dict(cls: Type[PolicyType], data: dict) -> PolicyType:
         """Instantiate ResponsePolicy from a dict of values."""
-        return cls(**data)
+        _data = deepcopy(data)  # don't mess with caller's data
+        # Convert durations provided as strings into datetime.timedelta instances
+        for this_td in ['min_cycle_duration', 'max_cycle_duration',
+                        'min_bundle_duration', 'max_bundle_duration']:
+            if this_td in _data:
+                _data[this_td] = duration_to_timedelta(this_td)
+        return cls(**_data)
 
 
 @dataclass(frozen=True)
@@ -56,6 +62,12 @@ class RequestPolicy(Policy):
     dns_ttl: int = 0  # if this is 0, the config value ksk_policy.ttl will be used instead
     signature_check_expire_horizon: bool = True
     signature_horizon_days: int = 180
+    check_bundle_intervals: bool = True
+    min_bundle_interval: timedelta = field(default_factory=lambda: duration_to_timedelta('P9D'))
+    max_bundle_interval: timedelta = field(default_factory=lambda: duration_to_timedelta('P11D'))
+    check_cycle_durations: bool = True
+    min_cycle_duration: timedelta = field(default_factory=lambda: duration_to_timedelta('P90D'))
+    max_cycle_duration: timedelta = field(default_factory=lambda: duration_to_timedelta('P91D'))
 
     # Verify KSR/SKR chaining
     check_chain_keys: bool = True
