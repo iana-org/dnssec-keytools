@@ -5,7 +5,7 @@ from typing import Dict, Optional
 from cryptography.exceptions import InvalidSignature
 
 from kskm.common.config_misc import RequestPolicy
-from kskm.common.data import AlgorithmPolicy, AlgorithmPolicyRSA, Key, FlagsDNSKEY
+from kskm.common.data import AlgorithmPolicy, AlgorithmPolicyRSA, FlagsDNSKEY, Key
 from kskm.common.dnssec import calculate_key_tag
 from kskm.common.rsa_utils import (KSKM_PublicKey_RSA, decode_rsa_public_key,
                                    is_algorithm_rsa)
@@ -189,7 +189,8 @@ def check_bundle_count(request: Request, policy: RequestPolicy, logger: Logger) 
     KSR-BUNDLE-COUNT:
       Verify that the number of requested bundles are within acceptable limits.
     """
-    if policy.num_bundles is not None and len(request.bundles) != policy.num_bundles:
-        _num_bundles = len(request.bundles)
+    _num_bundles = len(request.bundles)
+    if policy.num_bundles is not None and _num_bundles != policy.num_bundles:
         raise KSR_BUNDLE_COUNT_Violation(f'Wrong number of bundles in request ({_num_bundles}, '
                                          f'expected {policy.num_bundles})')
+    logger.info(f'KSR-BUNDLE-COUNT: Number of bundles ({_num_bundles}) accepted')
