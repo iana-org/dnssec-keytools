@@ -110,6 +110,14 @@ request_policy:
   signature_check_expire_horizon: True
   signature_horizon_days: 180
 
+  # Check the integrity of all ZSKs in the last SKR, SKR(n-1), by verifying the
+  # KSK signature over each key bundle using the KSK stored in the HSM.
+  check_chain_keys: True
+
+  # Check that the requested signature inceptions/expirations in the current
+  # KSR are coherent with those in the last bundle from the SKR(n-1).
+  check_chain_overlap: True
+
   # Approved algorithms  (default RSASHA256)
   approved_algorithms:
     - RSASHA256
