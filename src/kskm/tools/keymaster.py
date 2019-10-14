@@ -154,7 +154,10 @@ def inventory(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11
 
 def main(progname: str = 'keymaster', argv: Optional[List[str]] = None, config: Optional[KSKMConfig] = None) -> bool:
     """Main function."""
-    parser = argparse.ArgumentParser(description='Keymaster')
+    parser = argparse.ArgumentParser(description='Keymaster',
+                                     add_help=True,
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+                                     )
 
     parser.add_argument('--config',
                         dest='config',

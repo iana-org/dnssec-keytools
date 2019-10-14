@@ -61,9 +61,10 @@ _Keymaster_ is a tool to create, delete, backup, restore keys as well as perform
     
     optional arguments:
       -h, --help            show this help message and exit
-      --config CFGFILE      Path to the KSR signer configuration file
-      --hsm HSM             HSM to operate on
-      --debug               Enable debug operation
+      --config CFGFILE      Path to the KSR signer configuration file (default:
+                            ksrsigner.yaml)
+      --hsm HSM             HSM to operate on (default: None)
+      --debug               Enable debug operation (default: False)
 
 
 ### Configuration
@@ -111,9 +112,10 @@ The _KSR Receiver_ is a simple web server that will receive upload KSR files and
     
     optional arguments:
       -h, --help         show this help message and exit
-      --config filename  Configuration file
-      --port PORT        Port to listen on (default 8443)
-      --debug            Enable debugging
+      --config filename  Configuration file (default: wksr.yaml)
+      --port PORT        Port to listen on (default: 8443)
+      --debug            Enable debugging (default: False)
+
 
 ### Configuration
 

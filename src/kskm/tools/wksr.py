@@ -220,7 +220,10 @@ def main() -> None:
     """Main program function."""
     global ksr_config, notify_config, template_config
 
-    parser = argparse.ArgumentParser(description='KSR Web Server')
+    parser = argparse.ArgumentParser(description='KSR Web Server',
+                                     add_help=True,
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+                                     )
 
     parser.add_argument('--config',
                         dest='config',
@@ -230,11 +233,11 @@ def main() -> None:
     parser.add_argument('--port',
                         dest='port',
                         default=DEFAULT_PORT,
-                        help=f'Port to listen on (default {DEFAULT_PORT})')
+                        help='Port to listen on')
     parser.add_argument('--debug',
                         dest='debug',
                         action='store_true',
-                        help="Enable debugging")
+                        help='Enable debugging')
 
     args = parser.parse_args()
 
