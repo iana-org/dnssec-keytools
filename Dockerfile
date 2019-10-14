@@ -11,7 +11,6 @@ RUN useradd -r -u $UID -g $GID wksr
 
 RUN apt-get update
 RUN apt-get install -y swig
-RUN pip install gunicorn
 
 WORKDIR /tmp
 COPY dist/*.whl .
@@ -20,4 +19,4 @@ RUN rm *.whl
 
 USER wksr
 WORKDIR /home/wksr
-ENTRYPOINT gunicorn --bind 0.0.0.0 kskm.wksr.app
+ENTRYPOINT kskm-wksr
