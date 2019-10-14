@@ -6,16 +6,14 @@ import argparse
 import logging
 
 import yaml
+from werkzeug.serving import run_simple
 
-from kskm.wksr.server import (PeerCertWSGIRequestHandler, generate_app,
-                              generate_ssl_context)
+from kskm.wksr.peercert import PeerCertWSGIRequestHandler
+from kskm.wksr.server import generate_app, generate_ssl_context
 
+DEFAULT_HOSTNAME = '127.0.0.1'
 DEFAULT_PORT = 8443
 DEFAULT_CONFIG = 'wksr.yaml'
-DEFAULT_CIPHERS = [
-    'ECDHE-RSA-AES256-GCM-SHA384',
-    'ECDHE-RSA-AES256-SHA384'
-]
 
 
 def main() -> None:
@@ -27,6 +25,10 @@ def main() -> None:
                         metavar='filename',
                         default=DEFAULT_CONFIG,
                         help='Configuration file')
+    parser.add_argument('--hostname',
+                        dest='hostname',
+                        default=DEFAULT_HOSTNAME,
+                        help=f'Default hostname (default {DEFAULT_HOSTNAME})')
     parser.add_argument('--port',
                         dest='port',
                         default=DEFAULT_PORT,
@@ -46,7 +48,8 @@ def main() -> None:
     ssl_context = generate_ssl_context(config['tls'])
     app = generate_app(config)
 
-    app.run(port=args.port, ssl_context=ssl_context, request_handler=PeerCertWSGIRequestHandler)
+    run_simple(hostname=args.hostname, port=args.port, ssl_context=ssl_context,
+               application=app, request_handler=PeerCertWSGIRequestHandler)
 
 
 if __name__ == "__main__":
