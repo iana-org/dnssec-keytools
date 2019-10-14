@@ -13,13 +13,13 @@ The _KSR Signer_ configuration is written YAML. The following parameters can be 
                           [--log-ksr] [--log-skr] [--log-previous-skr]
                           [--config CFGFILE] [--debug] [--syslog] [--force]
                           [KSRFILE] [SKRFILE]
-    
+
     KSK request signer
-    
+
     positional arguments:
       KSRFILE               KSR request to process (default: None)
       SKRFILE               SKR output filename (default: None)
-    
+
     optional arguments:
       -h, --help            show this help message and exit
       --schema NAME         Name of schema (defined in config) to follow (default:
@@ -53,12 +53,12 @@ _Keymaster_ is a tool to create, delete, backup, restore keys as well as perform
     usage: kskm-keymaster [-h] [--config CFGFILE] [--hsm HSM] [--debug]
                           {inventory,keygen,wrapgen,keydelete,wrapdelete,backup,restore}
                           ...
-    
+
     Keymaster
-    
+
     positional arguments:
       {inventory,keygen,wrapgen,keydelete,wrapdelete,backup,restore}
-    
+
     optional arguments:
       -h, --help            show this help message and exit
       --config CFGFILE      Path to the KSR signer configuration file (default:
@@ -81,9 +81,9 @@ The _Trust Anchor Exporter_ exports the current set of trust anchors in [RFC 795
 
     usage: kskm-trustanchor [-h] [--config CFGFILE] [--debug]
                             [--trustanchor XMLFILE] [--id ID]
-    
+
     DNSSEC Trust Anchor exporter
-    
+
     optional arguments:
       -h, --help            show this help message and exit
       --config CFGFILE      Path to the KSR signer configuration file (default:
@@ -107,9 +107,9 @@ The _KSR Receiver_ is a simple web server that will receive upload KSR files and
 ### Command Line Usage
 
     usage: kskm-wksr [-h] [--config filename] [--port PORT] [--debug]
-    
+
     KSR Web Server
-    
+
     optional arguments:
       -h, --help         show this help message and exit
       --config filename  Configuration file (default: wksr.yaml)
