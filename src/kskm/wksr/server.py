@@ -8,11 +8,9 @@ import smtplib
 import ssl
 from datetime import datetime
 from email.message import EmailMessage
-from typing import Dict, Optional, Set, Tuple
+from typing import Dict, Set, Tuple
 
 import jinja2
-import OpenSSL
-import werkzeug.serving
 from flask import Flask, render_template, request
 from werkzeug.datastructures import FileStorage
 from werkzeug.exceptions import BadRequest, Forbidden, RequestEntityTooLarge
@@ -20,8 +18,8 @@ from werkzeug.exceptions import BadRequest, Forbidden, RequestEntityTooLarge
 from kskm.common.config import get_config
 from kskm.common.validate import PolicyViolation
 from kskm.ksr import load_ksr
-from .peercert import PeerCertWSGIRequestHandler
 
+from .peercert import PeerCertWSGIRequestHandler
 
 DEFAULT_CIPHERS = [
     'ECDHE-RSA-AES256-GCM-SHA384',
@@ -155,7 +153,7 @@ def save_ksr(upload_file: FileStorage) -> Tuple[str, str]:
 
 
 def generate_ssl_context(config: dict = {}) -> ssl.SSLContext:
-    """Generate SSL context for app"""
+    """Generate SSL context for app."""
 
     ssl_context = ssl.create_default_context(purpose=ssl.Purpose.CLIENT_AUTH, cafile=config.get('ca_cert'))
     ssl_context.options |= ssl.OP_NO_TLSv1
@@ -180,7 +178,7 @@ def generate_ssl_context(config: dict = {}) -> ssl.SSLContext:
 
 
 def generate_app(config: dict) -> Flask:
-    """Generate app"""
+    """Generate app."""
     global ksr_config, notify_config, template_config
 
     tls_config = config['tls']
