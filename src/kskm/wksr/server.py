@@ -4,6 +4,7 @@
 
 import hashlib
 import logging
+import re
 import smtplib
 import ssl
 from datetime import datetime
@@ -141,8 +142,11 @@ def save_ksr(upload_file: FileStorage) -> Tuple[str, str]:
     upload_file.stream.seek(0)
     filehash = m.hexdigest()
 
-    fileid = datetime.utcnow().strftime("%Y%m%d_%H%M%S_%f")
-    filename = ksr_config.get('prefix', '') + fileid + ".xml"
+    filename_prefix = ksr_config.get('prefix', 'upload_')
+    filename_washed = re.sub(r'[^a-zA-Z0-9_]+', '_', str(upload_file.filename))
+    filename_suffix = datetime.utcnow().strftime("_%Y%m%d_%H%M%S_%f")
+
+    filename = filename_prefix + filename_washed + filename_suffix + ".xml"
 
     with open(filename, 'wb') as ksr_file:
         ksr_file.write(upload_file.stream.read())
