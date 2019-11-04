@@ -3,6 +3,7 @@
 """KSR Receiver Web Server."""
 
 import hashlib
+import io
 import logging
 import re
 import smtplib
@@ -40,6 +41,9 @@ notify_config: Dict[str, str] = {}
 template_config: Dict[str, str] = {}
 
 
+logger = logging.getLogger(__name__)
+
+
 def authz() -> None:
     """Check TLS client whitelist."""
     digest = PeerCertWSGIRequestHandler.client_digest()
@@ -73,14 +77,27 @@ def upload() -> str:
         raise BadRequest
 
     (filename, filehash) = save_ksr(file)
+
+    # setup log capture
+    log_capture_string = io.StringIO()
+    ch = logging.StreamHandler(log_capture_string)
+    ch.setLevel(logging.DEBUG)
+    logging.getLogger().addHandler(ch)
+
     result = validate_ksr(filename)
+
+    # save captured log
+    logging.getLogger().removeHandler(ch)
+    log_buffer = log_capture_string.getvalue()
+    log_capture_string.close()
 
     env = {
         'result': result,
         'request': request,
         'filename': filename,
         'filehash': filehash,
-        'timestamp': datetime.utcnow()
+        'timestamp': datetime.utcnow(),
+        'log': log_buffer
     }
 
     notify(env)
