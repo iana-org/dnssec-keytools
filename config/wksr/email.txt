@@ -9,3 +9,7 @@ Checksum: {{ filehash }}
 Timestamp: {{ timestamp }}
 
 Result: {{ result }}
+
+Processing log:
+
+{{ log }}
