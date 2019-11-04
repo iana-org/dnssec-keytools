@@ -8,3 +8,7 @@ Checksum: {{ filehash }}
 Timestamp: {{ timestamp }}
 
 Result: {{ result }}
+
+Log output below:
+
+{{ log }}
