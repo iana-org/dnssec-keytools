@@ -64,10 +64,7 @@ def check_chain_keys(ksr: Request, last_skr: Response, policy: RequestPolicy) ->
     first_key_set = ksr.bundles[0].keys
     logger.debug(f'Last key set in SKR(n-1): {last_key_set}')
     logger.debug(f'First key set in KSR: {first_key_set}')
-    # TODO: Is this the correct definition of coherence? last_key_set will have had at least one KSK added to it,
-    #       so we can't just check for equality. The last_key_set really depends on what schema was used at the
-    #       last key ceremony, so I don't know how this can be checked beyond ensuring all keys in the first
-    #       bundle of this KSR was also present in the last entry of the last SKR.
+
     for this in first_key_set:
         if this not in last_key_set:
             raise KSR_CHAIN_KEYS_Violation('Last key set in SKR(n-1) does not match first key set in KSR')
