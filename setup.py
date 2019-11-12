@@ -7,7 +7,8 @@ git_hash = subprocess.check_output('git rev-parse --short --verify HEAD', shell=
 install_requires = [
     'cryptography',
     'PyYAML',
-    'PyKCS11'
+    'PyKCS11',
+    'voluptuous',
 ]
 
 testing_extras = [
