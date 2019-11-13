@@ -25,7 +25,7 @@ KEY_NAME = Match(r'[\w_]+')
 KEY_LABEL = Match(r'[\w_]+')
 RSA_SIZE = All(int, Range(min=1, max=65535))
 RSA_EXPONENT = All(int, Range(min=1))
-HEXDIGEST = Match(r'[0-9a-fA-F]+')
+HEX_DIGEST = Match(r'[0-9a-fA-F]+')
 HOST_NAME = Match(DOMAIN_REGEX)
 DOMAIN_NAME = Any('.', Match('\w+'), Match(DOMAIN_REGEX))
 
@@ -38,7 +38,7 @@ KEY_SCHEMA = Schema({
     'rsa_exponent': RSA_EXPONENT,
     'valid_from': datetime,
     'valid_until': datetime,
-    'ds_sha256': HEXDIGEST,
+    'ds_sha256': HEX_DIGEST,
 })
 
 REQUEST_POLICY_SCHEMA = Schema({
@@ -111,7 +111,7 @@ WKSR_CONFIG_SCHEMA = Schema({
         'ca_cert': IsFile(),
         'ciphers': Schema([str]),
         'require_client_cert': bool,
-        'client_whitelist': Schema([HEXDIGEST]),
+        'client_whitelist': Schema([HEX_DIGEST]),
     }),
     'ksr': Schema({
         'max_size': All(int, Range(min=0)),
