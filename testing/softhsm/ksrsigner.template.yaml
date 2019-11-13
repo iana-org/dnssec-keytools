@@ -34,7 +34,7 @@ keys:
     key_tag: 25486
     algorithm: ECDSAP256SHA256
     valid_from: 2010-07-15T00:00:00+00:00
-    ds_sha256: X
+    ds_sha256: 26E0FCF345CC3268FB4EF4FD3A8571EBD5ED55022371A86D01E4D7A94A81F4AB
 
   ksk_EC2:
     description: A SoftHSM key used in tests
