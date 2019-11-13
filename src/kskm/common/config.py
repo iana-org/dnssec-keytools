@@ -12,7 +12,7 @@ from kskm.common.config_misc import (KSKKey, KSKKeysType, KSKPolicy,
                                      RequestPolicy, ResponsePolicy, Schema,
                                      SchemaAction, _parse_keylist)
 from kskm.common.integrity import checksum_bytes2str
-from kskm.common.config_schema import ksrsigner_config_schema
+from kskm.common.config_schema import KSRSIGNER_CONFIG_SCHEMA
 
 __author__ = 'ft'
 
@@ -227,7 +227,7 @@ class KSKMConfig(object):
     def from_yaml(cls: Type[KSKMConfig], stream: IO) -> KSKMConfig:
         """Load configuration from a YAML stream."""
         config = yaml.safe_load(stream)
-        voluptuous.humanize.validate_with_humanized_errors(config, ksrsigner_config_schema)
+        voluptuous.humanize.validate_with_humanized_errors(config, KSRSIGNER_CONFIG_SCHEMA)
         return cls(config)
 
 

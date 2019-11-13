@@ -11,7 +11,7 @@ from werkzeug.serving import run_simple
 
 from kskm.wksr.peercert import PeerCertWSGIRequestHandler
 from kskm.wksr.server import generate_app, generate_ssl_context
-from kskm.common.config_schema import wksr_config_schema
+from kskm.common.config_schema import WKSR_CONFIG_SCHEMA
 
 DEFAULT_HOSTNAME = '127.0.0.1'
 DEFAULT_PORT = 8443
@@ -49,7 +49,7 @@ def main() -> None:
         logging.basicConfig(level=logging.DEBUG)
 
     config = yaml.load(open(args.config).read(), Loader=yaml.SafeLoader)
-    voluptuous.humanize.validate_with_humanized_errors(config, ksrsigner_config_schema)
+    voluptuous.humanize.validate_with_humanized_errors(config, WKSR_CONFIG_SCHEMA)
 
     ssl_context = generate_ssl_context(config['tls'])
     app = generate_app(config)
