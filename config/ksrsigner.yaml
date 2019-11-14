@@ -114,6 +114,16 @@ request_policy:
   signature_check_expire_horizon: True
   signature_horizon_days: 180
 
+  # Check bundle intervals (default True with between 99 and 11 days)
+  check_bundle_intervals: True
+  min_bundle_interval: P9D
+  max_bundle_interval: P11D
+
+  # Check cycle duration (default True with between 90 and 91 days)
+  check_cycle_durations: True
+  min_cycle_duration: P90D
+  max_cycle_duration: P91D
+
   # Check the integrity of all ZSKs in the last SKR, SKR(n-1), by verifying the
   # KSK signature over each key bundle using the KSK stored in the HSM.
   check_chain_keys: True
@@ -122,7 +132,7 @@ request_policy:
   # KSR are coherent with those in the last bundle from the SKR(n-1).
   check_chain_overlap: True
 
-  # Approved algorithms  (default RSASHA256)
+  # Approved algorithms  (default [RSASHA256])
   approved_algorithms:
     - RSASHA256
 
