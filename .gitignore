@@ -12,3 +12,5 @@ testing/softhsm/softhsm.initialized
 testing/softhsm/*.p8
 tmp
 *.jar
+ksrsigner*.log
+keymaster*.log
