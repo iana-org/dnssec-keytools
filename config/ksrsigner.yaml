@@ -110,6 +110,9 @@ request_policy:
   # Number of different keys in all bundles (default 3)
   num_different_keys_in_all_bundles: 3
 
+  # DNS TTL, if this is 0 the config value ksk_policy.ttl will be used instead
+  dns_ttl: 0
+
   # Check that signatures do not expire too long into the future (default True)
   signature_check_expire_horizon: True
   signature_horizon_days: 180

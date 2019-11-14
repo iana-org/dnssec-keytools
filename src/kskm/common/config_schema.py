@@ -28,6 +28,7 @@ RSA_EXPONENT = All(int, Range(min=1))
 HEX_DIGEST = Match(r'[0-9a-fA-F]+')
 HOST_NAME = Match(DOMAIN_REGEX)
 DOMAIN_NAME = Any('.', Match('\w+'), Match(DOMAIN_REGEX))
+TTL = All(int, Range(min=0))
 
 KEY_SCHEMA = Schema({
     'label': KEY_LABEL,
@@ -58,6 +59,7 @@ REQUEST_POLICY_SCHEMA = REQUEST_POLICY_SCHEMA.extend({
     'check_keys_match_ksk_operator_policy': bool,
     'num_keys_per_bundle': Schema([All(int, Range(min=1))]),
     'num_different_keys_in_all_bundles': All(int, Range(min=1)),
+    'dns_ttl': TTL,
     'signature_check_expire_horizon': bool,
     'signature_horizon_days': All(int, Range(min=1)),
     'check_bundle_intervals': bool,
@@ -86,7 +88,7 @@ KSK_POLICY_SCHEMA = Schema({
     'min_signature_validity': iso8601_duration(),
     'max_validity_overlap': iso8601_duration(),
     'min_validity_overlap': iso8601_duration(),
-    'ttl': All(int, Range(min=0)),
+    'ttl': TTL,
 })
 
 SCHEMA_SLOT_SCHEMA = Schema({
