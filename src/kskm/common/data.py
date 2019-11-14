@@ -1,11 +1,13 @@
 """Data classes common to KSR and SKR Classes."""
 from abc import ABC
+from base64 import b64decode
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Optional, Set, TypeVar
 
 # Type definitions to refer to the ABC types declared below
+
 BundleType = TypeVar('BundleType', bound='Bundle')
 AlgorithmPolicyType = TypeVar('AlgorithmPolicyType', bound='AlgorithmPolicy')
 
@@ -95,6 +97,17 @@ class Key(object):
 
     def __post_init__(self):
         """Check for valid DNSKEY flags."""
+        # Can't use kskm.common.ecdsa_utils.is_algorithm_ecdsa here (circular imports)
+        if self.algorithm in [AlgorithmDNSSEC.ECDSAP256SHA256,
+                              AlgorithmDNSSEC.ECDSAP384SHA384,
+                              ]:
+            _ec_point = b64decode(self.public_key)
+            # _ec_point is an 0x04 prefix byte, and then both x and y points concatenated, so divide by 2
+            _ec_len = (len(_ec_point) - 1) * 8 // 2
+            if (self.algorithm == AlgorithmDNSSEC.ECDSAP256SHA256 and _ec_len != 256) or \
+                    (self.algorithm == AlgorithmDNSSEC.ECDSAP384SHA384 and _ec_len != 384):
+                raise ValueError(f'Unexpected ECDSA key length {_ec_len} for algorithm {self.algorithm}')
+
         if self.flags == FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value or \
            self.flags == FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value | FlagsDNSKEY.REVOKE.value or \
            self.flags == FlagsDNSKEY.ZONE.value:
