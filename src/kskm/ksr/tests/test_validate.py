@@ -105,8 +105,9 @@ class Test_Validate_KSR(unittest.TestCase):
 </KSR>
 """
         policy = RequestPolicy(num_bundles=0,
-                               acceptable_key_set_lengths=[0],
-                               approved_algorithms=['RSASHA256', 'DSA']
+                               approved_algorithms=['RSASHA256', 'DSA'],
+                               num_keys_per_bundle=[],
+                               num_different_keys_in_all_bundles=0,
                                )
         request = request_from_xml(xml)
         # DSA is not allowed, even if it is in approved_algorithms

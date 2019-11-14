@@ -76,26 +76,38 @@ def check_keys_in_bundles(request: Request, policy: RequestPolicy, logger: Logge
         logger.warning('KSR-POLICY-KEYS: Disabled by policy (check_keys_match_ksk_operator_policy)')
         return
 
+    # Check the number of keys per bundle slot. The first and the last slot typically has two keys.
+    if len(request.bundles) != len(policy.num_keys_per_bundle):
+        raise KSR_POLICY_KEYS_Violation(f'Can\'t check number of keys per bundle for a KSR with '
+                                        f'{len(request.bundles)} bundles')
+    for _idx in range(len(request.bundles)):
+        _bundle = request.bundles[_idx]
+        if len(_bundle.keys) != policy.num_keys_per_bundle[_idx]:
+            _num_keys = len(_bundle.keys)
+            _expected = policy.num_keys_per_bundle[_idx]
+            raise KSR_POLICY_KEYS_Violation(f'Bundle #{_idx + 1}/{_bundle.id} has {_num_keys} keys, not {_expected}')
+
     # Check the number of different key sets in a request.
     #
     # The standard is to have exactly three keys in the request (early,on-time,late),
     # but on some occasions a different number might be acceptable.
     # In ksr-root-2016-q3-fallback-1.xml, there were only two key sets.
-    if policy.acceptable_key_set_lengths is not None:
-        keytags = {}
+    if policy.num_different_keys_in_all_bundles is not None:
+        _keys = {}
         for _bundle in request.bundles:
             for _key in _bundle.keys:
-                keytags[_key.key_tag] = 1
-        num_keys = len(keytags)
+                _keys[_key.key_identifier] = 1
+        num_keys = len(_keys)
 
         if num_keys != 3:
             logger.warning('Request {} does not have three (early,on-time,late) key sets in it ({})'.format(
                 request.id, num_keys
             ))
-        if num_keys in policy.acceptable_key_set_lengths:
-            return
-        raise KSR_POLICY_KEYS_Violation(f'Unacceptable number of key sets in request {request.id} '
-                                        f'({num_keys} not one of {policy.acceptable_key_set_lengths})')
+        if num_keys != policy.num_different_keys_in_all_bundles:
+            raise KSR_POLICY_KEYS_Violation(f'Unacceptable number of key sets in request {request.id}, '
+                                            f'({num_keys} keys instead of {policy.num_different_keys_in_all_bundles})')
+
+    logger.info(f'KSR-POLICY-KEYS: Validated number of keys per bundle, and for all bundles')
 
 
 def check_signature_validity(request: Request, policy: RequestPolicy, logger: Logger) -> None:

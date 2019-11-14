@@ -1,6 +1,7 @@
 import glob
 import os
 import unittest
+from dataclasses import replace
 
 import pkg_resources
 from cryptography.exceptions import InvalidSignature
@@ -63,8 +64,23 @@ class TestParseRealKSRs(unittest.TestCase):
 
         _dir = archive_dir('ksr')
         for fn in sorted(glob.glob(_dir + '/*')):
-            print('Loading file {}'.format(fn))
-            load_ksr(fn, policy)
+            #print('Loading file {}'.format(fn))
+            _policy = policy
+            if fn.endswith('ksr-root-2016-q3-fallback-1.xml'):
+                # Exception: Failed validating KSR request in file ksr-root-2016-q3-fallback-1.xml:
+                #            Bundle #8/4183f9f7-d97c-4913-92bf-57ee927c48dc has 1 keys, not 2
+                # Exception: Failed validating KSR request in file ksr-root-2016-q3-fallback-1.xml
+                #            Unacceptable number of key sets in request 489e60ed-421f-40ff-a80e-ee0a87e0886a,
+                #            (2 keys instead of 3)
+                _policy = replace(policy, num_keys_per_bundle=[2,1,1,1,1,1,1,1,1], num_different_keys_in_all_bundles=2)
+            elif fn.endswith('ksr-root-2016-q4-0.xml'):
+                # Exception: Failed validating KSR request in file ksr-root-2016-q4-0.xml:
+                #            Bundle #2/730b49eb-3dc1-4468-adea-6db09c58a6a3 has 2 keys, not 1
+                _policy = replace(policy, num_keys_per_bundle=[2,2,2,1,1,1,1,1,2])
+            elif fn.endswith('ksr-root-2016-q4-fallback-1.xml'):
+                _policy = replace(policy, num_keys_per_bundle=[1,1,1,1,1,1,1,1,2], num_different_keys_in_all_bundles=2)
+
+            load_ksr(fn, _policy, raise_original=True)
 
     @unittest.skipUnless(archive_dir('ksr'), 'KSKM_KSR_ARCHIVE_PATH not set or invalid')
     def test_load_and_validate_all_ksrs_in_archive(self):
