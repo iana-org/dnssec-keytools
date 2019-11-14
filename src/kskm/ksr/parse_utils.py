@@ -1,7 +1,7 @@
 """
 Utility functions to parse elements of KSRs.
 
-The KSR XML files are parsed using the minimal parser in kskm.ksr.xml_parser,
+The KSR XML files are parsed using the minimal parser in kskm.common.xml_parser,
 which returns a nested dict with all the data. The functions in this
 module know how to interpret parts of that dict and turn it into the
 dataclasses from kskm.ksr.data.

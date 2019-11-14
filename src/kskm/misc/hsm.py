@@ -331,8 +331,8 @@ class KSKM_P11Module(object):
                 ec_point = ec_point[2:]
             logger.debug(f'EC_POINT: {binascii.hexlify(ec_point)}')
             ec_params = bytes(session.getAttributeValue(data, [PyKCS11.LowLevel.CKA_EC_PARAMS])[0])
-            # The CKA_EC_PARAMS is an ASN.1 encoded OID. To not drag in an ASN.1 dependency, we
-            # keep this lookup table of OIDs to algorithms.
+            # The CKA_EC_PARAMS is an ASN.1 encoded OID. To not drag in an ASN.1 dependency,
+            # we keep this lookup table of OIDs to algorithms.
             _ec_alg_oids = {
                 # OID 1.2.840.10045.3.1.7 / prime256v1
                 b'\x06\x08\x2a\x86\x48\xce\x3d\x03\x01\x07': AlgorithmDNSSEC.ECDSAP256SHA256,
