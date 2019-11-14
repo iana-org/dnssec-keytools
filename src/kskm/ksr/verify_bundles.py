@@ -1,4 +1,5 @@
 """The checks defined in the 'Verify KSR bundles' section of docs/ksr-processing.md."""
+from datetime import timedelta, datetime
 from logging import Logger
 from typing import Dict, Optional
 
@@ -46,6 +47,12 @@ class KSR_BUNDLE_COUNT_Violation(KSR_BundleViolation):
     pass
 
 
+class KSR_BUNDLE_CYCLE_DURATION_Violation(KSR_BundleViolation):
+    """KSR-BUNDLE-CYCLE violation."""
+
+    pass
+
+
 def verify_bundles(request: Request, policy: RequestPolicy, logger: Logger) -> None:
     """Verify that the bundles in a request conform with the ZSK operators stated policy."""
     logger.debug('Begin "Verify KSR bundles"')
@@ -54,6 +61,7 @@ def verify_bundles(request: Request, policy: RequestPolicy, logger: Logger) -> N
     check_keys_match_zsk_policy(request, policy, logger)
     check_proof_of_possession(request, policy, logger)
     check_bundle_count(request, policy, logger)
+    check_cycle_durations(request, policy, logger)
 
     logger.debug('End "Verify KSR bundles"')
 
@@ -194,3 +202,64 @@ def check_bundle_count(request: Request, policy: RequestPolicy, logger: Logger) 
         raise KSR_BUNDLE_COUNT_Violation(f'Wrong number of bundles in request ({_num_bundles}, '
                                          f'expected {policy.num_bundles})')
     logger.info(f'KSR-BUNDLE-COUNT: Number of bundles ({_num_bundles}) accepted')
+
+
+def check_cycle_durations(request: Request, policy: RequestPolicy, logger: Logger) -> None:
+    """
+    Check that the whole cycles length fall within expected limits.
+
+    TODO: Add this to ksr-processing.md, and update description here.
+    TODO: Add test cases for this, once we have finalised the specification.
+    """
+    if not policy.check_cycle_length:
+        logger.warning('KSR-BUNDLE-CYCLE-DURATION: Disabled by policy (check_cycle_length)')
+        return
+
+    if not request.bundles:
+        logger.warning('KSR-BUNDLE-CYCLE-DURATION: No bundles - can\'t check anything')
+        return
+
+    _min_str = _fmt_timedelta(policy.min_bundle_interval)
+    _max_str = _fmt_timedelta(policy.max_bundle_interval)
+
+    logger.debug(f'Verifying that all bundles are between {_min_str} and {_max_str} apart')
+    for idx in range(1, len(request.bundles)):
+        bundle = request.bundles[idx]
+        prev_bundle = request.bundles[idx - 1]
+        interval = bundle.inception - prev_bundle.inception
+        _interval_str = _fmt_timedelta(interval)
+        if interval < policy.min_bundle_interval:
+            raise KSR_BUNDLE_CYCLE_DURATION_Violation(f'Bundle #{idx} ({bundle.id}) '
+                                                      f'interval {_interval_str} < minimum {_min_str}')
+        if interval > policy.max_bundle_interval:
+            raise KSR_BUNDLE_CYCLE_DURATION_Violation(f'Bundle #{idx} ({bundle.id}) '
+                                                      f'interval {_interval_str} > maximum {_max_str}')
+
+    cycle_inception_length = request.bundles[-1].inception - request.bundles[0].inception
+    _inc_len_str = _fmt_timedelta(cycle_inception_length)
+    _min_inc_str = _fmt_timedelta(policy.min_cycle_inception_length)
+    _max_inc_str = _fmt_timedelta(policy.max_cycle_inception_length)
+
+    logger.debug(f'Verifying that first bundle inception to last bundle inception ({_inc_len_str}) '
+                 f'is between {_min_inc_str} and {_max_inc_str}')
+
+    if cycle_inception_length < policy.min_cycle_inception_length:
+        raise KSR_BUNDLE_CYCLE_DURATION_Violation(f'Cycle inception length ({_inc_len_str}) '
+                                                  f'less than minimum acceptable length {_min_inc_str}')
+    if cycle_inception_length > policy.max_cycle_inception_length:
+        raise KSR_BUNDLE_CYCLE_DURATION_Violation(f'Cycle length ({_inc_len_str}) '
+                                                  f'greater than maximum acceptable length {_max_str}')
+
+    logger.info(f'KSR-BUNDLE-CYCLE-DURATION: The cycles length is in accordance with the KSK operator policy')
+
+
+def _fmt_timedelta(tdelta: timedelta) -> str:
+    res = str(tdelta)
+    if res.endswith('days, 0:00:00') or res.endswith('day, 0:00:00'):
+        # cut off the unnecessary 0:00:00 after "days"
+        res = res[:0 - len(', 0:00:00')]
+    return res
+
+
+def _fmt_timestamp(ts: datetime) -> str:
+    return ts.isoformat().split('+')[0]

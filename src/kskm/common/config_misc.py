@@ -49,6 +49,11 @@ class RequestPolicy(Policy):
     keys_match_zsk_policy: bool = True
     rsa_exponent_match_zsk_policy: bool = True
     enable_unsupported_ecdsa: bool = False
+    check_cycle_length: bool = True
+    min_cycle_inception_length: timedelta = field(default_factory=lambda: duration_to_timedelta('P79D'))
+    max_cycle_inception_length: timedelta = field(default_factory=lambda: duration_to_timedelta('P81D'))
+    min_bundle_interval: timedelta = field(default_factory=lambda: duration_to_timedelta('P9D'))
+    max_bundle_interval: timedelta = field(default_factory=lambda: duration_to_timedelta('P11D'))
 
     # Verify KSR policy parameters
     check_bundle_overlap: bool = True
@@ -64,11 +69,6 @@ class RequestPolicy(Policy):
     signature_check_expire_horizon: bool = True
     signature_horizon_days: int = 180
     check_bundle_intervals: bool = True
-    min_bundle_interval: timedelta = field(default_factory=lambda: duration_to_timedelta('P9D'))
-    max_bundle_interval: timedelta = field(default_factory=lambda: duration_to_timedelta('P11D'))
-    check_cycle_durations: bool = True
-    min_cycle_duration: timedelta = field(default_factory=lambda: duration_to_timedelta('P90D'))
-    max_cycle_duration: timedelta = field(default_factory=lambda: duration_to_timedelta('P91D'))
 
     # Verify KSR/SKR chaining
     check_chain_keys: bool = True
