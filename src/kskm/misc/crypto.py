@@ -14,7 +14,7 @@ from cryptography.hazmat.primitives.hashes import SHA256, SHA384
 from kskm.common.data import AlgorithmDNSSEC, Key
 from kskm.common.ecdsa_utils import (KSKM_PublicKey_ECDSA,
                                      decode_ecdsa_public_key,
-                                     is_algorithm_ecdsa)
+                                     is_algorithm_ecdsa, ECCurve, algorithm_to_curve)
 from kskm.common.public_key import KSKM_PublicKey
 from kskm.common.rsa_utils import (KSKM_PublicKey_RSA, decode_rsa_public_key,
                                    is_algorithm_rsa)
@@ -32,7 +32,8 @@ def key_to_crypto_pubkey(key: Key) -> CryptoPubKey:
     if is_algorithm_rsa(key.algorithm):
         return pubkey_to_crypto_pubkey(decode_rsa_public_key(key.public_key))
     elif is_algorithm_ecdsa(key.algorithm):
-        return pubkey_to_crypto_pubkey(decode_ecdsa_public_key(key.public_key, key.algorithm))
+        crv = algorithm_to_curve(key.algorithm)
+        return pubkey_to_crypto_pubkey(decode_ecdsa_public_key(key.public_key, crv))
     raise RuntimeError(f"Can't make cryptography public key from {key}")
 
 
@@ -55,12 +56,12 @@ def rsa_pubkey_to_crypto_pubkey(pubkey: KSKM_PublicKey_RSA) -> rsa.RSAPublicKey:
 
 def ecdsa_pubkey_to_crypto_pubkey(pubkey: KSKM_PublicKey_ECDSA) -> ec.EllipticCurvePublicKey:
     """Convert an KSKM_PublicKey_ECDSA into a 'cryptography' ec.EllipticCurvePublicKey."""
-    if pubkey.algorithm == AlgorithmDNSSEC.ECDSAP256SHA256:
+    if pubkey.curve == ECCurve.P256:
         curve = ec.SECP256R1()
-    elif pubkey.algorithm == AlgorithmDNSSEC.ECDSAP384SHA384:
+    elif pubkey.curve == ECCurve.P384:
         curve = ec.SECP384R1()
     else:
-        raise RuntimeError(f"Don't know which curve to use for {pubkey.algorithm.name}")
+        raise RuntimeError(f"Don't know which curve to use for {pubkey.curve.name}")
     return ec.EllipticCurvePublicKey.from_encoded_point(curve, pubkey.q)
 
 

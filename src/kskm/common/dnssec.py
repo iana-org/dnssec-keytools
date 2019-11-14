@@ -5,7 +5,7 @@ from dataclasses import replace
 
 from kskm.common.data import AlgorithmDNSSEC, Key
 from kskm.common.ecdsa_utils import (KSKM_PublicKey_ECDSA,
-                                     encode_ecdsa_public_key)
+                                     encode_ecdsa_public_key, algorithm_to_curve)
 from kskm.common.public_key import KSKM_PublicKey
 from kskm.common.rsa_utils import KSKM_PublicKey_RSA, encode_rsa_public_key
 
@@ -49,9 +49,9 @@ def public_key_to_dnssec_key(key: KSKM_PublicKey,
     if isinstance(key, KSKM_PublicKey_RSA):
         pubkey = encode_rsa_public_key(key)
     elif isinstance(key, KSKM_PublicKey_ECDSA):
-        if key.algorithm != algorithm:
+        if algorithm_to_curve(algorithm) != key.curve:
             raise ValueError(f"Can't make {algorithm} key out of public key "
-                             f"{key_identifier} with algorithm {key.algorithm}")
+                             f"{key_identifier} with curve {key.curve}")
         pubkey = encode_ecdsa_public_key(key)
     else:
         raise RuntimeError(f'Unrecognised key {key}')
