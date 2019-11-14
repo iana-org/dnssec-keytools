@@ -197,6 +197,12 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
                          config=self.config, ksk_policy=self.config.ksk_policy)
 
     @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
+    def test_ec_key_wrong_algorithm(self) -> None:
+        """ Test loading an EC key with the wrong algorithm. """
+        with self.assertRaises(ValueError):
+            self._p11_to_dnskey('EC1', AlgorithmDNSSEC.ECDSAP384SHA384, flags=FLAGS_ZSK)
+
+    @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
     def test_ec_sign_prepublish_key(self) -> None:
         """ Test a schema pre-publishing a third key. """
         _PUBLISH_SCHEMA = """---
