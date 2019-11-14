@@ -5,6 +5,7 @@ from logging import Logger
 
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyRSA
+from kskm.common.ecdsa_utils import is_algorithm_ecdsa
 from kskm.common.rsa_utils import is_algorithm_rsa
 from kskm.common.validate import PolicyViolation
 from kskm.ksr import Request
@@ -170,6 +171,12 @@ def check_zsk_policy_algorithm(request: Request, policy: RequestPolicy, logger: 
     the KSR policy have parameters allowed by the KSK operators policy.
     Parameters checked are different for different algorithms.
     """
+    for alg in request.zsk_policy.algorithms:
+        if alg.algorithm == AlgorithmDNSSEC.DSA:
+            # DSA is listed as MUST NOT implement in RFC 8624
+            raise KSR_POLICY_ALG_Violation('Algorithm DSA is not allowed')
+        if is_algorithm_ecdsa(alg.algorithm) and not policy.enable_unsupported_ecdsa:
+            raise KSR_POLICY_ALG_Violation('Algorithm ECDSA is not supported')
 
     if not policy.signature_algorithms_match_zsk_policy:
         logger.warning('KSR-POLICY-ALG: Disabled by policy (signature_algorithms_match_zsk_policy)')
@@ -177,9 +184,6 @@ def check_zsk_policy_algorithm(request: Request, policy: RequestPolicy, logger: 
 
     _approved_algorithms = [AlgorithmDNSSEC[x] for x in policy.approved_algorithms]
     for alg in request.zsk_policy.algorithms:
-        if alg.algorithm == AlgorithmDNSSEC.DSA:
-            raise KSR_POLICY_ALG_Violation('Algorithm DSA is not allowed')
-
         if alg.algorithm not in _approved_algorithms:
             raise KSR_POLICY_ALG_Violation(f'ZSK policy is {alg.algorithm}, but policy only allows '
                                            f'{_approved_algorithms}')

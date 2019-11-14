@@ -48,6 +48,7 @@ class RequestPolicy(Policy):
     validate_signatures: bool = True
     keys_match_zsk_policy: bool = True
     rsa_exponent_match_zsk_policy: bool = True
+    enable_unsupported_ecdsa: bool = False
 
     # Verify KSR policy parameters
     check_bundle_overlap: bool = True
