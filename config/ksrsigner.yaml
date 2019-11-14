@@ -79,6 +79,9 @@ request_policy:
   # Check that the keys of a bundle match the claims in the SignaturePolicy
   keys_match_zsk_policy: true
 
+  # Should unsupport ECDSA be accepted (default false)
+  enable_unsupported_ecdsa: false
+
   # Check that the RSA exponent match the ZSK policy (default True)
   rsa_exponent_match_zsk_policy: true
 
@@ -101,14 +104,28 @@ request_policy:
   # policy (default True)
   check_keys_match_ksk_operator_policy: true
 
-  # Number of unique ZSKs in request (default [2,3])
-  acceptable_key_set_lengths:
-    - 2
-    - 3
+  # Number of keys per bundle (default [2, 1, 1, 1, 1, 1, 1, 1, 2])
+  num_keys_per_bundle: [2, 1, 1, 1, 1, 1, 1, 1, 2]
+
+  # Number of different keys in all bundles (default 3)
+  num_different_keys_in_all_bundles: 3
+
+  # DNS TTL, if this is 0 the config value ksk_policy.ttl will be used instead
+  dns_ttl: 0
 
   # Check that signatures do not expire too long into the future (default True)
   signature_check_expire_horizon: True
   signature_horizon_days: 180
+
+  # Check bundle intervals (default True with between 99 and 11 days)
+  check_bundle_intervals: True
+  min_bundle_interval: P9D
+  max_bundle_interval: P11D
+
+  # Check cycle duration (default True with between 90 and 91 days)
+  check_cycle_durations: True
+  min_cycle_duration: P90D
+  max_cycle_duration: P91D
 
   # Check the integrity of all ZSKs in the last SKR, SKR(n-1), by verifying the
   # KSK signature over each key bundle using the KSK stored in the HSM.
@@ -118,7 +135,7 @@ request_policy:
   # KSR are coherent with those in the last bundle from the SKR(n-1).
   check_chain_overlap: True
 
-  # Approved algorithms  (default RSASHA256)
+  # Approved algorithms  (default [RSASHA256])
   approved_algorithms:
     - RSASHA256
 
