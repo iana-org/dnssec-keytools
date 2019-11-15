@@ -38,8 +38,6 @@ class TestConfigSchema(unittest.TestCase):
         config['templates']['upload'] = file_placeholder
         config['templates']['result'] = file_placeholder
         config['templates']['email'] = file_placeholder
-        with open('config/wksr.yaml') as input_file:
-            config = yaml.safe_load(input_file)
         voluptuous.humanize.validate_with_humanized_errors(config, WKSR_CONFIG_SCHEMA)
         os.unlink(file_placeholder)
 
