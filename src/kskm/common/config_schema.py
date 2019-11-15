@@ -15,7 +15,7 @@ def iso8601_duration():
 
 
 HSM_SCHEMA = Schema({
-    Required('module'): IsFile(),
+    Required('module'): Schema(Any(IsFile(), Match(r'^\$\w+'))),
     'pin': Schema(Any(str, int)),
     'so_pin': Schema(Any(str, int)),
     'env': dict
