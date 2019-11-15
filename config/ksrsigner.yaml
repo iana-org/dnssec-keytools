@@ -119,11 +119,11 @@ request_policy:
 
   # Check bundle intervals (default True with between 99 and 11 days)
   check_bundle_intervals: True
-  min_bundle_interval: P9D
-  max_bundle_interval: P11D
+  min_bundle_duration: P9D
+  max_bundle_duration: P11D
 
-  # Check cycle duration (default True with between 90 and 91 days)
-  check_cycle_durations: True
+  # Check cycle length (default True with between 90 and 91 days)
+  check_cycle_length: True
   min_cycle_duration: P90D
   max_cycle_duration: P91D
 
