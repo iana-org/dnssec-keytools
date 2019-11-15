@@ -53,6 +53,13 @@ REQUEST_POLICY_SCHEMA = REQUEST_POLICY_SCHEMA.extend({
     'keys_match_zsk_policy': bool,
     'rsa_exponent_match_zsk_policy': bool,
     'enable_unsupported_ecdsa': bool,
+
+    'check_cycle_length': bool,
+    'min_cycle_inception_length': iso8601_duration(),
+    'max_cycle_inception_length': iso8601_duration(),
+    'min_bundle_interval': iso8601_duration(),
+    'max_bundle_interval': iso8601_duration(),
+
     'check_bundle_overlap': bool,
     'signature_validity_match_zsk_policy': bool,
     'signature_algorithms_match_zsk_policy': bool,
@@ -62,6 +69,7 @@ REQUEST_POLICY_SCHEMA = REQUEST_POLICY_SCHEMA.extend({
     'dns_ttl': TTL,
     'signature_check_expire_horizon': bool,
     'signature_horizon_days': All(int, Range(min=1)),
+
     'check_bundle_intervals': bool,
     'min_bundle_duration': iso8601_duration(),
     'max_bundle_duration': iso8601_duration(),

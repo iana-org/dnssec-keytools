@@ -82,6 +82,17 @@ request_policy:
   # Should unsupport ECDSA be accepted (default false)
   enable_unsupported_ecdsa: false
 
+  # Check cycle length (default True)
+  check_cycle_length: True
+
+  # Min/max cycle inception length (default 79-81 days)
+  min_cycle_inception_length: P79D
+  max_cycle_inception_length: P81D
+
+  # Min/max bunder interval (default 9-11 days)
+  min_bundle_interval: P9D
+  max_bundle_interval: P11D
+
   # Check that the RSA exponent match the ZSK policy (default True)
   rsa_exponent_match_zsk_policy: true
 
@@ -113,19 +124,8 @@ request_policy:
   # DNS TTL, if this is 0 the config value ksk_policy.ttl will be used instead
   dns_ttl: 0
 
-  # Check that signatures do not expire too long into the future (default True)
-  signature_check_expire_horizon: True
-  signature_horizon_days: 180
-
-  # Check bundle intervals (default True with between 99 and 11 days)
+  # Check bundle intervals (default True)
   check_bundle_intervals: True
-  min_bundle_duration: P9D
-  max_bundle_duration: P11D
-
-  # Check cycle length (default True with between 90 and 91 days)
-  check_cycle_length: True
-  min_cycle_duration: P90D
-  max_cycle_duration: P91D
 
   # Check the integrity of all ZSKs in the last SKR, SKR(n-1), by verifying the
   # KSK signature over each key bundle using the KSK stored in the HSM.
