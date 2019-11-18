@@ -30,10 +30,7 @@ If the KSR passes the checks below it follows that each key bundle is compliant 
 
 Validate the policy parameters present in the KSR against the KSK operator's own policy. It is expected that the KSK operator's policy will have acceptance ranges for the policy parameters.
 
-- **KSR-POLICY-KEYS**: Verify that the key sets in the request are acceptable according to the KSR operators policy.
-  Checks include:
-    - TTL matches KSK operators configured value
-    - Number of keys per bundle are within bounds
+- **KSR-POLICY-KEYS**: Verify that the number of keys per bundle are acceptable according to the KSR operators policy.
 
 - **KSR-POLICY-ALG**: Verify that only signature algorithms listed in the KSK operators policy are used in the request and that the the signature algorithms listed in the KSR policy have parameters allowed by the KSK operators policy. Parameters checked are different for different algorithms. For RSA, the following parameters applies:
 
