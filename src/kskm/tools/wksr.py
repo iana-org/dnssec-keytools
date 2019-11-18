@@ -4,14 +4,16 @@
 
 import argparse
 import logging
+import sys
 
-import yaml
+import voluptuous.error
 import voluptuous.humanize
+import yaml
 from werkzeug.serving import run_simple
 
+from kskm.common.config_schema import WKSR_CONFIG_SCHEMA
 from kskm.wksr.peercert import PeerCertWSGIRequestHandler
 from kskm.wksr.server import generate_app, generate_ssl_context
-from kskm.common.config_schema import WKSR_CONFIG_SCHEMA
 
 DEFAULT_HOSTNAME = '127.0.0.1'
 DEFAULT_PORT = 8443
@@ -49,7 +51,11 @@ def main() -> None:
         logging.basicConfig(level=logging.DEBUG)
 
     config = yaml.load(open(args.config).read(), Loader=yaml.SafeLoader)
-    voluptuous.humanize.validate_with_humanized_errors(config, WKSR_CONFIG_SCHEMA)
+    try:
+        voluptuous.humanize.validate_with_humanized_errors(config, WKSR_CONFIG_SCHEMA)
+    except voluptuous.error.Error as exc:
+        logging.critical(str(exc))
+        sys.exit(-1)
 
     ssl_context = generate_ssl_context(config['tls'])
     app = generate_app(config)
