@@ -247,7 +247,7 @@ def main() -> None:
         logging.critical("Fatal error, program stopped")
         sys.exit(EXIT_CODES['fatal'])
     except KeyboardInterrupt:
-        logging.critical(f"Keyboard interrupt, program stopped")
+        logging.warning(f"Keyboard interrupt, program stopped")
         sys.exit(EXIT_CODES['interrupt'])
     except voluptuous.error.Error as exc:
         logging.critical(str(exc))
