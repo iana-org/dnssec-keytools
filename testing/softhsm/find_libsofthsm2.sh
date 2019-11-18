@@ -2,6 +2,7 @@
 
 MODULES=""
 MODULES="$MODULES /usr/local/homebrew/lib/softhsm/libsofthsm2.so"
+MODULES="$MODULES /usr/local/lib/softhsm/libsofthsm2.so"
 MODULES="$MODULES /usr/lib/softhsm/libsofthsm2.so"
 MODULES="$MODULES /usr/lib64/pkcs11/libsofthsm2.so"
 
