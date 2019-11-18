@@ -40,6 +40,13 @@ _DEFAULTS = {'debug': False,
              'schema': 'normal',
              }
 
+EXIT_CODES = {
+    'success': 0,
+    'interrupt': 1,
+    'config': 2,
+    'fatal': 3
+}
+
 
 def parse_args(defaults: dict) -> ArgsType:
     """
@@ -148,9 +155,6 @@ def ksrsigner(logger: logging.Logger, args: ArgsType, config: Optional[KSKMConfi
         except FileNotFoundError:
             logging.critical("Configuration file %s not found", args.config)
             return False
-        except voluptuous.error.Error as exc:
-            logging.critical(str(exc))
-            sys.exit(-1)
 
     #
     # Prepare schema
@@ -239,10 +243,16 @@ def main() -> None:
         logger = get_logger(progname=progname, debug=args.debug, syslog=args.syslog, filelog=True).getChild(__name__)
         res = ksrsigner(logger, args)
         if res is True:
-            sys.exit(0)
-        sys.exit(1)
+            sys.exit(EXIT_CODES['success'])
+        logging.critical("Fatal error, program stopped")
+        sys.exit(EXIT_CODES['fatal'])
     except KeyboardInterrupt:
-        sys.exit(0)
+        logging.critical(f"Keyboard interrupt, program stopped")
+        sys.exit(EXIT_CODES['interrupt'])
+    except voluptuous.error.Error as exc:
+        logging.critical(str(exc))
+        logging.critical("Configuration error, program stopped")
+        sys.exit(EXIT_CODES['config'])
 
 
 if __name__ == "__main__":
