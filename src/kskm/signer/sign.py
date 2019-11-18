@@ -159,7 +159,11 @@ def _sign_keys(bundle: RequestBundle, signing_key: CompositeKey, ksk_policy: KSK
     signature_data = sign_using_p11(signing_key.p11, rrsig_raw, signing_key.dns.algorithm)
 
     # Before proceeding, validate the signature using a non-HSM based implementation
-    _verify_using_crypto(signing_key.p11, rrsig_raw, signature_data, signing_key.dns.algorithm)
+    try:
+        _verify_using_crypto(signing_key.p11, rrsig_raw, signature_data, signing_key.dns.algorithm)
+    except InvalidSignature:
+        logger.error('SKR-VERIFY failed')
+        raise
 
     sig = replace(sig, signature_data=base64.b64encode(signature_data))
     return sig
