@@ -38,7 +38,6 @@ def validate_response(response: Response, policy: ResponsePolicy) -> bool:
 def check_valid_signatures(bundle: ResponseBundle, policy: ResponsePolicy) -> None:
     """Validate requester proof of ownership of all the keys in the bundles."""
     if not policy.validate_signatures:
-        # TODO: Describe checking of produced signatures (and signatures from SKR(n-1) in ksr-processsing.md
         logger.warning('SKR signature validation disabled by policy (validate_signatures)')
         return
     try:
