@@ -13,6 +13,8 @@ import sys
 from argparse import Namespace as ArgsType
 from typing import Optional
 
+import voluptuous.error
+
 import kskm.common
 import kskm.ksr
 import kskm.misc
@@ -146,6 +148,9 @@ def ksrsigner(logger: logging.Logger, args: ArgsType, config: Optional[KSKMConfi
         except FileNotFoundError:
             logging.critical("Configuration file %s not found", args.config)
             return False
+        except voluptuous.error.Error as exc:
+            logging.critical(str(exc))
+            sys.exit(-1)
 
     #
     # Prepare schema
