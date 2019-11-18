@@ -32,6 +32,10 @@ class CreateSignatureError(Exception):
 
     pass
 
+class SKR_VERIFY_Failure(InvalidSignature):
+    """SKR-VERIFY signature validation failure."""
+
+    pass
 
 def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
                  ksk_policy: KSKPolicy, config: KSKMConfig) -> Iterable[ResponseBundle]:
@@ -162,8 +166,7 @@ def _sign_keys(bundle: RequestBundle, signing_key: CompositeKey, ksk_policy: KSK
     try:
         _verify_using_crypto(signing_key.p11, rrsig_raw, signature_data, signing_key.dns.algorithm)
     except InvalidSignature:
-        logger.error('SKR-VERIFY failed')
-        raise
+        raise SKR_VERIFY_Failure(f'Invalid KSK signature encountered in bundle {bundle.id}')
 
     sig = replace(sig, signature_data=base64.b64encode(signature_data))
     return sig
