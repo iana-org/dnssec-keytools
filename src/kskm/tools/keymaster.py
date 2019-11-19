@@ -310,7 +310,7 @@ def main(progname: str = 'keymaster', argv: Optional[List[str]] = None, config: 
     if config is None:
         try:
             config = get_config(args.config)
-        except FileNotFoundError exc:
+        except FileNotFoundError as exc:
             logger.critical(str(exc))
             return False
         except ConfigurationError as exc:
