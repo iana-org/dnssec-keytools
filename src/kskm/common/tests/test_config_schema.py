@@ -4,11 +4,14 @@ import os
 import unittest
 from tempfile import mkstemp
 
-import voluptuous.humanize
+import pkg_resources
 import yaml
 
+import voluptuous.humanize
 from kskm.common.config_schema import (KSRSIGNER_CONFIG_SCHEMA,
                                        WKSR_CONFIG_SCHEMA)
+
+CONFIG_DIR = pkg_resources.resource_filename(__name__, '../../../../config')
 
 
 class TestConfigSchema(unittest.TestCase):
@@ -16,7 +19,7 @@ class TestConfigSchema(unittest.TestCase):
     def test_ksrsigner_example_config(self):
         """Test ksrsigner example config"""
         _, file_placeholder = mkstemp()
-        with open('config/ksrsigner.yaml') as input_file:
+        with open(CONFIG_DIR + '/ksrsigner.yaml') as input_file:
             config = yaml.safe_load(input_file)
         config['hsm']['softhsm']['module'] = file_placeholder
         config['hsm']['aep']['module'] = file_placeholder
@@ -29,7 +32,7 @@ class TestConfigSchema(unittest.TestCase):
     def test_wksr_example_config(self):
         """Test wksr example config"""
         _, file_placeholder = mkstemp()
-        with open('config/wksr.yaml') as input_file:
+        with open(CONFIG_DIR + '/wksr.yaml') as input_file:
             config = yaml.safe_load(input_file)
         config['tls']['cert'] = file_placeholder
         config['tls']['key'] = file_placeholder
