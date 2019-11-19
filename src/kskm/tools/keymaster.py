@@ -20,13 +20,12 @@ import logging
 import sys
 from typing import List, Optional
 
-import voluptuous.error
 import yaml
 from PyKCS11 import PyKCS11Error
 
 import kskm
 import kskm.misc
-from kskm.common.config import KSKMConfig, get_config
+from kskm.common.config import ConfigurationError, KSKMConfig, get_config
 from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY
 from kskm.common.dnssec import public_key_to_dnssec_key
 from kskm.common.ecdsa_utils import algorithm_to_curve, is_algorithm_ecdsa
@@ -36,7 +35,8 @@ from kskm.keymaster.delete import key_delete, wrapkey_delete
 from kskm.keymaster.inventory import key_inventory
 from kskm.keymaster.keygen import (generate_ec_key, generate_rsa_key,
                                    generate_wrapping_key)
-from kskm.keymaster.wrap import WrappedKey, WrappedKeyRSA, key_backup, key_restore
+from kskm.keymaster.wrap import (WrappedKey, WrappedKeyRSA, key_backup,
+                                 key_restore)
 from kskm.misc.hsm import KSKM_P11, KeyType, WrappingAlgorithm
 
 SUPPORTED_ALGORITHMS = [str(x.name) for x in KeyType]
@@ -310,11 +310,13 @@ def main(progname: str = 'keymaster', argv: Optional[List[str]] = None, config: 
     if config is None:
         try:
             config = get_config(args.config)
-        except FileNotFoundError as exc:
+        except FileNotFoundError exc:
             logger.critical(str(exc))
             return False
-        except voluptuous.error.Error as exc:
-            logging.critical(str(exc))
+        except ConfigurationError as exc:
+            logger = logging.getLogger('configuration')
+            for message in str(exc).splitlines():
+                logger.critical(message)
             return False
 
     #

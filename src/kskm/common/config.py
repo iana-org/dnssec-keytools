@@ -5,14 +5,15 @@ import logging
 from dataclasses import replace
 from typing import IO, Dict, Mapping, Optional, Type, cast
 
-import yaml
+import voluptuous.error
 import voluptuous.humanize
+import yaml
 
 from kskm.common.config_misc import (KSKKey, KSKKeysType, KSKPolicy,
                                      RequestPolicy, ResponsePolicy, Schema,
                                      SchemaAction, _parse_keylist)
-from kskm.common.integrity import checksum_bytes2str
 from kskm.common.config_schema import KSRSIGNER_CONFIG_SCHEMA
+from kskm.common.integrity import checksum_bytes2str
 
 __author__ = 'ft'
 
@@ -227,7 +228,10 @@ class KSKMConfig(object):
     def from_yaml(cls: Type[KSKMConfig], stream: IO) -> KSKMConfig:
         """Load configuration from a YAML stream."""
         config = yaml.safe_load(stream)
-        voluptuous.humanize.validate_with_humanized_errors(config, KSRSIGNER_CONFIG_SCHEMA)
+        try:
+            voluptuous.humanize.validate_with_humanized_errors(config, KSRSIGNER_CONFIG_SCHEMA)
+        except voluptuous.error.Error as exc:
+            raise ConfigurationError(str(exc))
         return cls(config)
 
 

@@ -13,13 +13,11 @@ import sys
 from argparse import Namespace as ArgsType
 from typing import Optional
 
-import voluptuous.error
-
 import kskm.common
 import kskm.ksr
 import kskm.misc
 import kskm.skr
-from kskm.common.config import KSKMConfig, get_config
+from kskm.common.config import ConfigurationError, KSKMConfig, get_config
 from kskm.common.display import format_bundles_for_humans
 from kskm.common.logging import get_logger
 from kskm.common.wordlist import pgp_wordlist
@@ -249,8 +247,10 @@ def main() -> None:
     except KeyboardInterrupt:
         logging.warning(f"Keyboard interrupt, program stopped")
         sys.exit(EXIT_CODES['interrupt'])
-    except voluptuous.error.Error as exc:
-        logging.critical(str(exc))
+    except ConfigurationError as exc:
+        logger = logging.getLogger('configuration')
+        for message in str(exc).splitlines():
+            logger.critical(message)
         logging.critical("Configuration error, program stopped")
         sys.exit(EXIT_CODES['config'])
 
