@@ -7,6 +7,7 @@ from tempfile import mkstemp
 import pkg_resources
 import yaml
 
+import voluptuous.error
 import voluptuous.humanize
 from kskm.common.config_schema import (KSRSIGNER_CONFIG_SCHEMA,
                                        WKSR_CONFIG_SCHEMA)
@@ -29,6 +30,12 @@ class TestConfigSchema(unittest.TestCase):
         voluptuous.humanize.validate_with_humanized_errors(config, KSRSIGNER_CONFIG_SCHEMA)
         os.unlink(file_placeholder)
 
+    def test_ksrsigner_bad_config(self):
+        """Test ksrsigner example config"""
+        config = {'xyzzy': False}
+        with self.assertRaises(voluptuous.error.Error):
+            voluptuous.humanize.validate_with_humanized_errors(config, KSRSIGNER_CONFIG_SCHEMA)
+
     def test_wksr_example_config(self):
         """Test wksr example config"""
         _, file_placeholder = mkstemp()
@@ -43,6 +50,12 @@ class TestConfigSchema(unittest.TestCase):
         config['templates']['email'] = file_placeholder
         voluptuous.humanize.validate_with_humanized_errors(config, WKSR_CONFIG_SCHEMA)
         os.unlink(file_placeholder)
+
+    def test_wksr_bad_config(self):
+        """Test wksr example config"""
+        config = {'xyzzy': False}
+        with self.assertRaises(voluptuous.error.Error):
+            voluptuous.humanize.validate_with_humanized_errors(config, WKSR_CONFIG_SCHEMA)
 
 
 if __name__ == '__main__':
