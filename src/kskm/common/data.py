@@ -13,10 +13,14 @@ AlgorithmPolicyType = TypeVar('AlgorithmPolicyType', bound='AlgorithmPolicy')
 
 
 class AlgorithmDNSSEC(Enum):
+    RSAMD5 = 1
     DSA = 3
     RSASHA1 = 5
+    DSA_NSEC3_SHA1 = 6
+    RSASHA1_NSEC3_SHA1 = 7
     RSASHA256 = 8
     RSASHA512 = 10
+    ECC_GOST = 12
     ECDSAP256SHA256 = 13
     ECDSAP384SHA384 = 14
     ED25519 = 15
