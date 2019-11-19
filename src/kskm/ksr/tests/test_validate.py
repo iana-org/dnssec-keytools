@@ -113,7 +113,7 @@ class Test_Validate_KSR(unittest.TestCase):
         # DSA is not allowed, even if it is in approved_algorithms
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
             validate_request(request, policy)
-        self.assertIn('DSA is not allowed', str(exc.exception))
+        self.assertIn('Algorithm DSA deprecated', str(exc.exception))
 
     def test_load_ksr_with_signatures_in_the_past(self):
         """ Test loading a KSR requesting signatures that has expired already """

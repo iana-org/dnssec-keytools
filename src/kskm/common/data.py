@@ -27,6 +27,23 @@ class AlgorithmDNSSEC(Enum):
     ED448 = 16
 
 
+# Algorithms listed as MUST NOT implement in RFC 8624
+DEPRECATED_ALGORTIHMS = [
+    AlgorithmDNSSEC.RSAMD5,
+    AlgorithmDNSSEC.DSA,
+    AlgorithmDNSSEC.DSA_NSEC3_SHA1,
+    AlgorithmDNSSEC.ECC_GOST,
+]
+
+# Supported algorithms (note that ECDSA is not yet fully supported)
+SUPPORTED_ALGORTIHMS = [
+    AlgorithmDNSSEC.RSASHA256,
+    AlgorithmDNSSEC.RSASHA512,
+    AlgorithmDNSSEC.ECDSAP256SHA256,
+    AlgorithmDNSSEC.ECDSAP384SHA384,
+]
+
+
 class TypeDNSSEC(Enum):
     DNSKEY = 48
 
