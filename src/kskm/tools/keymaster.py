@@ -20,6 +20,7 @@ import logging
 import sys
 from typing import List, Optional
 
+import voluptuous.error
 import yaml
 from PyKCS11 import PyKCS11Error
 
@@ -311,6 +312,9 @@ def main(progname: str = 'keymaster', argv: Optional[List[str]] = None, config: 
             config = get_config(args.config)
         except FileNotFoundError as exc:
             logger.critical(str(exc))
+            return False
+        except voluptuous.error.Error as exc:
+            logging.critical(str(exc))
             return False
 
     #
