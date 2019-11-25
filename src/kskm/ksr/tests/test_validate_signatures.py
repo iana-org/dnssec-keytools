@@ -95,11 +95,11 @@ class TestValidate_signatures(TestCase):
         with self.assertRaises(ValueError):
             validate_signatures(bundle)
 
-    def test_duplicate_key_tag(self):
-        """ Add a key with the same key_tag as another key in the set """
+    def test_duplicate_key_identifier(self):
+        """ Add a key with the same key_identifier as another key in the set """
         bundle = self._load_bundle_from_file('ksr-root-2016-q3-0.xml', 'a6b6162e-b299-427e-b11b-1a8c54a08910')
-        new_key = Key(key_identifier='ZSK-24315',
-                      key_tag=list(bundle.keys)[0].key_tag,
+        new_key = Key(key_identifier=list(bundle.keys)[0].key_identifier,
+                      key_tag=4711,
                       ttl=1978,
                       flags=256,
                       protocol=3,
