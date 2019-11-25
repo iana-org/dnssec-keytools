@@ -409,21 +409,28 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) ->
 KSKM_P11 = NewType('KSKM_P11', List[KSKM_P11Module])
 
 
-def init_pkcs11_modules_from_dict(config: Mapping, so_login: bool = False,
+def init_pkcs11_modules_from_dict(config: Mapping, name: Optional[str] = None, so_login: bool = False,
                                   rw_session: bool = False) -> KSKM_P11:
     """
     Initialize PKCS#11 modules using configuration dictionary.
+
+    If `name' is provided, _only_ the HSM matching that name is initialised.
 
     :return: A list of PyKCS11 library instances.
     """
     modules: list = []
     for label, _kwargs in config.items():
+        if name and label != name:
+            continue
         kwargs = copy(_kwargs)  # don't modify caller's data
         if so_login:
             kwargs['so_login'] = True
         if rw_session:
             kwargs['rw_session'] = rw_session
         modules.append(KSKM_P11Module(label=label, **kwargs))
+
+    if name and not modules:
+        raise RuntimeError(f'No HSM with that name ({name}) found in the configuration')
 
     return KSKM_P11(modules)
 

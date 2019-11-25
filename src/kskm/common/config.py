@@ -52,10 +52,10 @@ class KSKMConfig(object):
 
             hsm:
               softhsm:
-              module: /path/to/softhsm/libsofthsm2.so
-              pin: 123456
-              env:
-                SOFTHSM2_CONF: /path/to/softhsm.conf
+                module: /path/to/softhsm/libsofthsm2.so
+                pin: 123456
+                env:
+                  SOFTHSM2_CONF: /path/to/softhsm.conf
 
         Returns a plain dict with the configuration for now.
         """

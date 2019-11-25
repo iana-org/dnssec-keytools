@@ -120,6 +120,13 @@ def parse_args(defaults: dict) -> ArgsType:
                         default=False,
                         help='Don\'t ask for confirmation',
                         )
+    parser.add_argument('--hsm',
+                        dest='hsm',
+                        metavar='HSM',
+                        type=str,
+                        default=None,
+                        help='HSM to operate on',
+                        )
     args = parser.parse_args()
     return args
 
@@ -190,7 +197,7 @@ def ksrsigner(logger: logging.Logger, args: ArgsType, config: Optional[KSKMConfi
     # Initialise PKCS#11 modules (HSMs)
     #
     try:
-        p11modules = kskm.misc.hsm.init_pkcs11_modules_from_dict(config.hsm)
+        p11modules = kskm.misc.hsm.init_pkcs11_modules_from_dict(config.hsm, name=args.hsm)
     except Exception as e:
         logger.critical("HSM initialisation error: %s", str(e))
         return False

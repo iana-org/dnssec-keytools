@@ -69,6 +69,13 @@ def parse_args(defaults: dict) -> ArgsType:
                         metavar='ID', type=str,
                         help='Trust anchor identifier',
                         )
+    parser.add_argument('--hsm',
+                        dest='hsm',
+                        default=None,
+                        metavar='HSM', type=str,
+                        help='HSM to operate on',
+                        )
+
     args = parser.parse_args()
     return args
 
@@ -103,7 +110,7 @@ def trustanchor(logger: logging.Logger, args: Optional[ArgsType], config: Option
     #
     # Initialise PKCS#11 modules (HSMs)
     #
-    p11modules = kskm.misc.hsm.init_pkcs11_modules_from_dict(config.hsm)
+    p11modules = kskm.misc.hsm.init_pkcs11_modules_from_dict(config.hsm, name=args.hsm)
 
     keydigests = set()
 
