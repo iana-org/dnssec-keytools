@@ -72,6 +72,7 @@ class RequestPolicy(Policy):
 
     # Verify KSR/SKR chaining
     check_chain_keys: bool = True
+    check_chain_keys_in_hsm: bool = True
     check_chain_overlap: bool = True
 
 

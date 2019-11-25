@@ -2,28 +2,33 @@
 These tests only works if SOFTHSM2_MODULE and SOFTHSM2_CONF is set.
 
 Set SOFTHSM2_MODULE to the SoftHSM PKCS#11 and SOFTHSM2_CONF to the configuration
-file *with the test keys created using 'make softhsm' in th testing/softhsm/ loaded*.
+file *with the test keys created using 'make softhsm' in testing/softhsm/ loaded*.
 """
 import datetime
 import io
 import os
 import unittest
+from dataclasses import replace
 from typing import Set
 
 import pkg_resources
 import yaml
 
 from kskm.common.config import ConfigurationError, KSKMConfig
+from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY, Key
 from kskm.common.dnssec import public_key_to_dnssec_key
 from kskm.common.parse_utils import parse_datetime, signature_policy_from_dict
 from kskm.common.signature import validate_signatures
-from kskm.ksr import Request
+from kskm.ksr import Request, request_from_xml
 from kskm.ksr.data import RequestBundle
 from kskm.misc.hsm import KSKM_P11, get_p11_key, init_pkcs11_modules_from_dict
-from kskm.signer import sign_bundles
+from kskm.signer import create_skr, sign_bundles
 from kskm.signer.key import KeyUsagePolicy_Violation
+from kskm.signer.policy import check_skr_and_ksr
 from kskm.signer.sign import CreateSignatureError
+from kskm.signer.verify_chain import KSR_CHAIN_KEYS_Violation
+from kskm.skr import response_from_xml
 
 __author__ = 'ft'
 
@@ -95,7 +100,8 @@ class SignWithSoftHSM_Baseclass(unittest.TestCase):
             this.close()
 
     def _p11_to_dnskey(self, key_name: str, algorithm: AlgorithmDNSSEC,
-                       flags: int = FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value):
+                       flags: int = FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value,
+                       ttl: int = 10):
         if not self.p11modules:
             self.skipTest('No HSM config')
         p11_key = get_p11_key(key_name, self.p11modules, public=True)
@@ -105,23 +111,23 @@ class SignWithSoftHSM_Baseclass(unittest.TestCase):
                                            key_identifier=key_name,
                                            algorithm=algorithm,
                                            flags=flags,
-                                           ttl=10,
+                                           ttl=ttl,
                                            )
         return zsk_key
 
-    def _make_request(self, zsk_keys: Set[Key], inception=None, expiration=None):
+    def _make_request(self, zsk_keys: Set[Key], inception=None, expiration=None, id_suffix=''):
         if inception is None:
             inception = parse_datetime('2018-01-01T00:00:00+00:00')
         if expiration is None:
             expiration = parse_datetime('2018-01-22T00:00:00+00:00')
-        bundle = RequestBundle(id='test-01',
+        bundle = RequestBundle(id='test' + id_suffix,
                                inception=inception,
                                expiration=expiration,
                                keys=zsk_keys,
                                signatures=set(),
                                signers=None,
                                )
-        request = Request(id='test-req-01',
+        request = Request(id='test-req-01' + id_suffix,
                           serial=1,
                           domain='.',
                           bundles=[bundle],
@@ -429,3 +435,116 @@ class Test_SignWithSoftHSM_Errorhandling(SignWithSoftHSM_Baseclass):
             sign_bundles(request=request, schema=self.schema,
                          p11modules=self.p11modules, config=self.config,
                          ksk_policy=self.config.ksk_policy)
+
+
+
+
+
+
+
+class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
+
+    def setUp(self) -> None:
+        """ Prepare for tests. """
+        super().setUp()
+
+        _SCHEMAS = """
+        schemas:
+          test:
+            1: {publish: [], sign: [ksk_RSA2]}
+            2: {publish: [], sign: [ksk_RSA2]}
+            3: {publish: [], sign: [ksk_RSA2]}
+            4: {publish: [], sign: [ksk_RSA2]}
+            5: {publish: [], sign: [ksk_RSA2]}
+            6: {publish: [], sign: [ksk_RSA2]}
+            7: {publish: [], sign: [ksk_RSA2]}
+            8: {publish: [], sign: [ksk_RSA2]}
+            9: {publish: [], sign: [ksk_RSA2]}
+        """
+        self.config.update(yaml.safe_load(io.StringIO(_SCHEMAS)))
+
+        # Initialise KSR and last SKR data structures
+        self.data_dir = pkg_resources.resource_filename(__name__, 'data')
+
+        with open(os.path.join(self.data_dir, 'ksr-root-2017-q2-0.xml')) as fd:
+            self.ksr_xml = fd.read()
+            self.ksr = request_from_xml(self.ksr_xml)
+
+        with open(os.path.join(self.data_dir, 'skr-root-2017-q1-0.xml')) as fd:
+            self.last_skr_xml = fd.read()
+            self.last_skr = response_from_xml(self.last_skr_xml)
+
+        self.policy = RequestPolicy()
+
+
+    @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
+    def test_chain_keys_not_found_in_hsm(self) -> None:
+        """ Test KSR-CHAIN-KEYS with real KSR/SKR, signed with key not found in this HSM. """
+        with self.assertRaises(KSR_CHAIN_KEYS_Violation) as exc:
+            check_skr_and_ksr(self.ksr, self.last_skr, self.policy, p11modules=self.p11modules)
+            self.assertIn('Key Kjqmt7v not found', str(exc))
+
+    @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
+    def test_check_chain_config(self) -> None:
+        """ Test KSR-CHAIN-KEYS configuration. """
+        policy = replace(self.policy, check_chain_keys=False, check_bundle_overlap=False,
+                         check_chain_overlap=False, check_chain_keys_in_hsm=False)
+        check_skr_and_ksr(self.ksr, self.last_skr, policy, p11modules=self.p11modules)
+
+    @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
+    def test_chain_keys_found_but_different(self) -> None:
+        """ Test KSR-CHAIN-KEYS with real KSR/SKR, signed with key found in this HSM, but wrong. """
+
+        ksr = request_from_xml(self.ksr_xml.replace('Kjqmt7v', self.ksk_key_label))
+        last_skr = response_from_xml(self.last_skr_xml.replace('Kjqmt7v', self.ksk_key_label))
+
+        with self.assertRaises(KSR_CHAIN_KEYS_Violation) as exc:
+            check_skr_and_ksr(ksr, last_skr, self.policy, p11modules=self.p11modules)
+        self.assertIn('Key RSA2 does not match key in the HSM', str(exc.exception))
+
+    @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
+    def test_last_key_set_mismatch(self) -> None:
+        """ Test KSR-CHAIN-KEYS with real KSR/SKR, but not matching keys between last/first. """
+        last_skr = response_from_xml(self.last_skr_xml)
+        last_bundle = last_skr.bundles[-1]
+        _updated_keys = set([x for x in last_bundle.keys if x.key_tag != 14796])  # remove one of the ZSKs
+        last_bundle = replace(last_bundle, keys=_updated_keys)
+        bundles = last_skr.bundles[:-1] + [last_bundle]
+        last_skr = replace(last_skr, bundles=bundles)
+        policy = replace(self.policy, check_bundle_overlap=False, check_chain_overlap=False,
+                         check_chain_keys_in_hsm=False)
+        with self.assertRaises(KSR_CHAIN_KEYS_Violation) as exc:
+            check_skr_and_ksr(self.ksr, last_skr, policy, p11modules=self.p11modules)
+        self.assertIn('Last key set in SKR(n-1) does not match first key set in KSR', str(exc.exception))
+
+    @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
+    def test_last_bundle_without_signatures(self) -> None:
+        """ Test KSR-CHAIN-KEYS with real KSR/SKR, but no signatures in last_skr last bundle. """
+        last_skr = response_from_xml(self.last_skr_xml)
+        last_bundle = replace(last_skr.bundles[-1], signatures=set())  # remove all signatures
+        bundles = last_skr.bundles[:-1] + [last_bundle]
+        last_skr = replace(self.last_skr, bundles=bundles)
+        policy = replace(self.policy, check_bundle_overlap=False, check_chain_overlap=False)
+        with self.assertRaises(KSR_CHAIN_KEYS_Violation) as exc:
+            check_skr_and_ksr(self.ksr, last_skr, policy, p11modules=self.p11modules)
+        self.assertIn('No signatures in the last bundle of the last SKR', str(exc.exception))
+
+    @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
+    def test_sign_ksr_with_valid_last_skr(self) -> None:
+        """ Test KSR-CHAIN-KEYS with real KSR/SKR, signing a KSR with a valid last SKR. """
+        zsk_keys = {self._p11_to_dnskey(self.zsk_key_label, AlgorithmDNSSEC.RSASHA256,
+                                        ttl=self.config.request_policy.dns_ttl)}
+        first_ksr = self._make_request(zsk_keys=zsk_keys,
+                                       id_suffix='.1',
+                                       inception=parse_datetime('2018-01-01T00:00:00+00:00'),
+                                       expiration=parse_datetime('2018-01-22T00:00:00+00:00')
+                                       )
+        last_skr = create_skr(first_ksr, self.schema, self.p11modules, self.config)
+
+        second_ksr = self._make_request(zsk_keys=zsk_keys,
+                                        id_suffix='.2',
+                                        inception=parse_datetime('2018-01-17T00:00:00+00:00'),
+                                        expiration=parse_datetime('2018-02-08T00:00:00+00:00')
+                                        )
+
+        check_skr_and_ksr(second_ksr, last_skr, self.policy, p11modules=self.p11modules)

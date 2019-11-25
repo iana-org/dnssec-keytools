@@ -1,12 +1,14 @@
 """Combined policy checks for last SKR+KSR."""
 import logging
 from datetime import datetime, timedelta
+from typing import Optional
 
 from kskm.common.config_misc import RequestPolicy
 from kskm.ksr import Request
 from kskm.ksr.verify_bundles import KSR_BUNDLE_UNIQUE_Violation
 from kskm.ksr.verify_header import KSR_ID_Violation
-from kskm.signer.verify_chain import check_chain
+from kskm.misc.hsm import KSKM_P11
+from kskm.signer.verify_chain import check_chain, check_last_skr_key_present
 from kskm.skr import Response
 
 __author__ = 'ft'
@@ -15,11 +17,11 @@ __author__ = 'ft'
 logger = logging.getLogger(__name__)
 
 
-def check_skr_and_ksr(ksr: Request, last_skr: Response, policy: RequestPolicy) -> None:
+def check_skr_and_ksr(ksr: Request, last_skr: Response, policy: RequestPolicy, p11modules: Optional[KSKM_P11]) -> None:
     """Perform some policy checks that validates consistency from last SKR to this KSR."""
     check_unique_ids(ksr, last_skr, policy)
     check_chain(ksr, last_skr, policy)
-
+    check_last_skr_key_present(last_skr, policy, p11modules)
 
 
 def check_last_skr_and_new_skr(last_skr: Response, new_skr: Response, policy: RequestPolicy) -> None:

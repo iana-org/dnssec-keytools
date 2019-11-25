@@ -77,6 +77,7 @@ REQUEST_POLICY_SCHEMA = REQUEST_POLICY_SCHEMA.extend({
     'min_cycle_duration': iso8601_duration(),
     'max_cycle_duration': iso8601_duration(),
     'check_chain_keys': bool,
+    'check_chain_keys_in_hsm': bool,
     'check_chain_overlap': bool,
     'approved_algorithms': Schema([str]),
     'rsa_approved_exponents': Schema([RSA_EXPONENT]),

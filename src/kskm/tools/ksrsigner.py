@@ -199,8 +199,7 @@ def ksrsigner(logger: logging.Logger, args: ArgsType, config: Optional[KSKMConfi
     # Perform some checks that need both KSR, SKR and PKCS#11 modules
     #
     if skr is not None:
-        check_skr_and_ksr(request, skr, config.request_policy)
-        # TODO: Verify that the public key that signed the bundles in skr is available in the HSM
+        check_skr_and_ksr(request, skr, config.request_policy, p11modules)
     else:
         logger.warning('KSR-CHAIN: Previous SKR *NOT* loaded - daisy chain not validated')
         logger.warning('KSR-CHAIN: Previous SKR *NOT* loaded - presence of SKR(n-1) in HSM not validated')

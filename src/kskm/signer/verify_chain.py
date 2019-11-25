@@ -1,12 +1,15 @@
 """Code to validate daisy-chain properties between KSR(n) and SKR(n-1)."""
 import logging
 from datetime import timedelta
+from typing import Optional
 
 from kskm.common.config_misc import RequestPolicy
-from kskm.common.data import Bundle
+from kskm.common.data import Bundle, FlagsDNSKEY
 from kskm.common.display import format_bundles_for_humans
+from kskm.common.dnssec import public_key_to_dnssec_key
 from kskm.common.validate import PolicyViolation
 from kskm.ksr.data import Request
+from kskm.misc.hsm import KSKM_P11, get_p11_key
 from kskm.skr.data import Response
 
 __author__ = 'ft'
@@ -68,7 +71,6 @@ def check_chain_keys(ksr: Request, last_skr: Response, policy: RequestPolicy) ->
     for this in first_key_set:
         if this not in last_key_set:
             raise KSR_CHAIN_KEYS_Violation('Last key set in SKR(n-1) does not match first key set in KSR')
-
     logger.info(f'KSR-CHAIN-KEYS: The last keys in SKR(n-1) matches the first keys in this KSR')
 
 
@@ -104,6 +106,42 @@ def check_chain_overlap(ksr: Request, last_skr: Response, policy: RequestPolicy)
 
     logger.info(f'KSR-CHAIN-OVERLAP: Overlap with last bundle in SKR(n-1) {_fmt_timedelta(overlap)} '
                 f'is in accordance with the KSR policy')
+
+
+def check_last_skr_key_present(skr: Response, policy: RequestPolicy, p11modules: Optional[KSKM_P11]) -> None:
+    """Verify the KSK(s) that signed the last bundle in the SKR(n-1) is present in the available HSM(s)."""
+    if not p11modules:
+        # Skipped in some test cases
+        logger.info('KSR-CHAIN-KEYS: Skipped when not passed an KSKM_P11')
+        return
+    if not policy.check_chain_keys_in_hsm:
+        logger.warning('KSR-CHAIN-KEYS: Checking published keys disabled by policy (check_chain_keys_present)')
+        return
+
+    last_bundle = skr.bundles[-1]
+    count = 0
+    for sig in last_bundle.signatures:
+        p11key = get_p11_key(sig.key_identifier, p11modules, public=True)
+        if not p11key:
+            raise KSR_CHAIN_KEYS_Violation(f'Key {sig.key_identifier} not found in the HSM(s) '
+                                           f'(bundle {last_bundle.id})')
+        hsmkey = public_key_to_dnssec_key(key=p11key.public_key,
+                                          key_identifier=sig.key_identifier,
+                                          algorithm=sig.algorithm,
+                                          flags=FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value,
+                                          ttl=sig.ttl,
+                                          )
+        key = [x for x in last_bundle.keys if x.key_identifier == sig.key_identifier][0]
+        if key.public_key != hsmkey.public_key:
+            raise KSR_CHAIN_KEYS_Violation(f'Key {sig.key_identifier} does not match key in the HSM '
+                                           f'(bundle {last_bundle.id})')
+        logger.debug(f'Key {sig.key_identifier} from last bundle in last SKR found in the HSM(s) '
+                     f'(bundle {last_bundle.id})')
+        count += 1
+    if not count:
+        raise KSR_CHAIN_KEYS_Violation(f'KSR-CHAIN-KEYS: No signatures in the last bundle of the last SKR')
+    logger.info(f'KSR-CHAIN-KEYS: All {count} signatures in the last bundle of the last SKR were made with keys '
+                'present in the HSM(s)')
 
 
 def _fmt_bundle(bundle: Bundle) -> str:

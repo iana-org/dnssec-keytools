@@ -41,13 +41,13 @@ class Test_LastSKR_unique_ids(Test_KSR_SKR_policy):
 
     def test_real_ksr_and_last_skr(self):
         """ Test loading a real KSR and the produced SKR from the archives """
-        check_skr_and_ksr(self.ksr, self.last_skr, self.policy)
+        check_skr_and_ksr(self.ksr, self.last_skr, self.policy, p11modules=None)
 
     def test_ksr_and_last_skr_duplicate_id(self):
         """ Test that duplicate request/response IDs are detected """
         new_ksr = replace(self.ksr, id=self.last_skr.id)
         with self.assertRaises(KSR_ID_Violation):
-            check_skr_and_ksr(new_ksr, self.last_skr, self.policy)
+            check_skr_and_ksr(new_ksr, self.last_skr, self.policy, p11modules=None)
 
     def test_repeated_bundle_id(self):
         """ Test that repeated bundle IDs are detected """
@@ -55,7 +55,7 @@ class Test_LastSKR_unique_ids(Test_KSR_SKR_policy):
         ksr_bundles[1] = replace(ksr_bundles[1], id=self.last_skr.bundles[-1].id)
         new_ksr = replace(self.ksr, bundles=ksr_bundles)
         with self.assertRaises(KSR_BUNDLE_UNIQUE_Violation):
-            check_skr_and_ksr(new_ksr, self.last_skr, self.policy)
+            check_skr_and_ksr(new_ksr, self.last_skr, self.policy, p11modules=None)
 
 
 class Test_Chain(Test_KSR_SKR_policy):
@@ -68,7 +68,7 @@ class Test_Chain(Test_KSR_SKR_policy):
         ksr_bundles[0] = replace(ksr_bundles[0], inception=new_inception)
         new_ksr = replace(self.ksr, bundles=ksr_bundles)
         with self.assertRaises(KSR_CHAIN_OVERLAP_Violation):
-            check_skr_and_ksr(new_ksr, self.last_skr, self.policy)
+            check_skr_and_ksr(new_ksr, self.last_skr, self.policy, p11modules=None)
 
     def test_timeline_too_small_overlap(self):
         """ Test that a too small overlap in the bundles timeline is detected """
@@ -78,7 +78,7 @@ class Test_Chain(Test_KSR_SKR_policy):
         new_inception = last_expire - self.ksr.zsk_policy.min_validity_overlap
         ksr_bundles[0] = replace(ksr_bundles[0], inception=new_inception)
         new_ksr = replace(self.ksr, bundles=ksr_bundles)
-        check_skr_and_ksr(new_ksr, self.last_skr, self.policy)
+        check_skr_and_ksr(new_ksr, self.last_skr, self.policy, p11modules=None)
 
         # next, move inception back one more second
         new_inception = last_expire - self.ksr.zsk_policy.min_validity_overlap + datetime.timedelta(seconds=1)
@@ -86,7 +86,7 @@ class Test_Chain(Test_KSR_SKR_policy):
         new_ksr = replace(self.ksr, bundles=ksr_bundles)
 
         with self.assertRaises(KSR_CHAIN_OVERLAP_Violation):
-            check_skr_and_ksr(new_ksr, self.last_skr, self.policy)
+            check_skr_and_ksr(new_ksr, self.last_skr, self.policy, p11modules=None)
 
     def test_timeline_too_large_overlap(self):
         """ Test that a too large overlap in the bundles timeline is detected """
@@ -96,7 +96,7 @@ class Test_Chain(Test_KSR_SKR_policy):
         new_inception = last_inception + self.ksr.zsk_policy.max_validity_overlap
         ksr_bundles[0] = replace(ksr_bundles[0], inception=new_inception)
         new_ksr = replace(self.ksr, bundles=ksr_bundles)
-        check_skr_and_ksr(new_ksr, self.last_skr, self.policy)
+        check_skr_and_ksr(new_ksr, self.last_skr, self.policy, p11modules=None)
 
         # next, move inception back one more second
         new_inception = last_inception + self.ksr.zsk_policy.min_validity_overlap - datetime.timedelta(seconds=1)
@@ -104,4 +104,4 @@ class Test_Chain(Test_KSR_SKR_policy):
         new_ksr = replace(self.ksr, bundles=ksr_bundles)
 
         with self.assertRaises(KSR_CHAIN_OVERLAP_Violation):
-            check_skr_and_ksr(new_ksr, self.last_skr, self.policy)
+            check_skr_and_ksr(new_ksr, self.last_skr, self.policy, p11modules=None)
