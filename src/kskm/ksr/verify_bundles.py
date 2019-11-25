@@ -13,6 +13,7 @@ from kskm.common.rsa_utils import (KSKM_PublicKey_RSA, decode_rsa_public_key,
 from kskm.common.signature import validate_signatures
 from kskm.common.validate import PolicyViolation
 from kskm.ksr import Request
+from kskm.ksr.data import RequestBundle
 
 __author__ = 'ft'
 
@@ -186,6 +187,14 @@ def check_proof_of_possession(request: Request, policy: RequestPolicy, logger: L
                 raise KSR_BUNDLE_POP_Violation(f'Unknown signature validation result in bundle {bundle.id}')
         except InvalidSignature:
             raise KSR_BUNDLE_POP_Violation(f'Invalid signature encountered in bundle {bundle.id}')
+
+        # All signatures in the bundle have been confirmed to sign all keys in the bundle.
+        # Now verify that all keys in the bundle actually was used to create a signature.
+        for _key in bundle.keys:
+            _sigs = [x for x in bundle.signatures if x.key_identifier == _key.key_identifier]
+            if not _sigs:
+                raise KSR_BUNDLE_POP_Violation(f'Key {_key} was not used to sign the keys in bundle {bundle.id}')
+
     _num_bundles = len(request.bundles)
     logger.info(f'KSR-BUNDLE-POP: All {_num_bundles} bundles contain proof-of-possession')
 
