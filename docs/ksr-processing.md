@@ -15,7 +15,6 @@ The input to the KSR validation process is the KSR to be validated, KSR(n), as w
 
 - **KSR-DOMAIN**: Verify that the KSR domain name is correct.
 - **KSR-ID**: Verify that the KSR ID is unique. This requires a list of all previously seen KSRs.
-- **KSR-SERIAL**: Verify that the KSR serial is unique and increasing for the KSR ID. This requires a list of all previously seen KSRs with the current KSR ID.
 
 ### Verify KSR bundles
 
