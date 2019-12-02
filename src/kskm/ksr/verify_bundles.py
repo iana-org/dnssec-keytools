@@ -1,12 +1,12 @@
 """The checks defined in the 'Verify KSR bundles' section of docs/ksr-processing.md."""
-from datetime import timedelta, datetime
 from logging import Logger
 from typing import Dict, Optional
 
 from cryptography.exceptions import InvalidSignature
 
 from kskm.common.config_misc import RequestPolicy
-from kskm.common.data import AlgorithmPolicy, AlgorithmPolicyRSA, FlagsDNSKEY, Key, AlgorithmPolicyECDSA
+from kskm.common.data import AlgorithmPolicy, AlgorithmPolicyECDSA, AlgorithmPolicyRSA, FlagsDNSKEY, Key
+from kskm.common.display import fmt_timedelta
 from kskm.common.dnssec import calculate_key_tag
 from kskm.common.ecdsa_utils import is_algorithm_ecdsa
 from kskm.common.rsa_utils import (KSKM_PublicKey_RSA, decode_rsa_public_key,
@@ -14,7 +14,6 @@ from kskm.common.rsa_utils import (KSKM_PublicKey_RSA, decode_rsa_public_key,
 from kskm.common.signature import validate_signatures
 from kskm.common.validate import PolicyViolation
 from kskm.ksr import Request
-from kskm.ksr.data import RequestBundle
 
 __author__ = 'ft'
 
@@ -242,15 +241,15 @@ def check_cycle_durations(request: Request, policy: RequestPolicy, logger: Logge
         logger.warning('KSR-BUNDLE-CYCLE-DURATION: No bundles - can\'t check anything')
         return
 
-    _min_str = _fmt_timedelta(policy.min_bundle_interval)
-    _max_str = _fmt_timedelta(policy.max_bundle_interval)
+    _min_str = fmt_timedelta(policy.min_bundle_interval)
+    _max_str = fmt_timedelta(policy.max_bundle_interval)
 
     logger.debug(f'Verifying that all bundles are between {_min_str} and {_max_str} apart')
     for idx in range(1, len(request.bundles)):
         bundle = request.bundles[idx]
         prev_bundle = request.bundles[idx - 1]
         interval = bundle.inception - prev_bundle.inception
-        _interval_str = _fmt_timedelta(interval)
+        _interval_str = fmt_timedelta(interval)
         if interval < policy.min_bundle_interval:
             raise KSR_BUNDLE_CYCLE_DURATION_Violation(f'Bundle #{idx} ({bundle.id}) '
                                                       f'interval {_interval_str} < minimum {_min_str}')
@@ -259,9 +258,9 @@ def check_cycle_durations(request: Request, policy: RequestPolicy, logger: Logge
                                                       f'interval {_interval_str} > maximum {_max_str}')
 
     cycle_inception_length = request.bundles[-1].inception - request.bundles[0].inception
-    _inc_len_str = _fmt_timedelta(cycle_inception_length)
-    _min_inc_str = _fmt_timedelta(policy.min_cycle_inception_length)
-    _max_inc_str = _fmt_timedelta(policy.max_cycle_inception_length)
+    _inc_len_str = fmt_timedelta(cycle_inception_length)
+    _min_inc_str = fmt_timedelta(policy.min_cycle_inception_length)
+    _max_inc_str = fmt_timedelta(policy.max_cycle_inception_length)
 
     logger.debug(f'Verifying that first bundle inception to last bundle inception ({_inc_len_str}) '
                  f'is between {_min_inc_str} and {_max_inc_str}')
@@ -274,15 +273,3 @@ def check_cycle_durations(request: Request, policy: RequestPolicy, logger: Logge
                                                   f'greater than maximum acceptable length {_max_str}')
 
     logger.info(f'KSR-BUNDLE-CYCLE-DURATION: The cycles length is in accordance with the KSK operator policy')
-
-
-def _fmt_timedelta(tdelta: timedelta) -> str:
-    res = str(tdelta)
-    if res.endswith('days, 0:00:00') or res.endswith('day, 0:00:00'):
-        # cut off the unnecessary 0:00:00 after "days"
-        res = res[:0 - len(', 0:00:00')]
-    return res
-
-
-def _fmt_timestamp(ts: datetime) -> str:
-    return ts.isoformat().split('+')[0]

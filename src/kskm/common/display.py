@@ -1,10 +1,11 @@
 """Functions to display data to humans."""
-
+import datetime
 import logging
+from datetime import timedelta
 from typing import List, Sequence, Union
 
 import kskm.common
-from kskm.common.data import BundleType
+from kskm.common.data import Bundle, BundleType
 
 __author__ = 'ft'
 
@@ -67,3 +68,22 @@ def _fmt_fields(**kwargs: Union[int, str]) -> str:
     ...
     """
     return '{num:<2} {inception:19} {expiration:20} {zsk_tags:13} {ksk_tag}'.format(**kwargs)
+
+
+def fmt_bundle(bundle: Bundle) -> str:
+    return 'id={} {}->{}'.format(bundle.id[:8],
+                                 bundle.inception.isoformat().split('T')[0],
+                                 bundle.expiration.isoformat().split('T')[0]
+                                 )
+
+
+def fmt_timedelta(tdelta: timedelta) -> str:
+    res = str(tdelta)
+    if res.endswith('days, 0:00:00') or res.endswith('day, 0:00:00'):
+        # cut off the unnecessary 0:00:00 after "days"
+        res = res[:0 - len(', 0:00:00')]
+    return res
+
+
+def fmt_timestamp(ts: datetime) -> str:
+    return ts.isoformat().split('+')[0]

@@ -1,11 +1,10 @@
 """Code to validate daisy-chain properties between KSR(n) and SKR(n-1)."""
 import logging
-from datetime import timedelta
 from typing import Optional
 
 from kskm.common.config_misc import RequestPolicy
-from kskm.common.data import Bundle, FlagsDNSKEY
-from kskm.common.display import format_bundles_for_humans
+from kskm.common.data import FlagsDNSKEY
+from kskm.common.display import fmt_bundle, fmt_timedelta, format_bundles_for_humans
 from kskm.common.dnssec import public_key_to_dnssec_key
 from kskm.common.validate import PolicyViolation
 from kskm.ksr.data import Request
@@ -86,25 +85,25 @@ def check_chain_overlap(ksr: Request, last_skr: Response, policy: RequestPolicy)
     if overlap < ksr.zsk_policy.min_validity_overlap:
         logger.debug(f'Last bundle in SKR(n-1) expiration: {previous.expiration}')
         logger.debug(f'First bundle in KSR inception: {ksr_first.inception}')
-        logger.error(f'Too small overlap of SKR(n-1) and KSR: {_fmt_timedelta(overlap)} < ' +
-                     _fmt_timedelta(ksr.zsk_policy.min_validity_overlap))
+        logger.error(f'Too small overlap of SKR(n-1) and KSR: {fmt_timedelta(overlap)} < ' +
+                     fmt_timedelta(ksr.zsk_policy.min_validity_overlap))
         raise KSR_CHAIN_OVERLAP_Violation('Bundle "{}" (from SKR(n-1)) '
                                           'overlap {} with "{}" is < claimed minimum {}'.format(
-            _fmt_bundle(ksr_first), _fmt_timedelta(overlap), _fmt_bundle(previous),
-            _fmt_timedelta(ksr.zsk_policy.min_validity_overlap)
+            fmt_bundle(ksr_first), fmt_timedelta(overlap), fmt_bundle(previous),
+            fmt_timedelta(ksr.zsk_policy.min_validity_overlap)
         ))
     if overlap > ksr.zsk_policy.max_validity_overlap:
         logger.debug(f'Last bundle in SKR(n-1) expiration: {previous.expiration}')
         logger.debug(f'First bundle in KSR inception: {ksr_first.inception}')
-        logger.error(f'Too large overlap of SKR(n-1) and KSR: {_fmt_timedelta(overlap)} > ' +
-                     _fmt_timedelta(ksr.zsk_policy.max_validity_overlap))
+        logger.error(f'Too large overlap of SKR(n-1) and KSR: {fmt_timedelta(overlap)} > ' +
+                     fmt_timedelta(ksr.zsk_policy.max_validity_overlap))
         raise KSR_CHAIN_OVERLAP_Violation('Bundle "{}" (from SRK(n-1)) '
                                           'overlap {} with "{}" is > claimed maximum {}'.format(
-            _fmt_bundle(ksr_first), _fmt_timedelta(overlap), _fmt_bundle(previous),
-            _fmt_timedelta(ksr.zsk_policy.max_validity_overlap),
+            fmt_bundle(ksr_first), fmt_timedelta(overlap), fmt_bundle(previous),
+            fmt_timedelta(ksr.zsk_policy.max_validity_overlap),
         ))
 
-    logger.info(f'KSR-CHAIN-OVERLAP: Overlap with last bundle in SKR(n-1) {_fmt_timedelta(overlap)} '
+    logger.info(f'KSR-CHAIN-OVERLAP: Overlap with last bundle in SKR(n-1) {fmt_timedelta(overlap)} '
                 f'is in accordance with the KSR policy')
 
 
@@ -142,18 +141,3 @@ def check_last_skr_key_present(skr: Response, policy: RequestPolicy, p11modules:
         raise KSR_CHAIN_KEYS_Violation(f'KSR-CHAIN-KEYS: No signatures in the last bundle of the last SKR')
     logger.info(f'KSR-CHAIN-KEYS: All {count} signatures in the last bundle of the last SKR were made with keys '
                 'present in the HSM(s)')
-
-
-def _fmt_bundle(bundle: Bundle) -> str:
-    return 'id={} {}->{}'.format(bundle.id[:8],
-                                 bundle.inception.isoformat().split('T')[0],
-                                 bundle.expiration.isoformat().split('T')[0]
-                                 )
-
-
-def _fmt_timedelta(tdelta: timedelta) -> str:
-    res = str(tdelta)
-    if res.endswith('days, 0:00:00') or res.endswith('day, 0:00:00'):
-        # cut off the unnecessary 0:00:00 after "days"
-        res = res[:0 - len(', 0:00:00')]
-    return res

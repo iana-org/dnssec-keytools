@@ -1,16 +1,14 @@
 """The checks defined in the 'Verify KSR policy parameters' section of docs/ksr-processing.md."""
 import datetime
-from datetime import timedelta
 from logging import Logger
 
 from kskm.common.config_misc import RequestPolicy
-from kskm.common.data import (DEPRECATED_ALGORTIHMS, SUPPORTED_ALGORTIHMS,
-                              AlgorithmDNSSEC, AlgorithmPolicyRSA)
+from kskm.common.data import (AlgorithmDNSSEC, AlgorithmPolicyRSA, DEPRECATED_ALGORTIHMS, SUPPORTED_ALGORTIHMS)
+from kskm.common.display import fmt_bundle, fmt_timedelta, fmt_timestamp
 from kskm.common.ecdsa_utils import is_algorithm_ecdsa
 from kskm.common.rsa_utils import is_algorithm_rsa
 from kskm.common.validate import PolicyViolation
 from kskm.ksr import Request
-from kskm.ksr.data import RequestBundle
 
 __author__ = 'ft'
 
@@ -130,28 +128,28 @@ def check_signature_validity(request: Request, policy: RequestPolicy, logger: Lo
         validity = bundle.expiration - bundle.inception
         logger.debug('{num:<2} {inception:29} {expiration:30} {validity}'.format(
             num=num,
-            inception=_fmt_timestamp(bundle.inception),
-            expiration=_fmt_timestamp(bundle.expiration),
+            inception=fmt_timestamp(bundle.inception),
+            expiration=fmt_timestamp(bundle.expiration),
             validity=validity))
 
     for bundle in request.bundles:
         validity = bundle.expiration - bundle.inception
 
         if validity < request.zsk_policy.max_signature_validity:
-            _validity_str = _fmt_timedelta(validity)
-            _overlap_str = _fmt_timedelta(request.zsk_policy.min_signature_validity)
+            _validity_str = fmt_timedelta(validity)
+            _overlap_str = fmt_timedelta(request.zsk_policy.min_signature_validity)
             raise KSR_POLICY_SIG_VALIDITY_Violation(f'Bundle validity {_validity_str} < claimed '
                                                     f'min_signature_validity {_overlap_str} (in bundle {bundle.id})')
 
         if validity > request.zsk_policy.max_signature_validity:
-            _validity_str = _fmt_timedelta(validity)
-            _overlap_str = _fmt_timedelta(request.zsk_policy.max_signature_validity)
+            _validity_str = fmt_timedelta(validity)
+            _overlap_str = fmt_timedelta(request.zsk_policy.max_signature_validity)
             raise KSR_POLICY_SIG_VALIDITY_Violation(f'Bundle validity {_validity_str} > claimed '
                                                     f'max_signature_validity {_overlap_str} (in bundle {bundle.id})')
 
     _num_bundles = len(request.bundles)
-    _min_str = _fmt_timedelta(request.zsk_policy.min_signature_validity)
-    _max_str = _fmt_timedelta(request.zsk_policy.max_signature_validity)
+    _min_str = fmt_timedelta(request.zsk_policy.min_signature_validity)
+    _max_str = fmt_timedelta(request.zsk_policy.max_signature_validity)
     logger.info(f'KSR-POLICY-SIG-VALIDITY: All {_num_bundles} bundles have {_min_str} <= validity >= {_max_str}')
 
 
@@ -250,12 +248,12 @@ def check_bundle_overlaps(request: Request, policy: RequestPolicy, logger: Logge
         this = request.bundles[i]
         if i:
             overlap = previous.expiration - this.inception
-            overlap_str = _fmt_timedelta(overlap)
+            overlap_str = fmt_timedelta(overlap)
         logger.debug('{num:<2} {id:8} {inception:19} {expiration:20} {overlap}'.format(
             num=i+1,
             id=this.id[:8],
-            inception=_fmt_timestamp(this.inception),
-            expiration=_fmt_timestamp(this.expiration),
+            inception=fmt_timestamp(this.inception),
+            expiration=fmt_timestamp(this.expiration),
             overlap=overlap_str))
 
     # check that bundles overlap, and with how much
@@ -268,13 +266,13 @@ def check_bundle_overlaps(request: Request, policy: RequestPolicy, logger: Logge
         overlap = previous.expiration - this.inception
         if overlap < request.zsk_policy.min_validity_overlap:
             raise KSR_POLICY_SIG_OVERLAP_Violation('Bundle "{}" overlap {} with "{}" is < claimed minimum {}'.format(
-                            _fmt_bundle(this), _fmt_timedelta(overlap), _fmt_bundle(previous),
-                            _fmt_timedelta(request.zsk_policy.min_validity_overlap)
+                            fmt_bundle(this), fmt_timedelta(overlap), fmt_bundle(previous),
+                            fmt_timedelta(request.zsk_policy.min_validity_overlap)
                         ))
         if overlap > request.zsk_policy.max_validity_overlap:
             raise KSR_POLICY_SIG_OVERLAP_Violation('Bundle "{}" overlap {} with "{}" is > claimed maximum {}'.format(
-                            _fmt_bundle(this), _fmt_timedelta(overlap), _fmt_bundle(previous),
-                            _fmt_timedelta(request.zsk_policy.max_validity_overlap),
+                            fmt_bundle(this), fmt_timedelta(overlap), fmt_bundle(previous),
+                            fmt_timedelta(request.zsk_policy.max_validity_overlap),
                         ))
     logger.info(f'KSR-POLICY-SIG-OVERLAP: All bundles overlap in accordance with the stated ZSK operator policy')
 
@@ -290,8 +288,8 @@ def check_bundle_intervals(request: Request, policy: RequestPolicy, logger: Logg
         logger.warning('KSR-POLICY-BUNDLE-INTERVALS: Disabled by policy (check_bundle_intervals)')
         return
 
-    _min_str = _fmt_timedelta(policy.min_bundle_interval)
-    _max_str = _fmt_timedelta(policy.max_bundle_interval)
+    _min_str = fmt_timedelta(policy.min_bundle_interval)
+    _max_str = fmt_timedelta(policy.max_bundle_interval)
 
     logger.debug(f'Verifying that bundles intervals is no less than {_min_str}, and no more than {_max_str}')
     for num in range(len(request.bundles)):
@@ -300,12 +298,12 @@ def check_bundle_intervals(request: Request, policy: RequestPolicy, logger: Logg
             interval = request.bundles[num].inception - request.bundles[num - 1].inception
         logger.debug('{num:<2} {inception:29} {interval}'.format(
             num=num + 1,
-            inception=_fmt_timestamp(request.bundles[num].inception),
+            inception=fmt_timestamp(request.bundles[num].inception),
             interval=interval))
 
     for num in range(1, len(request.bundles)):
         interval = request.bundles[num].inception - request.bundles[num - 1].inception
-        _interval_str = _fmt_timedelta(interval)
+        _interval_str = fmt_timedelta(interval)
         if interval < policy.min_bundle_interval:
             bundle = request.bundles[num]
             raise KSR_POLICY_BUNDLE_INTERVAL_Violation(f'Bundle #{num + 1} ({bundle.id}) interval ({_interval_str}) '
@@ -317,22 +315,3 @@ def check_bundle_intervals(request: Request, policy: RequestPolicy, logger: Logg
                                                        f'greater than maximum acceptable interval {_max_str}')
 
     logger.info(f'KSR-POLICY-BUNDLE-INTERVALS: All bundles intervals in accordance with the KSK operator policy')
-
-
-def _fmt_bundle(bundle: RequestBundle) -> str:
-    return 'id={} {}->{}'.format(bundle.id[:8],
-                                 bundle.inception.isoformat().split('T')[0],
-                                 bundle.expiration.isoformat().split('T')[0]
-                                 )
-
-
-def _fmt_timedelta(tdelta: timedelta) -> str:
-    res = str(tdelta)
-    if res.endswith('days, 0:00:00') or res.endswith('day, 0:00:00'):
-        # cut off the unnecessary 0:00:00 after "days"
-        res = res[:0 - len(', 0:00:00')]
-    return res
-
-
-def _fmt_timestamp(ts: datetime) -> str:
-    return ts.isoformat().split('+')[0]
