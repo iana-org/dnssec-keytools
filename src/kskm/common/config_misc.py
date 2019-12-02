@@ -74,6 +74,8 @@ class RequestPolicy(Policy):
     check_chain_keys: bool = True
     check_chain_keys_in_hsm: bool = True
     check_chain_overlap: bool = True
+    check_keys_publish_safety: bool = True
+    check_keys_retire_safety: bool = True
 
 
 @dataclass(frozen=True)

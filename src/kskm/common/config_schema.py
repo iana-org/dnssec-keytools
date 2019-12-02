@@ -82,6 +82,9 @@ REQUEST_POLICY_SCHEMA = REQUEST_POLICY_SCHEMA.extend({
     'approved_algorithms': Schema([str]),
     'rsa_approved_exponents': Schema([RSA_EXPONENT]),
     'rsa_approved_key_sizes': Schema([RSA_SIZE]),
+
+    'check_keys_publish_safety': bool,
+    'check_keys_retire_safety': bool,
 })
 
 RESPONSE_POLICY_SCHEMA = REQUEST_POLICY_SCHEMA.extend({

@@ -57,6 +57,12 @@ class KSR_POLICY_BUNDLE_INTERVAL_Violation(KSR_PolicyViolation):
     pass
 
 
+class KSR_POLICY_SAFETY_Violation(KSR_PolicyViolation):
+    """KSR-POLICY-SAFETY violation."""
+
+    pass
+
+
 def verify_policy(request: Request, policy: RequestPolicy, logger: Logger) -> None:
     """Verify that the bundles in a request are acceptable with the KSK operators configured policy."""
     logger.debug('Begin "Verify KSR policy parameters"')
