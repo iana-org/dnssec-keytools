@@ -73,7 +73,6 @@ REQUEST_POLICY_SCHEMA = REQUEST_POLICY_SCHEMA.extend({
     'check_bundle_intervals': bool,
     'min_bundle_duration': iso8601_duration(),
     'max_bundle_duration': iso8601_duration(),
-    'check_cycle_length': bool,
     'min_cycle_duration': iso8601_duration(),
     'max_cycle_duration': iso8601_duration(),
     'check_chain_keys': bool,
