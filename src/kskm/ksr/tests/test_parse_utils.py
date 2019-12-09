@@ -137,8 +137,10 @@ class Test_keys_from_list(TestCase):
 
         # now change the algorithm and verify that the discrepancy between curve point size and algorithm is detected
         data[0]['value']['Algorithm'] = AlgorithmDNSSEC.ECDSAP384SHA384.value
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError) as exc:
             keys_from_dict(data)
+        self.assertEqual('Unexpected ECDSA key length 256 for algorithm AlgorithmDNSSEC.ECDSAP384SHA384',
+                         str(exc.exception))
 
 
 class Test_signature_from_dict(TestCase):

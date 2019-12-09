@@ -118,22 +118,20 @@ class Key(object):
 
     def __post_init__(self):
         """Check for valid DNSKEY flags."""
-        # Can't use kskm.common.ecdsa_utils.is_algorithm_ecdsa here (circular imports)
-        if self.algorithm in [AlgorithmDNSSEC.ECDSAP256SHA256,
-                              AlgorithmDNSSEC.ECDSAP384SHA384,
-                              ]:
-            _ec_point = b64decode(self.public_key)
-            # _ec_point is an 0x04 prefix byte, and then both x and y points concatenated, so divide by 2
-            _ec_len = (len(_ec_point) - 1) * 8 // 2
-            if (self.algorithm == AlgorithmDNSSEC.ECDSAP256SHA256 and _ec_len != 256) or \
-                    (self.algorithm == AlgorithmDNSSEC.ECDSAP384SHA384 and _ec_len != 384):
-                raise ValueError(f'Unexpected ECDSA key length {_ec_len} for algorithm {self.algorithm}')
+        # have to import these locally to avoid circular imports
+        from kskm.common.ecdsa_utils import is_algorithm_ecdsa, ecdsa_public_key_without_prefix, \
+            get_ecdsa_pubkey_size, expected_ecdsa_key_size
+        if is_algorithm_ecdsa(self.algorithm):
+            _pubkey = ecdsa_public_key_without_prefix(b64decode(self.public_key), self.algorithm)
+            _size = get_ecdsa_pubkey_size(_pubkey)
+            if _size != expected_ecdsa_key_size(self.algorithm):
+                raise ValueError(f'Unexpected ECDSA key length {_size} for algorithm {self.algorithm}')
 
         if self.flags == FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value or \
            self.flags == FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value | FlagsDNSKEY.REVOKE.value or \
            self.flags == FlagsDNSKEY.ZONE.value:
             return
-        raise ValueError(f"Unsupported DNSSEC key flags combination {self.flags}")
+        raise ValueError(f'Unsupported DNSSEC key flags combination {self.flags}')
 
 
 @dataclass(frozen=True)

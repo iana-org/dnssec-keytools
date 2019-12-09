@@ -56,13 +56,20 @@ def rsa_pubkey_to_crypto_pubkey(pubkey: KSKM_PublicKey_RSA) -> rsa.RSAPublicKey:
 
 def ecdsa_pubkey_to_crypto_pubkey(pubkey: KSKM_PublicKey_ECDSA) -> ec.EllipticCurvePublicKey:
     """Convert an KSKM_PublicKey_ECDSA into a 'cryptography' ec.EllipticCurvePublicKey."""
+    q = pubkey.q
     if pubkey.curve == ECCurve.P256:
         curve = ec.SECP256R1()
+        if len(q) == (256 // 8) * 2:
+            # q is the bare x and y point, have to add a prefix of 0x04 (SEC 1: complete point (x,y))
+            q = b'\x04' + q
     elif pubkey.curve == ECCurve.P384:
         curve = ec.SECP384R1()
+        if len(q) == (384 // 8 ) * 2:
+            # q is the bare x and y point, have to add a prefix of 0x04 (SEC 1: complete point (x,y))
+            q = b'\x04' + q
     else:
         raise RuntimeError(f"Don't know which curve to use for {pubkey.curve.name}")
-    return ec.EllipticCurvePublicKey.from_encoded_point(curve, pubkey.q)
+    return ec.EllipticCurvePublicKey.from_encoded_point(curve, q)
 
 
 def verify_signature(pubkey: CryptoPubKey, signature: bytes, data: bytes, algorithm: AlgorithmDNSSEC) -> None:

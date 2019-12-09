@@ -72,3 +72,40 @@ def decode_ecdsa_public_key(key: bytes, curve: ECCurve) -> KSKM_PublicKey_ECDSA:
     return KSKM_PublicKey_ECDSA(curve=curve,
                                 bits=len(q) * 8,
                                 q=q)
+
+
+def ecdsa_public_key_without_prefix(public_key: bytes, algorithm: AlgorithmDNSSEC) -> bytes:
+    """
+    Normalise ECDSA public keys by removing the common 0x04 prefix byte.
+
+    Depending on source of the public key, it might be prefixed by the 0x04 byte used in
+    SEC 1 encoding to signify a complete (x,y). If the size is not what we would have expected
+    for a particular algorithm, and the first byte is 0x04 we remove it.
+    """
+    size = get_ecdsa_pubkey_size(public_key)
+    if size != expected_ecdsa_key_size(algorithm):
+        # Current size indicates there might be a prefix byte, check if the first byte is an 0x04.
+        # We could be more stringent here and only remove the 0x04 if it would result in the expected
+        # amount of bytes, but the we get less readable error messages saying "Unexpected size 352 instead of 256"
+        # whilst we now get "Unexpected size 384 instead of 256".
+        if public_key[0] == 4:
+            # _ec_point is an 0x04 prefix byte, and then both x and y points concatenated, so divide by 2
+            return public_key[1:]
+    return public_key
+
+
+def get_ecdsa_pubkey_size(public_key: bytes) -> int:
+    # pubkey is both x and y points concatenated, so divide by 2
+    return len(public_key) * 8 // 2
+
+
+def expected_ecdsa_key_size(algorithm: AlgorithmDNSSEC) -> int:
+    _expected = {
+        AlgorithmDNSSEC.ECDSAP256SHA256: 256,
+        AlgorithmDNSSEC.ECDSAP384SHA384: 384,
+    }
+    if algorithm not in _expected:
+        raise ValueError(f'Unhandled ECDSA algorithm {algorithm}')
+    return _expected[algorithm]
+
+

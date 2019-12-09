@@ -138,7 +138,7 @@ def check_keys_match_zsk_policy(request: Request, policy: RequestPolicy, logger:
                 seen[key.key_identifier] = key
             elif is_algorithm_ecdsa(key.algorithm):
                 logger.warning(f'Key {key.key_identifier} in bundle {bundle.id} is an ECDSA key - this is untested')
-                if not _find_matching_zsk_policy_ecdsa_alg(request):
+                if not _find_matching_zsk_policy_ecdsa_alg(request, key):
                     raise KSR_BUNDLE_KEYS_Violation(f'Key {key.key_identifier} in bundle {bundle.id} '
                                                     f'does not match the ZSK SignaturePolicy')
                 logger.debug(f'Key {key.key_tag}/{key.key_identifier} parameters accepted')
@@ -157,7 +157,7 @@ def check_keys_match_zsk_policy(request: Request, policy: RequestPolicy, logger:
             if _key_tag != key.key_tag:
                 raise KSR_BUNDLE_KEYS_Violation(f'Key {key.key_identifier} in bundle {bundle.id} '
                                                 f'has key tag {key.key_tag}, should be {_key_tag}')
-            logger.debug(f'Key {key.key_tag}/{key.key_identifier} keytag accepted')
+            logger.debug(f'Key {key.key_tag}/{key.key_identifier} key tag accepted')
 
     _num_keys = len(seen)
     logger.info(f'KSR-BUNDLE-KEYS: All {_num_keys} unique keys in the bundles accepted by policy')
@@ -175,10 +175,12 @@ def _find_matching_zsk_policy_rsa_alg(request: Request, key: Key, pubkey: KSKM_P
     return None
 
 
-def _find_matching_zsk_policy_ecdsa_alg(request: Request) -> Optional[AlgorithmPolicy]:
+def _find_matching_zsk_policy_ecdsa_alg(request: Request, key: Key) -> Optional[AlgorithmPolicy]:
     for this in request.zsk_policy.algorithms:
-        if isinstance(this, AlgorithmPolicyECDSA):
-           return this
+        if not isinstance(this, AlgorithmPolicyECDSA):
+           continue
+        if key.algorithm == this.algorithm:
+            return this
     return None
 
 

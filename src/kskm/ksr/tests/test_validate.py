@@ -7,9 +7,12 @@ from dataclasses import replace
 import pkg_resources
 
 from kskm.common.config_misc import RequestPolicy
+from kskm.common.data import AlgorithmDNSSEC
 from kskm.ksr import load_ksr, request_from_xml
 from kskm.ksr.validate import validate_request
-from kskm.ksr.verify_bundles import KSR_BUNDLE_COUNT_Violation, KSR_BUNDLE_KEYS_Violation, KSR_BUNDLE_POP_Violation
+from kskm.ksr.verify_bundles import KSR_BUNDLE_COUNT_Violation, KSR_BUNDLE_KEYS_Violation, KSR_BUNDLE_POP_Violation, \
+    KSR_BUNDLE_UNIQUE_Violation
+from kskm.ksr.verify_header import KSR_DOMAIN_Violation
 from kskm.ksr.verify_policy import KSR_POLICY_ALG_Violation, KSR_PolicyViolation
 
 
@@ -143,3 +146,89 @@ class Test_Validate_KSR(unittest.TestCase):
         policy = RequestPolicy(signature_horizon_days=expire_days)
         with self.assertRaises(KSR_PolicyViolation):
             load_ksr(fn, policy, raise_original=True)
+
+
+class Test_Validate_KSR_ECDSA(unittest.TestCase):
+
+    def _make_ksr(self):
+        # Key EC1 in SoftHSM
+        EC1_pubkey = 'BGuqYyOGr0p/uKXm0MmP4Cuiml/a8FCPRDLerVyBS4jHmJlKTJmYk/nCbOp936DSh5SMu6+2WYJUI6K5AYfXbTE='
+        # Signature generated manually using RRSIG data from the request below, and signed with SoftHSM
+        signature = 'm3sDohyHv+OKUs3KUbCpNeLf5F4m0fy3v92T9XAOeZJ08fOnylYx+lpzkkAV5ZLVzR/rL2d4eIVbRizWumfHFQ=='
+        xml = f"""
+    <KSR domain="." id="test" serial="0">
+      <Request>
+        <RequestPolicy>
+          <ZSK>
+            <PublishSafety>P10D</PublishSafety>
+            <RetireSafety>P10D</RetireSafety>
+            <MaxSignatureValidity>P21D</MaxSignatureValidity>
+            <MinSignatureValidity>P21D</MinSignatureValidity>
+            <MaxValidityOverlap>P12D</MaxValidityOverlap>
+            <MinValidityOverlap>P9D</MinValidityOverlap>
+            <SignatureAlgorithm algorithm="13">
+              <ECDSA size="256"/>
+            </SignatureAlgorithm>
+          </ZSK>
+        </RequestPolicy>
+
+        <RequestBundle id="test-id">
+          <Inception>2009-11-01T00:00:00</Inception>
+          <Expiration>2009-11-22T00:00:00</Expiration>
+          <Key keyIdentifier="EC1" keyTag="45612">
+            <TTL>172800</TTL>
+            <Flags>256</Flags>
+            <Protocol>3</Protocol>
+            <Algorithm>13</Algorithm>
+            <PublicKey>{EC1_pubkey}</PublicKey>
+          </Key>
+          <Signature keyIdentifier="EC1">
+            <TTL>172800</TTL>
+            <TypeCovered>DNSKEY</TypeCovered>
+            <Algorithm>13</Algorithm>
+            <Labels>0</Labels>
+            <OriginalTTL>172800</OriginalTTL>
+            <SignatureExpiration>2009-12-09T20:33:05</SignatureExpiration>
+            <SignatureInception>2009-11-09T20:33:05</SignatureInception>
+            <KeyTag>45612</KeyTag>
+            <SignersName>.</SignersName>
+            <SignatureData>{signature}</SignatureData>
+          </Signature>
+        </RequestBundle>
+
+      </Request>
+    </KSR>
+    """
+        return xml
+
+    def test_validate_ksr_with_ecdsa_not_in_policy(self):
+        """ Test KSR with ECDSA key """
+        xml = self._make_ksr()
+        policy = RequestPolicy(num_bundles=1,
+                               approved_algorithms=[AlgorithmDNSSEC.RSASHA256.name],
+                               num_keys_per_bundle=[],
+                               num_different_keys_in_all_bundles=0,
+                               check_cycle_length=False,
+                               check_keys_match_ksk_operator_policy=False,
+                               enable_unsupported_ecdsa=True,
+                               signature_check_expire_horizon=False,
+                               )
+        request = request_from_xml(xml)
+        with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
+            validate_request(request, policy)
+        self.assertIn('ZSK policy is AlgorithmDNSSEC.ECDSAP256SHA256, but', str(exc.exception))
+
+    def test_validate_ksr_with_ecdsa_key(self):
+        """ Test KSR with ECDSA key """
+        xml = self._make_ksr()
+        policy = RequestPolicy(num_bundles=1,
+                               approved_algorithms=[AlgorithmDNSSEC.ECDSAP256SHA256.name],
+                               num_keys_per_bundle=[],
+                               num_different_keys_in_all_bundles=0,
+                               check_cycle_length=False,
+                               check_keys_match_ksk_operator_policy=False,
+                               enable_unsupported_ecdsa=True,
+                               signature_check_expire_horizon=False,
+                               )
+        request = request_from_xml(xml)
+        self.assertTrue(validate_request(request, policy))
