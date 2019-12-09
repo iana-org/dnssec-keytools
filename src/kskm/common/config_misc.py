@@ -58,7 +58,7 @@ class RequestPolicy(Policy):
     # Verify KSR policy parameters
     check_bundle_overlap: bool = True
     signature_algorithms_match_zsk_policy: bool = True
-    approved_algorithms: List[str] = field(default_factory=lambda: ['RSASHA256'])
+    approved_algorithms: List[str] = field(default_factory=lambda: [AlgorithmDNSSEC.RSASHA256.name])
     rsa_approved_exponents: List[int] = field(default_factory=lambda: [3, 65537])
     rsa_approved_key_sizes: List[int] = field(default_factory=lambda: [2048])
     signature_validity_match_zsk_policy: bool = True
