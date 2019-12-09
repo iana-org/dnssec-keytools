@@ -204,7 +204,7 @@ class KSKMConfig(object):
         """
         data = self._data['schemas'][name]
         _actions: Dict[int, SchemaAction] = {}
-        for num in range(1, 10):
+        for num in range(1, self.request_policy.num_bundles + 1):
             _this = SchemaAction(publish=_parse_keylist(data[num]['publish']),
                                  sign=_parse_keylist(data[num]['sign']),
                                  revoke=_parse_keylist(data[num].get('revoke', [])))
