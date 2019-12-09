@@ -18,6 +18,12 @@ class KSR_ID_Violation(KSR_HeaderPolicyViolation):
     pass
 
 
+class KSR_DOMAIN_Violation(KSR_HeaderPolicyViolation):
+    """KSR-DOMAIN policy violation."""
+
+    pass
+
+
 def verify_header(request: Request, policy: RequestPolicy, logger: Logger) -> None:
     """Check the header elements of a Key Signing Request."""
     logger.debug('Begin "Verify KSR header"')
@@ -36,10 +42,9 @@ def check_domain(request: Request, policy: RequestPolicy, logger: Logger) -> Non
       Verify that the KSR domain name is correct.
     """
     if request.domain not in policy.acceptable_domains:
-        raise KSR_HeaderPolicyViolation(f'KSR-DOMAIN: Request domain {request.domain!r} not in '
+        raise KSR_DOMAIN_Violation(f'KSR-DOMAIN: Request domain {request.domain!r} not in '
                                         f'policy\'s acceptable domains {policy.acceptable_domains}')
-    else:
-        logger.info(f'KSR-DOMAIN: Verified domain {request.domain!r}')
+    logger.info(f'KSR-DOMAIN: Verified domain {request.domain!r}')
 
 
 def check_id(request: Request, policy: RequestPolicy, logger: Logger) -> None:

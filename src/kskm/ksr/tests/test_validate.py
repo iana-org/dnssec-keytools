@@ -78,6 +78,11 @@ class Test_Validate_KSR(unittest.TestCase):
         with self.assertRaises(KSR_BUNDLE_KEYS_Violation):
             validate_request(ksr, replace(policy, validate_signatures=False))
 
+        # test that the check can be disabled
+        validate_request(ksr, replace(policy, validate_signatures=False,
+                                      keys_match_zsk_policy=False))
+
+
     def test_load_ksr_with_policy_violation(self):
         """ Test loading a KSR failing the supplied policy """
         fn = os.path.join(self.data_dir, 'ksr-root-2018-q1-0-d_to_e.xml')
@@ -118,6 +123,38 @@ class Test_Validate_KSR(unittest.TestCase):
             validate_request(request, policy)
         self.assertIn('Algorithm DSA deprecated', str(exc.exception))
 
+    def test_invalid_domain(self):
+            """ Test validating a KSR for an unknown domain """
+            xml = """
+    <KSR domain="test." id="test" serial="0">
+      <Request>
+        <RequestPolicy>
+          <ZSK>
+            <PublishSafety>P10D</PublishSafety>
+            <RetireSafety>P10D</RetireSafety>
+            <MaxSignatureValidity>P21D</MaxSignatureValidity>
+            <MinSignatureValidity>P21D</MinSignatureValidity>
+            <MaxValidityOverlap>P12D</MaxValidityOverlap>
+            <MinValidityOverlap>P9D</MinValidityOverlap>
+            <SignatureAlgorithm algorithm="8">
+              <RSA size="2048" exponent="3"/>
+            </SignatureAlgorithm>
+          </ZSK>
+        </RequestPolicy>
+      </Request>
+    </KSR>
+    """
+            policy = RequestPolicy(num_bundles=0,
+                                   approved_algorithms=['RSASHA256', 'DSA'],
+                                   num_keys_per_bundle=[],
+                                   num_different_keys_in_all_bundles=0,
+                                   )
+            request = request_from_xml(xml)
+            # DSA is not allowed, even if it is in approved_algorithms
+            with self.assertRaises(KSR_DOMAIN_Violation) as exc:
+                validate_request(request, policy)
+            self.assertIn('not in policy\'s acceptable domains', str(exc.exception))
+
     def test_load_ksr_with_signatures_in_the_past(self):
         """ Test loading a KSR requesting signatures that has expired already """
         fn = os.path.join(self.data_dir, 'ksr-root-2018-q1-0-d_to_e.xml')
@@ -146,6 +183,94 @@ class Test_Validate_KSR(unittest.TestCase):
         policy = RequestPolicy(signature_horizon_days=expire_days)
         with self.assertRaises(KSR_PolicyViolation):
             load_ksr(fn, policy, raise_original=True)
+
+    def test_single_bundle_missing_info(self):
+        """ Test validating a KSR with a single bundle missing mandatory data """
+        xml = """
+    <KSR domain="." id="test" serial="0">
+      <Request>
+        <RequestPolicy>
+          <ZSK>
+            <PublishSafety>P10D</PublishSafety>
+            <RetireSafety>P10D</RetireSafety>
+            <MaxSignatureValidity>P21D</MaxSignatureValidity>
+            <MinSignatureValidity>P21D</MinSignatureValidity>
+            <MaxValidityOverlap>P12D</MaxValidityOverlap>
+            <MinValidityOverlap>P9D</MinValidityOverlap>
+            <SignatureAlgorithm algorithm="8">
+              <RSA size="2048" exponent="3"/>
+            </SignatureAlgorithm>
+          </ZSK>
+        </RequestPolicy>
+
+        <RequestBundle id="test-non-unique-id">
+          <Inception>2009-11-03T00:00:00</Inception>
+          <Expiration>2009-11-17T23:59:59</Expiration>
+        </RequestBundle>
+
+      </Request>
+    </KSR>
+    """
+        with self.assertRaises(ValueError) as exc:
+            request_from_xml(xml)
+        self.assertIn('Bundle test-non-unique-id missing mandatory Key', str(exc.exception))
+
+    def test_bundles_with_same_id(self):
+        """ Test validating a KSR with two bundles having the same ID """
+
+        bundle_xml = """
+        <RequestBundle id="test-non-unique-id">
+          <Inception>2009-11-03T00:00:00</Inception>
+          <Expiration>2009-11-17T23:59:59</Expiration>
+          <Key keyIdentifier="302c312a302806035504031321566572695369676e20444e5353656320526f6f742054455354205a534b20312d31" keyTag="49920">
+            <TTL>172800</TTL>
+            <Flags>256</Flags>
+            <Protocol>3</Protocol>
+            <Algorithm>8</Algorithm>
+            <PublicKey>AwEAAc2UsIt5d8lxdDil/4pLZVG8Y+kYc1Jf3RRAUzK1/ntFXcWL8gEDmuw6vBW8SiRF+HLKXTmEvqjE4SVV2HouhUb0SxRts5/q59g++K9F1XsnDeMavXAA2R4Pca7VepNq7jisMEPpWc5U7FWeSdsFZtHus1oRQ4QdBLU1dZIaehsl</PublicKey>
+          </Key>
+          <Signature keyIdentifier="302c312a302806035504031321566572695369676e20444e5353656320526f6f742054455354205a534b20312d31">
+            <TTL>172800</TTL>
+            <TypeCovered>DNSKEY</TypeCovered>
+            <Algorithm>8</Algorithm>
+            <Labels>0</Labels>
+            <OriginalTTL>172800</OriginalTTL>
+            <SignatureExpiration>2009-12-09T20:33:05</SignatureExpiration>
+            <SignatureInception>2009-11-09T20:33:05</SignatureInception>
+            <KeyTag>49920</KeyTag>
+            <SignersName>.</SignersName>
+            <SignatureData>ja4WnG5U5yPn2+1mUcfVNhUddqutmsqlhSQzMVtGbxP5RaoOqHWkU/I4fmFUC9Uov4WZ4KAi5Fy7KcexC57pBPsgQe4gi3ghyrcnQzLt4HPxNTLCPyQvbzHp+h2dXLvgLaGiMcWYzWn9aYE0RGQgMRSWd3NKmKsO/NnlKV41tSo=</SignatureData>
+          </Signature>
+        </RequestBundle>
+        """
+        xml = f"""
+    <KSR domain="." id="test" serial="0">
+      <Request>
+        <RequestPolicy>
+          <ZSK>
+            <PublishSafety>P10D</PublishSafety>
+            <RetireSafety>P10D</RetireSafety>
+            <MaxSignatureValidity>P21D</MaxSignatureValidity>
+            <MinSignatureValidity>P21D</MinSignatureValidity>
+            <MaxValidityOverlap>P12D</MaxValidityOverlap>
+            <MinValidityOverlap>P9D</MinValidityOverlap>
+            <SignatureAlgorithm algorithm="3">
+              <DSA size="123"/>
+            </SignatureAlgorithm>
+          </ZSK>
+        </RequestPolicy>
+
+        {bundle_xml}
+        {bundle_xml}
+
+      </Request>
+    </KSR>
+    """
+        policy = RequestPolicy()
+        request = request_from_xml(xml)
+        with self.assertRaises(KSR_BUNDLE_UNIQUE_Violation) as exc:
+            validate_request(request, policy)
+        self.assertIn('More than one bundle with id test-non-unique-id', str(exc.exception))
 
 
 class Test_Validate_KSR_ECDSA(unittest.TestCase):

@@ -54,7 +54,11 @@ def request_from_xml_file(filename: str, xml_bytes: bytes) -> Request:
 def request_from_xml(xml: str, **kwargs) -> Request:
     """Top-level function to parse a KSR XML document into a Request instance."""
     data = parse_ksr(xml)
-    bundles = requestbundles_from_list_of_dicts(data['KSR']['value']['Request'].get('RequestBundle', []))
+    bundles_list = data['KSR']['value']['Request'].get('RequestBundle', [])
+    if not isinstance(bundles_list, list):
+        # handle a single RequestBundle in the request
+        bundles_list = [bundles_list]
+    bundles = requestbundles_from_list_of_dicts(bundles_list)
     zsk_policy = signature_policy_from_dict(data['KSR']['value']['Request']['RequestPolicy']['ZSK'])
     _attrs = data['KSR']['attrs']
     timestamp = None
