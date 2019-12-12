@@ -1,4 +1,5 @@
 """The checks defined in the 'Verify KSR bundles' section of docs/ksr-processing.md."""
+from base64 import b64decode
 from logging import Logger
 from typing import Dict, Optional
 
@@ -8,7 +9,7 @@ from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import AlgorithmPolicy, AlgorithmPolicyECDSA, AlgorithmPolicyRSA, FlagsDNSKEY, Key
 from kskm.common.display import fmt_timedelta
 from kskm.common.dnssec import calculate_key_tag
-from kskm.common.ecdsa_utils import is_algorithm_ecdsa
+from kskm.common.ecdsa_utils import is_algorithm_ecdsa, ecdsa_public_key_without_prefix, get_ecdsa_pubkey_size
 from kskm.common.rsa_utils import (KSKM_PublicKey_RSA, decode_rsa_public_key,
                                    is_algorithm_rsa)
 from kskm.common.signature import validate_signatures
@@ -167,6 +168,8 @@ def _find_matching_zsk_policy_rsa_alg(request: Request, key: Key, pubkey: KSKM_P
                                       ignore_exponent: bool = False) -> Optional[AlgorithmPolicy]:
     for this in request.zsk_policy.algorithms:
         if not isinstance(this, AlgorithmPolicyRSA):
+            # This branch is covered by test cases, but since the order of the set is not guaranteed
+            # it won't register every time
             continue
         if key.algorithm == this.algorithm and pubkey.bits == this.bits and pubkey.exponent == this.exponent:
             return this
@@ -178,8 +181,12 @@ def _find_matching_zsk_policy_rsa_alg(request: Request, key: Key, pubkey: KSKM_P
 def _find_matching_zsk_policy_ecdsa_alg(request: Request, key: Key) -> Optional[AlgorithmPolicy]:
     for this in request.zsk_policy.algorithms:
         if not isinstance(this, AlgorithmPolicyECDSA):
+            # This branch is covered by test cases, but since the order of the set is not guaranteed
+            # it won't register every time
            continue
-        if key.algorithm == this.algorithm:
+        _pubkey = ecdsa_public_key_without_prefix(b64decode(key.public_key), this.algorithm)
+        ec_size = get_ecdsa_pubkey_size(_pubkey)
+        if key.algorithm == this.algorithm and ec_size == this.bits:
             return this
     return None
 
@@ -199,6 +206,8 @@ def check_proof_of_possession(request: Request, policy: RequestPolicy, logger: L
     for bundle in request.bundles:
         try:
             if not validate_signatures(bundle):
+                # Never reached. validate_signature returns True or throws an exception.
+                # This is just belts and suspenders.
                 raise KSR_BUNDLE_POP_Violation(f'Unknown signature validation result in bundle {bundle.id}')
         except InvalidSignature:
             raise KSR_BUNDLE_POP_Violation(f'Invalid signature encountered in bundle {bundle.id}')

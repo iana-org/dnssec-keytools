@@ -261,8 +261,8 @@ def check_bundle_overlaps(request: Request, policy: RequestPolicy, logger: Logge
         previous = request.bundles[i - 1]
         this = request.bundles[i]
         if this.inception > previous.expiration:
-            raise KSR_POLICY_SIG_OVERLAP_Violation(f'Bundle "{this}" does not overlap with previous bundle '
-                                                   f'"{previous}"')
+            raise KSR_POLICY_SIG_OVERLAP_Violation(f'Bundle "{this.id}" does not overlap with previous bundle '
+                                                   f'"{previous.id}" ({this.inception} > {previous.expiration})')
         overlap = previous.expiration - this.inception
         if overlap < request.zsk_policy.min_validity_overlap:
             raise KSR_POLICY_SIG_OVERLAP_Violation('Bundle "{}" overlap {} with "{}" is < claimed minimum {}'.format(
