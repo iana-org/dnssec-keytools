@@ -28,7 +28,7 @@ class AlgorithmDNSSEC(Enum):
 
 
 # Algorithms listed as MUST NOT implement in RFC 8624
-DEPRECATED_ALGORTIHMS = [
+DEPRECATED_ALGORITHMS = [
     AlgorithmDNSSEC.RSAMD5,
     AlgorithmDNSSEC.DSA,
     AlgorithmDNSSEC.DSA_NSEC3_SHA1,
@@ -36,7 +36,7 @@ DEPRECATED_ALGORTIHMS = [
 ]
 
 # Supported algorithms (note that ECDSA is not yet fully supported)
-SUPPORTED_ALGORTIHMS = [
+SUPPORTED_ALGORITHMS = [
     AlgorithmDNSSEC.RSASHA256,
     AlgorithmDNSSEC.RSASHA512,
     AlgorithmDNSSEC.ECDSAP256SHA256,

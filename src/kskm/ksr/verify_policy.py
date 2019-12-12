@@ -3,7 +3,7 @@ import datetime
 from logging import Logger
 
 from kskm.common.config_misc import RequestPolicy
-from kskm.common.data import (AlgorithmDNSSEC, AlgorithmPolicyRSA, DEPRECATED_ALGORTIHMS, SUPPORTED_ALGORTIHMS)
+from kskm.common.data import (AlgorithmDNSSEC, AlgorithmPolicyRSA, DEPRECATED_ALGORITHMS, SUPPORTED_ALGORITHMS)
 from kskm.common.display import fmt_bundle, fmt_timedelta, fmt_timestamp
 from kskm.common.ecdsa_utils import is_algorithm_ecdsa
 from kskm.common.rsa_utils import is_algorithm_rsa
@@ -189,9 +189,9 @@ def check_zsk_policy_algorithm(request: Request, policy: RequestPolicy, logger: 
     Parameters checked are different for different algorithms.
     """
     for alg in request.zsk_policy.algorithms:
-        if alg.algorithm in DEPRECATED_ALGORTIHMS:
+        if alg.algorithm in DEPRECATED_ALGORITHMS:
             raise KSR_POLICY_ALG_Violation(f'Algorithm {alg.algorithm.name} deprecated')
-        if alg.algorithm not in SUPPORTED_ALGORTIHMS:
+        if alg.algorithm not in SUPPORTED_ALGORITHMS:
             raise KSR_POLICY_ALG_Violation(f'Algorithm {alg.algorithm.name} not supported')
         if is_algorithm_ecdsa(alg.algorithm) and not policy.enable_unsupported_ecdsa:
             raise KSR_POLICY_ALG_Violation('Algorithm ECDSA is not supported')
