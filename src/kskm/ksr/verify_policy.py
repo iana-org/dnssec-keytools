@@ -291,7 +291,8 @@ def check_bundle_intervals(request: Request, policy: RequestPolicy, logger: Logg
     _min_str = fmt_timedelta(policy.min_bundle_interval)
     _max_str = fmt_timedelta(policy.max_bundle_interval)
 
-    logger.debug(f'Verifying that bundles intervals is no less than {_min_str}, and no more than {_max_str}')
+    logger.debug(f'Verifying that bundles intervals is no less than {_min_str}, and no more than {_max_str} '
+                 '(from KSK operator policy)')
     for num in range(len(request.bundles)):
         interval = '-'
         if num:

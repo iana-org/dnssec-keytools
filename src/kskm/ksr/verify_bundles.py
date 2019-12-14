@@ -252,22 +252,6 @@ def check_cycle_durations(request: Request, policy: RequestPolicy, logger: Logge
         logger.warning('KSR-BUNDLE-CYCLE-DURATION: No bundles - can\'t check anything')
         return
 
-    _min_str = fmt_timedelta(policy.min_bundle_interval)
-    _max_str = fmt_timedelta(policy.max_bundle_interval)
-
-    logger.debug(f'Verifying that all bundles are between {_min_str} and {_max_str} apart')
-    for idx in range(1, len(request.bundles)):
-        bundle = request.bundles[idx]
-        prev_bundle = request.bundles[idx - 1]
-        interval = bundle.inception - prev_bundle.inception
-        _interval_str = fmt_timedelta(interval)
-        if interval < policy.min_bundle_interval:
-            raise KSR_BUNDLE_CYCLE_DURATION_Violation(f'Bundle #{idx} ({bundle.id}) '
-                                                      f'interval {_interval_str} < minimum {_min_str}')
-        if interval > policy.max_bundle_interval:
-            raise KSR_BUNDLE_CYCLE_DURATION_Violation(f'Bundle #{idx} ({bundle.id}) '
-                                                      f'interval {_interval_str} > maximum {_max_str}')
-
     cycle_inception_length = request.bundles[-1].inception - request.bundles[0].inception
     _inc_len_str = fmt_timedelta(cycle_inception_length)
     _min_inc_str = fmt_timedelta(policy.min_cycle_inception_length)
@@ -281,6 +265,6 @@ def check_cycle_durations(request: Request, policy: RequestPolicy, logger: Logge
                                                   f'less than minimum acceptable length {_min_inc_str}')
     if cycle_inception_length > policy.max_cycle_inception_length:
         raise KSR_BUNDLE_CYCLE_DURATION_Violation(f'Cycle length ({_inc_len_str}) '
-                                                  f'greater than maximum acceptable length {_max_str}')
+                                                  f'greater than maximum acceptable length {_max_inc_str}')
 
     logger.info(f'KSR-BUNDLE-CYCLE-DURATION: The cycles length is in accordance with the KSK operator policy')
