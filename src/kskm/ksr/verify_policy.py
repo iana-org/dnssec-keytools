@@ -203,7 +203,7 @@ def check_zsk_policy_algorithm(request: Request, policy: RequestPolicy, logger: 
     _approved_algorithms = [AlgorithmDNSSEC[x] for x in policy.approved_algorithms]
     for alg in request.zsk_policy.algorithms:
         if alg.algorithm not in _approved_algorithms:
-            raise KSR_POLICY_ALG_Violation(f'ZSK policy is {alg.algorithm}, but policy only allows '
+            raise KSR_POLICY_ALG_Violation(f'ZSK policy has {alg.algorithm}, but policy only allows '
                                            f'{_approved_algorithms}')
 
     _num_algs = len(request.zsk_policy.algorithms)
@@ -215,7 +215,7 @@ def check_zsk_policy_algorithm(request: Request, policy: RequestPolicy, logger: 
             assert isinstance(alg, AlgorithmPolicyRSA)
 
             if alg.bits not in policy.rsa_approved_key_sizes:
-                raise KSR_POLICY_ALG_Violation(f'ZSK policy is RSA-{alg.bits}, but policy dictates '
+                raise KSR_POLICY_ALG_Violation(f'ZSK policy has RSA-{alg.bits}, but policy dictates '
                                                f'{policy.rsa_approved_key_sizes}')
 
             if alg.exponent not in policy.rsa_approved_exponents:

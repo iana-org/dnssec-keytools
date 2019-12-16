@@ -54,6 +54,13 @@ class Test_Validate_KSR_policy(unittest.TestCase):
 
 class Test_Invalid_Requests_policy(Test_Requests):
 
+    def setUp(self):
+        super().setUp()
+        self.policy = RequestPolicy(num_bundles=0,
+                                    num_keys_per_bundle=[],
+                                    num_different_keys_in_all_bundles=0,
+                                    )
+
     def test_DSA_algorithm_not_allowed(self):
         """ Test validating a KSR with the DSA algorithm """
         signature_algorithm = """
@@ -63,16 +70,72 @@ class Test_Invalid_Requests_policy(Test_Requests):
         """.strip()
         policy = self._make_request_policy(signature_algorithm=signature_algorithm)
         xml = self._make_request(request_policy=policy, request_bundle='')
-        policy = RequestPolicy(num_bundles=0,
-                               approved_algorithms=['RSASHA256', 'DSA'],
-                               num_keys_per_bundle=[],
-                               num_different_keys_in_all_bundles=0,
-                               )
         request = request_from_xml(xml)
         # DSA is not allowed, even if it is in approved_algorithms
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
-            validate_request(request, policy)
+            validate_request(request, replace(self.policy, approved_algorithms=['RSASHA256', 'DSA'])),
         self.assertEqual('Algorithm DSA deprecated', str(exc.exception))
+
+    def test_RSASHA1_not_supported(self):
+        """ Test validating a KSR with RSA-SHA1 (not supported) """
+        signature_algorithm = f"""
+            <SignatureAlgorithm algorithm="{AlgorithmDNSSEC.RSASHA1.value}">
+              <RSA size="1024" exponent="3"/>
+            </SignatureAlgorithm>
+        """.strip()
+        policy = self._make_request_policy(signature_algorithm=signature_algorithm)
+        xml = self._make_request(request_policy=policy, request_bundle='')
+        request = request_from_xml(xml)
+        # RSA is supported, but not RSASHA1
+        with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
+            validate_request(request, replace(self.policy, approved_algorithms=['RSASHA256'])),
+        self.assertEqual('Algorithm RSASHA1 not supported', str(exc.exception))
+
+    def test_RSA_wrong_size(self):
+        """ Test validating a KSR with RSA-1024, with policy stipulating RSA-2048 """
+        signature_algorithm = f"""
+            <SignatureAlgorithm algorithm="{AlgorithmDNSSEC.RSASHA256.value}">
+              <RSA size="1024" exponent="65537"/>
+            </SignatureAlgorithm>
+        """.strip()
+        policy = self._make_request_policy(signature_algorithm=signature_algorithm)
+        xml = self._make_request(request_policy=policy, request_bundle='')
+        request = request_from_xml(xml)
+        # RSA is supported, but not RSASHA1
+        with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
+            validate_request(request, replace(self.policy, approved_algorithms=['RSASHA256'])),
+        self.assertEqual('ZSK policy has RSA-1024, but policy dictates [2048]', str(exc.exception))
+
+    def test_RSA_wrong_exponent(self):
+        """ Test validating a KSR with RSA-SHA1 (not supported) """
+        signature_algorithm = f"""
+            <SignatureAlgorithm algorithm="{AlgorithmDNSSEC.RSASHA256.value}">
+              <RSA size="2048" exponent="17"/>
+            </SignatureAlgorithm>
+        """.strip()
+        policy = self._make_request_policy(signature_algorithm=signature_algorithm)
+        xml = self._make_request(request_policy=policy, request_bundle='')
+        request = request_from_xml(xml)
+        # RSA is supported, but not RSASHA1
+        with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
+            validate_request(request, replace(self.policy, approved_algorithms=['RSASHA256'])),
+        self.assertEqual('ZSK policy has RSA exponent 17, but policy dictates [3, 65537]', str(exc.exception))
+
+
+    def test_ECDSA_not_enabled(self):
+        """ Test validating a KSR with ECDSA (not enabled) """
+        signature_algorithm = f"""
+            <SignatureAlgorithm algorithm="{AlgorithmDNSSEC.ECDSAP384SHA384.value}">
+              <ECDSA size="384"/>
+            </SignatureAlgorithm>
+        """.strip()
+        policy = self._make_request_policy(signature_algorithm=signature_algorithm)
+        xml = self._make_request(request_policy=policy, request_bundle='')
+        request = request_from_xml(xml)
+        with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
+            validate_request(request, replace(self.policy, approved_algorithms=['RSASHA256'])),
+        self.assertEqual('Algorithm ECDSA is not supported', str(exc.exception))
+
 
 
 class Test_ECDSA_Policy(Test_Validate_KSR_ECDSA):
@@ -84,7 +147,11 @@ class Test_ECDSA_Policy(Test_Validate_KSR_ECDSA):
         policy = replace(self.policy, approved_algorithms=[AlgorithmDNSSEC.RSASHA256.name])
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
             validate_request(request, policy)
-        self.assertIn('ZSK policy is AlgorithmDNSSEC.ECDSAP256SHA256, but', str(exc.exception))
+        self.assertIn('ZSK policy has AlgorithmDNSSEC.ECDSAP256SHA256, but', str(exc.exception))
+
+        # test disabling check
+        policy = replace(policy, signature_algorithms_match_zsk_policy=False)
+        self.assertTrue(validate_request(request, policy))
 
     def test_validate_ksr_with_ecdsa_key(self):
         """ Test KSR with ECDSA key """

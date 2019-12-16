@@ -2,6 +2,7 @@ import base64
 import os
 import unittest
 from dataclasses import replace
+from unittest.mock import patch
 
 import pkg_resources
 
@@ -89,6 +90,18 @@ class Test_Validate_KSR_bundles(unittest.TestCase):
                                num_bundles=99)
         with self.assertRaises(KSR_BUNDLE_COUNT_Violation):
             load_ksr(fn, policy, raise_original=True)
+
+
+    def test_mocked_invalid_signature(self):
+        """ Test loading a KSR where the call to validate_signatures fails unexpectedly """
+        fn = os.path.join(self.data_dir, 'ksr-root-2018-q1-0-d_to_e.xml')
+        policy = RequestPolicy(signature_check_expire_horizon=False)
+        with patch('kskm.ksr.verify_bundles.validate_signatures') as mock_obj:
+            mock_obj.return_value = False
+            with self.assertRaises(KSR_BUNDLE_POP_Violation) as exc:
+                load_ksr(fn, policy, raise_original=True)
+            self.assertEqual('Unknown signature validation result in bundle 0a8f7774-3bd3-4702-a923-f1d73f653bd6',
+                             str(exc.exception))
 
 
 class Test_Valid_Requests(Test_Requests):
