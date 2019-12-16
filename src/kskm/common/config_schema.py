@@ -43,7 +43,6 @@ KEY_SCHEMA = Schema({
 })
 
 REQUEST_POLICY_SCHEMA = Schema({
-    'warn_instead_of_fail': bool
 })
 
 REQUEST_POLICY_SCHEMA = REQUEST_POLICY_SCHEMA.extend({

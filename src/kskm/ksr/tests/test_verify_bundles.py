@@ -30,8 +30,7 @@ class Test_Validate_KSR_bundles(unittest.TestCase):
         # Exception: Failed validating KSR request in file icann-ksr-archive/ksr/ksr-root-2010-q3-2.xml:
         #            Bundle signature expire in the past
         _signature_check_expire_horizon = False
-        policy = RequestPolicy(warn_instead_of_fail=False,
-                               signature_check_expire_horizon=_signature_check_expire_horizon,
+        policy = RequestPolicy(signature_check_expire_horizon=_signature_check_expire_horizon,
                                )
         ksr = load_ksr(fn, policy)
 
@@ -59,8 +58,7 @@ class Test_Validate_KSR_bundles(unittest.TestCase):
         # Exception: Failed validating KSR request in file icann-ksr-archive/ksr/ksr-root-2010-q3-2.xml:
         #            Bundle signature expire in the past
         _signature_check_expire_horizon = False
-        policy = RequestPolicy(warn_instead_of_fail=False,
-                               signature_check_expire_horizon=_signature_check_expire_horizon,
+        policy = RequestPolicy(signature_check_expire_horizon=_signature_check_expire_horizon,
                                )
         ksr = load_ksr(fn, policy)
 
@@ -86,8 +84,7 @@ class Test_Validate_KSR_bundles(unittest.TestCase):
     def test_load_ksr_with_policy_violation(self):
         """ Test loading a KSR failing the supplied policy """
         fn = os.path.join(self.data_dir, 'ksr-root-2018-q1-0-d_to_e.xml')
-        policy = RequestPolicy(warn_instead_of_fail=False,
-                               num_bundles=99)
+        policy = RequestPolicy(num_bundles=99)
         with self.assertRaises(KSR_BUNDLE_COUNT_Violation):
             load_ksr(fn, policy, raise_original=True)
 

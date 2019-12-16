@@ -20,7 +20,7 @@ class Test_Validate_SKR(unittest.TestCase):
     def test_validate_skr_with_invalid_signature(self):
         """ Test manipulating SKR signature """
         fn = os.path.join(self.data_dir, 'skr-root-2018-q1-0-d_to_e.xml')
-        policy = ResponsePolicy(warn_instead_of_fail=False)
+        policy = ResponsePolicy()
         skr = load_skr(fn, policy)
 
         # The response was successfully validated in load_skr, now manipulate it
@@ -44,7 +44,6 @@ class Test_Validate_SKR(unittest.TestCase):
     def test_load_skr_with_policy_violation(self):
         """ Test loading an SKR failing the supplied policy """
         fn = os.path.join(self.data_dir, 'skr-root-2018-q1-0-d_to_e.xml')
-        policy = ResponsePolicy(warn_instead_of_fail=False,
-                                num_bundles=99)
+        policy = ResponsePolicy(num_bundles=99)
         with self.assertRaises(RuntimeError):
             load_skr(fn, policy)

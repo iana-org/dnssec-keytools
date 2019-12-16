@@ -22,7 +22,8 @@ KSKKeysType = NewType('KSKKeysType', Mapping[str, 'KSKKey'])
 class Policy(ABC):
     """Base class for RequestPolicy and ResponsePolicy."""
 
-    warn_instead_of_fail: bool = False
+    # avoid upsetting type checker in from_dict below when arguments are passed to cls() without any attributes
+    _dataclass_placeholder: Optional[bool] = None
 
     @classmethod
     def from_dict(cls: Type[PolicyType], data: dict) -> PolicyType:
