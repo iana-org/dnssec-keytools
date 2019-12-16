@@ -16,7 +16,7 @@ import yaml
 
 from kskm.common.config import ConfigurationError, KSKMConfig
 from kskm.common.config_misc import RequestPolicy
-from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY, Key
+from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY, Key, Signer
 from kskm.common.dnssec import public_key_to_dnssec_key
 from kskm.common.parse_utils import parse_datetime, signature_policy_from_dict
 from kskm.common.signature import validate_signatures
@@ -115,7 +115,7 @@ class SignWithSoftHSM_Baseclass(unittest.TestCase):
                                            )
         return zsk_key
 
-    def _make_request(self, zsk_keys: Set[Key], inception=None, expiration=None, id_suffix=''):
+    def _make_request(self, zsk_keys: Set[Key], inception=None, expiration=None, id_suffix='', signers=None):
         if inception is None:
             inception = parse_datetime('2018-01-01T00:00:00+00:00')
         if expiration is None:
@@ -125,7 +125,7 @@ class SignWithSoftHSM_Baseclass(unittest.TestCase):
                                expiration=expiration,
                                keys=zsk_keys,
                                signatures=set(),
-                               signers=None,
+                               signers=signers,
                                )
         request = Request(id='test-req-01' + id_suffix,
                           serial=1,
@@ -194,6 +194,18 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
         validate_signatures(list(new_bundles)[0])
 
     @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
+    def test_bundle_signers_are_ignored(self) -> None:
+        """ Test that bundles signers are ignored """
+        zsk_keys = {self._p11_to_dnskey(self.ksk_key_label, AlgorithmDNSSEC.ECDSAP256SHA256)}
+        signer = Signer(key_identifier='EC1')
+        request = self._make_request(zsk_keys=zsk_keys, signers={signer})
+        new_bundles = sign_bundles(request=request, schema=self.schema, p11modules=self.p11modules,
+                                   config=self.config, ksk_policy=self.config.ksk_policy)
+        validate_signatures(list(new_bundles)[0])
+        key_ids = sorted([x.key_identifier for x in list(new_bundles)[0].keys])
+        self.assertEqual(key_ids, ['EC2'])
+
+    @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
     def test_ec_sign_rsa_zsk(self) -> None:
         """ Test mismatching algorithms for ZSK and KSK. """
         zsk_keys = {self._p11_to_dnskey('RSA1', AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)}
@@ -238,6 +250,42 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
                                    'EC3',  # ksk_prepublish_key
                                    ])
 
+
+    @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
+    def test_ec_sign_revoke_key(self) -> None:
+        """ Test a schema revoking one key and signing with another. """
+        _REVOKE_SCHEMA = """---
+        schemas:
+          test:
+            1: {revoke: ksk_EC2, publish: [], sign: ksk_EC3}
+            2: {revoke: ksk_EC2, publish: [], sign: ksk_EC3}
+            3: {revoke: ksk_EC2, publish: [], sign: ksk_EC3}
+            4: {revoke: ksk_EC2, publish: [], sign: ksk_EC3}
+            5: {revoke: ksk_EC2, publish: [], sign: ksk_EC3}
+            6: {revoke: ksk_EC2, publish: [], sign: ksk_EC3}
+            7: {revoke: ksk_EC2, publish: [], sign: ksk_EC3}
+            8: {revoke: ksk_EC2, publish: [], sign: ksk_EC3}
+            9: {revoke: ksk_EC2, publish: [], sign: ksk_EC3}
+        """
+        self.config.update(yaml.safe_load(io.StringIO(_REVOKE_SCHEMA)))
+        self.schema = self.config.get_schema('test')
+        zsk_keys = {self._p11_to_dnskey('EC1', AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK)}
+        request = self._make_request(zsk_keys=zsk_keys)
+        new_bundles = sign_bundles(request=request, schema=self.config.get_schema('test'),
+                                   p11modules=self.p11modules, config=self.config,
+                                   ksk_policy=self.config.ksk_policy)
+        validate_signatures(list(new_bundles)[0])
+        bundle_keys = list(new_bundles)[0].keys
+        key_ids = sorted([x.key_identifier for x in bundle_keys])
+        self.assertEqual(key_ids, ['EC1',  # ZSK key in RequestBundle
+                                   'EC2',  # ksk_test_key
+                                   'EC3',  # ksk_prepublish_key
+                                   ])
+        revoked_EC2 = self._p11_to_dnskey('EC2', AlgorithmDNSSEC.ECDSAP256SHA256,
+                                          flags=FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value |
+                                                FlagsDNSKEY.REVOKE.value)
+        revoked_EC2 = replace(revoked_EC2, ttl=self.config.ksk_policy.ttl)
+        self.assertIn(revoked_EC2, bundle_keys)
 
 class Test_SignWithSoftHSM_DualAlgorithm(SignWithSoftHSM_Baseclass):
 
