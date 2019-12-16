@@ -148,14 +148,14 @@ def timedelta_to_duration(td: timedelta) -> str:
     days = f'P{td.days}D' if td.days else 'P'
     time = ''
     if td.seconds:
-        _t = td.seconds
-        if _t > 3600:
-            time += f'{_t // 3600}H'
-            _t = _t % 3600
-        if _t > 60:
-            time += f'{_t // 60}M'
-            _t = _t % 60
-        if _t:
-            time += f'{_t}S'
-        time = f'T{_t}'
+        time = 'T'
+        _remainder = td.seconds
+        if _remainder > 3600:
+            time += f'{_remainder // 3600}H'
+            _remainder = _remainder % 3600
+        if _remainder > 60:
+            time += f'{_remainder // 60}M'
+            _remainder = _remainder % 60
+        if _remainder:
+            time += f'{_remainder}S'
     return days + time

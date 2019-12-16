@@ -1,9 +1,10 @@
 import datetime
 import unittest
-import xml
 
-from kskm.common.data import SignaturePolicy, AlgorithmPolicyRSA, AlgorithmDNSSEC
+from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyRSA, SignaturePolicy
+from kskm.common.parse_utils import duration_to_timedelta
 from kskm.ksr import request_from_xml
+from kskm.skr.output import timedelta_to_duration
 
 
 class TestBasics(unittest.TestCase):
@@ -75,3 +76,11 @@ class TestBasics(unittest.TestCase):
         self.assertEqual(request.id, '4fe9bb10-6f6b-4503-8575-7824e2d66925')
         self.assertEqual(request.serial, 99)
         self.assertEqual(request.timestamp, datetime.datetime.fromisoformat('2018-01-01T00:00:00+00:00'))
+
+    def test_timedelta_parsing(self):
+        """Test timedelta parsing and printing"""
+        duration = 'P3DT4H5M6S'
+        td = duration_to_timedelta(duration)
+        self.assertEqual('3 days, 4:05:06', str(td))
+        dur = timedelta_to_duration(td)
+        self.assertEqual(dur, duration)

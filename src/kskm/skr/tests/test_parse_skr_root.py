@@ -47,3 +47,11 @@ class TestParseRealSKRs(unittest.TestCase):
         config = get_config(None)
         skr = load_skr(fn, config.response_policy)
         self.assertEqual(skr.id, '4fe9bb10-6f6b-4503-8575-7824e2d66925')
+
+    def test_skr_log_contents_basics(self):
+        """ Test logging SKR loading """
+        fn = os.path.join(self.data_dir, 'skr-root-2018-q1-0-d_to_e.xml')
+        config = get_config(None)
+        skr = load_skr(fn, config.response_policy, log_contents=True)
+        self.assertEqual(skr.id, '4fe9bb10-6f6b-4503-8575-7824e2d66925')
+
