@@ -10,6 +10,7 @@ import os
 import unittest
 from dataclasses import replace
 from typing import Set
+from unittest.mock import patch
 
 import pkg_resources
 import yaml
@@ -26,7 +27,7 @@ from kskm.misc.hsm import KSKM_P11, get_p11_key, init_pkcs11_modules_from_dict
 from kskm.signer import create_skr, sign_bundles
 from kskm.signer.key import KeyUsagePolicy_Violation
 from kskm.signer.policy import check_skr_and_ksr
-from kskm.signer.sign import CreateSignatureError
+from kskm.signer.sign import CreateSignatureError, SKR_VERIFY_Failure
 from kskm.signer.verify_chain import KSR_CHAIN_KEYS_Violation
 from kskm.skr import response_from_xml
 
@@ -147,6 +148,17 @@ class Test_SignWithSoftHSM_RSA(SignWithSoftHSM_Baseclass):
         new_bundles = sign_bundles(request=request, schema=self.schema, p11modules=self.p11modules,
                                    config=self.config, ksk_policy=self.config.ksk_policy)
         validate_signatures(list(new_bundles)[0])
+
+    def test_mocked_bad_signature_from_softhsm(self) -> None:
+        """ Test verification of signature made by SoftHSM """
+        zsk_keys = {self._p11_to_dnskey(self.ksk_key_label, AlgorithmDNSSEC.RSASHA256)}
+        request = self._make_request(zsk_keys=zsk_keys)
+        with patch('kskm.signer.sign.sign_using_p11') as mock_obj:
+            mock_obj.return_value = b'\x0f\x00'
+            with self.assertRaises(SKR_VERIFY_Failure) as exc:
+                sign_bundles(request=request, schema=self.schema, p11modules=self.p11modules,
+                                           config=self.config, ksk_policy=self.config.ksk_policy)
+            self.assertEqual('Invalid KSK signature encountered in bundle test', str(exc.exception))
 
 
 class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
