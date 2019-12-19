@@ -240,9 +240,6 @@ def check_bundle_count(request: Request, policy: RequestPolicy, logger: Logger) 
 def check_cycle_durations(request: Request, policy: RequestPolicy, logger: Logger) -> None:
     """
     Check that the whole cycles length fall within expected limits.
-
-    TODO: Add this to ksr-processing.md, and update description here.
-    TODO: Add test cases for this, once we have finalised the specification.
     """
     if not policy.check_cycle_length:
         logger.warning('KSR-BUNDLE-CYCLE-DURATION: Disabled by policy (check_cycle_length)')
@@ -264,7 +261,7 @@ def check_cycle_durations(request: Request, policy: RequestPolicy, logger: Logge
         raise KSR_BUNDLE_CYCLE_DURATION_Violation(f'Cycle inception length ({_inc_len_str}) '
                                                   f'less than minimum acceptable length {_min_inc_str}')
     if cycle_inception_length > policy.max_cycle_inception_length:
-        raise KSR_BUNDLE_CYCLE_DURATION_Violation(f'Cycle length ({_inc_len_str}) '
+        raise KSR_BUNDLE_CYCLE_DURATION_Violation(f'Cycle inception length ({_inc_len_str}) '
                                                   f'greater than maximum acceptable length {_max_inc_str}')
 
-    logger.info(f'KSR-BUNDLE-CYCLE-DURATION: The cycles length is in accordance with the KSK operator policy')
+    logger.info(f'KSR-BUNDLE-CYCLE-DURATION: The cycle length is in accordance with the KSK operator policy')
