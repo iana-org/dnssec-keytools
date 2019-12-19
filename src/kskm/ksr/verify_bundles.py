@@ -240,6 +240,9 @@ def check_bundle_count(request: Request, policy: RequestPolicy, logger: Logger) 
 def check_cycle_durations(request: Request, policy: RequestPolicy, logger: Logger) -> None:
     """
     Check that the whole cycles length fall within expected limits.
+    
+    KSR-BUNDLE-CYCLE-DURATION:
+      Verify that the cycle duration is within acceptable limits.
     """
     if not policy.check_cycle_length:
         logger.warning('KSR-BUNDLE-CYCLE-DURATION: Disabled by policy (check_cycle_length)')
