@@ -306,20 +306,16 @@ def main() -> bool:
     args = parser.parse_args(args=sys.argv)
     logger = get_logger(progname=progname, debug=args.debug, syslog=False, filelog=True).getChild(__name__)
 
-    #
-    # Load configuration, if not provided already
-    #
-    if config is None:
-        try:
-            config = get_config(args.config)
-        except FileNotFoundError as exc:
-            logger.critical(str(exc))
-            return False
-        except ConfigurationError as exc:
-            logger = logging.getLogger('configuration')
-            for message in str(exc).splitlines():
-                logger.critical(message)
-            return False
+    try:
+        config = get_config(args.config)
+    except FileNotFoundError as exc:
+        logger.critical(str(exc))
+        return False
+    except ConfigurationError as exc:
+        logger = logging.getLogger('configuration')
+        for message in str(exc).splitlines():
+            logger.critical(message)
+        return False
 
     #
     # Initialise PKCS#11 modules (HSMs)
