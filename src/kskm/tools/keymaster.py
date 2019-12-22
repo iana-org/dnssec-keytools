@@ -153,8 +153,10 @@ def inventory(args: argparse.Namespace, config: KSKMConfig, p11modules: KSKM_P11
     return True
 
 
-def main(progname: str = 'keymaster', argv: Optional[List[str]] = None, config: Optional[KSKMConfig] = None) -> bool:
+def main() -> bool:
     """Main function."""
+    progname = os.path.basename(sys.argv[0])
+
     parser = argparse.ArgumentParser(description='Keymaster',
                                      add_help=True,
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -301,7 +303,7 @@ def main(progname: str = 'keymaster', argv: Optional[List[str]] = None, config: 
                                    required=True,
                                    help='Filename to read wrapped key from')
 
-    args = parser.parse_args(args=argv)
+    args = parser.parse_args(args=sys.argv)
     logger = get_logger(progname=progname, debug=args.debug, syslog=False, filelog=True).getChild(__name__)
 
     #
