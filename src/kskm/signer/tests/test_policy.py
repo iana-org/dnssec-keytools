@@ -97,12 +97,38 @@ class Test_KSR_SKR_policy(unittest.TestCase):
         bundles[-1] = last_bundle
         skr2 = replace(skr2, bundles=bundles)
 
-        with self.assertRaises(KSR_POLICY_SAFETY_Violation):
+        with self.assertRaises(KSR_POLICY_SAFETY_Violation) as exc:
             check_last_skr_and_new_skr(self.skr1, skr2, self.policy)
+
+        # Check exact error message to differentiate from error in check_retire_safety
+        self.assertEqual('Key 19036/Kjqmt7v used to sign bundle #1 (dc1bc68c-b1c1-46f8-817f-ec893549f2be) in this SKR '
+                         'is not present in bundle #8 (dbd2a673-5ec5-4a72-9c02-11d48d27dc43)', str(exc.exception))
 
         # verify check can be disabled using configuration
         _policy = replace(self.policy, check_keys_retire_safety=False)
         check_last_skr_and_new_skr(self.skr1, skr2, _policy)
+
+    def test_key_removed_prematurely(self):
+        """ Test bad signing schema not post-publishing a signing key long enough """
+        # create local instance of skr2 to not mess with other tests
+        skr2 = response_from_xml(self.skr_xml2)
+
+        # verify check passes with unmodified skr2
+        check_last_skr_and_new_skr(self.skr1, skr2, self.policy)
+
+        first_bundle = replace(skr2.bundles[0], keys=set())
+        bundles = skr2.bundles
+        bundles[0] = first_bundle
+        skr2 = replace(skr2, bundles=bundles)
+
+        with self.assertRaises(KSR_POLICY_SAFETY_Violation) as exc:
+            check_last_skr_and_new_skr(self.skr1, skr2, self.policy)
+
+        # Check exact error message to differentiate from error from check_publish_safety
+        self.assertEqual('Key 19036/Kjqmt7v used to sign bundle c8753ecf-cbaf-4adc-902b-9f3e0861cc48 in the last SKR '
+                         'is not present in bundle dc1bc68c-b1c1-46f8-817f-ec893549f2be which expires < RetireSafety '
+                         '(28 days/2017-05-09 00:00:00+00:00) from that bundles inception (2017-03-21 00:00:00+00:00)',
+                         str(exc.exception))
 
 
 class Test_LastSKR_unique_ids(Test_KSR_SKR_policy):
