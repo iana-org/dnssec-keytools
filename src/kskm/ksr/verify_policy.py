@@ -279,10 +279,7 @@ def check_bundle_overlaps(request: Request, policy: RequestPolicy, logger: Logge
 
 def check_bundle_intervals(request: Request, policy: RequestPolicy, logger: Logger) -> None:
     """
-    Check that the bundles intervals fall within expected limits.
-
-    TODO: Add this to ksr-processing.md, and update description here.
-    TODO: Add test cases for this, once we have finalised the specification.
+    Check that the bundles' intervals fall within expected limits.
     """
     if not policy.check_bundle_intervals:
         logger.warning('KSR-POLICY-BUNDLE-INTERVALS: Disabled by policy (check_bundle_intervals)')
