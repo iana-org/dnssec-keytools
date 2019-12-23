@@ -329,7 +329,7 @@ class Test_ZSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
         policy = replace(self.policy, max_cycle_inception_length=duration_to_timedelta('P10D'))
         with self.assertRaises(KSR_BUNDLE_CYCLE_DURATION_Violation) as exc:
             validate_request(request, policy)
-        self.assertEqual('Cycle length (11 days) greater than maximum acceptable length 10 days',
+        self.assertEqual('Cycle inception length (11 days) greater than maximum acceptable length 10 days',
                          str(exc.exception))
 
 
