@@ -260,8 +260,6 @@ The signer software verifies that keys are properly pre- and post-published acco
 
 Context: These controls assumes that the duration of the time slots have taken into account the requirements for pre- and post-publishing, so that it is only required to pre- and post publish one (1) time slot and that any roll-overs of the ZSKs takes place at the edges of each cycle, in which case post-publishing always takes place at the first time slot and pre-publishing in the last time slot.
 
-N.B: The increase in signature validity time from 15 to 21 days potentially allows a jump in the time slot chain, possibly skipping a pre- or post-publishing key bundle if a root server is disconnected for more than 6 days, unless pre- and post-publishing is done for two time slots rather than one.
-
 #### Argument (1.3.1.1)
 
 KSR-POLICY-SAFETY.1: The signer system (in 'check_publish_safety' of 'signer/policy.py') checks that all keys used for signing the first bundle of the KSR was present (published) in the last bundle of the last SKR.
