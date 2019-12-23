@@ -131,7 +131,8 @@ def check_retire_safety(last_skr: Response, new_skr: Response, policy: RequestPo
     # Figure out the point in time where a signing key from the last bundle in the last SKR is required to
     # still be published in this SKR.
     last_bundle = last_skr.bundles[-1]
-    retire_at = last_bundle.expiration + new_skr.ksk_policy.retire_safety
+    first_bundle = new_skr.bundles[0]
+    retire_at = first_bundle.inception + new_skr.ksk_policy.retire_safety
     for bundle in new_skr.bundles:
         if bundle.inception <= retire_at:
             # This bundle must include all the signing keys from the last bundle
@@ -144,8 +145,8 @@ def check_retire_safety(last_skr: Response, new_skr: Response, policy: RequestPo
                     raise KSR_POLICY_SAFETY_Violation(f'Key {sig.key_tag}/{sig.key_identifier} used to sign bundle '
                                                       f'{last_bundle.id} in the last SKR is not present in bundle '
                                                       f'{bundle.id} which expires < RetireSafety '
-                                                      f'({_retire_safety}/{retire_at}) from that '
-                                                      f'bundles inception ({last_bundle.inception})')
+                                                      f'({_retire_safety}/{retire_at}) from this new SKRs first '
+                                                      f'bundle inception ({first_bundle.inception})')
 
 
     # Now, ensure that a key used to sign a bundle in the new SKR doesn't disappear later in this SKR
