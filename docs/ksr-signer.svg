@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xl="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 818 571" width="818pt" height="571pt" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <metadata> Produced by OmniGraffle 7.4.2 
+    <dc:date>2019-09-13 13:46:28 +0000</dc:date>
+  </metadata>
+  <defs>
+    <filter id="Shadow" filterUnits="userSpaceOnUse">
+      <feGaussianBlur in="SourceAlpha" result="blur" stdDeviation="1.308"/>
+      <feOffset in="blur" result="offset" dx="0" dy="2"/>
+      <feFlood flood-color="black" flood-opacity=".5" result="flood"/>
+      <feComposite in="flood" in2="offset" operator="in"/>
+    </filter>
+    <font-face font-family="Helvetica" font-size="9" units-per-em="1000" underline-position="-75.68359" underline-thickness="49.316406" slope="-1333.3333" x-height="522.9492" cap-height="717.28516" ascent="770.0195" descent="-229.98047" font-style="italic" font-weight="500">
+      <font-face-src>
+        <font-face-name name="Helvetica-Oblique"/>
+      </font-face-src>
+    </font-face>
+    <marker orient="auto" overflow="visible" markerUnits="strokeWidth" id="FilledArrow_Marker" viewBox="-1 -4 10 8" markerWidth="10" markerHeight="8" color="black">
+      <g>
+        <path d="M 8 0 L 0 -3 L 0 3 Z" fill="currentColor" stroke="currentColor" stroke-width="1"/>
+      </g>
+    </marker>
+    <font-face font-family="Helvetica" font-size="9" units-per-em="1000" underline-position="-75.68359" underline-thickness="49.316406" slope="0" x-height="522.9492" cap-height="717.28516" ascent="770.0195" descent="-229.98047" font-weight="500">
+      <font-face-src>
+        <font-face-name name="Helvetica"/>
+      </font-face-src>
+    </font-face>
+    <filter id="Shadow_2" filterUnits="userSpaceOnUse">
+      <feGaussianBlur in="SourceAlpha" result="blur" stdDeviation="1.308"/>
+      <feOffset in="blur" result="offset" dx="0" dy="2"/>
+      <feFlood flood-color="black" flood-opacity=".5" result="flood"/>
+      <feComposite in="flood" in2="offset" operator="in" result="color"/>
+      <feMerge>
+        <feMergeNode in="color"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <font-face font-family="Helvetica" font-size="10" units-per-em="1000" underline-position="-75.68359" underline-thickness="49.316406" slope="0" x-height="522.9492" cap-height="717.28516" ascent="770.0195" descent="-229.98047" font-weight="500">
+      <font-face-src>
+        <font-face-name name="Helvetica"/>
+      </font-face-src>
+    </font-face>
+  </defs>
+  <g stroke="none" stroke-opacity="1" stroke-dasharray="none" fill="none" fill-opacity="1">
+    <title>KSR Signer 2019</title>
+    <rect fill="white" width="818" height="571"/>
+    <g>
+      <title>Layer 1</title>
+      <g>
+        <xl:use xl:href="#id51_Graphic" filter="url(#Shadow)"/>
+        <xl:use xl:href="#id50_Graphic" filter="url(#Shadow)"/>
+        <xl:use xl:href="#id49_Graphic" filter="url(#Shadow)"/>
+        <xl:use xl:href="#id48_Graphic" filter="url(#Shadow)"/>
+        <xl:use xl:href="#id46_Graphic" filter="url(#Shadow)"/>
+        <xl:use xl:href="#id45_Graphic" filter="url(#Shadow)"/>
+        <xl:use xl:href="#id40_Graphic" filter="url(#Shadow)"/>
+        <xl:use xl:href="#id38_Graphic" filter="url(#Shadow)"/>
+        <xl:use xl:href="#id37_Graphic" filter="url(#Shadow)"/>
+        <xl:use xl:href="#id36_Graphic" filter="url(#Shadow)"/>
+        <xl:use xl:href="#id34_Graphic" filter="url(#Shadow)"/>
+        <xl:use xl:href="#id33_Graphic" filter="url(#Shadow)"/>
+        <xl:use xl:href="#id32_Graphic" filter="url(#Shadow)"/>
+        <xl:use xl:href="#id26_Graphic" filter="url(#Shadow)"/>
+        <xl:use xl:href="#id23_Graphic" filter="url(#Shadow)"/>
+        <xl:use xl:href="#id20_Graphic" filter="url(#Shadow)"/>
+        <xl:use xl:href="#id16_Graphic" filter="url(#Shadow)"/>
+        <xl:use xl:href="#id15_Graphic" filter="url(#Shadow)"/>
+        <xl:use xl:href="#id4_Graphic" filter="url(#Shadow)"/>
+      </g>
+      <g id="id51_Graphic">
+        <rect x="385.38" y="134.685" width="122.922" height="192.756" fill="#ebebeb"/>
+        <text transform="translate(390.38 311.941)" fill="black">
+          <tspan font-family="Helvetica" font-size="9" font-style="italic" font-weight="500" x="65.900516" y="9" textLength="47.021484">KSR Signer</tspan>
+        </text>
+      </g>
+      <g id="id50_Graphic">
+        <rect x="116.559" y="355.788" width="393.67723" height="75.07815" fill="#ffd579"/>
+        <text transform="translate(216.559 415.36615)" fill="black">
+          <tspan font-family="Helvetica" font-size="9" font-style="italic" font-weight="500" x="124.80614" y="9" textLength="34.519043">PKCS#1</tspan>
+          <tspan font-family="Helvetica" font-size="9" font-style="italic" font-weight="500" x="158.66161" y="9" textLength="35.015625">1 Library</tspan>
+        </text>
+      </g>
+      <g id="id49_Graphic">
+        <rect x="116.559" y="134.685" width="250.119" height="192.756" fill="#ebebeb"/>
+        <text transform="translate(121.559 311.941)" fill="black">
+          <tspan font-family="Helvetica" font-size="9" font-style="italic" font-weight="500" x="89.54388" y="9" textLength="61.03125">KSK Generator</tspan>
+        </text>
+      </g>
+      <g id="id48_Graphic">
+        <rect x="116.559" y="440.827" width="393.67723" height="107.716" fill="#ffd579"/>
+        <text transform="translate(121.559 533.043)" fill="black">
+          <tspan font-family="Helvetica" font-size="9" font-style="italic" font-weight="500" x="363.67772" y="9" textLength="19.999512">HSM</tspan>
+        </text>
+      </g>
+      <path d="M 469.341 150.826 L 469.341 138.926 L 469.341 116.926 L 496.4259 116.926 L 496.4259 81.655 L 496.4259 79.655" marker-end="url(#FilledArrow_Marker)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <g id="id46_Graphic">
+        <rect x="415.7421" y="458.936" width="62.1978" height="36" fill="white"/>
+        <rect x="415.7421" y="458.936" width="62.1978" height="36" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(420.7421 471.436)" fill="black">
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="13.091088" y="9" textLength="26.015625">Signer</tspan>
+        </text>
+      </g>
+      <g id="id45_Graphic">
+        <rect x="280.27556" y="496.9134" width="51.0237" height="36" fill="white"/>
+        <rect x="280.27556" y="496.9134" width="51.0237" height="36" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(285.27556 503.9134)" fill="black">
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="12.7577" y="9" textLength="18.00879">Key </tspan>
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="5.5023285" y="20" textLength="30.019043">storage</tspan>
+        </text>
+      </g>
+      <path d="M 177.4839 494.936 L 177.4839 506.836 L 177.4839 514.9134 L 268.37556 514.9134 L 270.37556 514.9134" marker-end="url(#FilledArrow_Marker)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <path d="M 446.841 494.936 L 446.841 506.836 L 446.841 514.9134 L 343.19926 514.9134 L 341.19926 514.9134" marker-end="url(#FilledArrow_Marker)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <g filter="url(#Shadow_2)">
+        <rect x="465.327" y="33.755" width="62.1978" height="36" fill="#76d6ff"/>
+        <path d="M 465.327 33.755 L 527.5248 33.755 M 527.5248 69.755 L 465.327 69.755" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(470.327 40.755)" fill="black">
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="3.0825426" y="9" textLength="46.032715">Signed Key</tspan>
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="5.8357164" y="20" textLength="40.526367">Response</tspan>
+        </text>
+      </g>
+      <g filter="url(#Shadow_2)">
+        <rect x="274.655" y="33.755" width="62.1978" height="36" fill="#76d6ff"/>
+        <path d="M 274.655 33.755 L 336.8528 33.755 M 336.8528 69.755 L 274.655 69.755" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(279.655 39.755)" fill="black">
+          <tspan font-family="Helvetica" font-size="10" font-weight="500" x="14.892845" y="10" textLength="6.1083984">T</tspan>
+          <tspan font-family="Helvetica" font-size="10" font-weight="500" x="20.635033" y="10" textLength="19.448242">rust </tspan>
+          <tspan font-family="Helvetica" font-size="10" font-weight="500" x="10.256615" y="22" textLength="31.68457">Anchor</tspan>
+        </text>
+      </g>
+      <g id="id40_Graphic">
+        <path d="M 136.984 40.955 L 217.984 33.755 L 217.984 69.755 L 136.984 69.755 Z" fill="white"/>
+        <path d="M 136.984 40.955 L 217.984 33.755 L 217.984 69.755 L 136.984 69.755 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(141.984 42.555)" fill="black">
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="4.230713" y="9" textLength="65.03906">Key Generation </tspan>
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="18.739258" y="20" textLength="33.521484">Request</tspan>
+        </text>
+      </g>
+      <g filter="url(#Shadow_2)">
+        <rect x="393.524" y="33.755" width="62.1978" height="36" fill="#d5fc79"/>
+        <path d="M 393.524 33.755 L 455.7218 33.755 M 455.7218 69.755 L 393.524 69.755" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(398.524 40.755)" fill="black">
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="2.0827867" y="9" textLength="48.032227">Key Signing</tspan>
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="9.338158" y="20" textLength="33.521484">Request</tspan>
+        </text>
+      </g>
+      <g id="id38_Graphic">
+        <path d="M 533.7638 236.594 L 605.7638 236.594 L 605.7638 279.794 C 584.1638 274.394 555.3638 295.994 533.7638 285.194 Z" fill="white"/>
+        <path d="M 533.7638 236.594 L 605.7638 236.594 L 605.7638 279.794 C 584.1638 274.394 555.3638 295.994 533.7638 285.194 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(538.7638 249.894)" fill="black">
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="2.734375" y="9" textLength="59.03174">Signing Policy </tspan>
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="4.23291" y="20" textLength="21.010254">Confi</tspan>
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="25.243164" y="20" textLength="32.523926">guration</tspan>
+        </text>
+      </g>
+      <g id="id37_Graphic">
+        <rect x="132.484" y="245.594" width="90" height="36" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(137.484 252.594)" fill="black">
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="7.737549" y="9" textLength="64.5249">Key Parameters</tspan>
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="22.57129" y="20" textLength="6.00293">V</tspan>
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="27.910645" y="20" textLength="29.518066">alidator</tspan>
+        </text>
+      </g>
+      <g id="id36_Graphic">
+        <rect x="132.484" y="150.826" width="90" height="36" fill="white"/>
+        <rect x="132.484" y="150.826" width="90" height="36" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(137.484 157.826)" fill="black">
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="8.730713" y="9" textLength="62.538574">Key Generation</tspan>
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="24.24121" y="20" textLength="31.51758">Handler</tspan>
+        </text>
+      </g>
+      <line x1="177.484" y1="187.326" x2="177.484" y2="235.694" marker-end="url(#FilledArrow_Marker)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <g id="id34_Graphic">
+        <rect x="260.7874" y="243.77953" width="90" height="36" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(265.7874 250.77953)" fill="black">
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="14.652344" y="9" textLength="5.4975586">T</tspan>
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="19.820312" y="9" textLength="17.503418">rust </tspan>
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="36.831543" y="9" textLength="28.516113">Anchor</tspan>
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="18.743652" y="20" textLength="42.512695">Assembler</tspan>
+        </text>
+      </g>
+      <g id="id33_Graphic">
+        <rect x="136.984" y="371.9287" width="81" height="36" fill="white"/>
+        <path d="M 136.984 371.9287 L 217.984 371.9287 L 217.984 407.9287 L 136.984 407.9287 Z M 145.084 371.9287 L 145.084 407.9287 M 209.884 407.9287 L 209.884 371.9287" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(150.084 378.9287)" fill="black">
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="2.8851074" y="9" textLength="49.029785">C_Generate</tspan>
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="11.643408" y="20" textLength="31.513184">KeyPair</tspan>
+        </text>
+      </g>
+      <g id="id32_Graphic">
+        <rect x="406.341" y="371.9287" width="81" height="36" fill="white"/>
+        <path d="M 406.341 371.9287 L 487.341 371.9287 L 487.341 407.9287 L 406.341 407.9287 Z M 414.441 371.9287 L 414.441 407.9287 M 479.241 407.9287 L 479.241 371.9287" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(419.441 384.4287)" fill="black">
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="12.640967" y="9" textLength="29.518066">C_Sign</tspan>
+        </text>
+      </g>
+      <line x1="177.484" y1="282.094" x2="177.484" y2="362.0287" marker-end="url(#FilledArrow_Marker)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <line x1="305.7874" y1="279.77953" x2="305.7575" y2="362.0287" marker-end="url(#FilledArrow_Marker)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <line x1="283.254" y1="186.826" x2="283.2816" y2="233.87954" marker-end="url(#FilledArrow_Marker)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <line x1="305.754" y1="150.826" x2="305.7539" y2="79.655" marker-end="url(#FilledArrow_Marker)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <line x1="177.484" y1="70.255" x2="177.484" y2="140.926" marker-end="url(#FilledArrow_Marker)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <g id="id26_Graphic">
+        <rect x="401.841" y="245.594" width="90" height="36" fill="#ff7e79"/>
+        <rect x="401.841" y="245.594" width="90" height="36" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(406.841 252.594)" fill="black">
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="27.49756" y="9" textLength="25.004883">RRset</tspan>
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="26.992188" y="20" textLength="26.015625">Signer</tspan>
+        </text>
+      </g>
+      <path d="M 446.841 281.594 L 446.841 293.494 L 446.841 360.0287 L 446.841 362.0287" marker-end="url(#FilledArrow_Marker)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <line x1="533.2638" y1="263.594" x2="502.241" y2="263.594" marker-end="url(#FilledArrow_Marker)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <g id="id23_Graphic">
+        <rect x="401.841" y="150.826" width="90" height="36" fill="white"/>
+        <rect x="401.841" y="150.826" width="90" height="36" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(406.841 157.826)" fill="black">
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="5.986328" y="9" textLength="70.52783">KSR  Processing </tspan>
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="24.24121" y="20" textLength="31.51758">Handler</tspan>
+        </text>
+      </g>
+      <line x1="424.341" y1="186.826" x2="424.341" y2="235.694" marker-end="url(#FilledArrow_Marker)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <path d="M 424.57026 70.255 L 424.57026 82.155 L 424.341 138.926 L 424.341 140.926" marker-end="url(#FilledArrow_Marker)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <g id="id20_Graphic">
+        <rect x="260.754" y="150.826" width="90" height="36" fill="white"/>
+        <rect x="260.754" y="150.826" width="90" height="36" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(265.754 157.826)" fill="black">
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x=".39648438" y="9" textLength="5.4975586">T</tspan>
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="5.564453" y="9" textLength="17.503418">rust </tspan>
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="22.575684" y="9" textLength="57.02783">Anchor Export</tspan>
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="24.24121" y="20" textLength="31.51758">Handler</tspan>
+        </text>
+      </g>
+      <line x1="177.484" y1="407.9287" x2="177.48392" y2="449.036" marker-end="url(#FilledArrow_Marker)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <line x1="446.841" y1="408.4287" x2="446.841" y2="449.036" marker-end="url(#FilledArrow_Marker)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <line x1="208.5828" y1="476.936" x2="216.107" y2="476.936" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <g id="id16_Graphic">
+        <rect x="146.385" y="458.936" width="62.1978" height="36" fill="white"/>
+        <rect x="146.385" y="458.936" width="62.1978" height="36" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(151.385 465.936)" fill="black">
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="18.34475" y="9" textLength="18.00879">Key </tspan>
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="5.837914" y="20" textLength="40.521973">Generator</tspan>
+        </text>
+      </g>
+      <g id="id15_Graphic">
+        <rect x="216.107" y="458.936" width="51.0237" height="36" fill="white"/>
+        <rect x="216.107" y="458.936" width="51.0237" height="36" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(221.107 471.436)" fill="black">
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="10.512094" y="9" textLength="19.999512">RNG</tspan>
+        </text>
+      </g>
+      <rect x="403.341" y="208.3974" width="42" height="15" fill="#ebebeb"/>
+      <text transform="translate(405.341 210.3974)" fill="black">
+        <tspan font-family="Helvetica" font-size="9" font-weight="500" x=".4946289" y="9" textLength="37.01074">DNSKEY</tspan>
+      </text>
+      <line x1="469.341" y1="245.594" x2="469.341" y2="196.726" marker-end="url(#FilledArrow_Marker)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <rect x="452.841" y="209.0226" width="33" height="15" fill="#ebebeb"/>
+      <text transform="translate(454.841 211.0226)" fill="black">
+        <tspan font-family="Helvetica" font-size="9" font-weight="500" x=".24853516" y="9" textLength="28.50293">RRSIG</tspan>
+      </text>
+      <line x1="328.2874" y1="243.77953" x2="328.2598" y2="196.726" marker-end="url(#FilledArrow_Marker)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      <rect x="399.49854" y="89.41363" width="50" height="21" fill="white"/>
+      <text transform="translate(404.49854 94.41363)" fill="black">
+        <tspan font-family="Helvetica" font-size="9" font-weight="500" x=".24438477" y="9" textLength="39.51123">KSR XML</tspan>
+      </text>
+      <rect x="471.4259" y="89.67965" width="50" height="21" fill="white"/>
+      <text transform="translate(476.4259 94.67965)" fill="black">
+        <tspan font-family="Helvetica" font-size="9" font-weight="500" x=".24438477" y="9" textLength="39.51123">SKR XML</tspan>
+      </text>
+      <rect x="527.2441" y="442.20474" width="85.0394" height="21.2598" fill="#ff7e79"/>
+      <text transform="translate(532.2441 447.33464)" fill="black">
+        <tspan font-family="Helvetica" font-size="9" font-style="italic" font-weight="500" x="5.259446" y="9" textLength="64.52051">Critical Function</tspan>
+      </text>
+      <rect x="527.2441" y="498.89774" width="85.0394" height="21.2598" fill="#76d6ff"/>
+      <text transform="translate(532.2441 504.02764)" fill="black">
+        <tspan font-family="Helvetica" font-size="9" font-style="italic" font-weight="500" x="24.01091" y="9" textLength="27.017578">Output</tspan>
+      </text>
+      <rect x="527.2441" y="470.55074" width="85.0394" height="21.2598" fill="#d5fc79"/>
+      <text transform="translate(532.2441 475.68064)" fill="black">
+        <tspan font-family="Helvetica" font-size="9" font-style="italic" font-weight="500" x="27.511155" y="9" textLength="20.01709">Input</tspan>
+      </text>
+      <rect x="527.2441" y="527.24374" width="85.0394" height="21.2598" fill="#ffd579"/>
+      <text transform="translate(532.2441 532.37364)" fill="black">
+        <tspan font-family="Helvetica" font-size="9" font-style="italic" font-weight="500" x="1.0033426" y="9" textLength="73.032715">3rd Party Modules</tspan>
+      </text>
+      <g id="id4_Graphic">
+        <rect x="260.7539" y="371.9287" width="90" height="36" fill="white"/>
+        <path d="M 260.7539 371.9287 L 350.7539 371.9287 L 350.7539 407.9287 L 260.7539 407.9287 Z M 269.7539 371.9287 L 269.7539 407.9287 M 341.7539 407.9287 L 341.7539 371.9287" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(274.7539 384.4287)" fill="black">
+          <tspan font-family="Helvetica" font-size="9" font-weight="500" x="1.2380364" y="9" textLength="59.523926">C_FindObjects</tspan>
+        </text>
+      </g>
+      <line x1="305.7539" y1="407.9287" x2="305.78368" y2="487.0134" marker-end="url(#FilledArrow_Marker)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+    </g>
+  </g>
+</svg>
