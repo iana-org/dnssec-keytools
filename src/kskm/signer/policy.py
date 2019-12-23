@@ -3,8 +3,7 @@ import logging
 from typing import Optional
 
 from kskm.common.config_misc import RequestPolicy
-from kskm.common.display import format_bundles_for_humans
-from kskm.common.parse_utils import is_ksk_key
+from kskm.common.display import format_bundles_for_humans, fmt_timedelta
 from kskm.ksr import Request
 from kskm.ksr.verify_bundles import KSR_BUNDLE_UNIQUE_Violation
 from kskm.ksr.verify_header import KSR_ID_Violation
@@ -129,6 +128,28 @@ def check_retire_safety(last_skr: Response, new_skr: Response, policy: RequestPo
         logger.warning('KSR-POLICY-SAFETY: RetireSafety checking disabled by policy (check_keys_retire_safety)')
         return
 
+    # Figure out the point in time where a signing key from the last bundle in the last SKR is required to
+    # still be published in this SKR.
+    last_bundle = last_skr.bundles[-1]
+    retire_at = last_bundle.expiration + new_skr.ksk_policy.retire_safety
+    for bundle in new_skr.bundles:
+        if bundle.inception <= retire_at:
+            # This bundle must include all the signing keys from the last bundle
+            for sig in last_bundle.signatures:
+                _match = [x for x in bundle.keys if x.key_identifier == sig.key_identifier]
+                if not _match:
+                    for _msg in format_bundles_for_humans(new_skr.bundles):
+                        logger.info(_msg)
+                    _retire_safety = fmt_timedelta(new_skr.ksk_policy.retire_safety)
+                    raise KSR_POLICY_SAFETY_Violation(f'Key {sig.key_tag}/{sig.key_identifier} used to sign bundle '
+                                                      f'{last_bundle.id} in the last SKR is not present in bundle '
+                                                      f'{bundle.id} which expires < RetireSafety '
+                                                      f'({_retire_safety}/{retire_at}) from that '
+                                                      f'bundles inception ({last_bundle.inception})')
+
+
+    # Now, ensure that a key used to sign a bundle in the new SKR doesn't disappear later in this SKR
+    # (this is to support the assumption made above that all the signing keys are present in the last bundle)
     _curr_idx = 1
     for _curr in new_skr.bundles:
         # Take a simplified approach and just verify that all signing keys of a bundle is
