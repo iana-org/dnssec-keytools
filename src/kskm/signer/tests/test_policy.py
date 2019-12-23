@@ -127,8 +127,8 @@ class Test_KSR_SKR_policy(unittest.TestCase):
         # Check exact error message to differentiate from error from check_publish_safety
         self.assertEqual('Key 19036/Kjqmt7v used to sign bundle c8753ecf-cbaf-4adc-902b-9f3e0861cc48 in the last SKR '
                          'is not present in bundle dc1bc68c-b1c1-46f8-817f-ec893549f2be which expires < RetireSafety '
-                         '(28 days/2017-05-09 00:00:00+00:00) from that bundles inception (2017-03-21 00:00:00+00:00)',
-                         str(exc.exception))
+                         '(28 days/2017-04-29 00:00:00+00:00) from this new SKRs first bundle inception '
+                         '(2017-04-01 00:00:00+00:00)', str(exc.exception))
 
 
 class Test_LastSKR_unique_ids(Test_KSR_SKR_policy):
