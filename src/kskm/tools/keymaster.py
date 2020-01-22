@@ -17,6 +17,7 @@ Tool to create, delete, backup, restore keys as well as perform a key inventory.
 
 import argparse
 import logging
+import os
 import sys
 from typing import List, Optional
 
