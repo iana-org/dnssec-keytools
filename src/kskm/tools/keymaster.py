@@ -304,7 +304,7 @@ def main() -> bool:
                                    required=True,
                                    help='Filename to read wrapped key from')
 
-    args = parser.parse_args(args=sys.argv)
+    args = parser.parse_args()
     logger = get_logger(progname=progname, debug=args.debug, syslog=False, filelog=True).getChild(__name__)
 
     try:
