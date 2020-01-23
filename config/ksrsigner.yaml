@@ -124,6 +124,10 @@ request_policy:
   # DNS TTL, if this is 0 the config value ksk_policy.ttl will be used instead
   dns_ttl: 0
 
+  # Check that signatures do not expire too long into the future
+  signature_check_expire_horizon: True
+  signature_horizon_days: 180
+
   # Check bundle intervals (default True)
   check_bundle_intervals: True
 
