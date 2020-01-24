@@ -230,6 +230,7 @@ class KSKMConfig(object):
         config = yaml.safe_load(stream)
         try:
             voluptuous.humanize.validate_with_humanized_errors(config, KSRSIGNER_CONFIG_SCHEMA)
+            logger.info("Configuration validated")
         except voluptuous.error.Error as exc:
             raise ConfigurationError(str(exc))
         return cls(config)
