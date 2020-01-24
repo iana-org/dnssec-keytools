@@ -30,10 +30,12 @@ class Policy(ABC):
         """Instantiate ResponsePolicy from a dict of values."""
         _data = deepcopy(data)  # don't mess with caller's data
         # Convert durations provided as strings into datetime.timedelta instances
-        for this_td in ['min_cycle_duration', 'max_cycle_duration',
-                        'min_bundle_duration', 'max_bundle_duration']:
+        for this_td in ['min_bundle_interval',
+                        'max_bundle_interval',
+                        'min_cycle_inception_length',
+                        'max_cycle_inception_length']:
             if this_td in _data:
-                _data[this_td] = duration_to_timedelta(this_td)
+                _data[this_td] = duration_to_timedelta(data[this_td])
         return cls(**_data)
 
 
