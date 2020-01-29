@@ -115,7 +115,7 @@ KSRSIGNER_CONFIG_SCHEMA = Schema({
     'filenames': {
         'previous_skr': IsFile(),
         'input_ksr': IsFile(),
-        'output_skr': IsFile(),
+        'output_skr': str,
     },
     'keys': Schema({KEY_NAME: KEY_SCHEMA}),
     'request_policy': REQUEST_POLICY_SCHEMA,
