@@ -126,15 +126,15 @@ def validate_ksr(filename: str) -> dict:
 
     try:
         if previous_skr_filename is not None:
-            last_skr = load_skr(previous_skr_filename, config.response_policy)
+            previous_skr = load_skr(previous_skr_filename, config.response_policy)
             logger.info("Previous SKR loaded: %s", previous_skr_filename)
         else:
-            last_skr = None
+            previous_skr = None
 
         ksr = load_ksr(filename, config.request_policy, raise_original=True)
 
-        if last_skr is not None:
-            check_skr_and_ksr(ksr, last_skr, config.request_policy)
+        if previous_skr is not None:
+            check_skr_and_ksr(ksr, previous_skr, config.request_policy)
             logger.info("Previous SKR checked: %s", previous_skr_filename)
         else:
             logger.warning("Previous SKR not checked")
