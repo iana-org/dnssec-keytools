@@ -20,6 +20,8 @@ from werkzeug.exceptions import BadRequest, Forbidden, RequestEntityTooLarge
 from kskm.common.config import get_config
 from kskm.common.validate import PolicyViolation
 from kskm.ksr import load_ksr
+from kskm.signer.policy import check_skr_and_ksr
+from kskm.skr import load_skr
 
 from .peercert import PeerCertWSGIRequestHandler
 
@@ -106,21 +108,45 @@ def upload() -> str:
 
 
 def validate_ksr(filename: str) -> dict:
-    """Validate incoming KSR."""
+    """Validate incoming KSR and optionally check previous SKR."""
     global ksr_config
-    config_fn = None
+
     if ksr_config:
-        config_fn = ksr_config.get('ksrsigner_configfile')
-    # If config_fn is None, get_request_policy returns a default policy
-    _config = get_config(config_fn)
+        ksr_config_filename = ksr_config.get('ksrsigner_configfile')
+        logger.info("Using ksrsigner configuration %s", ksr_config_filename)
+    else:
+        logger.warning("Using default ksrsigner configuration")
+        ksr_config_filename = None
+
+    # If ksr_config_filename is None, get_config returns a default policy
+    config = get_config(ksr_config_filename)
+    logger.debug("ksrsigner configuration loaded")
+
     result = {}
+    previous_skr_filename = config.get_filename('previous_skr')
+
     try:
-        ksr = load_ksr(filename, _config.request_policy, raise_original=True)
+        if previous_skr_filename is not None:
+            previous_skr = load_skr(previous_skr_filename, config.response_policy)
+            logger.info("Previous SKR loaded: %s", previous_skr_filename)
+        else:
+            logger.warning("No previous SKR loaded")
+            previous_skr = None
+
+        ksr = load_ksr(filename, config.request_policy, raise_original=True)
+
+        if previous_skr is not None:
+            check_skr_and_ksr(ksr, previous_skr, config.request_policy)
+            logger.info("Previous SKR checked: %s", previous_skr_filename)
+        else:
+            logger.warning("Previous SKR not checked")
+
         result['status'] = 'OK'
         result['message'] = f'KSR with id {ksr.id} loaded successfully'
     except PolicyViolation as exc:
         result['status'] = 'ERROR'
         result['message'] = str(exc)
+
     return result
 
 
@@ -175,7 +201,6 @@ def save_ksr(upload_file: FileStorage) -> Tuple[str, str]:
 
 def generate_ssl_context(config: dict = {}) -> ssl.SSLContext:
     """Generate SSL context for app."""
-
     ssl_context = ssl.create_default_context(purpose=ssl.Purpose.CLIENT_AUTH, cafile=config.get('ca_cert'))
     ssl_context.options |= ssl.OP_NO_TLSv1
     ssl_context.options |= ssl.OP_NO_TLSv1_1
