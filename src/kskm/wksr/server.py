@@ -48,12 +48,12 @@ def authz() -> None:
     """Check TLS client whitelist."""
     digest = PeerCertWSGIRequestHandler.client_digest()
     if digest is None:
-        logging.warning("Allowed client=%s digest=%s", request.remote_addr, digest)
+        logger.warning("Allowed client=%s digest=%s", request.remote_addr, digest)
         return
     if digest not in client_whitelist:
-        logging.warning("Denied client=%s digest=%s", request.remote_addr, digest)
+        logger.warning("Denied client=%s digest=%s", request.remote_addr, digest)
         raise Forbidden
-    logging.info("Allowed client=%s digest=%s", request.remote_addr, digest)
+    logger.info("Allowed client=%s digest=%s", request.remote_addr, digest)
 
 
 def index() -> str:
@@ -168,7 +168,7 @@ def save_ksr(upload_file: FileStorage) -> Tuple[str, str]:
     with open(filename, 'wb') as ksr_file:
         ksr_file.write(upload_file.stream.read())
 
-    logging.info("Saved filename=%s size=%d hash=%s", filename, filesize, filehash)
+    logger.info("Saved filename=%s size=%d hash=%s", filename, filesize, filehash)
 
     return filename, filehash
 
@@ -209,7 +209,7 @@ def generate_app(config: dict) -> Flask:
 
     for client in tls_config.get('client_whitelist', []):
         client_whitelist.add(client)
-        logging.info("Accepting TLS client SHA-256 fingerprint: %s", client)
+        logger.info("Accepting TLS client SHA-256 fingerprint: %s", client)
 
     app = Flask(__name__)
 
