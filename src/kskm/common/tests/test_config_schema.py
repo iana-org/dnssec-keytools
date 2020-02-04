@@ -5,12 +5,11 @@ import unittest
 from tempfile import mkstemp
 
 import pkg_resources
-import yaml
-
 import voluptuous.error
 import voluptuous.humanize
+import yaml
 
-from kskm.common.config import get_config, ConfigurationError
+from kskm.common.config import ConfigurationError, get_config
 from kskm.common.config_schema import (KSRSIGNER_CONFIG_SCHEMA,
                                        WKSR_CONFIG_SCHEMA)
 

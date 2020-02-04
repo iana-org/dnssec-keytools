@@ -9,7 +9,9 @@ from typing import Dict, List, Set
 
 from kskm.common.data import Bundle, Key, Signature
 from kskm.common.dnssec import key_to_rdata
-from kskm.common.ecdsa_utils import is_algorithm_ecdsa, decode_ecdsa_public_key, algorithm_to_curve
+from kskm.common.ecdsa_utils import (algorithm_to_curve,
+                                     decode_ecdsa_public_key,
+                                     is_algorithm_ecdsa)
 from kskm.common.rsa_utils import decode_rsa_public_key, is_algorithm_rsa
 from kskm.misc.crypto import (InvalidSignature, key_to_crypto_pubkey,
                               verify_signature)

@@ -1,7 +1,8 @@
 import datetime
 import unittest
 
-from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyRSA, SignaturePolicy
+from kskm.common.data import (AlgorithmDNSSEC, AlgorithmPolicyRSA,
+                              SignaturePolicy)
 from kskm.common.parse_utils import duration_to_timedelta
 from kskm.ksr import request_from_xml
 from kskm.skr.output import timedelta_to_duration

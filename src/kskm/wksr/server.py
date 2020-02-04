@@ -13,15 +13,15 @@ from email.message import EmailMessage
 from typing import Dict, Set, Tuple
 
 import jinja2
-from flask import Flask, render_template, request
-from werkzeug.datastructures import FileStorage
-from werkzeug.exceptions import BadRequest, Forbidden, RequestEntityTooLarge
 
+from flask import Flask, render_template, request
 from kskm.common.config import get_config
 from kskm.common.validate import PolicyViolation
 from kskm.ksr import load_ksr
 from kskm.signer.policy import check_skr_and_ksr
 from kskm.skr import load_skr
+from werkzeug.datastructures import FileStorage
+from werkzeug.exceptions import BadRequest, Forbidden, RequestEntityTooLarge
 
 from .peercert import PeerCertWSGIRequestHandler
 

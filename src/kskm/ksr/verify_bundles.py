@@ -6,10 +6,12 @@ from typing import Dict, Optional
 from cryptography.exceptions import InvalidSignature
 
 from kskm.common.config_misc import RequestPolicy
-from kskm.common.data import AlgorithmPolicy, AlgorithmPolicyECDSA, AlgorithmPolicyRSA, FlagsDNSKEY, Key
+from kskm.common.data import (AlgorithmPolicy, AlgorithmPolicyECDSA,
+                              AlgorithmPolicyRSA, FlagsDNSKEY, Key)
 from kskm.common.display import fmt_timedelta
 from kskm.common.dnssec import calculate_key_tag
-from kskm.common.ecdsa_utils import is_algorithm_ecdsa, ecdsa_public_key_without_prefix, get_ecdsa_pubkey_size
+from kskm.common.ecdsa_utils import (ecdsa_public_key_without_prefix,
+                                     get_ecdsa_pubkey_size, is_algorithm_ecdsa)
 from kskm.common.rsa_utils import (KSKM_PublicKey_RSA, decode_rsa_public_key,
                                    is_algorithm_rsa)
 from kskm.common.signature import validate_signatures

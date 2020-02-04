@@ -9,11 +9,11 @@ import sys
 import voluptuous.error
 import voluptuous.humanize
 import yaml
-from werkzeug.serving import run_simple
 
 from kskm.common.config_schema import WKSR_CONFIG_SCHEMA
 from kskm.wksr.peercert import PeerCertWSGIRequestHandler
 from kskm.wksr.server import generate_app, generate_ssl_context
+from werkzeug.serving import run_simple
 
 DEFAULT_HOSTNAME = '127.0.0.1'
 DEFAULT_PORT = 8443

@@ -11,7 +11,7 @@ from kskm.ksr import request_from_xml
 from kskm.ksr.verify_bundles import KSR_BUNDLE_UNIQUE_Violation
 from kskm.ksr.verify_header import KSR_ID_Violation
 from kskm.ksr.verify_policy import KSR_POLICY_SAFETY_Violation
-from kskm.signer.policy import check_skr_and_ksr, check_last_skr_and_new_skr
+from kskm.signer.policy import check_last_skr_and_new_skr, check_skr_and_ksr
 from kskm.signer.verify_chain import KSR_CHAIN_OVERLAP_Violation
 from kskm.skr import response_from_xml
 

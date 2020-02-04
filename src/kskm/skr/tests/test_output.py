@@ -4,8 +4,7 @@ import unittest
 import pkg_resources
 
 from kskm.common.config import get_config
-from kskm.skr import (load_skr, response_from_xml,
-                      skr_to_xml)
+from kskm.skr import load_skr, response_from_xml, skr_to_xml
 from kskm.skr.validate import validate_response
 
 

@@ -54,4 +54,3 @@ class TestParseRealSKRs(unittest.TestCase):
         config = get_config(None)
         skr = load_skr(fn, config.response_policy, log_contents=True)
         self.assertEqual(skr.id, '4fe9bb10-6f6b-4503-8575-7824e2d66925')
-

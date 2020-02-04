@@ -12,9 +12,10 @@ from cryptography.hazmat.primitives.asymmetric.utils import \
 from cryptography.hazmat.primitives.hashes import SHA256, SHA384
 
 from kskm.common.data import AlgorithmDNSSEC, Key
-from kskm.common.ecdsa_utils import (KSKM_PublicKey_ECDSA,
+from kskm.common.ecdsa_utils import (ECCurve, KSKM_PublicKey_ECDSA,
+                                     algorithm_to_curve,
                                      decode_ecdsa_public_key,
-                                     is_algorithm_ecdsa, ECCurve, algorithm_to_curve)
+                                     is_algorithm_ecdsa)
 from kskm.common.public_key import KSKM_PublicKey
 from kskm.common.rsa_utils import (KSKM_PublicKey_RSA, decode_rsa_public_key,
                                    is_algorithm_rsa)

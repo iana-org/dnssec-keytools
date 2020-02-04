@@ -6,7 +6,7 @@ import os
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.display import log_file_contents
 from kskm.common.integrity import checksum_bytes2str, sha256
-from kskm.common.parse_utils import signature_policy_from_dict, parse_datetime
+from kskm.common.parse_utils import parse_datetime, signature_policy_from_dict
 from kskm.common.validate import PolicyViolation
 from kskm.common.xml_parser import parse_ksr
 from kskm.ksr.data import Request

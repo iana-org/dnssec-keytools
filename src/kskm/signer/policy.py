@@ -3,7 +3,7 @@ import logging
 from typing import Optional
 
 from kskm.common.config_misc import RequestPolicy
-from kskm.common.display import format_bundles_for_humans, fmt_timedelta
+from kskm.common.display import fmt_timedelta, format_bundles_for_humans
 from kskm.ksr import Request
 from kskm.ksr.verify_bundles import KSR_BUNDLE_UNIQUE_Violation
 from kskm.ksr.verify_header import KSR_ID_Violation

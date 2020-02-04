@@ -4,7 +4,8 @@ from typing import Optional
 
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import FlagsDNSKEY
-from kskm.common.display import fmt_bundle, fmt_timedelta, format_bundles_for_humans
+from kskm.common.display import (fmt_bundle, fmt_timedelta,
+                                 format_bundles_for_humans)
 from kskm.common.dnssec import public_key_to_dnssec_key
 from kskm.common.validate import PolicyViolation
 from kskm.ksr.data import Request

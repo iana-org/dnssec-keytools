@@ -10,10 +10,15 @@ from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY
 from kskm.common.parse_utils import duration_to_timedelta
 from kskm.ksr import load_ksr, request_from_xml
-from kskm.ksr.tests.common import Test_Requests, Test_Requests_With_Two_Bundles, Test_Validate_KSR_ECDSA
+from kskm.ksr.tests.common import (Test_Requests,
+                                   Test_Requests_With_Two_Bundles,
+                                   Test_Validate_KSR_ECDSA)
 from kskm.ksr.validate import validate_request
-from kskm.ksr.verify_bundles import KSR_BUNDLE_COUNT_Violation, KSR_BUNDLE_CYCLE_DURATION_Violation, \
-    KSR_BUNDLE_KEYS_Violation, KSR_BUNDLE_POP_Violation, KSR_BUNDLE_UNIQUE_Violation
+from kskm.ksr.verify_bundles import (KSR_BUNDLE_COUNT_Violation,
+                                     KSR_BUNDLE_CYCLE_DURATION_Violation,
+                                     KSR_BUNDLE_KEYS_Violation,
+                                     KSR_BUNDLE_POP_Violation,
+                                     KSR_BUNDLE_UNIQUE_Violation)
 from kskm.ksr.verify_header import KSR_DOMAIN_Violation
 
 

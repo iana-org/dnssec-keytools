@@ -107,5 +107,3 @@ def expected_ecdsa_key_size(algorithm: AlgorithmDNSSEC) -> int:
     if algorithm not in _expected:
         raise ValueError(f'Unhandled ECDSA algorithm {algorithm}')
     return _expected[algorithm]
-
-

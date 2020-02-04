@@ -3,7 +3,8 @@ import datetime
 from logging import Logger
 
 from kskm.common.config_misc import RequestPolicy
-from kskm.common.data import (AlgorithmDNSSEC, AlgorithmPolicyRSA, DEPRECATED_ALGORITHMS, SUPPORTED_ALGORITHMS)
+from kskm.common.data import (DEPRECATED_ALGORITHMS, SUPPORTED_ALGORITHMS,
+                              AlgorithmDNSSEC, AlgorithmPolicyRSA)
 from kskm.common.display import fmt_bundle, fmt_timedelta, fmt_timestamp
 from kskm.common.ecdsa_utils import is_algorithm_ecdsa
 from kskm.common.rsa_utils import is_algorithm_rsa

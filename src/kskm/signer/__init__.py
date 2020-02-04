@@ -4,10 +4,10 @@ from dataclasses import replace
 from typing import Iterable, Optional, Set
 
 from kskm.common.config import KSKMConfig
-from kskm.common.display import log_file_contents
 from kskm.common.config_misc import KSKPolicy, Schema
 from kskm.common.data import (AlgorithmPolicy, AlgorithmPolicyRSA,
                               SignaturePolicy)
+from kskm.common.display import log_file_contents
 from kskm.common.integrity import checksum_bytes2str
 from kskm.common.rsa_utils import decode_rsa_public_key, is_algorithm_rsa
 from kskm.ksr import Request

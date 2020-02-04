@@ -14,7 +14,8 @@ from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY
 from kskm.keymaster.delete import key_delete, wrapkey_delete
 from kskm.keymaster.keygen import generate_rsa_key, generate_wrapping_key
 from kskm.keymaster.wrap import key_backup, key_restore
-from kskm.misc.hsm import KSKM_P11, WrappingAlgorithm, get_p11_key, init_pkcs11_modules_from_dict, sign_using_p11
+from kskm.misc.hsm import (KSKM_P11, WrappingAlgorithm, get_p11_key,
+                           init_pkcs11_modules_from_dict, sign_using_p11)
 from kskm.signer.sign import _verify_using_crypto
 
 __author__ = 'ft'
