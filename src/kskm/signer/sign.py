@@ -10,8 +10,7 @@ from cryptography.exceptions import InvalidSignature
 from kskm.common.config import ConfigurationError, KSKMConfig
 from kskm.common.config_ksk import validate_dnskey_matches_ksk
 from kskm.common.config_misc import KSKKeysType, KSKPolicy, Schema
-from kskm.common.data import (AlgorithmDNSSEC, FlagsDNSKEY, Signature,
-                              TypeDNSSEC)
+from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY, Signature, TypeDNSSEC
 from kskm.common.dnssec import calculate_key_tag
 from kskm.common.signature import dndepth, make_raw_rrsig
 from kskm.ksr import Request
@@ -22,7 +21,7 @@ from kskm.signer.key import CompositeKey, load_pkcs11_key
 from kskm.skr.data import ResponseBundle
 from kskm.skr.validate import check_valid_signatures
 
-__author__ = 'ft'
+__author__ = "ft"
 
 logger = logging.getLogger(__name__)
 
@@ -32,13 +31,20 @@ class CreateSignatureError(Exception):
 
     pass
 
+
 class SKR_VERIFY_Failure(InvalidSignature):
     """SKR-VERIFY signature validation failure."""
 
     pass
 
-def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
-                 ksk_policy: KSKPolicy, config: KSKMConfig) -> Iterable[ResponseBundle]:
+
+def sign_bundles(
+    request: Request,
+    schema: Schema,
+    p11modules: KSKM_P11,
+    ksk_policy: KSKPolicy,
+    config: KSKMConfig,
+) -> Iterable[ResponseBundle]:
     """
     Execute the actions specified in the schema, for all bundles in the request.
 
@@ -53,7 +59,9 @@ def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
         this_schema = schema.actions[bundle_num]
 
         if _bundle.signers:
-            logger.warning(f'Bundle {_bundle.id} has signers specified - those will be ignored')
+            logger.warning(
+                f"Bundle {_bundle.id} has signers specified - those will be ignored"
+            )
 
         # All DNSKEY RRs in a set *has* to have the same TTL. Ensure all keys have the TTL
         # configured by the KSK operator. A warning is logged for any discrepancies found,
@@ -62,7 +70,9 @@ def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
         for _key in _bundle.keys:
             if _key.ttl != ksk_policy.ttl:
                 if _key.key_identifier not in _hush_key_ttl_warnings:
-                    logger.warning(f'Overriding key {_key.key_identifier} TTL {_key.ttl} -> {ksk_policy.ttl}')
+                    logger.warning(
+                        f"Overriding key {_key.key_identifier} TTL {_key.ttl} -> {ksk_policy.ttl}"
+                    )
                     if _key.key_identifier is not None:
                         _hush_key_ttl_warnings[_key.key_identifier] = True
                 _key = replace(_key, ttl=ksk_policy.ttl)
@@ -70,19 +80,27 @@ def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
         #
         # Add all the 'publish' keys (KSK operator keys) to the keys already in the bundle (ZSK operator keys)
         #
-        for this_key in _fetch_keys(this_schema.publish, _bundle, p11modules, ksk_policy, config.ksk_keys, True):
+        for this_key in _fetch_keys(
+            this_schema.publish, _bundle, p11modules, ksk_policy, config.ksk_keys, True
+        ):
             _new_keys.add(this_key.dns)
         #
         # Add all the 'revoke' keys (same as 'publish' but the key gets the revoke flag bit set)
         #
-        for this_key in _fetch_keys(this_schema.revoke, _bundle, p11modules, ksk_policy, config.ksk_keys, True):
-            revoked_key = replace(this_key.dns, flags=this_key.dns.flags | FlagsDNSKEY.REVOKE.value)
+        for this_key in _fetch_keys(
+            this_schema.revoke, _bundle, p11modules, ksk_policy, config.ksk_keys, True
+        ):
+            revoked_key = replace(
+                this_key.dns, flags=this_key.dns.flags | FlagsDNSKEY.REVOKE.value
+            )
             revoked_key = replace(revoked_key, key_tag=calculate_key_tag(revoked_key))
             _new_keys.add(revoked_key)
         #
         # All the signing keys sign the complete DNSKEY RRSET, so first add them to the bundles keys
         #
-        signing_keys = _fetch_keys(this_schema.sign, _bundle, p11modules, ksk_policy, config.ksk_keys, False)
+        signing_keys = _fetch_keys(
+            this_schema.sign, _bundle, p11modules, ksk_policy, config.ksk_keys, False
+        )
         for this_key in signing_keys:
             _new_keys.add(this_key.dns)
 
@@ -93,10 +111,12 @@ def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
         #
         signatures = set()
         for _sign_key in signing_keys:
-            logger.debug(f'Signing {len(updated_bundle.keys)} bundle keys:')
+            logger.debug(f"Signing {len(updated_bundle.keys)} bundle keys:")
             for _this in updated_bundle.keys:
-                logger.debug(f'  {_this}')
-            logger.debug(f'Signing above {len(updated_bundle.keys)} bundle keys with sign_key {_sign_key}')
+                logger.debug(f"  {_this}")
+            logger.debug(
+                f"Signing above {len(updated_bundle.keys)} bundle keys with sign_key {_sign_key}"
+            )
             _sig = _sign_keys(updated_bundle, _sign_key, ksk_policy)
             if _sig:
                 signatures.add(_sig)
@@ -105,14 +125,18 @@ def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
         _zsk_algs = set([x.algorithm.name for x in _bundle.keys])
         _ksk_algs = set([x.algorithm.name for x in signatures])
         if _zsk_algs != _ksk_algs:
-            raise CreateSignatureError(f'ZSK algorithms {_zsk_algs} does not match KSK algorithms {_ksk_algs} '
-                                       f'for bundle {_bundle.id}')
+            raise CreateSignatureError(
+                f"ZSK algorithms {_zsk_algs} does not match KSK algorithms {_ksk_algs} "
+                f"for bundle {_bundle.id}"
+            )
 
-        response_bundle = ResponseBundle(id=_bundle.id,
-                                         inception=_bundle.inception,
-                                         expiration=_bundle.expiration,
-                                         keys=_new_keys,
-                                         signatures=signatures)
+        response_bundle = ResponseBundle(
+            id=_bundle.id,
+            inception=_bundle.inception,
+            expiration=_bundle.expiration,
+            keys=_new_keys,
+            signatures=signatures,
+        )
         #
         # For good measure, apply response policy validation
         #
@@ -122,16 +146,24 @@ def sign_bundles(request: Request, schema: Schema, p11modules: KSKM_P11,
     return res
 
 
-def _fetch_keys(key_names: Iterable[str], bundle: RequestBundle, p11modules: KSKM_P11,
-                ksk_policy: KSKPolicy, ksk_keys: KSKKeysType, public: bool) -> Iterable[CompositeKey]:
+def _fetch_keys(
+    key_names: Iterable[str],
+    bundle: RequestBundle,
+    p11modules: KSKM_P11,
+    ksk_policy: KSKPolicy,
+    ksk_keys: KSKKeysType,
+    public: bool,
+) -> Iterable[CompositeKey]:
     res: List[CompositeKey] = []
     for _name in key_names:
         ksk = ksk_keys[_name]
         this_key = load_pkcs11_key(ksk, p11modules, ksk_policy, bundle, public=public)
         if not this_key:
-            logger.error(f'Could not find key {repr(_name)} ({ksk.label}/{ksk.description}) '
-                         f'for bundle {bundle.id}')
-            raise ConfigurationError(f'Key {repr(_name)} not found')
+            logger.error(
+                f"Could not find key {repr(_name)} ({ksk.label}/{ksk.description}) "
+                f"for bundle {bundle.id}"
+            )
+            raise ConfigurationError(f"Key {repr(_name)} not found")
 
         # Ensure the right key was located
         validate_dnskey_matches_ksk(ksk, this_key.dns)
@@ -139,7 +171,9 @@ def _fetch_keys(key_names: Iterable[str], bundle: RequestBundle, p11modules: KSK
     return res
 
 
-def _sign_keys(bundle: RequestBundle, signing_key: CompositeKey, ksk_policy: KSKPolicy) -> Optional[Signature]:
+def _sign_keys(
+    bundle: RequestBundle, signing_key: CompositeKey, ksk_policy: KSKPolicy
+) -> Optional[Signature]:
     """Sign the bundle key RRSET using the HSM key identified by 'label'."""
     # All ZSK TTLs are guaranteed to be the same as ksk_policy.ttl at this point. Just do this for clarity.
     for _key in bundle.keys:
@@ -156,32 +190,39 @@ def _sign_keys(bundle: RequestBundle, signing_key: CompositeKey, ksk_policy: KSK
         ttl=ksk_policy.ttl,
         signers_name=ksk_policy.signers_name,
         labels=dndepth(ksk_policy.signers_name),
-        signature_data=b'',  # Will replace this below
+        signature_data=b"",  # Will replace this below
     )
 
     rrsig_raw = make_raw_rrsig(sig, bundle.keys)
-    signature_data = sign_using_p11(signing_key.p11, rrsig_raw, signing_key.dns.algorithm)
+    signature_data = sign_using_p11(
+        signing_key.p11, rrsig_raw, signing_key.dns.algorithm
+    )
 
     # Before proceeding, validate the signature using a non-HSM based implementation
     try:
-        _verify_using_crypto(signing_key.p11, rrsig_raw, signature_data, signing_key.dns.algorithm)
+        _verify_using_crypto(
+            signing_key.p11, rrsig_raw, signature_data, signing_key.dns.algorithm
+        )
     except InvalidSignature:
-        raise SKR_VERIFY_Failure(f'Invalid KSK signature encountered in bundle {bundle.id}')
+        raise SKR_VERIFY_Failure(
+            f"Invalid KSK signature encountered in bundle {bundle.id}"
+        )
 
     sig = replace(sig, signature_data=base64.b64encode(signature_data))
     return sig
 
 
-def _verify_using_crypto(p11_key: KSKM_P11Key, rrsig_raw: bytes, signature: bytes,
-                         algorithm: AlgorithmDNSSEC) -> None:
+def _verify_using_crypto(
+    p11_key: KSKM_P11Key, rrsig_raw: bytes, signature: bytes, algorithm: AlgorithmDNSSEC
+) -> None:
     """Double-check signatures created using HSM with a standard software cryptographic library."""
     pubkey = pubkey_to_crypto_pubkey(p11_key.public_key)
     try:
         verify_signature(pubkey, signature, rrsig_raw, algorithm)
-        logger.debug('Signature validated with software')
+        logger.debug("Signature validated with software")
     except InvalidSignature:
-        logger.error('Failed validating the signature created by the HSM')
-        logger.debug('RRSIG : {}'.format(base64.b16encode(rrsig_raw)))
-        logger.debug('DIGEST: {}'.format(hashlib.sha256(rrsig_raw).hexdigest()))
-        logger.debug('SIG   : {}'.format(base64.b16encode(signature)))
+        logger.error("Failed validating the signature created by the HSM")
+        logger.debug("RRSIG : {}".format(base64.b16encode(rrsig_raw)))
+        logger.debug("DIGEST: {}".format(hashlib.sha256(rrsig_raw).hexdigest()))
+        logger.debug("SIG   : {}".format(base64.b16encode(signature)))
         raise

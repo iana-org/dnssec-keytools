@@ -39,12 +39,12 @@ class KeyDigest(object):
         xml += f' validFrom="{self.format_datetime(self.valid_from)}"'
         if self.valid_until is not None:
             xml += f' validUntil="{self.format_datetime(self.valid_until)}"'
-        xml += '>\n'
-        xml += f'<KeyTag>{self.key_tag}</KeyTag>\n'
-        xml += f'<Algorithm>{self.algorithm.value}</Algorithm>\n'
-        xml += f'<DigestType>{self.digest_type.value}</DigestType>\n'
-        xml += f'<Digest>{self.hexdigest()}</Digest>\n'
-        xml += '</KeyDigest>\n'
+        xml += ">\n"
+        xml += f"<KeyTag>{self.key_tag}</KeyTag>\n"
+        xml += f"<Algorithm>{self.algorithm.value}</Algorithm>\n"
+        xml += f"<DigestType>{self.digest_type.value}</DigestType>\n"
+        xml += f"<Digest>{self.hexdigest()}</Digest>\n"
+        xml += "</KeyDigest>\n"
         return xml
 
 
@@ -64,8 +64,8 @@ class TrustAnchor(object):
     def to_xml(self) -> str:
         """Export trust anchor as XML sniplet."""
         xml = f'<TrustAnchor id="{self.id}" source="{self.source}">\n'
-        xml += f'<Zone>{self.zone}</Zone>\n'
+        xml += f"<Zone>{self.zone}</Zone>\n"
         for ks in sorted(self.keydigests, key=lambda _ks: _ks.valid_from):
             xml += ks.to_xml()
-        xml += '</TrustAnchor>'
+        xml += "</TrustAnchor>"
         return xml

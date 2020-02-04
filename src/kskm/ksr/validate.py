@@ -19,7 +19,7 @@ from kskm.ksr.verify_bundles import verify_bundles
 from kskm.ksr.verify_header import verify_header
 from kskm.ksr.verify_policy import verify_policy
 
-__author__ = 'ft'
+__author__ = "ft"
 
 
 logger = logging.getLogger(__name__)
@@ -33,9 +33,9 @@ def validate_request(request: Request, policy: RequestPolicy) -> bool:
     on errors. Dealing with return values to determine outcome makes it too easy
     to screw up.
     """
-    logger.info('Validating KSR using request policy:')
+    logger.info("Validating KSR using request policy:")
     for k, v in sorted(asdict(policy).items()):
-        logger.info(f'  {k}: {v}')
+        logger.info(f"  {k}: {v}")
     verify_header(request, policy, logger)
     verify_bundles(request, policy, logger)
     verify_policy(request, policy, logger)

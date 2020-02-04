@@ -29,7 +29,9 @@ DIGEST_2010 = KeyDigest(
     key_tag=19036,
     algorithm=AlgorithmDNSSEC(8),
     digest_type=DigestDNSSEC(2),
-    digest=unhexlify("49AAC11D7B6F6446702E54A1607371607A1A41855200FD2CE1CDDE32F24E8FB5")
+    digest=unhexlify(
+        "49AAC11D7B6F6446702E54A1607371607A1A41855200FD2CE1CDDE32F24E8FB5"
+    ),
 )
 
 DIGEST_2017 = KeyDigest(
@@ -38,14 +40,16 @@ DIGEST_2017 = KeyDigest(
     key_tag=20326,
     algorithm=AlgorithmDNSSEC(8),
     digest_type=DigestDNSSEC(2),
-    digest=unhexlify("E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D")
+    digest=unhexlify(
+        "E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D"
+    ),
 )
 
 TA_20181219 = TrustAnchor(
     id="380DC50D-484E-40D0-A3AE-68F2B18F61C7",
     source="http://data.iana.org/root-anchors/root-anchors.xml",
     zone=".",
-    keydigests=set([DIGEST_2010, DIGEST_2017])
+    keydigests=set([DIGEST_2010, DIGEST_2017]),
 )
 
 
@@ -59,5 +63,5 @@ class Test_TA(unittest.TestCase):
         self.assertEqual(TA_20181219.to_xml_doc(), TA_20181219_XML)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

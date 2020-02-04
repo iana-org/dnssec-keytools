@@ -6,7 +6,7 @@ from kskm.common.signature import InvalidSignature, validate_signatures
 from kskm.common.validate import PolicyViolation
 from kskm.skr.data import Response, ResponseBundle
 
-__author__ = 'ft'
+__author__ = "ft"
 
 
 logger = logging.getLogger(__name__)
@@ -27,8 +27,10 @@ def validate_response(response: Response, policy: ResponsePolicy) -> bool:
     to screw up.
     """
     if policy.num_bundles is not None and len(response.bundles) != policy.num_bundles:
-        raise PolicyViolation(f'Wrong number of bundles in response ({len(response.bundles)}, '
-                              f'expected {policy.num_bundles})')
+        raise PolicyViolation(
+            f"Wrong number of bundles in response ({len(response.bundles)}, "
+            f"expected {policy.num_bundles})"
+        )
     for bundle in response.bundles:
         # check that all keys in the bundle are covered by a correct signature
         check_valid_signatures(bundle, policy)
@@ -38,10 +40,16 @@ def validate_response(response: Response, policy: ResponsePolicy) -> bool:
 def check_valid_signatures(bundle: ResponseBundle, policy: ResponsePolicy) -> None:
     """Validate requester proof of ownership of all the keys in the bundles."""
     if not policy.validate_signatures:
-        logger.warning('SKR signature validation disabled by policy (validate_signatures)')
+        logger.warning(
+            "SKR signature validation disabled by policy (validate_signatures)"
+        )
         return
     try:
         if not validate_signatures(bundle):
-            raise InvalidSignatureViolation(f'Unknown signature validation result in bundle {bundle.id}')
+            raise InvalidSignatureViolation(
+                f"Unknown signature validation result in bundle {bundle.id}"
+            )
     except InvalidSignature:
-        raise InvalidSignatureViolation(f'Invalid signature encountered in bundle {bundle.id}')
+        raise InvalidSignatureViolation(
+            f"Invalid signature encountered in bundle {bundle.id}"
+        )

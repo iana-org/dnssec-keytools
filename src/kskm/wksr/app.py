@@ -4,7 +4,7 @@ import yaml
 
 from .server import generate_app
 
-DEFAULT_CONFIG = 'wksr.yaml'
+DEFAULT_CONFIG = "wksr.yaml"
 
 logging.basicConfig(level=logging.INFO)
 

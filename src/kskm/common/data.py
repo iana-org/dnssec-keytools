@@ -8,8 +8,8 @@ from typing import Optional, Set, TypeVar
 
 # Type definitions to refer to the ABC types declared below
 
-BundleType = TypeVar('BundleType', bound='Bundle')
-AlgorithmPolicyType = TypeVar('AlgorithmPolicyType', bound='AlgorithmPolicy')
+BundleType = TypeVar("BundleType", bound="Bundle")
+AlgorithmPolicyType = TypeVar("AlgorithmPolicyType", bound="AlgorithmPolicy")
 
 
 class AlgorithmDNSSEC(Enum):
@@ -119,19 +119,31 @@ class Key(object):
     def __post_init__(self):
         """Check for valid DNSKEY flags."""
         # have to import these locally to avoid circular imports
-        from kskm.common.ecdsa_utils import is_algorithm_ecdsa, ecdsa_public_key_without_prefix, \
-            get_ecdsa_pubkey_size, expected_ecdsa_key_size
+        from kskm.common.ecdsa_utils import (
+            is_algorithm_ecdsa,
+            ecdsa_public_key_without_prefix,
+            get_ecdsa_pubkey_size,
+            expected_ecdsa_key_size,
+        )
+
         if is_algorithm_ecdsa(self.algorithm):
-            _pubkey = ecdsa_public_key_without_prefix(b64decode(self.public_key), self.algorithm)
+            _pubkey = ecdsa_public_key_without_prefix(
+                b64decode(self.public_key), self.algorithm
+            )
             _size = get_ecdsa_pubkey_size(_pubkey)
             if _size != expected_ecdsa_key_size(self.algorithm):
-                raise ValueError(f'Unexpected ECDSA key length {_size} for algorithm {self.algorithm}')
+                raise ValueError(
+                    f"Unexpected ECDSA key length {_size} for algorithm {self.algorithm}"
+                )
 
-        if self.flags == FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value or \
-           self.flags == FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value | FlagsDNSKEY.REVOKE.value or \
-           self.flags == FlagsDNSKEY.ZONE.value:
+        if (
+            self.flags == FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value
+            or self.flags
+            == FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value | FlagsDNSKEY.REVOKE.value
+            or self.flags == FlagsDNSKEY.ZONE.value
+        ):
             return
-        raise ValueError(f'Unsupported DNSSEC key flags combination {self.flags}')
+        raise ValueError(f"Unsupported DNSSEC key flags combination {self.flags}")
 
 
 @dataclass(frozen=True)

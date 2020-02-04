@@ -3,7 +3,7 @@
 from abc import ABC
 from dataclasses import dataclass
 
-__author__ = 'ft'
+__author__ = "ft"
 
 
 @dataclass(frozen=True)

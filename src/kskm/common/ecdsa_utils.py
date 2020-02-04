@@ -6,11 +6,13 @@ from enum import Enum
 from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyECDSA
 from kskm.common.public_key import KSKM_PublicKey
 
-__author__ = 'ft'
+__author__ = "ft"
+
 
 class ECCurve(Enum):
-    P256 = 'secp256r1'
-    P384 = 'secp384r1'
+    P256 = "secp256r1"
+    P384 = "secp384r1"
+
 
 ALGORITHM_TO_CURVE = {
     AlgorithmDNSSEC.ECDSAP256SHA256: ECCurve.P256,
@@ -31,9 +33,10 @@ class KSKM_PublicKey_ECDSA(KSKM_PublicKey):
 
 def is_algorithm_ecdsa(alg: AlgorithmDNSSEC) -> bool:
     """Check if `alg' is one of the ECDSA algorithms."""
-    return alg in [AlgorithmDNSSEC.ECDSAP256SHA256,
-                   AlgorithmDNSSEC.ECDSAP384SHA384,
-                   ]
+    return alg in [
+        AlgorithmDNSSEC.ECDSAP256SHA256,
+        AlgorithmDNSSEC.ECDSAP384SHA384,
+    ]
 
 
 def algorithm_to_curve(alg: AlgorithmDNSSEC) -> ECCurve:
@@ -53,11 +56,9 @@ def parse_signature_policy_ecdsa(data: dict) -> AlgorithmPolicyECDSA:
     {'attrs': {'algorithm': '13'},
      'value': {'ECDSA': {'attrs': {'size': '256'}, 'value': ''}}}
     """
-    attr_alg = AlgorithmDNSSEC(int(data['attrs']['algorithm']))
-    attrs = data['value']['ECDSA']['attrs']
-    ecdsa = AlgorithmPolicyECDSA(algorithm=attr_alg,
-                                 bits=int(attrs['size']),
-                                 )
+    attr_alg = AlgorithmDNSSEC(int(data["attrs"]["algorithm"]))
+    attrs = data["value"]["ECDSA"]["attrs"]
+    ecdsa = AlgorithmPolicyECDSA(algorithm=attr_alg, bits=int(attrs["size"]),)
     return ecdsa
 
 
@@ -69,12 +70,12 @@ def encode_ecdsa_public_key(key: KSKM_PublicKey_ECDSA) -> bytes:
 def decode_ecdsa_public_key(key: bytes, curve: ECCurve) -> KSKM_PublicKey_ECDSA:
     """Parse bytes to the internal representation of an ECDSA key."""
     q = base64.b64decode(key)
-    return KSKM_PublicKey_ECDSA(curve=curve,
-                                bits=len(q) * 8,
-                                q=q)
+    return KSKM_PublicKey_ECDSA(curve=curve, bits=len(q) * 8, q=q)
 
 
-def ecdsa_public_key_without_prefix(public_key: bytes, algorithm: AlgorithmDNSSEC) -> bytes:
+def ecdsa_public_key_without_prefix(
+    public_key: bytes, algorithm: AlgorithmDNSSEC
+) -> bytes:
     """
     Normalise ECDSA public keys by removing the common 0x04 prefix byte.
 
@@ -105,5 +106,5 @@ def expected_ecdsa_key_size(algorithm: AlgorithmDNSSEC) -> int:
         AlgorithmDNSSEC.ECDSAP384SHA384: 384,
     }
     if algorithm not in _expected:
-        raise ValueError(f'Unhandled ECDSA algorithm {algorithm}')
+        raise ValueError(f"Unhandled ECDSA algorithm {algorithm}")
     return _expected[algorithm]

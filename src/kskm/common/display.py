@@ -7,7 +7,7 @@ from typing import List, Sequence, Union
 import kskm.common
 from kskm.common.data import Bundle, BundleType
 
-__author__ = 'ft'
+__author__ = "ft"
 
 
 def log_file_contents(filename: str, contents: bytes, logger: logging.Logger) -> None:
@@ -23,11 +23,15 @@ def log_file_contents(filename: str, contents: bytes, logger: logging.Logger) ->
 
 def format_bundles_for_humans(bundles: Sequence[BundleType]) -> Sequence[str]:
     """Dump data about request bundles in either a request or a response."""
-    res = [_fmt_fields(num='#',
-                       inception='Inception',
-                       expiration='Expiration',
-                       zsk_tags='ZSK Tags',
-                       ksk_tag='KSK(CKA_LABEL)')]
+    res = [
+        _fmt_fields(
+            num="#",
+            inception="Inception",
+            expiration="Expiration",
+            zsk_tags="ZSK Tags",
+            ksk_tag="KSK(CKA_LABEL)",
+        )
+    ]
     num = 0
     for this in bundles:
         num += 1
@@ -41,17 +45,18 @@ def format_bundles_for_humans(bundles: Sequence[BundleType]) -> Sequence[str]:
                 for sig in this.signatures:
                     if sig.key_identifier == key.key_identifier:
                         signed = True
-                usage = ''
+                usage = ""
                 if kskm.common.parse_utils.is_revoked_key(key):
-                    usage += 'R'
-                usage += 'S' if signed else 'P'
-                ksk_info += [f'{key.key_tag}({key.key_identifier})/{usage}']
-        out = _fmt_fields(num=num,
-                          inception=this.inception.isoformat().split('+')[0],
-                          expiration=this.expiration.isoformat().split('+')[0],
-                          zsk_tags=','.join(zsk_info),
-                          ksk_tag=','.join(ksk_info),
-                          )
+                    usage += "R"
+                usage += "S" if signed else "P"
+                ksk_info += [f"{key.key_tag}({key.key_identifier})/{usage}"]
+        out = _fmt_fields(
+            num=num,
+            inception=this.inception.isoformat().split("+")[0],
+            expiration=this.expiration.isoformat().split("+")[0],
+            zsk_tags=",".join(zsk_info),
+            ksk_tag=",".join(ksk_info),
+        )
         res += [out]
     return res
 
@@ -67,23 +72,26 @@ def _fmt_fields(**kwargs: Union[int, str]) -> str:
     2  2010-04-11T00:00:00 2010-04-25T23:59:59  55138         05017(KSK1)/S,55186(KSK2)/P
     ...
     """
-    return '{num:<2} {inception:19} {expiration:20} {zsk_tags:13} {ksk_tag}'.format(**kwargs)
+    return "{num:<2} {inception:19} {expiration:20} {zsk_tags:13} {ksk_tag}".format(
+        **kwargs
+    )
 
 
 def fmt_bundle(bundle: Bundle) -> str:
-    return 'id={} {}->{}'.format(bundle.id[:8],
-                                 bundle.inception.isoformat().split('T')[0],
-                                 bundle.expiration.isoformat().split('T')[0]
-                                 )
+    return "id={} {}->{}".format(
+        bundle.id[:8],
+        bundle.inception.isoformat().split("T")[0],
+        bundle.expiration.isoformat().split("T")[0],
+    )
 
 
 def fmt_timedelta(tdelta: timedelta) -> str:
     res = str(tdelta)
-    if res.endswith('days, 0:00:00') or res.endswith('day, 0:00:00'):
+    if res.endswith("days, 0:00:00") or res.endswith("day, 0:00:00"):
         # cut off the unnecessary 0:00:00 after "days"
-        res = res[:0 - len(', 0:00:00')]
+        res = res[: 0 - len(", 0:00:00")]
     return res
 
 
 def fmt_timestamp(ts: datetime) -> str:
-    return ts.isoformat().split('+')[0]
+    return ts.isoformat().split("+")[0]

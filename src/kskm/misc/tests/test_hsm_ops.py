@@ -11,9 +11,9 @@ import unittest
 from kskm.common.config import KSKMConfig
 from kskm.misc.hsm import KSKM_P11, KeyClass, init_pkcs11_modules_from_dict
 
-__author__ = 'ft'
+__author__ = "ft"
 
-if os.environ.get('SOFTHSM2_MODULE') and os.environ.get('SOFTHSM2_CONF'):
+if os.environ.get("SOFTHSM2_MODULE") and os.environ.get("SOFTHSM2_CONF"):
     _TEST_SOFTHSM2 = True
 else:
     _TEST_SOFTHSM2 = False
@@ -29,7 +29,6 @@ hsm:
 
 
 class OperationsWithSoftHSM(unittest.TestCase):
-
     def setUp(self) -> None:
         """ Prepare for tests. """
         self.p11modules: KSKM_P11 = KSKM_P11([])
@@ -42,12 +41,12 @@ class OperationsWithSoftHSM(unittest.TestCase):
         for this in self.p11modules:
             this.close()
 
-    @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
+    @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_find_key_by_id(self):
         """Test finding key objects by CKA_ID"""
         module = self.p11modules[0]
         # Well-known CKA_LABEL/CKA_ID for one of the keys loaded into SoftHSM using testing/Makefile
-        by_label = module.find_key_by_label('RSA1', KeyClass.PUBLIC)
+        by_label = module.find_key_by_label("RSA1", KeyClass.PUBLIC)
         self.assertIsNotNone(by_label)
 
         by_id = None

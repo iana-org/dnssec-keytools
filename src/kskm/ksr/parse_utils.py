@@ -9,11 +9,15 @@ dataclasses from kskm.ksr.data.
 import logging
 from typing import List
 
-from kskm.common.parse_utils import (keys_from_dict, parse_datetime,
-                                     signature_from_dict, signers_from_list)
+from kskm.common.parse_utils import (
+    keys_from_dict,
+    parse_datetime,
+    signature_from_dict,
+    signers_from_list,
+)
 from kskm.ksr.data import RequestBundle
 
-__author__ = 'ft'
+__author__ = "ft"
 
 
 logger = logging.getLogger(__name__)
@@ -50,19 +54,20 @@ def requestbundles_from_list_of_dicts(bundles: List[dict]) -> List[RequestBundle
     """
     res = []
     for bundle in bundles:
-        id = bundle['attrs'].get('id')
+        id = bundle["attrs"].get("id")
         if not id:
-            raise ValueError('Bundle missing ID')
-        for name in ['Inception', 'Expiration', 'Key', 'Signature']:
-            if name not in bundle['value']:
-                raise ValueError(f'Bundle {id} missing mandatory {name}')
-        this = RequestBundle(id=bundle['attrs']['id'],
-                             inception=parse_datetime(bundle['value']['Inception']),
-                             expiration=parse_datetime(bundle['value']['Expiration']),
-                             keys=keys_from_dict(bundle['value']['Key']),
-                             signatures=signature_from_dict(bundle['value']['Signature']),
-                             signers=signers_from_list(bundle['value'].get('Signer', [])),
-                             )
+            raise ValueError("Bundle missing ID")
+        for name in ["Inception", "Expiration", "Key", "Signature"]:
+            if name not in bundle["value"]:
+                raise ValueError(f"Bundle {id} missing mandatory {name}")
+        this = RequestBundle(
+            id=bundle["attrs"]["id"],
+            inception=parse_datetime(bundle["value"]["Inception"]),
+            expiration=parse_datetime(bundle["value"]["Expiration"]),
+            keys=keys_from_dict(bundle["value"]["Key"]),
+            signatures=signature_from_dict(bundle["value"]["Signature"]),
+            signers=signers_from_list(bundle["value"].get("Signer", [])),
+        )
         res += [this]
     # Sort bundles after expiration time
     return sorted(res, key=lambda x: x.expiration)

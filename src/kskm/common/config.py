@@ -9,13 +9,20 @@ import voluptuous.error
 import voluptuous.humanize
 import yaml
 
-from kskm.common.config_misc import (KSKKey, KSKKeysType, KSKPolicy,
-                                     RequestPolicy, ResponsePolicy, Schema,
-                                     SchemaAction, _parse_keylist)
+from kskm.common.config_misc import (
+    KSKKey,
+    KSKKeysType,
+    KSKPolicy,
+    RequestPolicy,
+    ResponsePolicy,
+    Schema,
+    SchemaAction,
+    _parse_keylist,
+)
 from kskm.common.config_schema import KSRSIGNER_CONFIG_SCHEMA
 from kskm.common.integrity import checksum_bytes2str
 
-__author__ = 'ft'
+__author__ = "ft"
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +67,7 @@ class KSKMConfig(object):
         Returns a plain dict with the configuration for now.
         """
         if self._hsm is None:
-            self._hsm = self._data.get('hsm', {})
+            self._hsm = self._data.get("hsm", {})
         assert self._hsm is not None  # help type checker
         return self._hsm
 
@@ -83,7 +90,7 @@ class KSKMConfig(object):
               ttl: 172800
         """
         if self._ksk_policy is None:
-            self._ksk_policy = KSKPolicy.from_dict(self._data.get('ksk_policy', {}))
+            self._ksk_policy = KSKPolicy.from_dict(self._data.get("ksk_policy", {}))
         assert self._ksk_policy is not None  # help type checker
         return self._ksk_policy
 
@@ -108,9 +115,9 @@ class KSKMConfig(object):
         """
         if self._ksk_keys is None:
             res: Dict[str, KSKKey] = {}
-            if 'keys' not in self._data:
+            if "keys" not in self._data:
                 return cast(KSKKeysType, res)
-            for name, v in self._data['keys'].items():
+            for name, v in self._data["keys"].items():
                 key = KSKKey.from_dict(v)
                 res[name] = key
             self._ksk_keys = cast(KSKKeysType, res)
@@ -128,8 +135,8 @@ class KSKMConfig(object):
               output_skr: skr.xml
               output_trustanchor: root-anchors.xml
         """
-        if 'filenames' in self._data:
-            _this = self._data['filenames'].get(which)
+        if "filenames" in self._data:
+            _this = self._data["filenames"].get(which)
             if isinstance(_this, str):
                 return _this
         return None
@@ -147,7 +154,7 @@ class KSKMConfig(object):
               ...
         """
         if self._request_policy is None:
-            policy = RequestPolicy.from_dict(self._data.get('request_policy', {}))
+            policy = RequestPolicy.from_dict(self._data.get("request_policy", {}))
             if policy.dns_ttl == 0:
                 # Replace with the value configured to be used when signing the bundles
                 policy = replace(policy, dns_ttl=self.ksk_policy.ttl)
@@ -168,7 +175,9 @@ class KSKMConfig(object):
               validate_signatures: True
         """
         if self._response_policy is None:
-            self._response_policy = ResponsePolicy.from_dict(self._data.get('response_policy', {}))
+            self._response_policy = ResponsePolicy.from_dict(
+                self._data.get("response_policy", {})
+            )
         assert self._response_policy is not None  # help type checker
         return self._response_policy
 
@@ -202,34 +211,38 @@ class KSKMConfig(object):
 
         :return: A Schema instance for the schema requested.
         """
-        data = self._data['schemas'][name]
+        data = self._data["schemas"][name]
         _actions: Dict[int, SchemaAction] = {}
         for num in range(1, self.request_policy.num_bundles + 1):
-            _this = SchemaAction(publish=_parse_keylist(data[num]['publish']),
-                                 sign=_parse_keylist(data[num]['sign']),
-                                 revoke=_parse_keylist(data[num].get('revoke', [])))
+            _this = SchemaAction(
+                publish=_parse_keylist(data[num]["publish"]),
+                sign=_parse_keylist(data[num]["sign"]),
+                revoke=_parse_keylist(data[num].get("revoke", [])),
+            )
             _actions[num] = _this
         return Schema(name=name, actions=_actions)
 
     def update(self, data: Mapping) -> None:
         """Update configuration on the fly. Usable in tests."""
-        logger.warning(f'Updating configuration (sections {data.keys()})')
+        logger.warning(f"Updating configuration (sections {data.keys()})")
         self._data.update(data)
 
     def merge_update(self, data: Mapping) -> None:
         """Merge-update configuration on the fly. Usable in tests."""
-        logger.warning(f'Merging configuration (sections {data.keys()})')
+        logger.warning(f"Merging configuration (sections {data.keys()})")
         for k, v in data.items():
-            logger.debug(f'Updating config section {k} with {v}')
+            logger.debug(f"Updating config section {k} with {v}")
             self._data[k].update(v)
-            logger.debug(f'Config now: {self._data[k]}')
+            logger.debug(f"Config now: {self._data[k]}")
 
     @classmethod
     def from_yaml(cls: Type[KSKMConfig], stream: IO) -> KSKMConfig:
         """Load configuration from a YAML stream."""
         config = yaml.safe_load(stream)
         try:
-            voluptuous.humanize.validate_with_humanized_errors(config, KSRSIGNER_CONFIG_SCHEMA)
+            voluptuous.humanize.validate_with_humanized_errors(
+                config, KSRSIGNER_CONFIG_SCHEMA
+            )
             logger.info("Configuration validated")
         except voluptuous.error.Error as exc:
             raise ConfigurationError(str(exc))
@@ -240,10 +253,16 @@ def get_config(filename: Optional[str]) -> KSKMConfig:
     """Top-level function to load configuration, or return a default ConfigType instance."""
     if not filename:
         # Avoid having Optional[ConfigType] everywhere by always having a config, even if it is empty
-        logger.warning('No configuration filename provided, using default configuration.')
+        logger.warning(
+            "No configuration filename provided, using default configuration."
+        )
         return KSKMConfig({})
-    with open(filename, 'rb') as fd:
+    with open(filename, "rb") as fd:
         config_bytes = fd.read()
-        logger.info("Loaded configuration from file %s %s", filename, checksum_bytes2str(config_bytes))
+        logger.info(
+            "Loaded configuration from file %s %s",
+            filename,
+            checksum_bytes2str(config_bytes),
+        )
         fd.seek(0)
         return KSKMConfig.from_yaml(fd)

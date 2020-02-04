@@ -42,9 +42,11 @@ def check_domain(request: Request, policy: RequestPolicy, logger: Logger) -> Non
       Verify that the KSR domain name is correct.
     """
     if request.domain not in policy.acceptable_domains:
-        raise KSR_DOMAIN_Violation(f'KSR-DOMAIN: Request domain {request.domain!r} not in '
-                                        f'policy\'s acceptable domains {policy.acceptable_domains}')
-    logger.info(f'KSR-DOMAIN: Verified domain {request.domain!r}')
+        raise KSR_DOMAIN_Violation(
+            f"KSR-DOMAIN: Request domain {request.domain!r} not in "
+            f"policy's acceptable domains {policy.acceptable_domains}"
+        )
+    logger.info(f"KSR-DOMAIN: Verified domain {request.domain!r}")
 
 
 def check_id(request: Request, policy: RequestPolicy, logger: Logger) -> None:
@@ -54,4 +56,4 @@ def check_id(request: Request, policy: RequestPolicy, logger: Logger) -> None:
     KSR-ID:
       Verify that the KSR ID is unique.
     """
-    logger.info('KSR-ID: Will be checked later, when SKR is available')
+    logger.info("KSR-ID: Will be checked later, when SKR is available")

@@ -11,15 +11,14 @@ from kskm.skr.validate import InvalidSignatureViolation, validate_response
 
 
 class Test_Validate_SKR(unittest.TestCase):
-
     def setUp(self):
         """ Prepare test instance """
-        self.data_dir = pkg_resources.resource_filename(__name__, 'data')
-        self.policy_fn = os.path.join(self.data_dir, 'response_policy.yaml')
+        self.data_dir = pkg_resources.resource_filename(__name__, "data")
+        self.policy_fn = os.path.join(self.data_dir, "response_policy.yaml")
 
     def test_validate_skr_with_invalid_signature(self):
         """ Test manipulating SKR signature """
-        fn = os.path.join(self.data_dir, 'skr-root-2018-q1-0-d_to_e.xml')
+        fn = os.path.join(self.data_dir, "skr-root-2018-q1-0-d_to_e.xml")
         policy = ResponsePolicy()
         skr = load_skr(fn, policy)
 
@@ -28,7 +27,7 @@ class Test_Validate_SKR(unittest.TestCase):
         sig = first_bundle.signatures.pop()
         # change the last byte of the signature
         sig_data = base64.b64decode(sig.signature_data)
-        sig_data = sig_data[:-1] + b'\x00' if sig_data[-1] else b'\x01'
+        sig_data = sig_data[:-1] + b"\x00" if sig_data[-1] else b"\x01"
         # put everything back into the skr
         sig = replace(sig, signature_data=base64.b64encode(sig_data))
         first_bundle.signatures.add(sig)
@@ -43,7 +42,7 @@ class Test_Validate_SKR(unittest.TestCase):
 
     def test_load_skr_with_policy_violation(self):
         """ Test loading an SKR failing the supplied policy """
-        fn = os.path.join(self.data_dir, 'skr-root-2018-q1-0-d_to_e.xml')
+        fn = os.path.join(self.data_dir, "skr-root-2018-q1-0-d_to_e.xml")
         policy = ResponsePolicy(num_bundles=99)
         with self.assertRaises(RuntimeError):
             load_skr(fn, policy)

@@ -40,24 +40,28 @@ class PeerCertWSGIRequestHandler(werkzeug.serving.WSGIRequestHandler):
             # Not a TLS connection
             x509_binary = None
         if x509_binary is not None:
-            x509 = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_ASN1, x509_binary)
-            environ['peercert'] = x509
+            x509 = OpenSSL.crypto.load_certificate(
+                OpenSSL.crypto.FILETYPE_ASN1, x509_binary
+            )
+            environ["peercert"] = x509
         return environ
 
     @classmethod
     def client_subject(cls) -> Optional[str]:
         """Find client certificate subject."""
-        peercert = request.environ.get('peercert')
+        peercert = request.environ.get("peercert")
         if peercert is None:
             return None
         components = peercert.get_subject().get_components()
-        return '/'.join([f"{key.decode()}={value.decode()}" for key, value in components])
+        return "/".join(
+            [f"{key.decode()}={value.decode()}" for key, value in components]
+        )
 
     @classmethod
     def client_digest(cls) -> Optional[str]:
         """Find client certficate digest."""
-        peercert = request.environ.get('peercert')
+        peercert = request.environ.get("peercert")
         if peercert is None:
             return None
-        digest = str(peercert.digest('sha256').decode().replace(':', '').lower())
+        digest = str(peercert.digest("sha256").decode().replace(":", "").lower())
         return digest

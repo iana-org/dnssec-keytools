@@ -15,36 +15,34 @@ from kskm.signer.policy import check_last_skr_and_new_skr, check_skr_and_ksr
 from kskm.signer.verify_chain import KSR_CHAIN_OVERLAP_Violation
 from kskm.skr import response_from_xml
 
-__author__ = 'ft'
+__author__ = "ft"
 
 
 logger = logging.getLogger(__name__)
 
 
 class Test_KSR_SKR_policy(unittest.TestCase):
-
     def setUp(self) -> None:
         # Initialise KSR and last SKR data structures
-        self.data_dir = pkg_resources.resource_filename(__name__, 'data')
+        self.data_dir = pkg_resources.resource_filename(__name__, "data")
 
-        with open(os.path.join(self.data_dir, 'ksr-root-2017-q2-0.xml')) as fd:
+        with open(os.path.join(self.data_dir, "ksr-root-2017-q2-0.xml")) as fd:
             self.ksr_xml = fd.read()
             self.ksr = request_from_xml(self.ksr_xml)
 
-        with open(os.path.join(self.data_dir, 'skr-root-2017-q1-0.xml')) as fd:
+        with open(os.path.join(self.data_dir, "skr-root-2017-q1-0.xml")) as fd:
             self.skr_xml1 = fd.read()
             self.skr1 = response_from_xml(self.skr_xml1)
 
-        with open(os.path.join(self.data_dir, 'skr-root-2017-q2-0.xml')) as fd:
+        with open(os.path.join(self.data_dir, "skr-root-2017-q2-0.xml")) as fd:
             self.skr_xml2 = fd.read()
             self.skr2 = response_from_xml(self.skr_xml2)
 
-        with open(os.path.join(self.data_dir, 'skr-root-2017-q3-0-c_to_d.xml')) as fd:
+        with open(os.path.join(self.data_dir, "skr-root-2017-q3-0-c_to_d.xml")) as fd:
             self.skr_xml3 = fd.read()
             self.skr3 = response_from_xml(self.skr_xml3)
 
         self.policy = RequestPolicy()
-
 
     def test_last_skr_and_new_skr(self):
         """ Test with two consecutive SKRs from the archive """
@@ -101,8 +99,11 @@ class Test_KSR_SKR_policy(unittest.TestCase):
             check_last_skr_and_new_skr(self.skr1, skr2, self.policy)
 
         # Check exact error message to differentiate from error in check_retire_safety
-        self.assertEqual('Key 19036/Kjqmt7v used to sign bundle #1 (dc1bc68c-b1c1-46f8-817f-ec893549f2be) in this SKR '
-                         'is not present in bundle #8 (dbd2a673-5ec5-4a72-9c02-11d48d27dc43)', str(exc.exception))
+        self.assertEqual(
+            "Key 19036/Kjqmt7v used to sign bundle #1 (dc1bc68c-b1c1-46f8-817f-ec893549f2be) in this SKR "
+            "is not present in bundle #8 (dbd2a673-5ec5-4a72-9c02-11d48d27dc43)",
+            str(exc.exception),
+        )
 
         # verify check can be disabled using configuration
         _policy = replace(self.policy, check_keys_retire_safety=False)
@@ -125,14 +126,16 @@ class Test_KSR_SKR_policy(unittest.TestCase):
             check_last_skr_and_new_skr(self.skr1, skr2, self.policy)
 
         # Check exact error message to differentiate from error from check_publish_safety
-        self.assertEqual('Key 19036/Kjqmt7v used to sign bundle c8753ecf-cbaf-4adc-902b-9f3e0861cc48 in the last SKR '
-                         'is not present in bundle dc1bc68c-b1c1-46f8-817f-ec893549f2be which expires < RetireSafety '
-                         '(28 days/2017-04-29 00:00:00+00:00) from this new SKRs first bundle inception '
-                         '(2017-04-01 00:00:00+00:00)', str(exc.exception))
+        self.assertEqual(
+            "Key 19036/Kjqmt7v used to sign bundle c8753ecf-cbaf-4adc-902b-9f3e0861cc48 in the last SKR "
+            "is not present in bundle dc1bc68c-b1c1-46f8-817f-ec893549f2be which expires < RetireSafety "
+            "(28 days/2017-04-29 00:00:00+00:00) from this new SKRs first bundle inception "
+            "(2017-04-01 00:00:00+00:00)",
+            str(exc.exception),
+        )
 
 
 class Test_LastSKR_unique_ids(Test_KSR_SKR_policy):
-
     def test_real_ksr_and_last_skr(self):
         """ Test loading a real KSR and the produced SKR from the archives """
         check_skr_and_ksr(self.ksr, self.skr1, self.policy, p11modules=None)
@@ -153,7 +156,6 @@ class Test_LastSKR_unique_ids(Test_KSR_SKR_policy):
 
 
 class Test_Chain(Test_KSR_SKR_policy):
-
     def test_timeline_gap(self):
         """ Test that a gap in the bundles timeline is detected """
         ksr_bundles = self.ksr.bundles
@@ -175,7 +177,11 @@ class Test_Chain(Test_KSR_SKR_policy):
         check_skr_and_ksr(new_ksr, self.skr1, self.policy, p11modules=None)
 
         # next, move inception back one more second
-        new_inception = last_expire - self.ksr.zsk_policy.min_validity_overlap + datetime.timedelta(seconds=1)
+        new_inception = (
+            last_expire
+            - self.ksr.zsk_policy.min_validity_overlap
+            + datetime.timedelta(seconds=1)
+        )
         ksr_bundles[0] = replace(ksr_bundles[0], inception=new_inception)
         new_ksr = replace(self.ksr, bundles=ksr_bundles)
 
@@ -193,7 +199,11 @@ class Test_Chain(Test_KSR_SKR_policy):
         check_skr_and_ksr(new_ksr, self.skr1, self.policy, p11modules=None)
 
         # next, move inception back one more second
-        new_inception = last_inception + self.ksr.zsk_policy.min_validity_overlap - datetime.timedelta(seconds=1)
+        new_inception = (
+            last_inception
+            + self.ksr.zsk_policy.min_validity_overlap
+            - datetime.timedelta(seconds=1)
+        )
         ksr_bundles[0] = replace(ksr_bundles[0], inception=new_inception)
         new_ksr = replace(self.ksr, bundles=ksr_bundles)
 

@@ -28,9 +28,10 @@ from kskm.misc.hsm import get_p11_key
 from kskm.ta import TrustAnchor
 from kskm.ta.keydigest import create_trustanchor_keydigest
 
-_DEFAULTS = {'debug': False,
-             'config': 'ksrsigner.yaml',
-             }
+_DEFAULTS = {
+    "debug": False,
+    "config": "ksrsigner.yaml",
+}
 
 
 def parse_args(defaults: dict) -> ArgsType:
@@ -40,65 +41,82 @@ def parse_args(defaults: dict) -> ArgsType:
     The KSR signer is mostly configured using the config file (--config), but
     some things such as output verbosity is settable using command line arguments.
     """
-    parser = argparse.ArgumentParser(description='DNSSEC Trust Anchor exporter',
-                                     add_help=True,
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-                                     )
+    parser = argparse.ArgumentParser(
+        description="DNSSEC Trust Anchor exporter",
+        add_help=True,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
     # Required arguments
-    parser.add_argument('--config',
-                        dest='config',
-                        metavar='CFGFILE', type=str,
-                        default=defaults['config'],
-                        help='Path to the KSR signer configuration file',
-                        )
+    parser.add_argument(
+        "--config",
+        dest="config",
+        metavar="CFGFILE",
+        type=str,
+        default=defaults["config"],
+        help="Path to the KSR signer configuration file",
+    )
 
     # Optional arguments
-    parser.add_argument('--debug',
-                        dest='debug',
-                        action='store_true', default=defaults['debug'],
-                        help='Enable debug operation',
-                        )
-    parser.add_argument('--trustanchor',
-                        dest='trustanchor',
-                        metavar='XMLFILE', type=str,
-                        help='Path to write trust anchor XML to',
-                        )
-    parser.add_argument('--id',
-                        dest='id',
-                        metavar='ID', type=str,
-                        help='Trust anchor identifier',
-                        )
-    parser.add_argument('--hsm',
-                        dest='hsm',
-                        default=None,
-                        metavar='HSM', type=str,
-                        help='HSM to operate on',
-                        )
+    parser.add_argument(
+        "--debug",
+        dest="debug",
+        action="store_true",
+        default=defaults["debug"],
+        help="Enable debug operation",
+    )
+    parser.add_argument(
+        "--trustanchor",
+        dest="trustanchor",
+        metavar="XMLFILE",
+        type=str,
+        help="Path to write trust anchor XML to",
+    )
+    parser.add_argument(
+        "--id", dest="id", metavar="ID", type=str, help="Trust anchor identifier",
+    )
+    parser.add_argument(
+        "--hsm",
+        dest="hsm",
+        default=None,
+        metavar="HSM",
+        type=str,
+        help="HSM to operate on",
+    )
 
     args = parser.parse_args()
     return args
 
 
-def _trustanchor_filename(args: Optional[ArgsType], config: KSKMConfig) -> Optional[str]:
+def _trustanchor_filename(
+    args: Optional[ArgsType], config: KSKMConfig
+) -> Optional[str]:
     if args and args.trustanchor:
         return str(args.trustanchor)
-    return config.get_filename('output_trustanchor')
+    return config.get_filename("output_trustanchor")
 
 
-def output_trustanchor_xml(ta: TrustAnchor, output_filename: Optional[str], logger: logging.Logger) -> None:
+def output_trustanchor_xml(
+    ta: TrustAnchor, output_filename: Optional[str], logger: logging.Logger
+) -> None:
     """Return trust anchor as XML."""
     xml = ta.to_xml_doc()
     if output_filename:
         xml_bytes = xml.encode()
-        with open(output_filename, 'wb') as fd:
+        with open(output_filename, "wb") as fd:
             fd.write(xml_bytes)
-        logger.info(f'Wrote trust anchor to file {output_filename} {checksum_bytes2str(xml_bytes)}')
+        logger.info(
+            f"Wrote trust anchor to file {output_filename} {checksum_bytes2str(xml_bytes)}"
+        )
     else:
         print(xml)
 
 
-def trustanchor(logger: logging.Logger, args: Optional[ArgsType], config: Optional[KSKMConfig] = None) -> bool:
+def trustanchor(
+    logger: logging.Logger,
+    args: Optional[ArgsType],
+    config: Optional[KSKMConfig] = None,
+) -> bool:
     """Main entry point for generating trust anchors and writing them (as XML) to a file."""
     #
     # Load configuration, if not provided already
@@ -117,21 +135,24 @@ def trustanchor(logger: logging.Logger, args: Optional[ArgsType], config: Option
     for _name, ksk in config.ksk_keys.items():
         p11key = get_p11_key(ksk.label, p11modules, public=True)
         if not p11key or not p11key.public_key:
-            logger.warning(f'KSK key with label {ksk.label} could not be loaded using PKCS#11')
+            logger.warning(
+                f"KSK key with label {ksk.label} could not be loaded using PKCS#11"
+            )
             continue
-        _key = public_key_to_dnssec_key(key=p11key.public_key,
-                                        key_identifier=ksk.label,
-                                        algorithm=ksk.algorithm,
-                                        flags=FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value,
-                                        ttl=config.ksk_policy.ttl,
-                                        )
+        _key = public_key_to_dnssec_key(
+            key=p11key.public_key,
+            key_identifier=ksk.label,
+            algorithm=ksk.algorithm,
+            flags=FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value,
+            ttl=config.ksk_policy.ttl,
+        )
         this = create_trustanchor_keydigest(ksk, _key)
         keydigests.add(this)
 
     ta = TrustAnchor(
         id=args.id or str(uuid.uuid4()),
-        source='http://data.iana.org/root-anchors/root-anchors.xml',
-        zone='.',
+        source="http://data.iana.org/root-anchors/root-anchors.xml",
+        zone=".",
         keydigests=keydigests,
     )
 
@@ -145,7 +166,9 @@ def main() -> None:
     try:
         progname = os.path.basename(sys.argv[0])
         args = parse_args(_DEFAULTS)
-        logger = get_logger(progname=progname, debug=args.debug, syslog=False, filelog=True).getChild(__name__)
+        logger = get_logger(
+            progname=progname, debug=args.debug, syslog=False, filelog=True
+        ).getChild(__name__)
         res = trustanchor(logger, args)
         if res is True:
             sys.exit(0)

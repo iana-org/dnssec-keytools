@@ -12,9 +12,9 @@ from kskm.common.config import KSKMConfig
 from kskm.keymaster.inventory import key_inventory
 from kskm.misc.hsm import KSKM_P11, init_pkcs11_modules_from_dict
 
-__author__ = 'ft'
+__author__ = "ft"
 
-if os.environ.get('SOFTHSM2_MODULE') and os.environ.get('SOFTHSM2_CONF'):
+if os.environ.get("SOFTHSM2_MODULE") and os.environ.get("SOFTHSM2_CONF"):
     _TEST_SOFTHSM2 = True
 else:
     _TEST_SOFTHSM2 = False
@@ -30,26 +30,27 @@ hsm:
 
 
 class Test_Key_Inventory(unittest.TestCase):
-
     def setUp(self) -> None:
         """ Prepare for tests. """
         self.p11modules: KSKM_P11 = KSKM_P11([])
         conf = io.StringIO(_TEST_CONFIG)
         self.config = KSKMConfig.from_yaml(conf)
-        self.p11modules = init_pkcs11_modules_from_dict(self.config.hsm, rw_session=True)
+        self.p11modules = init_pkcs11_modules_from_dict(
+            self.config.hsm, rw_session=True
+        )
 
     def tearDown(self) -> None:
         """Unload PKCS#11 modules, lest they might not work for the next test that starts."""
         for this in self.p11modules:
             this.close()
 
-    @unittest.skipUnless(_TEST_SOFTHSM2, 'SOFTHSM2_MODULE and SOFTHSM2_CONF not set')
+    @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_inventory(self):
         res = key_inventory(self.p11modules, self.config)
         # key inventory is expected to be at least 10 (15) lines when loaded with
         # the test keys from testing/softhsm/Makefile.
         self.assertGreater(len(res), 10)
-        output_str = '\n'.join(res)
+        output_str = "\n".join(res)
         # check for two well known key labels
-        self.assertIn('RSA1', output_str)
-        self.assertIn('EC1', output_str)
+        self.assertIn("RSA1", output_str)
+        self.assertIn("EC1", output_str)

@@ -15,7 +15,7 @@ import re
 from dataclasses import dataclass
 from typing import Dict, Optional, Tuple, Union
 
-__author__ = 'ft'
+__author__ = "ft"
 
 _DEBUG_XML_PARSER = False
 
@@ -36,7 +36,7 @@ def parse_ksr(xml: str) -> dict:
 
     Anything before the first '<KSR' is ignored.
     """
-    idx = xml.index('<KSR')
+    idx = xml.index("<KSR")
     return parse(xml[idx:])
 
 
@@ -75,18 +75,18 @@ def _parse_recursively(xml: str, recurse: int, res: dict) -> None:
     """
     while xml:
         xml = xml.strip()
-        if xml[0] != '<':
-            raise ValueError('XML parser got lost at: {!r}'.format(xml))
+        if xml[0] != "<":
+            raise ValueError("XML parser got lost at: {!r}".format(xml))
         # start of element
         if _DEBUG_XML_PARSER:
-            logger.debug('Start of element found: {!r}...'.format(xml[:20]))
+            logger.debug("Start of element found: {!r}...".format(xml[:20]))
         element, end_idx = parse_first_element(xml)
         sub_res: dict = {}
         # the isinstance helps the type checker be sure that element.value is in fact a string
-        if isinstance(element.value, str) and element.value and element.value[0] == '<':
+        if isinstance(element.value, str) and element.value and element.value[0] == "<":
             # value is one or more new elements, recurse
             if not recurse:
-                raise ValueError('XML maximum recursion depth exhausted')
+                raise ValueError("XML maximum recursion depth exhausted")
             _parse_recursively(element.value, recurse - 1, sub_res)
             element.value = sub_res
 
@@ -117,9 +117,10 @@ def _store_element(element: _XMLElement, res: dict) -> None:
     """
     value = element.value
     if element.attrs is not None:
-        value = {'attrs': element.attrs,
-                 'value': value,
-                 }
+        value = {
+            "attrs": element.attrs,
+            "value": value,
+        }
     if element.name in res:
         # Element has been seen already, transform it to a list if it is not
         # and append the new element to the list
@@ -140,14 +141,14 @@ def parse_first_element(xml: str) -> Tuple[_XMLElement, int]:
     """
     name, attrs, tag_end = _parse_tag(xml)
     if _DEBUG_XML_PARSER:
-        logger.debug('Found tag {} with attrs {}'.format(name, attrs))
-    if xml[tag_end-2:tag_end] == '/>':
+        logger.debug("Found tag {} with attrs {}".format(name, attrs))
+    if xml[tag_end - 2 : tag_end] == "/>":
         # an element with no value
-        return _XMLElement(name=name, attrs=attrs, value=''), tag_end
+        return _XMLElement(name=name, attrs=attrs, value=""), tag_end
     value_start = tag_end
     value_end, element_end_idx = _find_end_of_element(xml, value_start, name)
     if _DEBUG_XML_PARSER:
-        logger.debug('Found end of element {} at idx {}'.format(name, element_end_idx))
+        logger.debug("Found end of element {} at idx {}".format(name, element_end_idx))
     value = xml[value_start:value_end].strip()
     return _XMLElement(name=name, attrs=attrs, value=value), element_end_idx
 
@@ -177,18 +178,18 @@ def _parse_tag(xml: str) -> Tuple[str, Optional[dict], int]:
     :return: Element name, parsed attributes and index to whatever is after the tag
     """
     # regexp matching the case <KSR id='foo', domain='.'>
-    m = re.match(r'<(\w+?)(\s+?)(.+?)(/*)>', xml)
+    m = re.match(r"<(\w+?)(\s+?)(.+?)(/*)>", xml)
     if m:
         name, ws, attrs, slash = m.groups()
         end_idx = len(name) + len(ws) + len(attrs) + len(slash) + 2
         return name, _parse_attrs(attrs), end_idx
     # Regexp matching the case <Request>
-    m = re.match(r'<(\w+)>', xml)
+    m = re.match(r"<(\w+)>", xml)
     if m:
         name = m.groups()[0]
         end_idx = len(name) + 2
         return name, None, end_idx
-    raise ValueError('Failed parsing tag {!r}...'.format(xml[:10]))
+    raise ValueError("Failed parsing tag {!r}...".format(xml[:10]))
 
 
 def _parse_attrs(attrs: str) -> dict:
@@ -225,10 +226,10 @@ def _find_end_of_element(xml: str, start_idx: int, name: str) -> Tuple[int, int]
     :param name: Element name
     :return: End of value index, and end of element index
     """
-    element_end_tag = '</{}>'.format(name)
+    element_end_tag = "</{}>".format(name)
     end_idx = xml.index(element_end_tag, start_idx)
     # Now check if there is another starting tag for this name before the end tag we found
-    for nested_tag in ['<{}>'.format(name), '<{} '.format(name)]:
+    for nested_tag in ["<{}>".format(name), "<{} ".format(name)]:
         try:
             inner_idx = xml.index(nested_tag)
             if inner_idx and inner_idx < end_idx:
