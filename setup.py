@@ -12,11 +12,13 @@ install_requires = [
 ]
 
 testing_extras = [
+    'black',
     'coverage',
     'dnspython',
     'eradicate',
     'flask',
     'green',
+    'isort',
     'mypy',
     'nose==1.3.7',
     'nosexcover',

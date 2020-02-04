@@ -42,6 +42,10 @@ coverage: $(VENV) softhsm
 	env $(TEST_ENV) $(VENV)/bin/coverage run --source $(SOURCE) -m nose -w $(SOURCE) --verbose
 	$(VENV)/bin/coverage html
 
+reformat: $(VENV)
+	$(VENV)/bin/isort --recursive $(SOURCE)
+	$(VENV)/bin/black $(SOURCE)
+
 lint: $(VENV)
 	$(VENV)/bin/pylama $(SOURCE)
 
