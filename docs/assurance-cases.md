@@ -1,9 +1,4 @@
-
-# Overview
-
-Figure 1 outlines the high-level architectural design of the KSR Signer software, describing the security domains and functions maintained by the software.
-
-![Figure 1: Architectural overview of the KSR Signer software][figure1]
+# Claims Arguments Evidence Framework
 
 This documentation is based on the Claims-Arguments-Evidence (CAE) framework to define assurance cases, demonstrating that the signer system prevents bypassing of the security-enforcing functionality:
 
@@ -154,7 +149,7 @@ The signer software checks to verify that the time period covered by the KSR is 
 
 #### Argument (1.2.4.1)
 
-KSR-BUNDLE-CYCLE-DURATION.1: In check_cycle_durations of 'verify_bundles.py' it is checked that the difference in time between the last bundles' inception time and the first bundles' inception time falls within the span defined by the configuration variables 'min_cycle_inception_length' and 'max_cycle_inception_length'. 
+KSR-BUNDLE-CYCLE-DURATION.1: In check_cycle_durations of 'verify_bundles.py' it is checked that the difference in time between the last bundles' inception time and the first bundles' inception time falls within the span defined by the configuration variables 'min_cycle_inception_length' and 'max_cycle_inception_length'.
 
 ##### Evidence
 
@@ -162,7 +157,7 @@ Test cases provides evidence that (a) if the duration covered by the KSR is less
 
 #### Argument (1.2.4.2)
 
-KSR-BUNDLE-CYCLE-DURATION.2: In 'check_bundle_intervals' of 'verify_policy.py' it is checked that the difference in time between two adjecent bundles' inception times falls within the span defined by the configuration variables 'min_bundle_interval' and 'max_bundle_interval'. 
+KSR-BUNDLE-CYCLE-DURATION.2: In 'check_bundle_intervals' of 'verify_policy.py' it is checked that the difference in time between two adjecent bundles' inception times falls within the span defined by the configuration variables 'min_bundle_interval' and 'max_bundle_interval'.
 
 ##### Evidence
 
@@ -313,7 +308,7 @@ Test cases provides evidence that (a) if a signature recieved from the HSM can n
 
 ## Key's integrity:
 
-- **KSR-BUNDLE-KEYS**: The signer software shall verify that the keys and parameters provided in the KSR are consistent across all bundles to ensure that ZSKs are only changed according to the roll-over scheme, and is not modified during the quarterly time cycle (DPS 6.6). 
+- **KSR-BUNDLE-KEYS**: The signer software shall verify that the keys and parameters provided in the KSR are consistent across all bundles to ensure that ZSKs are only changed according to the roll-over scheme, and is not modified during the quarterly time cycle (DPS 6.6).
 
 ## Key's authenticity and secure import:
 
