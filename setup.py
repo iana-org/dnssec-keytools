@@ -5,32 +5,50 @@ version = '0.0.1'
 git_hash = subprocess.check_output('git rev-parse --short --verify HEAD', shell=True)
 
 install_requires = [
-    'cryptography',
-    'PyYAML',
-    'PyKCS11',
-    'voluptuous',
+    'cryptography==2.8',
+    'PyYAML==5.3',
+    'PyKCS11==1.5.7',
+    'voluptuous==0.11.7',
+    'six==1.14.0',
+    'cffi==1.13.2',
+    'Jinja2==2.11.1',
+    'click==7.0',
+    'itsdangerous==1.1.0',
+    'Werkzeug==0.16.1',
+    'unidecode==1.1.1',
+    'lxml==4.5.0',
+    'colorama==0.4.3',
+    'typed-ast==1.4.1',
+    'typing-extensions==3.7.4.1',
+    'mypy-extensions==0.4.3',
+    'mccabe==0.6.1',
+    'pydocstyle==5.0.2',
+    'pyflakes==2.1.1',
+    'pycodestyle==2.5.0',
+    'pycparser==2.19',
+    'MarkupSafe==1.1.1',
+    'snowballstemmer==2.0.0',
 ]
 
 testing_extras = [
-    'black',
-    'coverage',
-    'dnspython',
-    'eradicate',
-    'flask',
-    'green',
-    'isort',
-    'mypy',
+    'black==19.10b0',
+    'coverage==5.0.3',
+    'dnspython==1.16.0',
+    'eradicate==1.0',
+    'flask==1.1.1',
+    'green==3.1.0',
+    'mypy==0.761',
     'nose==1.3.7',
-    'nosexcover',
-    'pycryptodome',
+    'nosexcover==1.0.11',
+    'pycryptodome==3.9.4',
     'pylama==7.6.6',
-    'pyopenssl',
-    'wheel',
+    'pyopenssl==19.1.0',
+    'wheel==0.34.2',
 ]
 
 online_extras = [
-    'flask',
-    'pyopenssl'
+    'flask==1.1.1',
+    'pyopenssl==19.1.0'
 ]
 
 setup(
