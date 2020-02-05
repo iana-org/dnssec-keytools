@@ -9,7 +9,6 @@ There are three documents contained in this sub-directory:
 [Claims-Arguments-Evidence Framework](assurance-cases.md) documents the operational assurance exercise performed on the system software.
 
 [Architectural Design and Functional Specification](design-specifications.md)
-describes the high-level architectural design of the KSR Signer software, describing
-the security domains and functions maintained by the software.
+describes the high-level architectural design of the KSR Signer software, describing the security domains and functions maintained by the software.
 
-[Test Framework](test.md) describes how to perform unit tests...what is cover and what is not covered
+[Test Framework](test.md) describes how to perform unit tests, what is cover and what is not covered.
