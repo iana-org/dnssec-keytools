@@ -1,6 +1,7 @@
 import logging
 
 import PyKCS11
+
 from kskm.misc.hsm import KSKM_P11
 
 

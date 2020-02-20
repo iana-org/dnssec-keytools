@@ -22,6 +22,7 @@ import sys
 from typing import List, Optional
 
 import yaml
+from PyKCS11 import PyKCS11Error
 
 import kskm
 import kskm.misc
@@ -40,7 +41,6 @@ from kskm.keymaster.keygen import (
 )
 from kskm.keymaster.wrap import WrappedKey, WrappedKeyRSA, key_backup, key_restore
 from kskm.misc.hsm import KSKM_P11, KeyType, WrappingAlgorithm
-from PyKCS11 import PyKCS11Error
 
 SUPPORTED_ALGORITHMS = [str(x.name) for x in KeyType]
 SUPPORTED_SIZES = [2048, 3072, 4096]

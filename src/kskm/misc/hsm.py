@@ -24,11 +24,12 @@ from typing import (
 )
 
 import PyKCS11
+from PyKCS11.LowLevel import CKF_RW_SESSION, CKU_SO, CKU_USER
+
 from kskm.common.data import AlgorithmDNSSEC
 from kskm.common.ecdsa_utils import ECCurve, KSKM_PublicKey_ECDSA
 from kskm.common.public_key import KSKM_PublicKey
 from kskm.common.rsa_utils import KSKM_PublicKey_RSA
-from PyKCS11.LowLevel import CKF_RW_SESSION, CKU_SO, CKU_USER
 
 __author__ = "ft"
 

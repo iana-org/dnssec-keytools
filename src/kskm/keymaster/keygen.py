@@ -4,16 +4,6 @@ import math
 import time
 from typing import Any, List, Optional, Tuple
 
-from kskm.common.data import FlagsDNSKEY
-from kskm.common.ecdsa_utils import ECCurve
-from kskm.keymaster.common import get_session
-from kskm.misc.hsm import (
-    KSKM_P11,
-    KSKM_P11Key,
-    WrappingAlgorithm,
-    get_p11_key,
-    get_p11_secret_key,
-)
 from PyKCS11 import Mechanism
 from PyKCS11.LowLevel import (
     CK_FALSE,
@@ -44,6 +34,17 @@ from PyKCS11.LowLevel import (
     CKO_PRIVATE_KEY,
     CKO_PUBLIC_KEY,
     CKO_SECRET_KEY,
+)
+
+from kskm.common.data import FlagsDNSKEY
+from kskm.common.ecdsa_utils import ECCurve
+from kskm.keymaster.common import get_session
+from kskm.misc.hsm import (
+    KSKM_P11,
+    KSKM_P11Key,
+    WrappingAlgorithm,
+    get_p11_key,
+    get_p11_secret_key,
 )
 
 __author__ = "ft"
