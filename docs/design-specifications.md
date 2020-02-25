@@ -12,8 +12,8 @@ software.
 
 The Key Management Tools consists of the following two critical core components:
 
--   **KSK Generator**
--   **KSR Signer**
+- **KSK Generator**
+- **KSR Signer**
 
 All critical components interact with the user via the UNIX command line
 interface and uses vendor provided PKCS#11 libraries to communicate with any
@@ -23,10 +23,13 @@ There is a utility component named **Webservice KSR/SKR Processor** that is not
 critical and not described in Figure 1 since is not used during the KSK
 ceremonies.
 
+
 ### KSK Generator
 
 The KSK Generator generates a KSK inside an HSM. Fingerprint and keytag of the
 public key is returned to the user.
+
+Implemented by: [`kskm.keymaster.keygen`](../src/kskm/keymaster/keygen.py)
 
 #### Key Generation Handler
 
@@ -63,6 +66,7 @@ and key parameters, and create keydigest using kskm.ta.data.KeyDigest.
 This data is assembled into the XML format defined by RFC 7958 and returned
 to the Trust Anchor Export Handler.
 
+
 ### KSR Signer
 
 The KSR Signer will validate a Key Signing Request (KSR), generate signatures
@@ -71,6 +75,8 @@ in the KSR and output the result as a Signed Key Response (SKR).
 
 The KSR Signer will generate signatures using one or more KSKs available on
 attached HSMs according to the Signing Policy Configuration.
+
+Implemented by: [`kskm.signer`](../src/kskm/signer/)
 
 #### Key Signing Request (KSR)
 
@@ -119,6 +125,7 @@ Maintainer.
 The Signing Policy Configuration provides the parameters necessary for KSR
 processing.
 
+
 ### Webservice KSR/SKR Processor
 
 The KSR/SKR Processor receives a KSR from an authorized client (operated by the
@@ -127,3 +134,5 @@ authentication), provides validation of the KSR (such as integrity, parameters,
 and validation of the previous SKR) to provide a useful, real-time response to
 the client, and generates a notification when a KSR has successfully been
 submitted.
+
+Implemented by: [`kskm.signer`](../src/kskm/wksr/)
