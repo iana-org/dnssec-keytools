@@ -50,7 +50,18 @@ Key Parameters Validator ensure that when a new KSK is generated the key id
 
 #### Trust Anchor Export Handler
 
+The Trust Anchor Export Handler will export a public key as a RFC 7958 trust 
+anchor. The output of the function is an XML file in the format defined
+by the RFC, suitable for the distribution methods in use by IANA.
+
 #### Trust Anchor Assembler
+
+The Trust Anchor Assembler function will for each key in the ksr signer 
+configuration file fetch the public key from HSM, check matching algorithm 
+and key parameters, and create keydigest using kskm.ta.data.KeyDigest.
+
+This data is assembled into the XML format defined by RFC 7958 and returned
+to the Trust Anchor Export Handler.
 
 ### KSR Signer
 
