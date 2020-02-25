@@ -39,6 +39,8 @@ LABEL_RSA=		test_rsa
 
 all: softhsm $(KSRSIGNER_YAML)
 
+test: keys ta inventory backup restore
+
 conf: $(SOFTHSM_CONF) $(KSRSIGNER_YAML)
 
 softhsm: $(STATUSFILE)
@@ -51,12 +53,13 @@ ta: $(KSRSIGNER_YAML) $(STATUSFILE)
 inventory: $(KSRSIGNER_YAML) $(STATUSFILE)
 	kskm-keymaster inventory
 
-test-backup: $(KSRSIGNER_YAML) $(STATUSFILE)
+backup: $(KSRSIGNER_YAML) $(STATUSFILE)
 	kskm-keymaster wrapgen --label $(LABEL_WRAP) --algorithm AES256
-	kskm-keymaster keygen --label $(LABEL_RSA) --algorithm RSA --size 2048
+	kskm-keymaster keygen --label $(LABEL_RSA) --algorithm RSASHA256 --size 2048
 	kskm-keymaster backup --wrap-label $(LABEL_WRAP) --label $(LABEL_RSA) --outfile wrapped_key.yaml
 
-test-restore: $(KSRSIGNER_YAML) $(STATUSFILE)
+restore: $(KSRSIGNER_YAML) $(STATUSFILE)
+	kskm-keymaster keydelete --force --label $(LABEL_RSA)
 	kskm-keymaster restore --wrap-label $(LABEL_WRAP) --infile wrapped_key.yaml
 
 $(KSRSIGNER_YAML): $(KSRSIGNER_TEMPLATE)
