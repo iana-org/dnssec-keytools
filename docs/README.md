@@ -6,7 +6,7 @@ There are three documents contained in this sub-directory:
 
 [Test Documentation](aep-keyper-test.md) describes how to test the KSR Signer using the AEP Keyper HSM.
 
-[Claims-Arguments-Evidence Framework](assurance-cases.md) documents the operational assurance exercise performed on the system software.
+[Assurance cases](assurance-cases.md) documents the security claims about the system software and shows they are valid using a Claims-Arguments-Evidence notation.
 
 [Architectural Design and Functional Specification](design-specifications.md)
 describes the high-level architectural design of the KSR Signer software, describing the security domains and functions maintained by the software.
