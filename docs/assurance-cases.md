@@ -4,7 +4,7 @@ This documentation is based on the Claims-Arguments-Evidence (CAE) framework to 
 
 - **Claim**. A claim is a true/false statement about a property of a particular object in a defined context. The context defines the scope of the claim. A claim may only hold true within the boundaries of that scope. Ambiguous or overloaded words are enclosed in brackets, which are further defined in the context, sub-claims or arguments.
 
-- **Argument**. An argument is a rule that provides the bridge between what is known or are assuming (sub-claims, evidence) and the claim being investigated. The argument used depends on the available evidence and the nature of the claim. Note that *argument* is an overloaded word which is being used with a specific meaning in this context.
+- **Argument**. An argument is a rule that provides the bridge between what is known or are assumed (sub-claims, evidence) and the claim being investigated. The argument used depends on the available evidence and the nature of the claim. Note that *argument* is an overloaded word which is being used with a specific meaning in this context.
 
 - **Evidence**. Evidence is an artefact that establishes facts that can be observed and leads directly to a claim. In this project the test cases constitutes the evidence provided.
 
