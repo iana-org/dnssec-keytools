@@ -123,7 +123,7 @@ def keydel(
 ) -> bool:
     """Delete signing key."""
     logger.info("Delete signing key")
-    key_delete(args.key_label, p11modules)
+    key_delete(args.key_label, p11modules, args.force)
     return True
 
 
