@@ -13,7 +13,7 @@ This documentation is based on the Claims-Arguments-Evidence (CAE) framework to 
 The claims in turn depends upon a number of fundamental assumptions on the environment in which the software is being executed.
 
 
-- **[A1]** The integrity of the hardware and the operating system on which the signer runs as been verified by other means.
+- **[A1]** The integrity of the hardware and the operating system on which the signer runs has been verified by other means before execution.
 - **[A2]** The integrity of the signer software and the configured policy has been verified by other means before execution.
 - **[A3]** The configured policy and default values provided in 'common/config_misc.py' have been reviewed as being suitable for its intended purpose.
 - **[A4]** The HSM and the provided PKCS#11 library is trusted and the HSM holds the correct components of the current KSK.
