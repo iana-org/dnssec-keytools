@@ -16,10 +16,12 @@ Tool to create, delete, backup, restore keys as well as perform a key inventory.
 # Allow choosing RSA exponent? As of now, this will default to 65537.
 
 import argparse
+import binascii
 import logging
 import os
 import sys
-from typing import List, Optional
+from datetime import datetime
+from typing import List
 
 import yaml
 from PyKCS11 import PyKCS11Error
@@ -27,11 +29,13 @@ from PyKCS11 import PyKCS11Error
 import kskm
 import kskm.misc
 from kskm.common.config import ConfigurationError, KSKMConfig, get_config
+from kskm.common.config_misc import KSKKey
 from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY
 from kskm.common.dnssec import public_key_to_dnssec_key
 from kskm.common.ecdsa_utils import algorithm_to_curve, is_algorithm_ecdsa
 from kskm.common.logging import get_logger
 from kskm.common.rsa_utils import is_algorithm_rsa
+from kskm.common.wordlist import pgp_wordlist
 from kskm.keymaster.delete import key_delete, wrapkey_delete
 from kskm.keymaster.inventory import key_inventory
 from kskm.keymaster.keygen import (
@@ -41,6 +45,7 @@ from kskm.keymaster.keygen import (
 )
 from kskm.keymaster.wrap import WrappedKey, WrappedKeyRSA, key_backup, key_restore
 from kskm.misc.hsm import KSKM_P11, KeyType, WrappingAlgorithm
+from kskm.ta.keydigest import create_trustanchor_keydigest
 
 SUPPORTED_ALGORITHMS = [str(x.name) for x in KeyType]
 SUPPORTED_SIZES = [2048, 3072, 4096]
@@ -91,7 +96,7 @@ def keygen(
         f"flags=0x{_key.flags:x}"
     )
     key_tags += [_key.key_tag]
-    _key = public_key_to_dnssec_key(
+    _revoked_key = public_key_to_dnssec_key(
         key=p11key.public_key,
         key_identifier=p11key.label,
         algorithm=AlgorithmDNSSEC[args.key_alg],
@@ -99,10 +104,10 @@ def keygen(
         ttl=config.ksk_policy.ttl,
     )
     logger.info(
-        f"Generated key {p11key.label} has key tag {_key.key_tag} with the REVOKE bit set "
-        f"(flags 0x{_key.flags:x})"
+        f"Generated key {p11key.label} has key tag {_revoked_key.key_tag} with the REVOKE bit set "
+        f"(flags 0x{_revoked_key.flags:x})"
     )
-    key_tags += [_key.key_tag]
+    key_tags += [_revoked_key.key_tag]
 
     for _name, ksk in config.ksk_keys.items():
         if ksk.key_tag in key_tags:
@@ -111,6 +116,26 @@ def keygen(
                 f"KSK key in configuration: {ksk}"
             )
             raise RuntimeError("Key tag collision detected")
+
+    _now = datetime.utcnow()
+    # create_trustanchor_keydigest wants an KSKKey, but it is not used in the digest calculation
+    _temp_ksk = KSKKey(
+        description="Newly generated key",
+        label=_now.isoformat(),
+        key_tag=_key.key_tag,
+        algorithm=_key.algorithm,
+        valid_from=_now,
+        valid_until=_now,
+    )
+    _domain = "."
+    _ds = create_trustanchor_keydigest(_temp_ksk, _key, domain=_domain)
+    digest = binascii.hexlify(_ds.digest).decode("UTF-8").upper()
+    _digest_type = "2"  # create_trustanchor_keydigest always does SHA256
+    logger.info(
+        f"DS record for generated key:\n"
+        f"{_domain} IN DS {_key.key_tag} {_key.algorithm.value} {_digest_type} {digest}\n"
+        f">> {' '.join(pgp_wordlist(_ds.digest))}"
+    )
 
     return True
 
