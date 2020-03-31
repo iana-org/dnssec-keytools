@@ -14,7 +14,8 @@ from kskm.common.wordlist import pgp_wordlist
 
 
 def main():
-    message = sys.stdin.read().encode()
+
+    message = sys.stdin.buffer.read()
     m = hashlib.new("sha256")
     m.update(message)
     hexdigest = m.hexdigest()
