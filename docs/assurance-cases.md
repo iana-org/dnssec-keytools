@@ -6,7 +6,7 @@ This documentation is based on the Claims-Arguments-Evidence (CAE) framework to 
 
 - **Argument**. An argument is a rule that provides the bridge between what is known or are assumed (sub-claims, evidence) and the claim being investigated. The argument used depends on the available evidence and the nature of the claim. Note that *argument* is an overloaded word which is being used with a specific meaning in this context.
 
-- **Evidence**. Evidence is an artefact that establishes facts that can be observed and leads directly to a claim. In this project the test cases constitutes the evidence provided.
+- **Evidence**. Evidence is an artifact that establishes facts that can be observed and leads directly to a claim. In this project the tested cases constitutes the evidence provided.
 
 ## Security Environment Assumptions
 
@@ -15,7 +15,7 @@ The claims in turn depends upon a number of fundamental assumptions on the envir
 
 - **[A1]** The integrity of the hardware and the operating system on which the signer runs has been verified by other means before execution.
 - **[A2]** The integrity of the signer software and the configured policy has been verified by other means before execution.
-- **[A3]** The configured policy and default values provided in 'common/config_misc.py' have been reviewed as being suitable for its intended purpose.
+- **[A3]** The configured policy and default values provided in 'common/config\_misc.py' have been reviewed as being suitable for its intended purpose.
 - **[A4]** The HSM and the provided PKCS#11 library is trusted and the HSM holds the correct components of the current KSK.
 - **[A5]** The values in data.py (AlgorithmDNSSEC, TypeDNSSEC and FlagsDNSKEY) correctly reflects the current RFCs.
 - **[A6]** The libraries 'cryptography', 'pyYAML', 'PyKCS11' and 'voluptuous' are trusted for the provided functions.
@@ -49,7 +49,7 @@ This is evident in 'main' from 'tools/ksrsigner.py'.
 
 #### Argument (1.1.2.2)
 
-The **[configured policy]** is parsed (in 'from\_yaml' of 'common/config.py') and checked to comply with the schema ('common/config_schema.py').
+The **[configured policy]** is parsed (in 'from\_yaml' of 'common/config.py') and checked to comply with the schema ('common/config\_schema.py').
 
 ##### Evidence
 
@@ -81,7 +81,7 @@ Test cases provides evidence that (a) a SKR with signatures which can not be ver
 
 #### Argument (1.2.1.2)
 
-KSR-CHAIN.2: To establish a chain of trust linking the previous set of keys to the current, the signer software then checks (in 'check_chain_keys' of 'signer/verify_chain.py') that all ZSKs from the last key bundle of SKR(n-1) matches the ZSKs published in the first key bundle of KSR(n).
+KSR-CHAIN.2: To establish a chain of trust linking the previous set of keys to the current, the signer software then checks (in 'check\_chain\_keys' of 'signer/verify\_chain.py') that all ZSKs from the last key bundle of SKR(n-1) matches the ZSKs published in the first key bundle of KSR(n).
 
 ##### Evidence
 
@@ -89,7 +89,7 @@ Test cases provides evidence that (a) the KSR is rejected if the KSR's first key
 
 #### Argument (1.2.1.3)
 
-KSR-BUNDLE-POP: The signer software verifies (in 'check_proof_of_possession' from 'ksr/verify_bundles.py') for each key in the key bundles of KSR(n) that signatures exists which confirms proof-of-possession of the private component of each ZSK.
+KSR-BUNDLE-POP: The signer software verifies (in 'check\_proof\_of\_possession' from 'ksr/verify\_bundles.py') for each key in the key bundles of KSR(n) that signatures exists which confirms proof-of-possession of the private component of each ZSK.
 
 ##### Evidence
 
@@ -101,7 +101,7 @@ The signer software verifies that the keys and parameters provided in the KSR ar
 
 #### Argument (1.2.2.1)
 
-KSR-BUNDLE-KEYS.1: The signer software (in 'check_keys_match_zsk_policy' of 'ksr/verify_bundles.py') checks each key in each bundle to ensure the key identifiers are unique per key. The control ensure that different keys can not appear with the same key tag within the bundle.
+KSR-BUNDLE-KEYS.1: The signer software (in 'check\_keys\_match\_zsk\_policy' of 'ksr/verify\_bundles.py') checks each key in each bundle to ensure the key identifiers are unique per key. The control ensure that different keys can not appear with the same key tag within the bundle.
 
 ##### Evidence
 
@@ -109,7 +109,7 @@ Test cases provides evidence that (a) a KSR with collisions in the key tags is r
 
 #### Argument (1.2.2.2)
 
-KSR-BUNDLE-KEYS.2: The signer software (in 'check_keys_match_zsk_policy' of 'ksr/verify_bundles.py') checks each key in each bundle is tested to ensure the flags are acceptable according to current RFCs (configured in 'ksr/data.py').
+KSR-BUNDLE-KEYS.2: The signer software (in 'check\_keys\_match\_zsk\_policy' of 'ksr/verify\_bundles.py') checks each key in each bundle is tested to ensure the flags are acceptable according to current RFCs (configured in 'ksr/data.py').
 
 ##### Evidence
 
@@ -117,7 +117,7 @@ Test cases provides evidence that (a) a KSR containing keys with invalid flags i
 
 #### Argument (1.2.2.3)
 
-KSR-BUNDLE-KEYS.3: The signer software (in 'check_keys_match_zsk_policy' from 'ksr/verify_bundles.py') checks each key in each bundle to ensure the key tag is correctly calculated according to RFC 4034 (updated by RFC 6840). This control ensures that the same key can not appear with different key tags.
+KSR-BUNDLE-KEYS.3: The signer software (in 'check\_keys\_match\_zsk\_policy' from 'ksr/verify\_bundles.py') checks each key in each bundle to ensure the key tag is correctly calculated according to RFC 4034 (updated by RFC 6840). This control ensures that the same key can not appear with different key tags.
 
 ##### Evidence
 
@@ -129,7 +129,7 @@ The signer software verifies that the number of keys per slot, which are used by
 
 #### Argument (1.2.3.1)
 
-KSR-POLICY-KEYS.4: The signer software (in 'check_keys_in_bundles' of 'ksr/verify_policy') checks that the number of bundles in the KSR matches the number of elements in the configured policy ('num_keys_per_bundle').
+KSR-POLICY-KEYS.4: The signer software (in 'check\_keys\_in\_bundles' of 'ksr/verify\_policy') checks that the number of bundles in the KSR matches the number of elements in the configured policy ('num\_keys\_per\_bundle').
 
 ##### Evidence
 
@@ -137,7 +137,7 @@ Test cases provides evidence that (a) if the number bundles differ from the numb
 
 #### Argument (1.2.3.2)
 
-KSR-POLICY-KEYS.5: The signer software (in 'check_keys_in_bundles' of 'ksr/verify_policy') checks that for each bundle the number of keys matches the corresponding element in the configured policy ('num_keys_per_bundle').
+KSR-POLICY-KEYS.5: The signer software (in 'check\_keys\_in\_bundles' of 'ksr/verify\_policy') checks that for each bundle the number of keys matches the corresponding element in the configured policy ('num\_keys\_per\_bundle').
 
 ##### Evidence
 
@@ -149,7 +149,7 @@ The signer software checks to verify that the time period covered by the KSR is 
 
 #### Argument (1.2.4.1)
 
-KSR-BUNDLE-CYCLE-DURATION.1: In check_cycle_durations of 'verify_bundles.py' it is checked that the difference in time between the last bundles' inception time and the first bundles' inception time falls within the span defined by the configuration variables 'min_cycle_inception_length' and 'max_cycle_inception_length'.
+KSR-BUNDLE-CYCLE-DURATION.1: In check\_cycle\_durations of 'verify\_bundles.py' it is checked that the difference in time between the last bundles' inception time and the first bundles' inception time falls within the span defined by the configuration variables 'min\_cycle\_inception\_length' and 'max\_cycle\_inception\_length'.
 
 ##### Evidence
 
@@ -157,7 +157,7 @@ Test cases provides evidence that (a) if the duration covered by the KSR is less
 
 #### Argument (1.2.4.2)
 
-KSR-BUNDLE-CYCLE-DURATION.2: In 'check_bundle_intervals' of 'verify_policy.py' it is checked that the difference in time between two adjacent bundles' inception times falls within the span defined by the configuration variables 'min_bundle_interval' and 'max_bundle_interval'.
+KSR-BUNDLE-CYCLE-DURATION.2: In 'check\_bundle\_intervals' of 'verify\_policy.py' it is checked that the difference in time between two adjacent bundles' inception times falls within the span defined by the configuration variables 'min\_bundle\_interval' and 'max\_bundle\_interval'.
 
 ##### Evidence
 
@@ -165,7 +165,7 @@ Test cases provides evidence that (a) if the interval between two adjacent key b
 
 #### Argument (1.2.4.3)
 
-KSR-POLICY-SIG-HORIZON: The signer software (in 'check_signature_horizon' of 'signer/verify_policy.py') checks to ensure that each of requested signatures does not expire further into the future (counting from the current time and date set in the system) than the configured policy ('signature_horizon_days').
+KSR-POLICY-SIG-HORIZON: The signer software (in 'check\_signature\_horizon' of 'signer/verify\_policy.py') checks to ensure that each of requested signatures does not expire further into the future (counting from the current time and date set in the system) than the configured policy ('signature\_horizon\_days').
 
 ##### Evidence
 
@@ -177,7 +177,7 @@ The signer software checks that the signature's validity periods overlaps accord
 
 #### Argument (1.2.5.1)
 
-KSR-CHAIN: The signer software (in 'check_chain_overlap' of 'signer/verify_chain.py') checks to ensure the overlap between the signature expiry of the last bundle of the previous SKR and the inception of the first bundle of the current KSR to be in compliance with the configured policy ('min_validity_overlap/max_validity_overlap').
+KSR-CHAIN: The signer software (in 'check\_chain\_overlap' of 'signer/verify\_chain.py') checks to ensure the overlap between the signature expiry of the last bundle of the previous SKR and the inception of the first bundle of the current KSR to be in compliance with the configured policy ('min\_validity\_overlap/max\_validity\_overlap').
 
 ##### Evidence
 
@@ -189,7 +189,7 @@ The signer software checks that each of the signature's validity periods are acc
 
 #### Argument (1.2.6.1)
 
-KSR-POLICY-SIG-VALIDITY: The signer software (in 'check_signature_validity' of 'signer/verify_policy.py') checks to ensure that the validity period of the requested signatures are in compliance with the configured policy ('min_signature_validity/max_signature_validity').
+KSR-POLICY-SIG-VALIDITY: The signer software (in 'check\_signature\_validity' of 'signer/verify\_policy.py') checks to ensure that the validity period of the requested signatures are in compliance with the configured policy ('min\_signature\_validity/max\_signature\_validity').
 
 ##### Evidence
 
@@ -201,7 +201,7 @@ The signer software verifies that the signature algorithms and parameters provid
 
 #### Argument (1.2.7.1)
 
-KSR-POLICY-ALG.1: The signer software (in 'check_zsk_policy_algorithm' of 'ksr/verify_policy.py') checks the 'RequestPolicy' section of the KSR and denies the use of deprecated algorithms ('common/data.py') according to RFC 8624.
+KSR-POLICY-ALG.1: The signer software (in 'check\_zsk\_policy\_algorithm' of 'ksr/verify\_policy.py') checks the 'RequestPolicy' section of the KSR and denies the use of deprecated algorithms ('common/data.py') according to RFC 8624.
 
 ##### Evidence
 
@@ -209,7 +209,7 @@ Test cases provides evidence that if a deprecated algorithm is listed in the Req
 
 #### Argument (1.2.7.2)
 
-KSR-POLICY-ALG.2: The signer software (in 'check_zsk_policy_algorithm' of 'ksr/verify_policy.py') checks the 'RequestPolicy' section of the KSR and denies the use of unspported algorithms ('common/data.py').
+KSR-POLICY-ALG.2: The signer software (in 'check\_zsk\_policy\_algorithm' of 'ksr/verify\_policy.py') checks the 'RequestPolicy' section of the KSR and denies the use of unspported algorithms ('common/data.py').
 
 ##### Evidence
 
@@ -217,31 +217,31 @@ Test cases provides evidence that if an unsupported algorithm is listed in the R
 
 #### Argument (1.2.7.3)
 
-KSR-POLICY-ALG.3: The signer software (in 'check_zsk_policy_algorithm' of 'ksr/verify_policy.py') checks to ensure that each occurrence of an algorithm in the 'RequestPolicy' section of the KSR is acceptable according to the configured policy ('approved_algoritms').
+KSR-POLICY-ALG.3: The signer software (in 'check\_zsk\_policy\_algorithm' of 'ksr/verify\_policy.py') checks to ensure that each occurrence of an algorithm in the 'RequestPolicy' section of the KSR is acceptable according to the configured policy ('approved\_algoritms').
 
 ##### Evidence
 
-Test cases provides evidence that (a) if an algorithm is listed in the 'RequestPolicy' section which is not listed in the configured policy ('approved_algorithms') the KSR is rejected, and (b) if an algorithm is listed in the 'RequestPolicy' section which is listed in the configured policy ('approved_algorithms') the KSR is accepted.
+Test cases provides evidence that (a) if an algorithm is listed in the 'RequestPolicy' section which is not listed in the configured policy ('approved\_algorithms') the KSR is rejected, and (b) if an algorithm is listed in the 'RequestPolicy' section which is listed in the configured policy ('approved\_algorithms') the KSR is accepted.
 
 #### Argument (1.2.7.4)
 
-KSR-POLICY-ALG.4: The signer software (in 'check_zsk_policy_algorithm' of 'ksr/verify_policy.py') checks, if algorithm is RSA, that the modulus length is acceptable according to the configured policy ('rsa_approved_key_sizes').
+KSR-POLICY-ALG.4: The signer software (in 'check\_zsk\_policy\_algorithm' of 'ksr/verify\_policy.py') checks, if algorithm is RSA, that the modulus length is acceptable according to the configured policy ('rsa\_approved\_key\_sizes').
 
 ##### Evidence
 
-Test cases provides evidence that if the algorithm listed in the RequestPolicy section is RSA and (a) if the provided modulus length is not in compliance with the configured policy ('rsa_approved_key_sizes') the KSR is rejected, and (b) if the provided modulus length is in compliance with the configured policy ('rsa_approved_key_sizes') the KSR is accepted.
+Test cases provides evidence that if the algorithm listed in the RequestPolicy section is RSA and (a) if the provided modulus length is not in compliance with the configured policy ('rsa\_approved\_key\_sizes') the KSR is rejected, and (b) if the provided modulus length is in compliance with the configured policy ('rsa\_approved\_key\_sizes') the KSR is accepted.
 
 #### Argument (1.2.7.5)
 
-KSR-POLICY-ALG.5: The signer software (in 'check_zsk_policy_algorithm' of 'ksr/verify_policy.py') checks, if algorithm is RSA, that the exponent is acceptable according to the configured policy ('rsa_approved_exponents').
+KSR-POLICY-ALG.5: The signer software (in 'check\_zsk\_policy\_algorithm' of 'ksr/verify\_policy.py') checks, if algorithm is RSA, that the exponent is acceptable according to the configured policy ('rsa\_approved\_exponents').
 
 ##### Evidence
 
-Test cases provides evidence that if the algorithm listed in the 'RequestPolicy' section is RSA and (a) if the provided exponent is not in compliance with the configured policy ('rsa_approved_exponents') the KSR is rejected, and (b) if the provided exponent is in compliance with the configured policy ('rsa_approved_exponents') the KSR is accepted.
+Test cases provides evidence that if the algorithm listed in the 'RequestPolicy' section is RSA and (a) if the provided exponent is not in compliance with the configured policy ('rsa\_approved\_exponents') the KSR is rejected, and (b) if the provided exponent is in compliance with the configured policy ('rsa\_approved\_exponents') the KSR is accepted.
 
 #### Argument (1.2.7.6)
 
-KSR-POLICY-ALG.6: The signer software (in 'check_keys_match_zsk_policy' of 'ksr/verify_budles.py') checks to ensure that the signature algorithms and key parameters of each key in each key bundle is in compliance with the 'RequestPolicy' section of the KSR.
+KSR-POLICY-ALG.6: The signer software (in 'check\_keys\_match\_zsk\_policy' of 'ksr/verify\_budles.py') checks to ensure that the signature algorithms and key parameters of each key in each key bundle is in compliance with the 'RequestPolicy' section of the KSR.
 
 ##### Evidence
 
@@ -257,11 +257,11 @@ The signer software verifies that the domain name provided in the KSR is accepta
 
 #### Argument (1.2.8.1)
 
-KSR-DOMAIN: The signer software (in 'check_domain' of 'ksr/verify_header.py') checks that the domain name in the KSR header is in compliance with the configured policy ('acceptable_domains').
+KSR-DOMAIN: The signer software (in 'check\_domain' of 'ksr/verify\_header.py') checks that the domain name in the KSR header is in compliance with the configured policy ('acceptable\_domains').
 
 ##### Evidence
 
-Test cases provides evidence that (a) if the domain name provided in the KSR header is not in compliance with the configured policy ('acceptable_domains') the KSR is rejected, and (b) if the domain name provided in the KSR header is in compliance with the configured policy ('acceptable_domains') the KSR is accepted.
+Test cases provides evidence that (a) if the domain name provided in the KSR header is not in compliance with the configured policy ('acceptable\_domains') the KSR is rejected, and (b) if the domain name provided in the KSR header is in compliance with the configured policy ('acceptable\_domains') the KSR is accepted.
 
 ## Claim (1.3)
 
@@ -276,7 +276,7 @@ Context: These controls assumes that the duration of the time slots have taken i
 
 #### Argument (1.3.1.1)
 
-KSR-POLICY-SAFETY.1: The signer system (in 'check_publish_safety' of 'signer/policy.py') checks that all keys used for signing the first bundle of the KSR was present (published) in the last bundle of the last SKR.
+KSR-POLICY-SAFETY.1: The signer system (in 'check\_publish\_safety' of 'signer/policy.py') checks that all keys used for signing the first bundle of the KSR was present (published) in the last bundle of the last SKR.
 
 ##### Evidence
 
@@ -284,15 +284,15 @@ Test cases provides evidence that if a signing key from the last bundle of the l
 
 #### Argument (1.3.1.2)
 
-KSR-POLICY-SAFETY.2: The signer system (in 'check_publish_safety' of 'signer/policy.py') checks that the time difference between the inception times of the signatures of the first bundle of the current SKR and the last bundle of the previous SKR is greater than the PublishSafety period.
+KSR-POLICY-SAFETY.2: The signer system (in 'check\_publish\_safety' of 'signer/policy.py') checks that the time difference between the inception times of the signatures of the first bundle of the current SKR and the last bundle of the previous SKR is greater than the PublishSafety period.
 
 ##### Evidence
 
-Test cases provides evidence that if the 'retire_safety' time interval is greater than the time difference between the inception of the last bundle of the last SKR and the first bundle of the current SKR, and error is raised and execution is aborted.
+Test cases provides evidence that if the 'retire\_safety' time interval is greater than the time difference between the inception of the last bundle of the last SKR and the first bundle of the current SKR, and error is raised and execution is aborted.
 
 #### Argument (1.3.1.3)
 
-KSR-POLICY-SAFETY.3: The signer system (in 'check_retire_safety' of 'signer/policy.py') checks that all keys used for signing the last bundle of the last SKR is present (published) in the first bundle of the current SKR.
+KSR-POLICY-SAFETY.3: The signer system (in 'check\_retire\_safety' of 'signer/policy.py') checks that all keys used for signing the last bundle of the last SKR is present (published) in the first bundle of the current SKR.
 
 ##### Evidence
 
@@ -300,11 +300,11 @@ Test cases provides evidence that if a signing key in the first bundle of the cu
 
 #### Argument (1.3.1.4)
 
-KSR-POLICY-SAFETY.4: The signer system (in 'check_retire_safety' of 'signer/policy.py') checks that the time difference in the inception times of the signatures of the first and second bundle of the current SKR is greater than or equal to the RetireSafety period.
+KSR-POLICY-SAFETY.4: The signer system (in 'check\_retire\_safety' of 'signer/policy.py') checks that the time difference in the inception times of the signatures of the first and second bundle of the current SKR is greater than or equal to the RetireSafety period.
 
 ##### Evidence
 
-Test cases provides evidence that if the 'retire_safety' time interval is greater than the time difference between the inception of the first and second bundle of the current SKR, and error is raised and execution is aborted.
+Test cases provides evidence that if the 'retire\_safety' time interval is greater than the time difference between the inception of the first and second bundle of the current SKR, and error is raised and execution is aborted.
 
 ### Sub Claim (1.3.2)
 
@@ -312,7 +312,7 @@ The signer system verifies that the signatures of a resulting SKR can be validat
 
 #### Argument (1.3.2.1)
 
-SKR-VERIFY: The signer system (in '_sign_keys' of 'signer/sign.py') checks that for each signature made by the HSM, this signature can be validated using the software cryptographic library and the public key retrieved from the HSM using the PKCS#11 interface.
+SKR-VERIFY: The signer system (in '\_sign\_keys' of 'signer/sign.py') checks that for each signature made by the HSM, this signature can be validated using the software cryptographic library and the public key retrieved from the HSM using the PKCS#11 interface.
 
 ##### Evidence
 
