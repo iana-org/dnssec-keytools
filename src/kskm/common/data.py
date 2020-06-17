@@ -13,6 +13,12 @@ AlgorithmPolicyType = TypeVar("AlgorithmPolicyType", bound="AlgorithmPolicy")
 
 
 class AlgorithmDNSSEC(Enum):
+    """
+    DNSSEC Algorithms.
+
+    https://www.iana.org/assignments/dns-sec-alg-numbers/dns-sec-alg-numbers.xhtml
+    """
+
     RSAMD5 = 1
     DSA = 3
     RSASHA1 = 5
@@ -45,10 +51,14 @@ SUPPORTED_ALGORITHMS = [
 
 
 class TypeDNSSEC(Enum):
+    """DNS RR type."""
+
     DNSKEY = 48
 
 
 class FlagsDNSKEY(Enum):
+    """DNSKEY flags."""
+
     SEP = 0x0001
     REVOKE = 0x0080
     ZONE = 0x0100
@@ -56,27 +66,33 @@ class FlagsDNSKEY(Enum):
 
 @dataclass(frozen=True)
 class AlgorithmPolicy:
+    """Algorithm Policy."""
+
     bits: int
     algorithm: AlgorithmDNSSEC
 
 
 @dataclass(frozen=True)
 class AlgorithmPolicyRSA(AlgorithmPolicy):
+    """Algorithm Policy for RSA signatures."""
+
     exponent: int
 
 
 @dataclass(frozen=True)
 class AlgorithmPolicyECDSA(AlgorithmPolicy):
-    pass
+    """Algorithm Policy for ECDSA signatures."""
 
 
 @dataclass(frozen=True)
 class AlgorithmPolicyDSA(AlgorithmPolicy):
-    pass
+    """Algorithm Policy for DSA signatures."""
 
 
 @dataclass(frozen=True)
 class SignaturePolicy:
+    """DNSSEC Signature Policy."""
+
     publish_safety: timedelta
     retire_safety: timedelta
     max_signature_validity: timedelta
@@ -88,11 +104,15 @@ class SignaturePolicy:
 
 @dataclass(frozen=True)
 class Signer:
+    """RRSIG Signer parameters."""
+
     key_identifier: Optional[str]
 
 
 @dataclass(frozen=True)
 class Signature:
+    """RRSIG parameters."""
+
     key_identifier: str
     ttl: int
     type_covered: TypeDNSSEC
@@ -108,6 +128,8 @@ class Signature:
 
 @dataclass(frozen=True)
 class Key:
+    """DNSKEY parameters."""
+
     key_identifier: str
     key_tag: int
     ttl: int
@@ -148,6 +170,8 @@ class Key:
 
 @dataclass(frozen=True)
 class Bundle(ABC):
+    """Request Bundle base class."""
+
     id: str
     inception: datetime
     expiration: datetime
