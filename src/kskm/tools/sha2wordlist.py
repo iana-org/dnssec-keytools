@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 SHA-256 PGP Words calculator.
 
