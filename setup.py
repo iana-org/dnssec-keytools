@@ -40,6 +40,7 @@ testing_extras = [
     "nosexcover==1.0.11",
     "pycryptodome==3.9.4",
     "pylama==7.6.6",
+    "pylint==2.5.3",
     "pyopenssl==19.1.0",
     "pytest==5.4.3",
     "wheel==0.34.2",
