@@ -102,7 +102,7 @@ _Trust Anchor Exporter_ uses the `hsm` and `keys` sections from the _KSR Signer_
 
 ## KSR Receiver
 
-The _KSR Receiver_ is a simple web server that will receive upload KSR files and validate them using the KSR signer's validation logic. The result will be return as a web page together with an optional notification email.
+The _KSR Receiver_ (aka wksr) is a simple web server that will receive upload KSR files and validate them using the KSR signer's validation logic. The result will be return as a web page together with an optional notification email.
 
 ### Command Line Usage
 
