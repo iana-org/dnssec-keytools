@@ -3,7 +3,6 @@ PYTHON=		python3.7
 VENV=		venv
 DOCS=		htmlcov
 DISTDIRS=	*.egg-info build dist
-GREEN_FLAGS=	-vv
 
 SOFTHSM2_CONF=		${CURDIR}/testing/softhsm/softhsm.conf
 SOFTHSM2_MODULE?=	$(shell sh testing/softhsm/find_libsofthsm2.sh)
@@ -33,7 +32,7 @@ softhsm:
 	(cd testing/softhsm; make SOFTHSM_CONF=$(SOFTHSM2_CONF) all)
 
 test: $(VENV) softhsm
-	env $(TEST_ENV) $(VENV)/bin/green $(GREEN_FLAGS)
+	env $(TEST_ENV) $(VENV)/bin/pytest -v $(SOURCE)
 
 container:
 	docker build --tag wksr .

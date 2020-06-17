@@ -36,13 +36,13 @@ testing_extras = [
     "dnspython==1.16.0",
     "eradicate==1.0",
     "flask==1.1.1",
-    "green==3.1.0",
     "mypy==0.761",
     "nose==1.3.7",
     "nosexcover==1.0.11",
     "pycryptodome==3.9.4",
     "pylama==7.6.6",
     "pyopenssl==19.1.0",
+    "pytest==5.4.3",
     "wheel==0.34.2",
 ]
 
