@@ -122,7 +122,11 @@ def trustanchor(
     #
     if config is None:
         _filename = args.config if args else None
-        config = get_config(_filename)
+        try:
+            config = get_config(_filename)
+        except FileNotFoundError as exc:
+            logger.critical(str(exc))
+            sys.exit(-1)
 
     #
     # Initialise PKCS#11 modules (HSMs)
