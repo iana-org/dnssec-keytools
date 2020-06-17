@@ -1,9 +1,5 @@
-"""
-Functions to validate KSRs.
-
-The KSR validation is specified in docs/ksr-processing.md. The functions are
-organised to match the specification, starting with the top level function
-'validate_request' in this file.
+""" Functions to validate KSRs. The functions are organized to match the specifications,
+starting with the top level function 'validate_request' in this file.
 
 NOTE: Only validation that can be performed with _only the KSR_ are done here.
       Some checks that are done with the current KSR (KSR(n)) and the previous

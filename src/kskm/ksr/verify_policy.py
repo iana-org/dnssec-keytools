@@ -1,4 +1,4 @@
-"""The checks defined in the 'Verify KSR policy parameters' section of docs/ksr-processing.md."""
+"""Controls to verify KSR policy parameters."""
 import datetime
 from logging import Logger
 

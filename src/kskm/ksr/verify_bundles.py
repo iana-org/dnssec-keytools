@@ -1,4 +1,4 @@
-"""The checks defined in the 'Verify KSR bundles' section of docs/ksr-processing.md."""
+"""Controls to verify KSR bundles."""
 from base64 import b64decode
 from logging import Logger
 from typing import Dict, Optional

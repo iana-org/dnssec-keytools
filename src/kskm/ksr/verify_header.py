@@ -1,4 +1,4 @@
-"""The checks defined in the 'Verify KSR header' section of docs/ksr-processing.md."""
+"""Controls to verify KSR header."""
 from logging import Logger
 
 from kskm.common.config_misc import RequestPolicy
