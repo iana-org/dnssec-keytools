@@ -30,21 +30,21 @@ install_requires = [
 ]
 
 testing_extras = [
-    "black==19.10b0",
-    "coverage==5.0.3",
+    "black",
+    "coverage",
     "dnspython==1.16.0",
-    "eradicate==1.0",
+    "eradicate",
     "flask==1.1.1",
-    "mypy==0.761",
-    "nose==1.3.7",
-    "nosexcover==1.0.11",
-    "parsable==0.2.4",
+    "mypy",
+    "nose",
+    "nosexcover",
+    "parsable",
     "pycryptodome==3.9.4",
-    "pylama==7.6.6",
-    "pylint==2.5.3",
+    "pylama",
+    "pylint",
     "pyopenssl==19.1.0",
-    "pytest==5.4.3",
-    "wheel==0.34.2",
+    "pytest",
+    "wheel",
 ]
 
 online_extras = ["flask==1.1.1", "pyopenssl==19.1.0", "Werkzeug==0.16.1"]

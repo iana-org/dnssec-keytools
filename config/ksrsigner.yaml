@@ -108,7 +108,7 @@ request_policy:
   # are used in the request and that the the signature algorithms listed in
   # the KSR policy have parameters allowed by the KSK operators policy.
   # Parameters checked are different for different algorithms.
-  # (default true) 
+  # (default true)
   signature_algorithms_match_zsk_policy: true
 
   # Check that the keys in the bundles match the KSK operator's configured

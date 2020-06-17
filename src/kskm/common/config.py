@@ -33,7 +33,7 @@ class ConfigurationError(Exception):
     pass
 
 
-class KSKMConfig(object):
+class KSKMConfig:
     """
     Configuration object.
 

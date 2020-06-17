@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class WrappedKey(object):
+class WrappedKey:
     key_label: str
     key_type: KeyType
     public_wrapped: Optional[bytes] = field(repr=False)

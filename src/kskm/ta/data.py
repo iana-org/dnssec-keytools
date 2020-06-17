@@ -15,7 +15,7 @@ class DigestDNSSEC(Enum):
 
 
 @dataclass(frozen=True)
-class KeyDigest(object):
+class KeyDigest:
     id: str
     key_tag: int
     algorithm: AlgorithmDNSSEC
@@ -49,7 +49,7 @@ class KeyDigest(object):
 
 
 @dataclass(frozen=True)
-class TrustAnchor(object):
+class TrustAnchor:
     id: str
     source: str
     zone: str
