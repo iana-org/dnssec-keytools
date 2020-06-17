@@ -526,38 +526,6 @@ def init_pkcs11_modules_from_dict(
     return KSKM_P11(modules)
 
 
-def init_pkcs11_modules(config_dir: str, so_login: bool = False) -> KSKM_P11:
-    """
-    Parse *.hsmconfig files in the config_dir and initialize PKCS#11 modules accordingly.
-
-    :param so_login: Login as PKCS#11 Security Officer, otherwise login as ordinary user
-    :return: A list of PyKCS11 library instances.
-    """
-    modules: list = []
-    for fn in glob.glob(os.path.join(config_dir, "*.hsmconfig")):
-        if not os.path.isfile(fn):
-            continue
-        logger.debug("Loading HSM configuration file {}".format(fn))
-        env = load_hsmconfig(fn)
-        logger.debug("Parsed configuration: {!r}".format(env))
-        # Save old values from the environment so we can reset it between modules
-        old_env = {}
-        for key in env.keys():
-            old_env[key] = os.environ.get(key)
-        os.environ.update(env)
-
-        lib = KSKM_P11Module(env["PKCS11_LIBRARY_PATH"], so_login=so_login)
-        modules += [lib]
-
-        # reset environment
-        for k, v in old_env.items():
-            if v is None:
-                del os.environ[k]
-            else:
-                os.environ[k] = v
-    return KSKM_P11(modules)
-
-
 def load_hsmconfig(
     fn: str, defaults: Optional[MutableMapping] = None, max_lines: int = 100
 ) -> dict:
