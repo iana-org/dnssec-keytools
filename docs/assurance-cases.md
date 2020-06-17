@@ -6,7 +6,7 @@ This documentation is based on the Claims-Arguments-Evidence (CAE) framework to 
 
 - **Argument**. An argument is a rule that provides the bridge between what is known or are assumed (sub-claims, evidence) and the claim being investigated. The argument used depends on the available evidence and the nature of the claim. Note that *argument* is an overloaded word which is being used with a specific meaning in this context.
 
-- **Evidence**. Evidence is an artifact that establishes facts that can be observed and leads directly to a claim. In this project the tested cases constitutes the evidence provided.
+- **Evidence**. Evidence is an artifact that establishes facts that can be observed and leads directly to a claim. In this project the test cases constitutes the evidence provided.
 
 ## Security Environment Assumptions
 
