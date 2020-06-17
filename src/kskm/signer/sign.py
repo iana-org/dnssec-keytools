@@ -29,13 +29,9 @@ logger = logging.getLogger(__name__)
 class CreateSignatureError(Exception):
     """Failures to create a signature."""
 
-    pass
-
 
 class SKR_VERIFY_Failure(InvalidSignature):
     """SKR-VERIFY signature validation failure."""
-
-    pass
 
 
 def sign_bundles(

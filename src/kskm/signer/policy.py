@@ -142,7 +142,7 @@ def check_publish_safety(
             f"after the expiration of the last bundle in the last SKR "
             f"({_last_inception})"
         )
-    logger.info(f"KSR-POLICY-SAFETY: PublishSafety validated")
+    logger.info("KSR-POLICY-SAFETY: PublishSafety validated")
 
 
 def check_retire_safety(

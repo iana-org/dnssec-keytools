@@ -66,7 +66,7 @@ class Test_signers_from_list(TestCase):
         ]
         out = signers_from_list(data)
         self.assertEqual(
-            out, {Signer(key_identifier="KC00020"), Signer(key_identifier="KC00094"),}
+            out, {Signer(key_identifier="KC00020"), Signer(key_identifier="KC00094")}
         )
 
     def test_no_signer(self):

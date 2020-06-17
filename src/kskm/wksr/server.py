@@ -197,9 +197,9 @@ def save_ksr(upload_file: FileStorage) -> Tuple[str, str]:
 
 
 def generate_ssl_context(config: Optional[dict] = None) -> ssl.SSLContext:
+    """Generate SSL context for app."""
     if config is None:
         config = {}
-    """Generate SSL context for app."""
     ssl_context = ssl.create_default_context(
         purpose=ssl.Purpose.CLIENT_AUTH, cafile=config.get("ca_cert")
     )

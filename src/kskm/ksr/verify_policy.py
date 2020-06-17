@@ -229,7 +229,8 @@ def check_zsk_policy_algorithm(
     request: Request, policy: RequestPolicy, logger: Logger
 ) -> None:
     """
-    KSR-POLICY-ALG:
+    KSR-POLICY-ALG.
+
     Verify that only signature algorithms listed in the KSK operators policy
     are used in the request and that the the signature algorithms listed in
     the KSR policy have parameters allowed by the KSK operators policy.
@@ -358,9 +359,8 @@ def check_bundle_overlaps(
 def check_bundle_intervals(
     request: Request, policy: RequestPolicy, logger: Logger
 ) -> None:
-    """
-    Check that the bundles' intervals fall within expected limits.
-    """
+    """Check that the bundles' intervals fall within expected limits."""
+
     if not policy.check_bundle_intervals:
         logger.warning(
             "KSR-POLICY-BUNDLE-INTERVALS: Disabled by policy (check_bundle_intervals)"

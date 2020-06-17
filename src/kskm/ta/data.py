@@ -16,6 +16,8 @@ class DigestDNSSEC(Enum):
 
 @dataclass(frozen=True)
 class KeyDigest:
+    """RFC 7958 Key Digest."""
+
     id: str
     key_tag: int
     algorithm: AlgorithmDNSSEC
@@ -50,6 +52,8 @@ class KeyDigest:
 
 @dataclass(frozen=True)
 class TrustAnchor:
+    """RFC 7958 Trust Anchor."""
+
     id: str
     source: str
     zone: str

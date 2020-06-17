@@ -206,7 +206,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
             7: {publish: [], sign: ksk_EC2}
             8: {publish: [], sign: ksk_EC2}
             9: {publish: [], sign: ksk_EC2}
-        
+
         keys:
           ksk_EC3:
             description: A SoftHSM key used in tests

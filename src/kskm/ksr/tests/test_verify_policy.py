@@ -82,7 +82,7 @@ class Test_Invalid_Requests_policy(Test_Requests):
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
             validate_request(
                 request, replace(self.policy, approved_algorithms=["RSASHA256", "DSA"])
-            ),
+            )
         self.assertEqual("Algorithm DSA deprecated", str(exc.exception))
 
     def test_RSASHA1_not_supported(self):
@@ -99,7 +99,7 @@ class Test_Invalid_Requests_policy(Test_Requests):
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
             validate_request(
                 request, replace(self.policy, approved_algorithms=["RSASHA256"])
-            ),
+            )
         self.assertEqual("Algorithm RSASHA1 not supported", str(exc.exception))
 
     def test_RSA_wrong_size(self):
@@ -116,7 +116,7 @@ class Test_Invalid_Requests_policy(Test_Requests):
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
             validate_request(
                 request, replace(self.policy, approved_algorithms=["RSASHA256"])
-            ),
+            )
         self.assertEqual(
             "ZSK policy has RSA-1024, but policy dictates [2048]", str(exc.exception)
         )
@@ -135,7 +135,7 @@ class Test_Invalid_Requests_policy(Test_Requests):
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
             validate_request(
                 request, replace(self.policy, approved_algorithms=["RSASHA256"])
-            ),
+            )
         self.assertEqual(
             "ZSK policy has RSA exponent 17, but policy dictates [3, 65537]",
             str(exc.exception),
@@ -154,7 +154,7 @@ class Test_Invalid_Requests_policy(Test_Requests):
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
             validate_request(
                 request, replace(self.policy, approved_algorithms=["RSASHA256"])
-            ),
+            )
         self.assertEqual("Algorithm ECDSA is not supported", str(exc.exception))
 
 

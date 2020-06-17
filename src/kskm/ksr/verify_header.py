@@ -9,19 +9,13 @@ from kskm.ksr import Request
 class KSR_HeaderPolicyViolation(PolicyViolation):
     """Policy violation in a KSRs header."""
 
-    pass
-
 
 class KSR_ID_Violation(KSR_HeaderPolicyViolation):
     """KSR-ID policy violation."""
 
-    pass
-
 
 class KSR_DOMAIN_Violation(KSR_HeaderPolicyViolation):
     """KSR-DOMAIN policy violation."""
-
-    pass
 
 
 def verify_header(request: Request, policy: RequestPolicy, logger: Logger) -> None:

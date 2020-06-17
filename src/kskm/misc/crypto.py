@@ -37,7 +37,7 @@ def key_to_crypto_pubkey(key: Key) -> CryptoPubKey:
     """Turn a Key (DNSKEY) into a CryptoPubKey that can be used with 'cryptography'."""
     if is_algorithm_rsa(key.algorithm):
         return pubkey_to_crypto_pubkey(decode_rsa_public_key(key.public_key))
-    elif is_algorithm_ecdsa(key.algorithm):
+    if is_algorithm_ecdsa(key.algorithm):
         crv = algorithm_to_curve(key.algorithm)
         return pubkey_to_crypto_pubkey(decode_ecdsa_public_key(key.public_key, crv))
     raise RuntimeError(f"Can't make cryptography public key from {key}")
@@ -47,10 +47,9 @@ def pubkey_to_crypto_pubkey(pubkey: Optional[KSKM_PublicKey]) -> CryptoPubKey:
     """Turn an KSKM_PublicKey into a CryptoPubKey."""
     if isinstance(pubkey, KSKM_PublicKey_RSA):
         return rsa_pubkey_to_crypto_pubkey(pubkey)
-    elif isinstance(pubkey, KSKM_PublicKey_ECDSA):
+    if isinstance(pubkey, KSKM_PublicKey_ECDSA):
         return ecdsa_pubkey_to_crypto_pubkey(pubkey)
-    else:
-        raise RuntimeError(f"Can't make cryptography public key from {pubkey}")
+    raise RuntimeError(f"Can't make cryptography public key from {pubkey}")
 
 
 def rsa_pubkey_to_crypto_pubkey(pubkey: KSKM_PublicKey_RSA) -> rsa.RSAPublicKey:

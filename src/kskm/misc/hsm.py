@@ -580,7 +580,7 @@ def parse_hsmconfig(
                 "Badly formed line {!r} in HSM config {}".format(line, src)
             )
         lhs = line[:separator_idx]
-        rhs = line[separator_idx + 1:]
+        rhs = line[separator_idx + 1 :]
 
         # Look for variables to interpolate (regexp matches patterns like $VAR or $FOO_BAR).
         while True:
