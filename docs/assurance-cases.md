@@ -178,9 +178,21 @@ Test cases provides evidence that (a) if the overlap between signature expiry of
 
 ### Sub Claim (1.2.6)
 
-The signer software verifies that the signature algorithms and parameters provided in the the KSR are acceptable according to the configured policy.
+The signer software checks that each of the signature's validity periods are according to policy.
 
 #### Argument (1.2.6.1)
+
+KSR-POLICY-SIG-VALIDITY: The signer software (in 'check_signature_validity' of 'signer/verify_policy.py') checks to ensure that the validity period of the requested signatures are in compliance with the configured policy ('min_signature_validity/max_signature_validity').
+
+##### Evidence
+
+Test cases provides evidence that (a) if a requested signature's validity period is less than the configured minimum in the policy or (b) if a requested signature's validity period is greater than the configured maximum in the policy, the KSR is rejected.
+
+### Sub Claim (1.2.7)
+
+The signer software verifies that the signature algorithms and parameters provided in the the KSR are acceptable according to the configured policy.
+
+#### Argument (1.2.7.1)
 
 KSR-POLICY-ALG.1: The signer software (in 'check_zsk_policy_algorithm' of 'ksr/verify_policy.py') checks the 'RequestPolicy' section of the KSR and denies the use of deprecated algorithms ('common/data.py') according to RFC 8624.
 
@@ -188,7 +200,7 @@ KSR-POLICY-ALG.1: The signer software (in 'check_zsk_policy_algorithm' of 'ksr/v
 
 Test cases provides evidence that if a deprecated algorithm is listed in the RequestPolicy section of the KSR the KSR is rejected.
 
-#### Argument (1.2.6.2)
+#### Argument (1.2.7.2)
 
 KSR-POLICY-ALG.2: The signer software (in 'check_zsk_policy_algorithm' of 'ksr/verify_policy.py') checks the 'RequestPolicy' section of the KSR and denies the use of unspported algorithms ('common/data.py').
 
@@ -196,7 +208,7 @@ KSR-POLICY-ALG.2: The signer software (in 'check_zsk_policy_algorithm' of 'ksr/v
 
 Test cases provides evidence that if an unsupported algorithm is listed in the RequestPolicy section of the KSR the KSR is rejected.
 
-#### Argument (1.2.6.3)
+#### Argument (1.2.7.3)
 
 KSR-POLICY-ALG.3: The signer software (in 'check_zsk_policy_algorithm' of 'ksr/verify_policy.py') checks to ensure that each occurrence of an algorithm in the 'RequestPolicy' section of the KSR is acceptable according to the configured policy ('approved_algoritms').
 
@@ -204,7 +216,7 @@ KSR-POLICY-ALG.3: The signer software (in 'check_zsk_policy_algorithm' of 'ksr/v
 
 Test cases provides evidence that (a) if an algorithm is listed in the 'RequestPolicy' section which is not listed in the configured policy ('approved_algorithms') the KSR is rejected, and (b) if an algorithm is listed in the 'RequestPolicy' section which is listed in the configured policy ('approved_algorithms') the KSR is accepted.
 
-#### Argument (1.2.6.4)
+#### Argument (1.2.7.4)
 
 KSR-POLICY-ALG.4: The signer software (in 'check_zsk_policy_algorithm' of 'ksr/verify_policy.py') checks, if algorithm is RSA, that the modulus length is acceptable according to the configured policy ('rsa_approved_key_sizes').
 
@@ -212,7 +224,7 @@ KSR-POLICY-ALG.4: The signer software (in 'check_zsk_policy_algorithm' of 'ksr/v
 
 Test cases provides evidence that if the algorithm listed in the RequestPolicy section is RSA and (a) if the provided modulus length is not in compliance with the configured policy ('rsa_approved_key_sizes') the KSR is rejected, and (b) if the provided modulus length is in compliance with the configured policy ('rsa_approved_key_sizes') the KSR is accepted.
 
-#### Argument (1.2.6.5)
+#### Argument (1.2.7.5)
 
 KSR-POLICY-ALG.5: The signer software (in 'check_zsk_policy_algorithm' of 'ksr/verify_policy.py') checks, if algorithm is RSA, that the exponent is acceptable according to the configured policy ('rsa_approved_exponents').
 
@@ -220,7 +232,7 @@ KSR-POLICY-ALG.5: The signer software (in 'check_zsk_policy_algorithm' of 'ksr/v
 
 Test cases provides evidence that if the algorithm listed in the 'RequestPolicy' section is RSA and (a) if the provided exponent is not in compliance with the configured policy ('rsa_approved_exponents') the KSR is rejected, and (b) if the provided exponent is in compliance with the configured policy ('rsa_approved_exponents') the KSR is accepted.
 
-#### Argument (1.2.6.6)
+#### Argument (1.2.7.6)
 
 KSR-POLICY-ALG.6: The signer software (in 'check_keys_match_zsk_policy' of 'ksr/verify_budles.py') checks to ensure that the signature algorithms and key parameters of each key in each key bundle is in compliance with the 'RequestPolicy' section of the KSR.
 
@@ -232,11 +244,11 @@ Test cases provides evidence that (a) if the algorithm of a key within a key bun
 
 Test cases provides evidence that (a) if the algorithm or parameters of a RSA key within a key bundle is not listed in the RequestPolicy section of the KSR the KSR is rejected, and (b) if the algorithm of all keys of all bundles is RSA and the algorithm and parameters is listed in the RequestPolicy section the KSR is accepted.
 
-### Sub Claim (1.2.7)
+### Sub Claim (1.2.8)
 
 The signer software verifies that the domain name provided in the KSR is acceptable according to the configured policy.
 
-#### Argument (1.2.7.1)
+#### Argument (1.2.8.1)
 
 KSR-DOMAIN: The signer software (in 'check_domain' of 'ksr/verify_header.py') checks that the domain name in the KSR header is in compliance with the configured policy ('acceptable_domains').
 
