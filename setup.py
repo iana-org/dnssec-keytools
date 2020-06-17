@@ -27,7 +27,6 @@ install_requires = [
     "typing-extensions==3.7.4.1",
     "unidecode==1.1.1",
     "voluptuous==0.11.7",
-    "Werkzeug==0.16.1",
 ]
 
 testing_extras = [
@@ -46,7 +45,7 @@ testing_extras = [
     "wheel==0.34.2",
 ]
 
-online_extras = ["flask==1.1.1", "pyopenssl==19.1.0"]
+online_extras = ["flask==1.1.1", "pyopenssl==19.1.0", "Werkzeug==0.16.1"]
 
 setup(
     name="kskm",
