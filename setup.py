@@ -38,6 +38,7 @@ testing_extras = [
     "mypy==0.761",
     "nose==1.3.7",
     "nosexcover==1.0.11",
+    "parsable==0.2.4",
     "pycryptodome==3.9.4",
     "pylama==7.6.6",
     "pylint==2.5.3",
