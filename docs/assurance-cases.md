@@ -163,6 +163,13 @@ KSR-BUNDLE-CYCLE-DURATION.2: In 'check_bundle_intervals' of 'verify_policy.py' i
 
 Test cases provides evidence that (a) if the interval between two adjecent key bundles is less than the configured minimum in the policy or (b) if the interval between two adjencent key bundles is greater the configured maximum in the policy, the KSR is rejected.
 
+#### Argument (1.2.4.3)
+
+KSR-POLICY-SIG-HORIZON: The signer software (in 'check_signature_horizon' of 'signer/verify_policy.py') checks to ensure that each of requested signatures does not expire further into the future (counting from the current time and date set in the system) than the configured policy ('signature_horizon_days').
+
+##### Evidence
+
+Test cases provides evidence that (a) if all requested signature expires within the configured time period the KSR is accepted, and (b) if a requested signature expires beyond the configured time period the KSR is rejected.
 
 ### Sub Claim (1.2.5)
 
