@@ -105,7 +105,7 @@ KSR-BUNDLE-KEYS.1: The signer software (in 'check_keys_match_zsk_policy' of 'ksr
 
 ##### Evidence
 
-Test cases provides evidence that (a) a KSR with collissions in the key tags is rejected, and (b) that a KSR with unique key tags for each identical key is accepted.
+Test cases provides evidence that (a) a KSR with collisions in the key tags is rejected, and (b) that a KSR with unique key tags for each identical key is accepted.
 
 #### Argument (1.2.2.2)
 
@@ -157,11 +157,11 @@ Test cases provides evidence that (a) if the duration covered by the KSR is less
 
 #### Argument (1.2.4.2)
 
-KSR-BUNDLE-CYCLE-DURATION.2: In 'check_bundle_intervals' of 'verify_policy.py' it is checked that the difference in time between two adjecent bundles' inception times falls within the span defined by the configuration variables 'min_bundle_interval' and 'max_bundle_interval'.
+KSR-BUNDLE-CYCLE-DURATION.2: In 'check_bundle_intervals' of 'verify_policy.py' it is checked that the difference in time between two adjacent bundles' inception times falls within the span defined by the configuration variables 'min_bundle_interval' and 'max_bundle_interval'.
 
 ##### Evidence
 
-Test cases provides evidence that (a) if the interval between two adjecent key bundles is less than the configured minimum in the policy or (b) if the interval between two adjencent key bundles is greater the configured maximum in the policy, the KSR is rejected.
+Test cases provides evidence that (a) if the interval between two adjacent key bundles is less than the configured minimum in the policy or (b) if the interval between two adjacent key bundles is greater the configured maximum in the policy, the KSR is rejected.
 
 #### Argument (1.2.4.3)
 
@@ -316,7 +316,7 @@ SKR-VERIFY: The signer system (in '_sign_keys' of 'signer/sign.py') checks that 
 
 ##### Evidence
 
-Test cases provides evidence that (a) if a signature recieved from the HSM can not be validated using the software library no SKR will be produced, and (b) if all signature recieved from the HSM can be validated using the software library a SKR will be produced.
+Test cases provides evidence that (a) if a signature received from the HSM can not be validated using the software library no SKR will be produced, and (b) if all signature received from the HSM can be validated using the software library a SKR will be produced.
 
 # Mapping of requirements from DPS
 
