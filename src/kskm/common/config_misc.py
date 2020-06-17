@@ -106,7 +106,7 @@ SigningKey = NewType("SigningKey", str)
 
 
 @dataclass(frozen=True)
-class SchemaAction(object):
+class SchemaAction:
     """Actions to take for a specific bundle."""
 
     publish: Iterable[SigningKey]
@@ -115,7 +115,7 @@ class SchemaAction(object):
 
 
 @dataclass(frozen=True)
-class Schema(object):
+class Schema:
     """A named schema used when signing KSRs."""
 
     name: str
@@ -129,7 +129,7 @@ def _parse_keylist(elem: Union[str, List[str]]) -> List[SigningKey]:
 
 
 @dataclass()
-class KSKPolicy(object):
+class KSKPolicy:
     """
     Signing policy for the KSK operator.
 
@@ -169,7 +169,7 @@ class KSKPolicy(object):
 
 
 @dataclass()
-class KSKKey(object):
+class KSKKey:
     """
     A key that can be used in schemas.
 

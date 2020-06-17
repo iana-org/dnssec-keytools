@@ -55,7 +55,7 @@ class FlagsDNSKEY(Enum):
 
 
 @dataclass(frozen=True)
-class AlgorithmPolicy(object):
+class AlgorithmPolicy:
     bits: int
     algorithm: AlgorithmDNSSEC
 
@@ -76,7 +76,7 @@ class AlgorithmPolicyDSA(AlgorithmPolicy):
 
 
 @dataclass(frozen=True)
-class SignaturePolicy(object):
+class SignaturePolicy:
     publish_safety: timedelta
     retire_safety: timedelta
     max_signature_validity: timedelta
@@ -87,12 +87,12 @@ class SignaturePolicy(object):
 
 
 @dataclass(frozen=True)
-class Signer(object):
+class Signer:
     key_identifier: Optional[str]
 
 
 @dataclass(frozen=True)
-class Signature(object):
+class Signature:
     key_identifier: str
     ttl: int
     type_covered: TypeDNSSEC
@@ -107,7 +107,7 @@ class Signature(object):
 
 
 @dataclass(frozen=True)
-class Key(object):
+class Key:
     key_identifier: str
     key_tag: int
     ttl: int

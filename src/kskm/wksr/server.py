@@ -10,7 +10,7 @@ import smtplib
 import ssl
 from datetime import datetime
 from email.message import EmailMessage
-from typing import Dict, Set, Tuple
+from typing import Dict, Optional, Set, Tuple
 
 import jinja2
 from flask import Flask, render_template, request
@@ -60,7 +60,7 @@ def index() -> str:
     if "peercert" in request.environ:
         subject = str(request.environ["peercert"].get_subject().commonName)
         return f"Hello world: {subject}"
-    return f"Hello world: ANONYMOUS"
+    return "Hello world: ANONYMOUS"
 
 
 def upload() -> str:
@@ -79,14 +79,14 @@ def upload() -> str:
 
     # setup log capture
     log_capture_string = io.StringIO()
-    ch = logging.StreamHandler(log_capture_string)
-    ch.setLevel(logging.DEBUG)
-    logging.getLogger().addHandler(ch)
+    log_handler = logging.StreamHandler(log_capture_string)
+    log_handler.setLevel(logging.DEBUG)
+    logging.getLogger().addHandler(log_handler)
 
     result = validate_ksr(filename)
 
     # save captured log
-    logging.getLogger().removeHandler(ch)
+    logging.getLogger().removeHandler(log_handler)
     log_buffer = log_capture_string.getvalue()
     log_capture_string.close()
 
@@ -177,10 +177,10 @@ def save_ksr(upload_file: FileStorage) -> Tuple[str, str]:
     upload_file.stream.seek(0)
 
     # calculate file checksum
-    m = hashlib.new("sha256")
-    m.update(upload_file.stream.read())
+    digest = hashlib.new("sha256")
+    digest.update(upload_file.stream.read())
+    filehash = digest.hexdigest()
     upload_file.stream.seek(0)
-    filehash = m.hexdigest()
 
     filename_prefix = ksr_config.get("prefix", "upload_")
     filename_washed = re.sub(r"[^a-zA-Z0-9_]+", "_", str(upload_file.filename))
@@ -196,7 +196,9 @@ def save_ksr(upload_file: FileStorage) -> Tuple[str, str]:
     return filename, filehash
 
 
-def generate_ssl_context(config: dict = {}) -> ssl.SSLContext:
+def generate_ssl_context(config: Optional[dict] = None) -> ssl.SSLContext:
+    if config is None:
+        config = {}
     """Generate SSL context for app."""
     ssl_context = ssl.create_default_context(
         purpose=ssl.Purpose.CLIENT_AUTH, cafile=config.get("ca_cert")
