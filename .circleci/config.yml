@@ -11,6 +11,13 @@ jobs:
       - run: apt -y update
       - run: apt -y install swig softhsm2 libsofthsm2
       - checkout
+      - restore_cache:
+          key: venv-{{ arch }}-{{ checksum "setup.py" }}
+      - run: make venv
+      - save_cache:
+          key: venv-{{ arch }}-{{ checksum "setup.py" }}
+          paths:
+            - venv
       - run: make test
 
 workflows:
