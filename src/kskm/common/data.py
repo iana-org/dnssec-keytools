@@ -142,10 +142,10 @@ class Key:
         """Check for valid DNSKEY flags."""
         # have to import these locally to avoid circular imports
         from kskm.common.ecdsa_utils import (
-            is_algorithm_ecdsa,
             ecdsa_public_key_without_prefix,
-            get_ecdsa_pubkey_size,
             expected_ecdsa_key_size,
+            get_ecdsa_pubkey_size,
+            is_algorithm_ecdsa,
         )
 
         if is_algorithm_ecdsa(self.algorithm):

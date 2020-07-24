@@ -16,9 +16,10 @@ def _sign_using_softhsm(data: bytes, softhsm_signing_key="RSA1") -> None:
     Look at the error message given when an invalid signature is found, and pass the RRSIG
     bytes as `data' to this function to get the correct signature value.
     """
+    import hashlib
+
     from kskm.common.config import KSKMConfig
     from kskm.misc.hsm import init_pkcs11_modules_from_dict
-    import hashlib
 
     softhsm_dir = pkg_resources.resource_filename(
         __name__, "../../../../testing/softhsm"
