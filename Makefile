@@ -34,6 +34,8 @@ softhsm:
 
 test: $(VENV) softhsm $(BUILDINFO)
 	env $(TEST_ENV) $(VENV)/bin/pytest -v $(SOURCE)
+	$(VENV)/bin/isort --check --recursive src
+	$(VENV)/bin/black --check src
 
 container:
 	docker build --tag wksr .
