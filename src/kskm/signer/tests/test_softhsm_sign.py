@@ -715,7 +715,7 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
         )
         with pytest.raises(
             KSR_CHAIN_KEYS_Violation,
-            match="Last key set in SKR(n-1) does not match first key set in KSR",
+            match=r"Last key set in SKR\(n-1\) does not match first key set in KSR",
         ):
             check_skr_and_ksr(self.ksr, last_skr, policy, p11modules=self.p11modules)
 
