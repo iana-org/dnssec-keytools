@@ -46,18 +46,18 @@ The _KSR Receiver_ configuration is written YAML. See annotated [ksrsigner.yaml]
 
 ## Keymaster
 
-_Keymaster_ is a tool to create, delete, backup, restore keys as well as perform a key inventory.
+_Keymaster_ is a tool to create and delete keys as well as perform a key inventory.
 
 ### Command Line Usage
 
     usage: kskm-keymaster [-h] [--config CFGFILE] [--hsm HSM] [--debug]
-                          {inventory,keygen,wrapgen,keydelete,wrapdelete,backup,restore}
+                          {inventory,keygen,keydelete}
                           ...
 
     Keymaster
 
     positional arguments:
-      {inventory,keygen,wrapgen,keydelete,wrapdelete,backup,restore}
+      {inventory,keygen,keydelete}
 
     optional arguments:
       -h, --help            show this help message and exit

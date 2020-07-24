@@ -1,7 +1,7 @@
 """
 Key master utility.
 
-Tool to create, delete, backup, restore keys as well as perform a key inventory.
+Tool to create and delete keys as well as perform a key inventory.
 """
 
 # Possible future enhancements:
@@ -34,23 +34,15 @@ from kskm.common.ecdsa_utils import algorithm_to_curve, is_algorithm_ecdsa
 from kskm.common.logging import get_logger
 from kskm.common.rsa_utils import is_algorithm_rsa
 from kskm.common.wordlist import pgp_wordlist
-from kskm.keymaster.delete import key_delete, wrapkey_delete
+from kskm.keymaster.delete import key_delete
 from kskm.keymaster.inventory import key_inventory
-from kskm.keymaster.keygen import (
-    generate_ec_key,
-    generate_rsa_key,
-    generate_wrapping_key,
-)
-from kskm.keymaster.wrap import WrappedKey, WrappedKeyRSA, key_backup, key_restore
-from kskm.misc.hsm import KSKM_P11, KeyType, WrappingAlgorithm
+from kskm.keymaster.keygen import generate_ec_key, generate_rsa_key
+from kskm.misc.hsm import KSKM_P11, KeyType
 from kskm.ta.keydigest import create_trustanchor_keydigest
 
 SUPPORTED_ALGORITHMS = [str(x.name) for x in KeyType]
 SUPPORTED_SIZES = [2048, 3072, 4096]
 SUPPORTED_CURVES = ["secp256r1", "secp384r1"]
-SUPPORTED_WRAPPING_ALGORITHMS = [
-    x.value for x in WrappingAlgorithm
-]  # SoftHSM2 only supports AES
 
 
 def keygen(
@@ -150,69 +142,6 @@ def keydel(
     return True
 
 
-def keybackup(
-    args: argparse.Namespace,
-    config: KSKMConfig,
-    p11modules: KSKM_P11,
-    logger: logging.Logger,
-) -> bool:
-    """Backup key."""
-    logger.info("Backup (export) key")
-    wrapped_key = key_backup(args.key_label, args.wrap_key_label, p11modules)
-    if not wrapped_key:
-        return False
-    with open(args.outfile, "w") as fd:
-        fd.write("---\n")
-        yaml.safe_dump(wrapped_key.to_dict(), fd)
-    logger.info(f"Wrote wrapped key to file {args.outfile}")
-    return True
-
-
-def keyrestore(
-    args: argparse.Namespace,
-    config: KSKMConfig,
-    p11modules: KSKM_P11,
-    logger: logging.Logger,
-) -> bool:
-    """Restore key."""
-    logger.info("Restore (import) key")
-    with open(args.infile, "r") as fd:
-        data = yaml.safe_load(fd)
-    if data.get("key_type") == "RSA":
-        wrapped_key = WrappedKeyRSA.from_dict(data)
-    else:
-        wrapped_key = WrappedKey.from_dict(data)
-    logger.info(f"Loaded wrapped key: {wrapped_key}")
-    if key_restore(wrapped_key, p11modules):
-        logger.info("Key restored successfully")
-    return True
-
-
-def wrapgen(
-    args: argparse.Namespace,
-    config: KSKMConfig,
-    p11modules: KSKM_P11,
-    logger: logging.Logger,
-) -> bool:
-    """Generate new wrapping key."""
-    logger.info("Generate wrapping key")
-    alg = WrappingAlgorithm(args.key_alg)
-    generate_wrapping_key(args.key_label, alg, p11modules)
-    return True
-
-
-def wrapdel(
-    args: argparse.Namespace,
-    config: KSKMConfig,
-    p11modules: KSKM_P11,
-    logger: logging.Logger,
-) -> bool:
-    """Delete wrapping key."""
-    logger.info("Delete wrapping key")
-    wrapkey_delete(args.key_label, p11modules, args.force)
-    return True
-
-
 def inventory(
     args: argparse.Namespace,
     config: KSKMConfig,
@@ -307,26 +236,6 @@ def main() -> bool:
         help="Key curve",
     )
 
-    parser_wrapgen = subparsers.add_parser("wrapgen")
-    parser_wrapgen.set_defaults(func=wrapgen)
-    parser_wrapgen.add_argument(
-        "--label",
-        dest="key_label",
-        metavar="LABEL",
-        type=str,
-        required=True,
-        help="Key label",
-    )
-    parser_wrapgen.add_argument(
-        "--algorithm",
-        dest="key_alg",
-        metavar="ALGORITHM",
-        type=str,
-        choices=SUPPORTED_WRAPPING_ALGORITHMS,
-        required=True,
-        help="Wrapping key algorithm",
-    )
-
     parser_keydel = subparsers.add_parser("keydelete")
     parser_keydel.set_defaults(func=keydel)
     parser_keydel.add_argument(
@@ -343,70 +252,6 @@ def main() -> bool:
         action="store_true",
         default=False,
         help="Don't ask for confirmation",
-    )
-
-    parser_wrapdel = subparsers.add_parser("wrapdelete")
-    parser_wrapdel.set_defaults(func=wrapdel)
-    parser_wrapdel.add_argument(
-        "--label",
-        dest="key_label",
-        metavar="LABEL",
-        type=str,
-        required=True,
-        help="Key label",
-    )
-    parser_wrapdel.add_argument(
-        "--force",
-        dest="force",
-        action="store_true",
-        default=False,
-        help="Don't ask for confirmation",
-    )
-
-    parser_keybackup = subparsers.add_parser("backup")
-    parser_keybackup.set_defaults(func=keybackup)
-    parser_keybackup.add_argument(
-        "--label",
-        dest="key_label",
-        metavar="LABEL",
-        type=str,
-        required=True,
-        help="Backup (export) key label",
-    )
-    parser_keybackup.add_argument(
-        "--wrap-label",
-        dest="wrap_key_label",
-        metavar="LABEL",
-        type=str,
-        required=True,
-        help="Wrapping key label",
-    )
-    parser_keybackup.add_argument(
-        "--outfile",
-        dest="outfile",
-        metavar="FILE",
-        type=str,
-        required=True,
-        help="Filename to write wrapped key to",
-    )
-
-    parser_keyrestore = subparsers.add_parser("restore")
-    parser_keyrestore.set_defaults(func=keyrestore)
-    parser_keyrestore.add_argument(
-        "--wrap-label",
-        dest="wrap_key_label",
-        metavar="LABEL",
-        type=str,
-        required=True,
-        help="Wrapping key label",
-    )
-    parser_keyrestore.add_argument(
-        "--infile",
-        dest="infile",
-        metavar="FILE",
-        type=str,
-        required=True,
-        help="Filename to read wrapped key from",
     )
 
     args = parser.parse_args()

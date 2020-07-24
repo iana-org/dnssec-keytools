@@ -39,13 +39,7 @@ from PyKCS11.LowLevel import (
 from kskm.common.data import FlagsDNSKEY
 from kskm.common.ecdsa_utils import ECCurve
 from kskm.keymaster.common import get_session
-from kskm.misc.hsm import (
-    KSKM_P11,
-    KSKM_P11Key,
-    WrappingAlgorithm,
-    get_p11_key,
-    get_p11_secret_key,
-)
+from kskm.misc.hsm import KSKM_P11, KSKM_P11Key, get_p11_key
 
 __author__ = "ft"
 
@@ -78,48 +72,6 @@ def generate_key_label(flags: int, now: Optional[int] = None) -> str:
     if flags == 0:
         return "C" + data
     return "U" + data
-
-
-def generate_wrapping_key(
-    label: str, algorithm: WrappingAlgorithm, p11modules: KSKM_P11
-) -> bool:
-    """Generate a SECRET (wrapping) key (3DES)."""
-    template = [
-        (CKA_LABEL, label),
-        (CKA_CLASS, CKO_SECRET_KEY),
-        (CKA_TOKEN, CK_TRUE),
-        (CKA_ENCRYPT, CK_TRUE),
-        (CKA_DECRYPT, CK_TRUE),
-        (CKA_WRAP, CK_TRUE),
-        (CKA_UNWRAP, CK_TRUE),
-        (CKA_EXTRACTABLE, CK_TRUE),
-    ]
-    if algorithm == WrappingAlgorithm.AES256:
-        _mech = Mechanism(CKM_AES_KEY_GEN, None)
-        template += [
-            (CKA_KEY_TYPE, CKK_AES),
-            (CKA_VALUE_LEN, 256 // 8),
-        ]
-    elif algorithm == WrappingAlgorithm.DES3:
-        _mech = Mechanism(CKM_DES3_KEY_GEN, None)
-        template += [(CKA_KEY_TYPE, CKK_DES3)]
-    else:
-        raise RuntimeError(f"Unknown wrapping algorithm: {algorithm}")
-
-    existing_key = get_p11_secret_key(label, p11modules)
-    if existing_key:
-        logger.error(
-            f"A secret key with label {repr(label)} already exists: {existing_key}"
-        )
-        return False
-
-    session = get_session(p11modules, logger)
-    logger.debug(f"Generating secret key using session {session}")
-    res = session.generateKey(template, _mech)
-    logger.debug(f"generateKey result {res}")
-    new_key = get_p11_secret_key(label, p11modules)
-    logger.info(f"Generated key: {new_key}")
-    return True
 
 
 def generate_rsa_key(

@@ -64,13 +64,6 @@ class KeyInfo:
     pubkey: Optional[KSKM_PublicKey] = field(repr=False, default=None)
 
 
-class WrappingAlgorithm(Enum):
-    """PKCS#11 Wrapping Algorithms."""
-
-    AES256 = "AES256"
-    DES3 = "3DES"  # 3DES is an invalid token in Python
-
-
 @dataclass
 class KSKM_P11Key:
     """A reference to a key object loaded from a PKCS#11 module."""
@@ -93,26 +86,6 @@ class KSKM_P11Key:
         if self.public_key:
             ret += " " + str(self.public_key)
         return ret
-
-    def key_wrap_mechanism(self) -> PyKCS11.Mechanism:
-        """Get key wrap mechanism for this key."""
-        if self.key_type == KeyType.AES:
-            return PyKCS11.Mechanism(PyKCS11.LowLevel.CKM_AES_KEY_WRAP, None)
-        if self.key_type == KeyType.DES3:
-            return PyKCS11.Mechanism(PyKCS11.LowLevel.CKM_DES3_ECB, None)
-        raise RuntimeError(
-            f"Don't know a wrapping mechanism for key type {self.key_type}"
-        )
-
-    def key_wrap_algorithm(self) -> WrappingAlgorithm:
-        """Get key wrap algorithm for this key."""
-        if self.key_type == KeyType.AES:
-            return WrappingAlgorithm.AES256
-        if self.key_type == KeyType.DES3:
-            return WrappingAlgorithm.DES3
-        raise RuntimeError(
-            f"Don't know a wrapping algorithm for key type {self.key_type}"
-        )
 
 
 class KSKM_P11Module:
@@ -623,24 +596,6 @@ def get_p11_key(
     key_class = KeyClass.PUBLIC if public else KeyClass.PRIVATE
     for module in p11modules:
         p11key = module.find_key_by_label(label, key_class)
-        if p11key is not None:
-            return p11key
-    return None
-
-
-def get_p11_secret_key(label: str, p11modules: KSKM_P11) -> Optional[KSKM_P11Key]:
-    """
-    Look for a secret key (wrapping key) with CKA_LABEL matching 'label'.
-
-    Iterates through all the available PKCS#11 modules, and returns a reference to the
-    first key found with the right label.
-
-    :param label: CKA_LABEL to look for
-    :param p11modules: The list of PKCS#11 modules
-    :return: None or a PKCS#11 key object reference
-    """
-    for module in p11modules:
-        p11key = module.find_key_by_label(label, key_class=KeyClass.SECRET)
         if p11key is not None:
             return p11key
     return None
