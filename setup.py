@@ -1,5 +1,10 @@
+import re
+
 from setuptools import setup
-from kskm.version import __version__
+
+with open('src/kskm/version.py', 'r') as fd:
+    __version__ = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', fd.read(), re.MULTILINE).group(1)
+
 
 install_requires = [
     "cffi==1.13.2",
