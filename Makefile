@@ -34,8 +34,6 @@ softhsm:
 
 test: $(VENV) softhsm $(BUILDINFO)
 	env $(TEST_ENV) $(VENV)/bin/pytest -v $(SOURCE)
-	$(VENV)/bin/isort --check --recursive src
-	$(VENV)/bin/black --check src
 
 container:
 	docker build --tag wksr .
@@ -47,6 +45,10 @@ coverage: $(VENV) softhsm
 reformat: $(VENV)
 	$(VENV)/bin/isort --recursive $(SOURCE)
 	$(VENV)/bin/black $(SOURCE)
+
+checkformat:
+	$(VENV)/bin/isort --check --recursive src
+	$(VENV)/bin/black --check src
 
 lint: $(VENV)
 	$(VENV)/bin/pylama $(SOURCE)
