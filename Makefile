@@ -46,7 +46,7 @@ reformat: $(VENV)
 	$(VENV)/bin/isort --recursive $(SOURCE)
 	$(VENV)/bin/black $(SOURCE)
 
-checkformat:
+format:
 	$(VENV)/bin/isort --check --recursive src
 	$(VENV)/bin/black --check src
 
