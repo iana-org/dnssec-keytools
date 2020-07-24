@@ -17,6 +17,7 @@ from kskm.version import __verbose_version__
 
 
 def words(filename: Optional[str] = None) -> None:
+    """Output PGP words from file or STDIN."""
     if filename is not None:
         print(f"Filename:   {filename}")
         with open(filename, "rb") as input_file:
@@ -27,17 +28,17 @@ def words(filename: Optional[str] = None) -> None:
     m = hashlib.new("sha256")
     m.update(message)
     hexdigest = m.hexdigest()
-    words = pgp_wordlist(m.digest())
+    pgp_words = pgp_wordlist(m.digest())
 
     print(f"SHA-256:    {hexdigest}")
-    print(f"PGP Words:  {' '.join(words)}")
+    print(f"PGP Words:  {' '.join(pgp_words)}")
 
     if filename is not None:
         print()
 
 
 def main():
-
+    """Main program function."""
     parser = argparse.ArgumentParser(
         description=f"SHA-256 PGP Words Calculator {__verbose_version__}",
         add_help=True,

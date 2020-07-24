@@ -1,4 +1,5 @@
 """Data classes common to KSR and SKR Classes."""
+
 from abc import ABC
 from base64 import b64decode
 from dataclasses import dataclass, field
@@ -140,7 +141,7 @@ class Key:
 
     def __post_init__(self):
         """Check for valid DNSKEY flags."""
-        # have to import these locally to avoid circular imports
+        # have to import these locally to avoid circular imports  # noqa
         from kskm.common.ecdsa_utils import (
             ecdsa_public_key_without_prefix,
             expected_ecdsa_key_size,

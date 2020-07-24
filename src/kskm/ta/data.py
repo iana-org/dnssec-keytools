@@ -10,6 +10,8 @@ from kskm.common.data import AlgorithmDNSSEC
 
 
 class DigestDNSSEC(Enum):
+    """DNSSEC Key Digest Types."""
+
     SHA1 = 1
     SHA256 = 2
 

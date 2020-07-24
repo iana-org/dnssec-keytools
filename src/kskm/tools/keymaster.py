@@ -21,7 +21,6 @@ import sys
 from datetime import datetime
 from typing import List
 
-import yaml
 from PyKCS11 import PyKCS11Error
 
 import kskm

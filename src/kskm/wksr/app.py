@@ -1,3 +1,5 @@
+"""Web app generator."""
+
 import logging
 
 import yaml

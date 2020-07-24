@@ -34,11 +34,9 @@ from kskm.skr import response_from_xml
 
 __author__ = "ft"
 
-if os.environ.get("SOFTHSM2_MODULE") and os.environ.get("SOFTHSM2_CONF"):
-    _TEST_SOFTHSM2 = True
-else:
-    _TEST_SOFTHSM2 = False
-
+_TEST_SOFTHSM2 = bool(
+    os.environ.get("SOFTHSM2_MODULE") and os.environ.get("SOFTHSM2_CONF")
+)
 
 _TEST_CONFIG = """
 schemas:
@@ -79,7 +77,7 @@ def _get_test_config() -> KSKMConfig:
     return KSKMConfig.from_yaml(conf)
 
 
-class SignWithSoftHSM_Baseclass(object):
+class SignWithSoftHSM_Baseclass:
     @pytest.fixture()
     def p11modules(self):
         self.p11modules = init_pkcs11_modules_from_dict(self.config.hsm)
@@ -688,7 +686,6 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_chain_keys_found_but_different(self) -> None:
         """ Test KSR-CHAIN-KEYS with real KSR/SKR, signed with key found in this HSM, but wrong. """
-
         ksr = request_from_xml(self.ksr_xml.replace("Kjqmt7v", self.ksk_key_label))
         last_skr = response_from_xml(
             self.last_skr_xml.replace("Kjqmt7v", self.ksk_key_label)
@@ -718,7 +715,7 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
         )
         with pytest.raises(
             KSR_CHAIN_KEYS_Violation,
-            match="Last key set in SKR\(n-1\) does not match first key set in KSR",
+            match="Last key set in SKR(n-1) does not match first key set in KSR",
         ):
             check_skr_and_ksr(self.ksr, last_skr, policy, p11modules=self.p11modules)
 

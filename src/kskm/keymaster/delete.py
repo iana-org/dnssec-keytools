@@ -1,3 +1,5 @@
+"""Key delete functions."""
+
 import logging
 
 from kskm.keymaster.common import get_session

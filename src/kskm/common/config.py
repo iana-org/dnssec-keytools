@@ -30,8 +30,6 @@ logger = logging.getLogger(__name__)
 class ConfigurationError(Exception):
     """Base exception for errors in the configuration."""
 
-    pass
-
 
 class KSKMConfig:
     """
@@ -55,8 +53,10 @@ class KSKMConfig:
         """
         HSM configuration.
 
-        Example:
+        Returns a plain dict with the configuration for now.
 
+        Example:
+        -------
             hsm:
               softhsm:
                 module: /path/to/softhsm/libsofthsm2.so
@@ -64,7 +64,6 @@ class KSKMConfig:
                 env:
                   SOFTHSM2_CONF: /path/to/softhsm.conf
 
-        Returns a plain dict with the configuration for now.
         """
         if self._hsm is None:
             self._hsm = self._data.get("hsm", {})
@@ -79,7 +78,7 @@ class KSKMConfig:
         Parameters from here are used when creating an SKR.
 
         Example:
-
+        -------
             ksk_policy:
               publish_safety: PT0S
               retire_safety: P28D
@@ -88,6 +87,7 @@ class KSKMConfig:
               max_validity_overlap: P16D
               min_validity_overlap: P9D
               ttl: 172800
+
         """
         if self._ksk_policy is None:
             self._ksk_policy = KSKPolicy.from_dict(self._data.get("ksk_policy", {}))
@@ -100,18 +100,19 @@ class KSKMConfig:
         Load KSK key definitions from the config.
 
         Example:
-        ---
-        keys:
-          ksk_current:
-            description: Root DNSSEC KSK 2010
-            label: Kjqmt7v
-            key_tag: 19036
-            algorithm: RSASHA256
-            rsa_size: 2048
-            rsa_exponent: 65537
-            valid_from: 2010-07-15T00:00:00+00:00
-            valid_until: 2019-01-11T00:00:00+00:00
-            ds_sha256: 49AAC11D7B6F6446702E54A1607371607A1A41855200FD2CE1CDDE32F24E8FB5
+        -------
+            keys:
+              ksk_current:
+                description: Root DNSSEC KSK 2010
+                label: Kjqmt7v
+                key_tag: 19036
+                algorithm: RSASHA256
+                rsa_size: 2048
+                rsa_exponent: 65537
+                valid_from: 2010-07-15T00:00:00+00:00
+                valid_until: 2019-01-11T00:00:00+00:00
+                ds_sha256: 49AAC11D7B6F6446702E54A1607371607A1A41855200FD2CE1CDDE32F24E8FB5
+
         """
         if self._ksk_keys is None:
             res: Dict[str, KSKKey] = {}
@@ -129,11 +130,13 @@ class KSKMConfig:
         Get a filename from the configuration.
 
         Example:
+        -------
             filenames:
               previous_skr: prev-skr.xml
               input_ksr: ksr.xml
               output_skr: skr.xml
               output_trustanchor: root-anchors.xml
+
         """
         if "filenames" in self._data:
             _this = self._data["filenames"].get(which)
@@ -147,11 +150,13 @@ class KSKMConfig:
         Policy for validating a request (KSR).
 
         Example:
+        -------
             request_policy:
               acceptable_domains:
                 - "."
               num_bundles: 9
               ...
+
         """
         if self._request_policy is None:
             policy = RequestPolicy.from_dict(self._data.get("request_policy", {}))
@@ -170,9 +175,11 @@ class KSKMConfig:
         only some basic validation is performed.
 
         Example:
+        -------
             response_policy:
               num_bundles: 9
               validate_signatures: True
+
         """
         if self._response_policy is None:
             self._response_policy = ResponsePolicy.from_dict(
@@ -185,8 +192,8 @@ class KSKMConfig:
         """
         Parse a named entry from the 'schemas' section of config.
 
-        Example config:
-
+        Example:
+        -------
             schemas:
               revoke:
             1:
@@ -210,6 +217,7 @@ class KSKMConfig:
         even if there is a single key name in the list.
 
         :return: A Schema instance for the schema requested.
+
         """
         data = self._data["schemas"][name]
         _actions: Dict[int, SchemaAction] = {}

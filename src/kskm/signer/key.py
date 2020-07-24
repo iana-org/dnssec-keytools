@@ -21,8 +21,6 @@ logger = logging.getLogger(__name__)
 class KeyUsagePolicy_Violation(PolicyViolation):
     """Exception raised when a key can't be used because of policy."""
 
-    pass
-
 
 @dataclass()
 class CompositeKey:

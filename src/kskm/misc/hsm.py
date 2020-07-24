@@ -101,7 +101,8 @@ class KSKM_P11Module:
         rw_session: bool = False,
         env: Optional[Dict[str, str]] = None,
     ):
-        """Load and initialise a PKCS#11 module.
+        """
+        Load and initialise a PKCS#11 module.
 
         :param so_login: Log in as SO or USER
         :param rw_session: Request a R/W session or not
@@ -181,6 +182,7 @@ class KSKM_P11Module:
             logger.warning("No slots found in HSM")
 
     def __str__(self) -> str:
+        """Return P11 module as string."""
         return f"<{self.__class__.__name__}: {self.label} ({self.module})>"
 
     def close(self) -> None:
@@ -191,6 +193,7 @@ class KSKM_P11Module:
 
     @property
     def slots(self) -> List[int]:
+        """Return all slots."""
         return self._slots
 
     @property
@@ -235,9 +238,7 @@ class KSKM_P11Module:
     def find_key_by_label(
         self, label: str, key_class: KeyClass
     ) -> Optional[KSKM_P11Key]:
-        """
-        Query the PKCS#11 module for a key with CKA_LABEL matching 'label'.
-        """
+        """Query the PKCS#11 module for a key with CKA_LABEL matching 'label'."""
         _slots: list = []
         for _slot, _session in self.sessions.items():
             template = [
@@ -277,9 +278,7 @@ class KSKM_P11Module:
         return None
 
     def find_key_by_id(self, key_id: int, session: Any) -> List[KSKM_P11Key]:
-        """
-        Query the PKCS#11 module for a key with CKA_ID matching 'key_id'.
-        """
+        """Query the PKCS#11 module for a key with CKA_ID matching 'key_id'."""
         template = [(PyKCS11.LowLevel.CKA_ID, key_id)]
         res: List[KSKM_P11Key] = []
         objs = session.findObjects(template)

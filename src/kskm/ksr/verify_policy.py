@@ -21,49 +21,33 @@ __author__ = "ft"
 class KSR_PolicyViolation(PolicyViolation):
     """A bundle in the KSR does not conform with the KSK operators policy."""
 
-    pass
-
 
 class KSR_POLICY_KEYS_Violation(KSR_PolicyViolation):
     """KSR-POLICY-KEYS policy violation."""
-
-    pass
 
 
 class KSR_POLICY_ALG_Violation(KSR_PolicyViolation):
     """KSR-POLICY-ALG policy violation."""
 
-    pass
-
 
 class KSR_POLICY_SIG_OVERLAP_Violation(KSR_PolicyViolation):
     """KSR-POLICY-SIG-OVERLAP policy violation."""
-
-    pass
 
 
 class KSR_POLICY_SIG_VALIDITY_Violation(KSR_PolicyViolation):
     """KSR-POLICY-SIG-VALIDITY policy violation."""
 
-    pass
-
 
 class KSR_POLICY_SIG_HORIZON_Violation(KSR_PolicyViolation):
     """KSR-POLICY-SIG-HORIZON policy violation."""
-
-    pass
 
 
 class KSR_POLICY_BUNDLE_INTERVAL_Violation(KSR_PolicyViolation):
     """KSR-POLICY-BUNDLE-DURATION violation."""
 
-    pass
-
 
 class KSR_POLICY_SAFETY_Violation(KSR_PolicyViolation):
     """KSR-POLICY-SAFETY violation."""
-
-    pass
 
 
 def verify_policy(request: Request, policy: RequestPolicy, logger: Logger) -> None:
@@ -186,7 +170,7 @@ def check_signature_validity(
 
 
 def check_signature_horizon(request, policy, logger):
-    """ Check that signatures do not expire too long into the future. """
+    """Check that signatures do not expire too long into the future."""
     if not policy.signature_check_expire_horizon:
         logger.warning(
             "KSR-POLICY-SIG-HORIZON: Disabled by policy (signature_check_expire_horizon)"

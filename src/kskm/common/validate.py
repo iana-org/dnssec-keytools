@@ -9,5 +9,3 @@ logger = logging.getLogger(__name__)
 
 class PolicyViolation(Exception):
     """Base class exception for all validation errors."""
-
-    pass

@@ -191,7 +191,6 @@ def check_retire_safety(
     for _curr in new_skr.bundles:
         # Take a simplified approach and just verify that all signing keys of a bundle is
         # present in all the following bundles in this SKR
-        _curr_key_ids = [x.key_identifier for x in _curr.keys]
         for _check_idx in range(_curr_idx, len(new_skr.bundles)):
             bundle = new_skr.bundles[_check_idx]
             for sig in _curr.signatures:
@@ -208,4 +207,4 @@ def check_retire_safety(
                     )
         _curr_idx += 1
 
-    logger.info(f"KSR-POLICY-SAFETY: RetireSafety validated")
+    logger.info("KSR-POLICY-SAFETY: RetireSafety validated")

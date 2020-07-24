@@ -35,37 +35,25 @@ __author__ = "ft"
 class KSR_BundleViolation(PolicyViolation):
     """Policy violation in a KSRs bundles."""
 
-    pass
-
 
 class KSR_BUNDLE_KEYS_Violation(KSR_BundleViolation):
     """KSR-BUNDLE-KEYS policy violation."""
-
-    pass
 
 
 class KSR_BUNDLE_POP_Violation(KSR_BundleViolation):
     """KSR-BUNDLE-POP (Proof of Possession) policy violation."""
 
-    pass
-
 
 class KSR_BUNDLE_UNIQUE_Violation(KSR_BundleViolation):
     """KSR-BUNDLE-UNIQUE violation."""
-
-    pass
 
 
 class KSR_BUNDLE_COUNT_Violation(KSR_BundleViolation):
     """KSR-BUNDLE-COUNT violation."""
 
-    pass
-
 
 class KSR_BUNDLE_CYCLE_DURATION_Violation(KSR_BundleViolation):
     """KSR-BUNDLE-CYCLE violation."""
-
-    pass
 
 
 def verify_bundles(request: Request, policy: RequestPolicy, logger: Logger) -> None:
@@ -353,5 +341,5 @@ def check_cycle_durations(
         )
 
     logger.info(
-        f"KSR-BUNDLE-CYCLE-DURATION: The cycle length is in accordance with the KSK operator policy"
+        "KSR-BUNDLE-CYCLE-DURATION: The cycle length is in accordance with the KSK operator policy"
     )

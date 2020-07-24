@@ -1,10 +1,11 @@
+"""Key generation functions."""
+
 import base64
 import logging
 import math
 import time
 from typing import Any, List, Optional, Tuple
 
-from PyKCS11 import Mechanism
 from PyKCS11.LowLevel import (
     CK_FALSE,
     CK_TRUE,
@@ -23,17 +24,11 @@ from PyKCS11.LowLevel import (
     CKA_SIGN,
     CKA_TOKEN,
     CKA_UNWRAP,
-    CKA_VALUE_LEN,
     CKA_VERIFY,
     CKA_WRAP,
-    CKK_AES,
-    CKK_DES3,
     CKK_RSA,
-    CKM_AES_KEY_GEN,
-    CKM_DES3_KEY_GEN,
     CKO_PRIVATE_KEY,
     CKO_PUBLIC_KEY,
-    CKO_SECRET_KEY,
 )
 
 from kskm.common.data import FlagsDNSKEY
@@ -102,6 +97,7 @@ def public_key_template(
     rsa_exponent: Optional[int] = None,
     rsa_modulus: Optional[bytes] = None,
 ) -> List[Tuple]:
+    """Return a template used when generating public keys."""
     publicKeyTemplate: List[Tuple[Any, ...]] = [
         (CKA_LABEL, label),
         # (CKA_ID,              (0x0,)),

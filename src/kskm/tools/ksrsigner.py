@@ -253,10 +253,10 @@ def ksrsigner(
         print("SHA-256 WORDS: ", " ".join(pgp_wordlist(request.xml_hash)))
         print("")
         ack = input(
-            f'Sign KSR? Confirm with "Yes" (exactly) or anything else to abort: '
+            'Sign KSR? Confirm with "Yes" (exactly) or anything else to abort: '
         )
         if ack.strip("\n") != "Yes":
-            logger.warning(f"KSR signing aborted")
+            logger.warning("KSR signing aborted")
             return False
 
     #
@@ -290,7 +290,7 @@ def main() -> None:
         logging.critical("Fatal error, program stopped")
         sys.exit(EXIT_CODES["fatal"])
     except KeyboardInterrupt:
-        logging.warning(f"Keyboard interrupt, program stopped")
+        logging.warning("Keyboard interrupt, program stopped")
         sys.exit(EXIT_CODES["interrupt"])
     except ConfigurationError as exc:
         logger = logging.getLogger("configuration")
