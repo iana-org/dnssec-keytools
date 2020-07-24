@@ -22,6 +22,7 @@ from kskm.common.logging import get_logger
 from kskm.common.wordlist import pgp_wordlist
 from kskm.signer import create_skr, output_skr_xml
 from kskm.signer.policy import check_last_skr_and_new_skr, check_skr_and_ksr
+from kskm.version import __verbose_version__
 
 __author__ = "ft"
 
@@ -49,7 +50,7 @@ def parse_args(defaults: dict) -> ArgsType:
     some things such as output verbosity is settable using command line arguments.
     """
     parser = argparse.ArgumentParser(
-        description="KSK request signer",
+        description=f"KSK request signer {__verbose_version__}",
         add_help=True,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )

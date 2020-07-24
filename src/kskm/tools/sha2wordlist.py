@@ -13,6 +13,7 @@ import sys
 from typing import Optional
 
 from kskm.common.wordlist import pgp_wordlist
+from kskm.version import __verbose_version__
 
 
 def words(filename: Optional[str] = None) -> None:
@@ -38,7 +39,7 @@ def words(filename: Optional[str] = None) -> None:
 def main():
 
     parser = argparse.ArgumentParser(
-        description="SHA-256 PGP Words Calculator",
+        description=f"SHA-256 PGP Words Calculator {__verbose_version__}",
         add_help=True,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )

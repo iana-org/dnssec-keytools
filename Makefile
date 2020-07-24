@@ -6,11 +6,12 @@ DISTDIRS=	*.egg-info build dist
 
 SOFTHSM2_CONF=		${CURDIR}/testing/softhsm/softhsm.conf
 SOFTHSM2_MODULE?=	$(shell sh testing/softhsm/find_libsofthsm2.sh)
+BUILDINFO=		$(SOURCE)/kskm/buildinfo.py
 
 TEST_ENV=		SOFTHSM2_CONF=$(SOFTHSM2_CONF) \
 			SOFTHSM2_MODULE=$(SOFTHSM2_MODULE)
 
-all:
+all: $(BUILDINFO)
 
 $(VENV): $(VENV)/.depend
 
@@ -24,14 +25,14 @@ upgrade-venv:: setup.py
 	$(VENV)/bin/pip install --upgrade -e ".[online,testing]"
 	touch $(VENV)/.depend
 
-wheel:
+wheel: $(BUILDINFO)
 	$(VENV)/bin/python setup.py bdist_wheel
 
 softhsm:
 	test -f $(SOFTHSM2_MODULE) || echo "Failed to find SoftHSM module"
 	(cd testing/softhsm; make SOFTHSM_CONF=$(SOFTHSM2_CONF) all)
 
-test: $(VENV) softhsm
+test: $(VENV) softhsm $(BUILDINFO)
 	env $(TEST_ENV) $(VENV)/bin/pytest -v $(SOURCE)
 
 container:
@@ -51,9 +52,17 @@ lint: $(VENV)
 typecheck: $(VENV)
 	$(VENV)/bin/mypy $(SOURCE) $(SOURCE)/kskm/tools
 
+$(BUILDINFO): $(SOURCE)
+	if [ -d .git ]; then \
+		printf "__commit__ = \"`git rev-parse HEAD`\"\n__timestamp__ = \"`date +'%Y-%m-%d %H:%M:%S %Z'`\"\n" > $@ ;\
+	else \
+		echo "" > $@ ;\
+	fi
+
 clean:
 	(cd testing/softhsm; make SOFTHSM_CONF=$(SOFTHSM2_CONF) clean)
 	rm -fr $(DOCS) $(DISTDIRS)
+	rm -f $(BUILDINFO)
 
 realclean: clean
 	rm -fr $(VENV)

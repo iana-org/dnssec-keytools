@@ -10,6 +10,7 @@ import yaml
 from werkzeug.serving import run_simple
 
 from kskm.common.config_schema import WKSR_CONFIG_SCHEMA
+from kskm.version import __verbose_version__
 from kskm.wksr.peercert import PeerCertWSGIRequestHandler
 from kskm.wksr.server import generate_app, generate_ssl_context
 
@@ -21,7 +22,7 @@ DEFAULT_CONFIG = "wksr.yaml"
 def main() -> None:
     """Main program function."""
     parser = argparse.ArgumentParser(
-        description="KSR Web Server",
+        description=f"KSR Web Server {__verbose_version__}",
         add_help=True,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )

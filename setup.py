@@ -1,8 +1,5 @@
 from setuptools import setup
-import subprocess
-
-version = "0.0.1"
-git_hash = subprocess.check_output("git rev-parse --short --verify HEAD", shell=True)
+from kskm.version import __version__
 
 install_requires = [
     "cffi==1.13.2",
@@ -51,8 +48,8 @@ online_extras = ["flask==1.1.1", "pyopenssl==19.1.0", "Werkzeug==0.16.1"]
 
 setup(
     name="kskm",
-    version=version,
-    description=f"KSK Management tools ({git_hash})",
+    version=__version__,
+    description=f"KSK Management tools",
     classifiers=["Programming Language :: Python :: 3",],
     keywords="",
     packages=[

@@ -39,6 +39,7 @@ from kskm.keymaster.inventory import key_inventory
 from kskm.keymaster.keygen import generate_ec_key, generate_rsa_key
 from kskm.misc.hsm import KSKM_P11, KeyType
 from kskm.ta.keydigest import create_trustanchor_keydigest
+from kskm.version import __verbose_version__
 
 SUPPORTED_ALGORITHMS = [str(x.name) for x in KeyType]
 SUPPORTED_SIZES = [2048, 3072, 4096]
@@ -162,7 +163,7 @@ def main() -> bool:
     progname = os.path.basename(sys.argv[0])
 
     parser = argparse.ArgumentParser(
-        description="Keymaster",
+        description=f"Keymaster {__verbose_version__}",
         add_help=True,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
