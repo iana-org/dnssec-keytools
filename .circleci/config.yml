@@ -18,7 +18,7 @@ jobs:
           key: venv-{{ arch }}-{{ checksum "setup.py" }}
           paths:
             - venv
-      - run: make test lint format
+      - run: make test
 
 workflows:
   version: 2

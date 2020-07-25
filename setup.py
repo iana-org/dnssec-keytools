@@ -47,7 +47,10 @@ testing_extras = [
     "pylint",
     "pyopenssl==19.1.0",
     "pytest",
+    "pytest-black",
+    "pytest-isort",
     "wheel",
+
 ]
 
 online_extras = ["flask==1.1.1", "pyopenssl==19.1.0", "Werkzeug==0.16.1"]

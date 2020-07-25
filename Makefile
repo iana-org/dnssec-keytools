@@ -10,6 +10,7 @@ BUILDINFO=		$(SOURCE)/kskm/buildinfo.py
 
 TEST_ENV=		SOFTHSM2_CONF=$(SOFTHSM2_CONF) \
 			SOFTHSM2_MODULE=$(SOFTHSM2_MODULE)
+TEST_OPTS=		--verbose --pylama --isort --black
 
 all: $(BUILDINFO)
 
@@ -33,7 +34,7 @@ softhsm:
 	(cd testing/softhsm; make SOFTHSM_CONF=$(SOFTHSM2_CONF) all)
 
 test: $(VENV) softhsm $(BUILDINFO)
-	env $(TEST_ENV) $(VENV)/bin/pytest -v $(SOURCE)
+	env $(TEST_ENV) $(VENV)/bin/pytest $(TEST_OPTS) $(SOURCE)
 
 container:
 	docker build --tag wksr .
@@ -45,10 +46,6 @@ coverage: $(VENV) softhsm
 reformat: $(VENV)
 	$(VENV)/bin/isort --recursive $(SOURCE)
 	$(VENV)/bin/black $(SOURCE)
-
-format:
-	$(VENV)/bin/isort --check --recursive src
-	$(VENV)/bin/black --check src
 
 lint: $(VENV)
 	$(VENV)/bin/pylama $(SOURCE)
