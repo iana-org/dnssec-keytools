@@ -139,11 +139,11 @@ request_policy:
   # KSR are coherent with those in the last bundle from the SKR(n-1).
   check_chain_overlap: true
 
-  # Approved algorithms  (default [RSASHA256])
+  # Approved algorithms  (default RSASHA256)
   approved_algorithms:
     - RSASHA256
 
-  # Approved RSA exponents (default [65537])
+  # Approved RSA exponents (default 65537)
   rsa_approved_exponents:
     - 65537
 
