@@ -37,7 +37,7 @@ testing_extras = [
     "dnspython==1.16.0",
     "eradicate",
     "flask==1.1.1",
-    "isort<5",
+    "isort",
     "mypy",
     "nose",
     "nosexcover",
