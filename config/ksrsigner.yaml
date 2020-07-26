@@ -143,9 +143,8 @@ request_policy:
   approved_algorithms:
     - RSASHA256
 
-  # Approved RSA exponents (default [3, 65537])
+  # Approved RSA exponents (default [65537])
   rsa_approved_exponents:
-    - 3
     - 65537
 
   # Approved RSA modulus sizes (default 2048)

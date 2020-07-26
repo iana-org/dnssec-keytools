@@ -73,7 +73,7 @@ class RequestPolicy(Policy):
     approved_algorithms: List[str] = field(
         default_factory=lambda: [AlgorithmDNSSEC.RSASHA256.name]
     )
-    rsa_approved_exponents: List[int] = field(default_factory=lambda: [3, 65537])
+    rsa_approved_exponents: List[int] = field(default_factory=lambda: [65537])
     rsa_approved_key_sizes: List[int] = field(default_factory=lambda: [2048])
     signature_validity_match_zsk_policy: bool = True
     check_keys_match_ksk_operator_policy: bool = True
