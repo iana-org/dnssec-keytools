@@ -344,7 +344,6 @@ def check_bundle_intervals(
     request: Request, policy: RequestPolicy, logger: Logger
 ) -> None:
     """Check that the bundles' intervals fall within expected limits."""
-
     if not policy.check_bundle_intervals:
         logger.warning(
             "KSR-POLICY-BUNDLE-INTERVALS: Disabled by policy (check_bundle_intervals)"

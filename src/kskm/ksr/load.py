@@ -56,6 +56,7 @@ def load_ksr(
 
 
 def request_from_xml_file(filename: str, xml_bytes: bytes) -> Request:
+    """Parse XML data and return Request instance."""
     xml_hash = sha256(xml_bytes)
     return request_from_xml(
         xml_bytes.decode(), xml_filename=filename, xml_hash=xml_hash

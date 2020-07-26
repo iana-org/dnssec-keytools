@@ -11,7 +11,7 @@ __author__ = "ft"
 
 
 def log_file_contents(filename: str, contents: bytes, logger: logging.Logger) -> None:
-    """Log file contents with filename and line number"""
+    """Log file contents with filename and line number."""
     lineno = 0
     lines = contents.decode().splitlines()
     digits_in_lineno = len(str(len(lines)))
@@ -78,6 +78,7 @@ def _fmt_fields(**kwargs: Union[int, str]) -> str:
 
 
 def fmt_bundle(bundle: Bundle) -> str:
+    """Return bundle as string."""
     return "id={} {}->{}".format(
         bundle.id[:8],
         bundle.inception.isoformat().split("T")[0],
@@ -86,6 +87,7 @@ def fmt_bundle(bundle: Bundle) -> str:
 
 
 def fmt_timedelta(tdelta: timedelta) -> str:
+    """Return timedelta as string."""
     res = str(tdelta)
     if res.endswith("days, 0:00:00") or res.endswith("day, 0:00:00"):
         # cut off the unnecessary 0:00:00 after "days"
@@ -94,4 +96,5 @@ def fmt_timedelta(tdelta: timedelta) -> str:
 
 
 def fmt_timestamp(ts: datetime) -> str:
+    """Return timestamp as string."""
     return ts.isoformat().split("+")[0]

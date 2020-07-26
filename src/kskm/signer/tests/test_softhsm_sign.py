@@ -629,8 +629,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
 @pytest.mark.usefixtures("p11modules")
 class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
     def setup_method(self) -> None:
-        """ Prepare for tests. """
-
+        """Prepare for tests."""
         super().setup_method()
 
         _SCHEMAS = """

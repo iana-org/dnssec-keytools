@@ -1,4 +1,5 @@
-"""Functions to validate KSRs.
+"""
+Functions to validate KSRs.
 
 The functions are organized to match the specifications, starting with the top
 level function 'validate_request' in this file.

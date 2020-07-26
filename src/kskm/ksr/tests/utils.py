@@ -11,7 +11,7 @@ from kskm.misc.hsm import get_p11_key, sign_using_p11
 
 def _sign_using_softhsm(data: bytes, softhsm_signing_key="RSA1") -> None:
     """
-    This is how to calculate the correct ZSK operator signature using the key in SoftHSM.
+    Calculate the correct ZSK operator signature using the key in SoftHSM.
 
     Look at the error message given when an invalid signature is found, and pass the RRSIG
     bytes as `data' to this function to get the correct signature value.

@@ -303,7 +303,7 @@ def check_cycle_durations(
 ) -> None:
     """
     Check that the whole cycles length fall within expected limits.
-    
+
     KSR-BUNDLE-CYCLE-DURATION:
       Verify that the cycle duration is within acceptable limits.
     """

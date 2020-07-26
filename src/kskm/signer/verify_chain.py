@@ -30,14 +30,11 @@ class KSR_CHAIN_OVERLAP_Violation(KSR_CHAIN_Violation):
 
 def check_chain(ksr: Request, last_skr: Response, policy: RequestPolicy) -> None:
     """Validate that the current request continues a timeline ending with the previous response."""
-
     logger.info("Checking coherence between SKR(n-1) and this KSR")
-
     logger.debug("Last SKR (response):")
     [logger.debug(x) for x in format_bundles_for_humans(last_skr.bundles)]  # type: ignore
     logger.debug("This KSR (request):")
     [logger.debug(x) for x in format_bundles_for_humans(ksr.bundles)]  # type: ignore
-
     check_chain_keys(ksr, last_skr, policy)
     check_chain_overlap(ksr, last_skr, policy)
 
@@ -76,6 +73,7 @@ def check_chain_keys(ksr: Request, last_skr: Response, policy: RequestPolicy) ->
 def check_chain_overlap(
     ksr: Request, last_skr: Response, policy: RequestPolicy
 ) -> None:
+    """Check signature chain overlap."""
     if not policy.check_chain_overlap:
         logger.warning(
             "KSR-CHAIN-OVERLAP: Checking chain signature overlap disabled by policy (check_chain_overlap)"

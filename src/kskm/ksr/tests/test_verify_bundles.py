@@ -146,8 +146,7 @@ class Test_Valid_Requests(Test_Requests):
 
 class Test_Invalid_Requests(Test_Requests):
     def test_bundle_with_unhandled_key_type(self):
-        """ Test validating a KSR with a key/signature using an unhandled key type """
-
+        """Test validating a KSR with a key/signature using an unhandled key type"""
         bundle = self._make_request_bundle(algorithm=AlgorithmDNSSEC.ED448.value)
         xml = self._make_request(request_bundle=bundle)
         policy = RequestPolicy()
@@ -160,7 +159,7 @@ class Test_Invalid_Requests(Test_Requests):
         )
 
     def test_invalid_domain(self):
-        """ Test validating a KSR for an unknown domain """
+        """Test validating a KSR for an unknown domain"""
         xml = self._make_request(domain="test.", request_bundle="")
         policy = RequestPolicy(
             num_bundles=0,
@@ -175,7 +174,7 @@ class Test_Invalid_Requests(Test_Requests):
         self.assertIn("not in policy's acceptable domains", str(exc.exception))
 
     def test_bundles_with_same_id(self):
-        """ Test validating a KSR with two bundles having the same ID """
+        """Test validating a KSR with two bundles having the same ID."""
         bundle = self._make_request_bundle()
         xml = self._make_request(request_bundle=f"{bundle}\n       {bundle}\n")
         policy = RequestPolicy()
@@ -185,7 +184,7 @@ class Test_Invalid_Requests(Test_Requests):
         self.assertEqual("More than one bundle with id test-id", str(exc.exception))
 
     def test_single_bundle_missing_info(self):
-        """ Test validating a KSR with a single bundle missing mandatory data """
+        """Test validating a KSR with a single bundle missing mandatory data."""
         bundle = """
         <RequestBundle id="test-non-unique-id">
           <Inception>2009-11-03T00:00:00</Inception>
@@ -200,7 +199,7 @@ class Test_Invalid_Requests(Test_Requests):
         )
 
     def test_wrong_RSA_key_size(self):
-        """ Test a request with an RSA key of a size not matching the ZSK policy """
+        """Test a request with an RSA key of a size not matching the ZSK policy."""
         signature_algorithm = """
             <SignatureAlgorithm algorithm="8">
               <RSA size="2048" exponent="65537"/>
@@ -219,7 +218,7 @@ class Test_Invalid_Requests(Test_Requests):
         )
 
     def test_wrong_RSA_key_exponent(self):
-        """ Test a request with an RSA key with an exponent not matching the ZSK policy """
+        """Test a request with an RSA key with an exponent not matching the ZSK policy."""
         signature_algorithm = """
             <SignatureAlgorithm algorithm="8">
               <RSA size="1024" exponent="3"/>
@@ -243,7 +242,7 @@ class Test_Invalid_Requests(Test_Requests):
         self.assertTrue(validate_request(request, policy))
 
     def test_bad_key_flags(self):
-        """ Test a request with a non-ZSK key  """
+        """Test a request with a non-ZSK key."""
         bundle = self._make_request_bundle(
             flags=FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value
         )
@@ -257,7 +256,7 @@ class Test_Invalid_Requests(Test_Requests):
         )
 
     def test_wrong_key_tag(self):
-        """ Test a request with a key with the wrong tag """
+        """Test a request with a key with the wrong tag."""
         bundle = self._make_request_bundle(key_tag=12345)
         xml = self._make_request(request_bundle=bundle)
         request = request_from_xml(xml)
@@ -269,7 +268,7 @@ class Test_Invalid_Requests(Test_Requests):
         )
 
     def test_extra_key_in_bundle(self):
-        """ Test a request with a key without a matching signature (no proof of possession) """
+        """Test a request with a key without a matching signature (no proof of possession)."""
         RSA1 = """
         AwEAAcBH41eazGJG/DBdDmKxGxO8Bv4XbgNQiButvR60Aqzprd6DMT2J0xtR91MkkGYKj9Gc0nO9nBQFC4/zPEAlqE1HWnx4E57o
         BHSpij/B5MJYHIW1khGrjuRYooy8/q8C3U/PktxTxc6UlUqmPGL/dk5WYUOQsP8zayx/QSgc7wCR17CUvoaVyM05SPQyW20ztKEu

@@ -10,7 +10,7 @@ from kskm.common.parse_utils import duration_to_timedelta
 
 
 def iso8601_duration():
-    """Validation ISO 8601 durations"""
+    """Validation ISO 8601 durations."""
     return lambda v: duration_to_timedelta(v)
 
 
