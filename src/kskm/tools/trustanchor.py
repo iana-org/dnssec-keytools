@@ -113,9 +113,7 @@ def output_trustanchor_xml(
 
 
 def trustanchor(
-    logger: logging.Logger,
-    args: Optional[ArgsType],
-    config: Optional[KSKMConfig] = None,
+    logger: logging.Logger, args: ArgsType, config: Optional[KSKMConfig] = None,
 ) -> bool:
     """Main entry point for generating trust anchors and writing them (as XML) to a file."""
     #

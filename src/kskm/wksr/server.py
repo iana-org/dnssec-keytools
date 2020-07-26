@@ -22,6 +22,7 @@ from kskm.common.validate import PolicyViolation
 from kskm.ksr import load_ksr
 from kskm.signer.policy import check_skr_and_ksr
 from kskm.skr import load_skr
+from kskm.skr.data import Response
 
 from .peercert import PeerCertWSGIRequestHandler
 
@@ -121,6 +122,7 @@ def validate_ksr(filename: str) -> dict:
 
     result = {}
     previous_skr_filename = config.get_filename("previous_skr")
+    previous_skr: Optional[Response]
 
     try:
         if previous_skr_filename is not None:

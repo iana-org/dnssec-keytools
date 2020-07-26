@@ -37,7 +37,7 @@ def words(filename: Optional[str] = None) -> None:
         print()
 
 
-def main():
+def main() -> None:
     """Main program function."""
     parser = argparse.ArgumentParser(
         description=f"SHA-256 PGP Words Calculator {__verbose_version__}",

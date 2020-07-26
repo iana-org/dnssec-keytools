@@ -2,6 +2,7 @@
 
 import logging
 import os
+from typing import Any
 
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.display import log_file_contents
@@ -63,7 +64,7 @@ def request_from_xml_file(filename: str, xml_bytes: bytes) -> Request:
     )
 
 
-def request_from_xml(xml: str, **kwargs) -> Request:
+def request_from_xml(xml: str, **kwargs: Any) -> Request:
     """Top-level function to parse a KSR XML document into a Request instance."""
     data = parse_ksr(xml)
     bundles_list = data["KSR"]["value"]["Request"].get("RequestBundle", [])

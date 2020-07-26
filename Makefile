@@ -52,7 +52,7 @@ lint: $(VENV)
 	$(VENV)/bin/pylama $(SOURCE)
 
 typecheck: $(VENV)
-	$(VENV)/bin/mypy $(SOURCE) $(SOURCE)/kskm/tools
+	$(VENV)/bin/mypy --ignore-missing-imports $(SOURCE)
 
 $(BUILDINFO): $(SOURCE)
 	if [ -d .git ]; then \

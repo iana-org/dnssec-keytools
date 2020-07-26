@@ -376,7 +376,7 @@ class KSKM_P11Module:
             _prefix = bytes([4, len(ec_point) - 2, 4])
             if ec_point.startswith(_prefix):
                 ec_point = ec_point[2:]
-            logger.debug(f"EC_POINT: {binascii.hexlify(ec_point)}")
+            logger.debug("EC_POINT: %s", binascii.hexlify(ec_point))
             ec_params = bytes(
                 session.getAttributeValue(data, [PyKCS11.LowLevel.CKA_EC_PARAMS])[0]
             )
@@ -389,7 +389,9 @@ class KSKM_P11Module:
                 b"\x06\x05\x2B\x81\x04\x00\x22": ECCurve.P384,
             }
             crv = _ec_oid_to_curve.get(ec_params)
-            logger.debug(f"EC_PARAMS: {binascii.hexlify(ec_params)} (algorithm: {crv})")
+            logger.debug(
+                "EC_PARAMS: %s (algorithm %s)", binascii.hexlify(ec_params), crv
+            )
             if not crv:
                 raise RuntimeError("Unknown EC algorithm")
             # ec_point is an 0x04 prefix byte, and then both x and y points concatenated, so divide by 2

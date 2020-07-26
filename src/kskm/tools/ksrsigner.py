@@ -249,8 +249,9 @@ def ksrsigner(
     if not args.force:
         print("")
         print("FILENAME:      ", request.xml_filename)
-        print("SHA-256 HEX:   ", binascii.hexlify(request.xml_hash).decode())
-        print("SHA-256 WORDS: ", " ".join(pgp_wordlist(request.xml_hash)))
+        if request.xml_hash is not None:
+            print("SHA-256 HEX:   ", binascii.hexlify(request.xml_hash).decode())
+            print("SHA-256 WORDS: ", " ".join(pgp_wordlist(request.xml_hash)))
         print("")
         ack = input(
             'Sign KSR? Confirm with "Yes" (exactly) or anything else to abort: '

@@ -34,7 +34,7 @@ class PeerCertWSGIRequestHandler(werkzeug.serving.WSGIRequestHandler):
         """
         environ: Dict = super().make_environ()
         try:
-            x509_binary = self.connection.getpeercert(True)  # type: ignore
+            x509_binary = self.connection.getpeercert(True)
         except (AttributeError, KeyError):
             # Not a TLS connection
             x509_binary = None

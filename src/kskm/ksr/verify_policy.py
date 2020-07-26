@@ -1,6 +1,7 @@
 """Controls to verify KSR policy parameters."""
-import datetime
+from datetime import datetime, timedelta, timezone
 from logging import Logger
+from typing import Optional
 
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import (
@@ -169,7 +170,9 @@ def check_signature_validity(
     )
 
 
-def check_signature_horizon(request, policy, logger):
+def check_signature_horizon(
+    request: Request, policy: RequestPolicy, logger: Logger
+) -> None:
     """Check that signatures do not expire too long into the future."""
     if not policy.signature_check_expire_horizon:
         logger.warning(
@@ -177,7 +180,7 @@ def check_signature_horizon(request, policy, logger):
         )
         return
 
-    dt_now = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
+    dt_now = datetime.utcnow().replace(tzinfo=timezone.utc)
     for bundle in request.bundles:
         expire_days = (bundle.expiration - dt_now).days
         # DPS section 5.1.4: Any RRSIG record generated as a result of a KSK signing operation will not have
@@ -358,7 +361,7 @@ def check_bundle_intervals(
         "(from KSK operator policy)"
     )
     for num in range(len(request.bundles)):
-        interval = "-"
+        interval: Optional[timedelta] = None
         if num:
             interval = (
                 request.bundles[num].inception - request.bundles[num - 1].inception
@@ -367,7 +370,7 @@ def check_bundle_intervals(
             "{num:<2} {inception:29} {interval}".format(
                 num=num + 1,
                 inception=fmt_timestamp(request.bundles[num].inception),
-                interval=interval,
+                interval=interval or "-",
             )
         )
 

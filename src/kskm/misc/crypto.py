@@ -56,7 +56,7 @@ def rsa_pubkey_to_crypto_pubkey(pubkey: KSKM_PublicKey_RSA) -> rsa.RSAPublicKey:
     """Convert an KSKM_PublicKey_RSA into a 'cryptography' rsa.RSAPublicKey."""
     rsa_n = int.from_bytes(pubkey.n, byteorder="big")
     public = rsa.RSAPublicNumbers(pubkey.exponent, rsa_n)
-    return default_backend().load_rsa_public_numbers(public)
+    return default_backend().load_rsa_public_numbers(public)  # type: ignore
 
 
 def ecdsa_pubkey_to_crypto_pubkey(
@@ -64,6 +64,7 @@ def ecdsa_pubkey_to_crypto_pubkey(
 ) -> ec.EllipticCurvePublicKey:
     """Convert an KSKM_PublicKey_ECDSA into a 'cryptography' ec.EllipticCurvePublicKey."""
     q = pubkey.q
+    curve: object
     if pubkey.curve == ECCurve.P256:
         curve = ec.SECP256R1()
         if len(q) == (256 // 8) * 2:

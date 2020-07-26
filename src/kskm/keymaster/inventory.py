@@ -53,6 +53,8 @@ def _format_keys(
         initial_keylist = list(data[KeyClass.PUBLIC].keys())
         for label_and_id in initial_keylist:
             this = data[KeyClass.PUBLIC][label_and_id]
+            if this.pubkey is None:
+                raise RuntimeError("Invalid public key")
 
             ksk_info = "Matching KSK not found in configuration"
             # Look for the key in the config

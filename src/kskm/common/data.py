@@ -139,7 +139,7 @@ class Key:
     algorithm: AlgorithmDNSSEC
     public_key: bytes = field(repr=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Check for valid DNSKEY flags."""
         # have to import these locally to avoid circular imports  # noqa
         from kskm.common.ecdsa_utils import (
