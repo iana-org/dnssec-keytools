@@ -38,7 +38,10 @@ LABEL_RSA=		test_rsa
 
 all: softhsm $(KSRSIGNER_YAML)
 
-test: keys ta inventory skr
+test: keys ta inventory skr fail
+
+fail:
+	sh fail.sh
 
 conf: $(SOFTHSM_CONF) $(KSRSIGNER_YAML)
 
