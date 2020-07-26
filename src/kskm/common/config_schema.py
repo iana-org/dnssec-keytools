@@ -29,7 +29,7 @@ RSA_SIZE = All(int, Range(min=1, max=65535))
 RSA_EXPONENT = All(int, Range(min=1))
 HEX_DIGEST = Match(r"[0-9a-fA-F]+")
 HOST_NAME = Match(DOMAIN_REGEX)
-DOMAIN_NAME = Any(".", Match("\w+"), Match(DOMAIN_REGEX))
+DOMAIN_NAME = Any(".", Match(r"\w+"), Match(DOMAIN_REGEX))
 TTL = All(int, Range(min=0))
 
 KEY_SCHEMA = Schema(
