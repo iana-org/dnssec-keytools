@@ -48,9 +48,6 @@ reformat: $(VENV)
 	$(VENV)/bin/isort --recursive $(SOURCE)
 	$(VENV)/bin/black $(SOURCE)
 
-lint: $(VENV)
-	$(VENV)/bin/pylama $(SOURCE)
-
 typecheck: $(VENV)
 	$(VENV)/bin/mypy --ignore-missing-imports $(SOURCE)
 
