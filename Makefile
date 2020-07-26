@@ -40,8 +40,8 @@ test: $(VENV) softhsm $(BUILDINFO)
 container:
 	docker build --tag wksr .
 
-coverage: $(VENV) softhsm
-	env $(TEST_ENV) $(VENV)/bin/coverage run --source $(SOURCE) -m nose -w $(SOURCE) --verbose
+coverage: $(VENV) softhsm $(BUILDINFO)
+	env $(TEST_ENV) $(VENV)/bin/coverage run -m pytest $(PYTEST_OPTS) $(SOURCE)
 	$(VENV)/bin/coverage html
 
 reformat: $(VENV)
