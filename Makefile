@@ -45,7 +45,7 @@ coverage: $(VENV) softhsm $(BUILDINFO)
 	$(VENV)/bin/coverage html
 
 reformat: $(VENV)
-	$(VENV)/bin/isort --recursive $(SOURCE)
+	$(VENV)/bin/isort $(SOURCE)
 	$(VENV)/bin/black $(SOURCE)
 
 typecheck: $(VENV)
