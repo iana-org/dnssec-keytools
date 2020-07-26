@@ -38,7 +38,7 @@ LABEL_RSA=		test_rsa
 
 all: softhsm $(KSRSIGNER_YAML)
 
-test: keys ta inventory
+test: keys ta inventory skr
 
 conf: $(SOFTHSM_CONF) $(KSRSIGNER_YAML)
 
@@ -48,6 +48,9 @@ keys: $(KEYS)
 
 ta: $(KSRSIGNER_YAML) $(STATUSFILE)
 	kskm-trustanchor
+
+skr:
+	kskm-ksrsigner --force ksr.xml
 
 inventory: $(KSRSIGNER_YAML) $(STATUSFILE)
 	kskm-keymaster inventory

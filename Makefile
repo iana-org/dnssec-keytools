@@ -36,6 +36,7 @@ softhsm:
 
 test: $(VENV) softhsm $(BUILDINFO)
 	env $(TEST_ENV) $(VENV)/bin/pytest $(PYTEST_OPTS) $(SOURCE)
+	(cd testing/softhsm; make test)
 
 container:
 	docker build --tag wksr .

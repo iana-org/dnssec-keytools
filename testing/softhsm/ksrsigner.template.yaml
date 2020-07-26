@@ -43,3 +43,37 @@ keys:
     algorithm: ECDSAP256SHA256
     valid_from: 2010-07-15T00:00:00+00:00
     ds_sha256: 306F7D0D2932C4C5C5F57AF9E910DF28BA7DA45B0870F09DD541794D6B0DC478
+
+
+request_policy:
+  signature_check_expire_horizon: false
+
+schemas:
+  normal:
+    1:
+      publish: ksk_RSA1
+      sign: ksk_RSA1
+    2:
+      publish: ksk_RSA1
+      sign: ksk_RSA1
+    3:
+      publish: ksk_RSA1
+      sign: ksk_RSA1
+    4:
+      publish: ksk_RSA1
+      sign: ksk_RSA1
+    5:
+      publish: ksk_RSA1
+      sign: ksk_RSA1
+    6:
+      publish: ksk_RSA1
+      sign: ksk_RSA1
+    7:
+      publish: ksk_RSA1
+      sign: ksk_RSA1
+    8:
+      publish: ksk_RSA1
+      sign: ksk_RSA1
+    9:
+      publish: ksk_RSA1
+      sign: ksk_RSA1
