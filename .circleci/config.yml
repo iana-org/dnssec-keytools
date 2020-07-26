@@ -20,6 +20,7 @@ jobs:
             - venv
       - run: make test
       - run: . venv/bin/activate; cd testing/softhsm; make test
+      - run: make typecheck
 
 workflows:
   version: 2
