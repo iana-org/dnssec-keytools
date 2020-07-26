@@ -75,6 +75,7 @@ class TestParseRealKSRs(unittest.TestCase):
         fn = os.path.join(self.data_dir, "ksr-root-2010-q2-0.xml")
         policy = RequestPolicy(
             rsa_exponent_match_zsk_policy=False,
+            rsa_approved_exponents=[3, 65537],
             rsa_approved_key_sizes=[1024],
             check_bundle_overlap=False,
             signature_validity_match_zsk_policy=False,
@@ -110,6 +111,7 @@ class TestParseRealKSRs(unittest.TestCase):
         # This policy actually works for this file
         policy = RequestPolicy(
             rsa_exponent_match_zsk_policy=False,
+            rsa_approved_exponents=[3, 65537],
             rsa_approved_key_sizes=[1024],
             check_bundle_overlap=False,
             signature_validity_match_zsk_policy=False,
