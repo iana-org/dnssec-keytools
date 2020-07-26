@@ -44,7 +44,6 @@ testing_extras = [
     "parsable",
     "pycryptodome==3.9.4",
     "pylama",
-    "pylint",
     "pyopenssl==19.1.0",
     "pytest",
     "pytest-black",
