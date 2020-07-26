@@ -147,7 +147,7 @@ def check_last_skr_key_present(
                 f"(bundle {last_bundle.id})"
             )
         hsmkey = public_key_to_dnssec_key(
-            key=p11key.public_key,
+            key=p11key.public_key,  # type: ignore
             key_identifier=sig.key_identifier,
             algorithm=sig.algorithm,
             flags=FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value,

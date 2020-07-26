@@ -87,7 +87,7 @@ def verify_signature(
     _hash = _algorithm_to_hash(algorithm)
     try:
         if is_algorithm_rsa(algorithm):
-            pubkey.verify(signature, data, PKCS1v15(), _hash)
+            pubkey.verify(signature, data, PKCS1v15(), _hash)   # type: ignore
         elif is_algorithm_ecdsa(algorithm):
             # OpenSSL (which is at the bottom of 'cryptography' expects ECDSA signatures to
             # be in RFC3279 format (ASN.1 encoded).
@@ -96,7 +96,7 @@ def verify_signature(
             s = int.from_bytes(_s, byteorder="big")
             signature = encode_dss_signature(r, s)
             _ec_alg = ec.ECDSA(algorithm=_algorithm_to_hash(algorithm))
-            pubkey.verify(signature, data, _ec_alg)
+            pubkey.verify(signature, data, _ec_alg)  # type: ignore
         else:
             raise RuntimeError(
                 f"Don't know how to verify signature with {repr(pubkey)}"
