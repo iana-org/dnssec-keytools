@@ -19,6 +19,7 @@ jobs:
           paths:
             - venv
       - run: make test
+      - run: . venv/bin/activate; cd testing/softhsm; make test
 
 workflows:
   version: 2
