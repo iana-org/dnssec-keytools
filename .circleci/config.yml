@@ -2,7 +2,7 @@ version: 2.1
 
 jobs:
 
-  test-template: &test-template
+  test:
     docker:
       - image: python:3.7
     environment:
@@ -23,19 +23,8 @@ jobs:
       - run: . venv/bin/activate; cd testing/softhsm; make test
       - run: make typecheck
 
-  test37:
-    <<: *test-template
-    docker:
-      - image: python:3.7
-
-  test38:
-    <<: *test-template
-    docker:
-      - image: python:3.8
-
 workflows:
   version: 2
   build_and_test:
     jobs:
-      - test37
-      - test38
+      - test
