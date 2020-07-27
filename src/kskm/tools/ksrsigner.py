@@ -246,13 +246,14 @@ def ksrsigner(
             "KSR-CHAIN: Previous SKR *NOT* loaded - presence of SKR(n-1) in HSM not validated"
         )
 
+    print("")
+    print("FILENAME:      ", request.xml_filename)
+    if request.xml_hash is not None:
+        print("SHA-256 HEX:   ", binascii.hexlify(request.xml_hash).decode())
+        print("SHA-256 WORDS: ", " ".join(pgp_wordlist(request.xml_hash)))
+    print("")
+
     if not args.force:
-        print("")
-        print("FILENAME:      ", request.xml_filename)
-        if request.xml_hash is not None:
-            print("SHA-256 HEX:   ", binascii.hexlify(request.xml_hash).decode())
-            print("SHA-256 WORDS: ", " ".join(pgp_wordlist(request.xml_hash)))
-        print("")
         ack = input(
             'Sign KSR? Confirm with "Yes" (exactly) or anything else to abort: '
         )
