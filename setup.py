@@ -6,6 +6,8 @@ with open('src/kskm/version.py', 'r') as fd:
     __version__ = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', fd.read(), re.MULTILINE).group(1)
 
 
+# Requirements are pinned to known working versions. Later versions may work and
+# the version requirements can be relaxed given proper testing.
 install_requires = [
     "cffi==1.13.2",
     "click==7.0",
