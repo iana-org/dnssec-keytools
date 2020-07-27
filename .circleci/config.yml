@@ -1,9 +1,10 @@
 version: 2.1
 
 jobs:
-  test:
+
+  test-template: &test-template
     docker:
-      - image: python:3.7
+      - image: circleci/python:3.7
     environment:
       SOFTHSM2_MODULE: /usr/lib/softhsm/libsofthsm2.so
       TEST_SOFTHSM2_SKIP_KEYWRAP: 1
@@ -22,8 +23,19 @@ jobs:
       - run: . venv/bin/activate; cd testing/softhsm; make test
       - run: make typecheck
 
+  test-3.7:
+    <<: *test-template
+    docker:
+      - image: circleci/python:3.7
+
+  test-3.8:
+    <<: *test-template
+    docker:
+      - image: circleci/python:3.8
+
 workflows:
   version: 2
   build_and_test:
     jobs:
-      - test
+      - test-3.7
+      - test-3.8
