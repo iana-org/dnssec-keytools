@@ -4,7 +4,7 @@ jobs:
 
   test-template: &test-template
     docker:
-      - image: circleci/python:3.7
+      - image: python:3.7
     environment:
       SOFTHSM2_MODULE: /usr/lib/softhsm/libsofthsm2.so
       TEST_SOFTHSM2_SKIP_KEYWRAP: 1
@@ -26,12 +26,12 @@ jobs:
   test37:
     <<: *test-template
     docker:
-      - image: circleci/python:3.7
+      - image: python:3.7
 
   test38:
     <<: *test-template
     docker:
-      - image: circleci/python:3.8
+      - image: python:3.8
 
 workflows:
   version: 2
