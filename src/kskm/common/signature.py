@@ -66,18 +66,21 @@ def validate_signatures(bundle: Bundle) -> bool:
             logger.debug(f"Signature {sig.key_identifier} validates key(s) {_key_list}")
         except InvalidSignature:
             logger.error(
-                f"Key {key.key_tag}/{key.key_identifier} in bundle {bundle.id} FAILED validation"
+                "Key %s/%s in bundle %s FAILED validation",
+                key.key_tag,
+                key.key_identifier,
+                bundle.id,
             )
-            logger.debug("RRSIG : {}".format(binascii.hexlify(rrsig_raw)))
-            logger.debug("DIGEST: {}".format(sha256(rrsig_raw).hexdigest()))
+            logger.debug("RRSIG:  %s", binascii.hexlify(rrsig_raw))
+            logger.debug("DIGEST: %s", sha256(rrsig_raw).hexdigest())
             if is_algorithm_rsa(key.algorithm):
-                _pk = decode_rsa_public_key(key.public_key)
-                logger.debug("Public key: {}".format(_pk))
+                _rsa_pk = decode_rsa_public_key(key.public_key)
+                logger.debug("Public key: {}".format(_rsa_pk))
             elif is_algorithm_ecdsa(key.algorithm):
-                _pk = decode_ecdsa_public_key(
+                _ecdsa_pk = decode_ecdsa_public_key(
                     key.public_key, algorithm_to_curve(key.algorithm)
                 )
-                logger.debug("Public key: {}".format(_pk))
+                logger.debug("Public key: {}".format(_ecdsa_pk))
             raise
     return True
 

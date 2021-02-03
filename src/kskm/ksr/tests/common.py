@@ -14,6 +14,7 @@ class Test_Requests(unittest.TestCase):
             num_bundles=1,
             check_cycle_length=False,
             check_keys_match_ksk_operator_policy=False,
+            rsa_approved_exponents=[3, 65537],
             rsa_approved_key_sizes=[1024],
             signature_validity_match_zsk_policy=False,
             signature_check_expire_horizon=False,

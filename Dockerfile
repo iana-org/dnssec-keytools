@@ -1,3 +1,5 @@
+# Dockerfile for building standalone wksr server
+
 FROM python:3.7
 
 ARG UID=5353

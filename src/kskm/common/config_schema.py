@@ -1,6 +1,7 @@
 """Config validation schema."""
 
 from datetime import datetime
+from typing import Callable
 
 from voluptuous import All, Any, Email, IsFile, Match, Range, Required, Schema
 from voluptuous.validators import DOMAIN_REGEX
@@ -9,8 +10,8 @@ from kskm.common.data import AlgorithmDNSSEC
 from kskm.common.parse_utils import duration_to_timedelta
 
 
-def iso8601_duration():
-    """Validation ISO 8601 durations"""
+def iso8601_duration() -> Callable:
+    """Validation ISO 8601 durations."""
     return lambda v: duration_to_timedelta(v)
 
 
@@ -29,7 +30,7 @@ RSA_SIZE = All(int, Range(min=1, max=65535))
 RSA_EXPONENT = All(int, Range(min=1))
 HEX_DIGEST = Match(r"[0-9a-fA-F]+")
 HOST_NAME = Match(DOMAIN_REGEX)
-DOMAIN_NAME = Any(".", Match("\w+"), Match(DOMAIN_REGEX))
+DOMAIN_NAME = Any(".", Match(r"\w+"), Match(DOMAIN_REGEX))
 TTL = All(int, Range(min=0))
 
 KEY_SCHEMA = Schema(

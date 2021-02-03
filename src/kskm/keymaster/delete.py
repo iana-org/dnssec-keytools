@@ -1,7 +1,9 @@
+"""Key delete functions."""
+
 import logging
 
 from kskm.keymaster.common import get_session
-from kskm.misc.hsm import KSKM_P11, get_p11_key, get_p11_secret_key
+from kskm.misc.hsm import KSKM_P11, get_p11_key
 
 __author__ = "ft"
 
@@ -36,26 +38,3 @@ def key_delete(label: str, p11modules: KSKM_P11, force: bool = False) -> bool:
         logger.debug(f"Private key C_DestroyObject result: {res}")
         return True
     return False
-
-
-def wrapkey_delete(label: str, p11modules: KSKM_P11, force: bool = False) -> bool:
-    """Delete a wrapping (secret) key from the HSM."""
-    existing_key = get_p11_secret_key(label, p11modules)
-    if not existing_key:
-        logger.error(f"No secret key with label {label} found")
-        return False
-
-    if not force:
-        ack = input(
-            f'Delete secret key {existing_key}? Confirm with "Yes" (exactly) or anything else to abort: '
-        )
-        if ack.strip("\n") != "Yes":
-            logger.warning(f"Deletion of key {existing_key} aborted")
-            return True
-
-    logger.info(f"Deleting secret key {existing_key}")
-    session = get_session(p11modules, logger)
-    if existing_key.privkey_handle:
-        res = session.destroyObject(existing_key.privkey_handle[0])
-        logger.debug(f"Private key C_DestroyObject result: {res}")
-    return True

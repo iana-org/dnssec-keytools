@@ -2,6 +2,7 @@
 
 import logging
 import os
+from typing import Any
 
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.display import log_file_contents
@@ -56,13 +57,14 @@ def load_ksr(
 
 
 def request_from_xml_file(filename: str, xml_bytes: bytes) -> Request:
+    """Parse XML data and return Request instance."""
     xml_hash = sha256(xml_bytes)
     return request_from_xml(
         xml_bytes.decode(), xml_filename=filename, xml_hash=xml_hash
     )
 
 
-def request_from_xml(xml: str, **kwargs) -> Request:
+def request_from_xml(xml: str, **kwargs: Any) -> Request:
     """Top-level function to parse a KSR XML document into a Request instance."""
     data = parse_ksr(xml)
     bundles_list = data["KSR"]["value"]["Request"].get("RequestBundle", [])

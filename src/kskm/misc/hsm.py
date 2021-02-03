@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import binascii
-import glob
 import logging
 import os
 import re
@@ -46,6 +45,8 @@ class KeyClass(Enum):
 
 
 class KeyType(Enum):
+    """Re-representation of PKCS#11 key types classes to shield other modules from the details."""
+
     RSA = PyKCS11.LowLevel.CKK_RSA
     EC = PyKCS11.LowLevel.CKK_EC
     AES = PyKCS11.LowLevel.CKK_AES
@@ -53,10 +54,8 @@ class KeyType(Enum):
 
 
 @dataclass
-class KeyInfo(object):
-    """
-    Inventory information about a key found in a slot.
-    """
+class KeyInfo:
+    """Inventory information about a key found in a slot."""
 
     key_class: KeyClass
     key_id: Tuple[int]
@@ -65,13 +64,8 @@ class KeyInfo(object):
     pubkey: Optional[KSKM_PublicKey] = field(repr=False, default=None)
 
 
-class WrappingAlgorithm(Enum):
-    AES256 = "AES256"
-    DES3 = "3DES"  # 3DES is an invalid token in Python
-
-
 @dataclass
-class KSKM_P11Key(object):
+class KSKM_P11Key:
     """A reference to a key object loaded from a PKCS#11 module."""
 
     label: str  # for debugging
@@ -87,35 +81,14 @@ class KSKM_P11Key(object):
     )  # PyKCS11 opaque data
 
     def __str__(self) -> str:
-        s = f"key_label={self.label}"
+        """Return string."""
+        ret = f"key_label={self.label}"
         if self.public_key:
-            s += " " + str(self.public_key)
-        return s
-
-    def key_wrap_mechanism(self) -> PyKCS11.Mechanism:
-        """Get key wrap mechanism for this key."""
-        if self.key_type == KeyType.AES:
-            return PyKCS11.Mechanism(PyKCS11.LowLevel.CKM_AES_KEY_WRAP, None)
-        elif self.key_type == KeyType.DES3:
-            return PyKCS11.Mechanism(PyKCS11.LowLevel.CKM_DES3_ECB, None)
-        else:
-            raise RuntimeError(
-                f"Don't know a wrapping mechanism for key type {self.key_type}"
-            )
-
-    def key_wrap_algorithm(self) -> WrappingAlgorithm:
-        """Get key wrap algorithm for this key."""
-        if self.key_type == KeyType.AES:
-            return WrappingAlgorithm.AES256
-        elif self.key_type == KeyType.DES3:
-            return WrappingAlgorithm.DES3
-        else:
-            raise RuntimeError(
-                f"Don't know a wrapping algorithm for key type {self.key_type}"
-            )
+            ret += " " + str(self.public_key)
+        return ret
 
 
-class KSKM_P11Module(object):
+class KSKM_P11Module:
     """KSKM interface to a PKCS#11 module."""
 
     def __init__(
@@ -128,7 +101,9 @@ class KSKM_P11Module(object):
         rw_session: bool = False,
         env: Optional[Dict[str, str]] = None,
     ):
-        """Load and initialise a PKCS#11 module.
+        """
+        Load and initialise a PKCS#11 module.
+
         :param so_login: Log in as SO or USER
         :param rw_session: Request a R/W session or not
         """
@@ -162,11 +137,11 @@ class KSKM_P11Module(object):
 
         # reset environment
         if env:
-            for k, v in old_env.items():
-                if v is None:
-                    del os.environ[k]
+            for key, val in old_env.items():
+                if val is None:
+                    del os.environ[key]
                 else:
-                    os.environ[k] = v
+                    os.environ[key] = val
 
         # set PIN
         self.pin = None
@@ -207,6 +182,7 @@ class KSKM_P11Module(object):
             logger.warning("No slots found in HSM")
 
     def __str__(self) -> str:
+        """Return P11 module as string."""
         return f"<{self.__class__.__name__}: {self.label} ({self.module})>"
 
     def close(self) -> None:
@@ -217,6 +193,7 @@ class KSKM_P11Module(object):
 
     @property
     def slots(self) -> List[int]:
+        """Return all slots."""
         return self._slots
 
     @property
@@ -261,9 +238,7 @@ class KSKM_P11Module(object):
     def find_key_by_label(
         self, label: str, key_class: KeyClass
     ) -> Optional[KSKM_P11Key]:
-        """
-        Query the PKCS#11 module for a key with CKA_LABEL matching 'label'.
-        """
+        """Query the PKCS#11 module for a key with CKA_LABEL matching 'label'."""
         _slots: list = []
         for _slot, _session in self.sessions.items():
             template = [
@@ -303,15 +278,13 @@ class KSKM_P11Module(object):
         return None
 
     def find_key_by_id(self, key_id: int, session: Any) -> List[KSKM_P11Key]:
-        """
-        Query the PKCS#11 module for a key with CKA_ID matching 'key_id'.
-        """
+        """Query the PKCS#11 module for a key with CKA_ID matching 'key_id'."""
         template = [(PyKCS11.LowLevel.CKA_ID, key_id)]
         res: List[KSKM_P11Key] = []
         objs = session.findObjects(template)
         for this in objs:
             key_class, label = session.getAttributeValue(
-                this, [PyKCS11.LowLevel.CKA_CLASS, PyKCS11.LowLevel.CKA_LABEL,]
+                this, [PyKCS11.LowLevel.CKA_CLASS, PyKCS11.LowLevel.CKA_LABEL]
             )
             if key_class in [
                 PyKCS11.LowLevel.CKO_PRIVATE_KEY,
@@ -390,7 +363,7 @@ class KSKM_P11Module(object):
             rsa_e = int.from_bytes(bytes(_exp[0]), byteorder="big")
             rsa_n = bytes(_modulus[0])
             return KSKM_PublicKey_RSA(bits=len(rsa_n) * 8, exponent=rsa_e, n=rsa_n)
-        elif _cka_type == PyKCS11.LowLevel.CKK_EC:
+        if _cka_type == PyKCS11.LowLevel.CKK_EC:
             # DER-encoding of ANSI X9.62 ECPoint value ''Q''.
             _cka_ec_point = session.getAttributeValue(
                 data, [PyKCS11.LowLevel.CKA_EC_POINT]
@@ -403,7 +376,7 @@ class KSKM_P11Module(object):
             _prefix = bytes([4, len(ec_point) - 2, 4])
             if ec_point.startswith(_prefix):
                 ec_point = ec_point[2:]
-            logger.debug(f"EC_POINT: {binascii.hexlify(ec_point)}")
+            logger.debug("EC_POINT: %s", binascii.hexlify(ec_point))
             ec_params = bytes(
                 session.getAttributeValue(data, [PyKCS11.LowLevel.CKA_EC_PARAMS])[0]
             )
@@ -416,7 +389,9 @@ class KSKM_P11Module(object):
                 b"\x06\x05\x2B\x81\x04\x00\x22": ECCurve.P384,
             }
             crv = _ec_oid_to_curve.get(ec_params)
-            logger.debug(f"EC_PARAMS: {binascii.hexlify(ec_params)} (algorithm: {crv})")
+            logger.debug(
+                "EC_PARAMS: %s (algorithm %s)", binascii.hexlify(ec_params), crv
+            )
             if not crv:
                 raise RuntimeError("Unknown EC algorithm")
             # ec_point is an 0x04 prefix byte, and then both x and y points concatenated, so divide by 2
@@ -428,10 +403,7 @@ class KSKM_P11Module(object):
                     f"Unexpected ECDSA key length {_ec_len} for curve {crv}"
                 )
             return KSKM_PublicKey_ECDSA(bits=_ec_len, q=ec_point, curve=crv)
-        else:
-            raise NotImplementedError(
-                "Unknown CKA_TYPE: {}".format(PyKCS11.CKK[_cka_type])
-            )
+        raise NotImplementedError("Unknown CKA_TYPE: {}".format(PyKCS11.CKK[_cka_type]))
 
 
 def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) -> bytes:
@@ -479,11 +451,11 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) ->
             raise RuntimeError(f"Don't know how to pad algorithm {algorithm}")
         if not isinstance(key.public_key, KSKM_PublicKey_RSA):
             raise ValueError(f"Can't RSA sign with non-RSA key {key}")
-        T = oid + digest
+        oid_digest = oid + digest
         sig_len = key.public_key.bits // 8
-        pad_len = sig_len - len(T) - 3
+        pad_len = sig_len - len(oid_digest) - 3
         pad = b"\xff" * pad_len
-        data = bytes([0x0, 0x1]) + pad + b"\x00" + T
+        data = bytes([0x0, 0x1]) + pad + b"\x00" + oid_digest
 
     if not key.privkey_handle:
         raise RuntimeError(f"No private key supplied in {key}")
@@ -526,40 +498,8 @@ def init_pkcs11_modules_from_dict(
     return KSKM_P11(modules)
 
 
-def init_pkcs11_modules(config_dir: str, so_login: bool = False) -> KSKM_P11:
-    """
-    Parse *.hsmconfig files in the config_dir and initialize PKCS#11 modules accordingly.
-
-    :param so_login: Login as PKCS#11 Security Officer, otherwise login as ordinary user
-    :return: A list of PyKCS11 library instances.
-    """
-    modules: list = []
-    for fn in glob.glob(os.path.join(config_dir, "*.hsmconfig")):
-        if not os.path.isfile(fn):
-            continue
-        logger.debug("Loading HSM configuration file {}".format(fn))
-        env = load_hsmconfig(fn)
-        logger.debug("Parsed configuration: {!r}".format(env))
-        # Save old values from the environment so we can reset it between modules
-        old_env = {}
-        for key in env.keys():
-            old_env[key] = os.environ.get(key)
-        os.environ.update(env)
-
-        lib = KSKM_P11Module(env["PKCS11_LIBRARY_PATH"], so_login=so_login)
-        modules += [lib]
-
-        # reset environment
-        for k, v in old_env.items():
-            if v is None:
-                del os.environ[k]
-            else:
-                os.environ[k] = v
-    return KSKM_P11(modules)
-
-
 def load_hsmconfig(
-    fn: str, defaults: Optional[MutableMapping] = None, max_lines: int = 100
+    filename: str, defaults: Optional[MutableMapping] = None, max_lines: int = 100
 ) -> dict:
     """
     Load a .hsmconfig file, and perform variable interpolation.
@@ -575,10 +515,12 @@ def load_hsmconfig(
     """
     if not defaults:
         defaults = os.environ
-    with open(fn) as fd:
-        res = parse_hsmconfig(fd, fn, defaults, max_lines)
+    with open(filename) as config_fd:
+        res = parse_hsmconfig(config_fd, filename, defaults, max_lines)
     if "PKCS11_LIBRARY_PATH" not in res:
-        raise RuntimeError("PKCS11_LIBRARY_PATH not set in HSM config {}".format(fn))
+        raise RuntimeError(
+            "PKCS11_LIBRARY_PATH not set in HSM config {}".format(filename)
+        )
     return res
 
 
@@ -616,10 +558,10 @@ def parse_hsmconfig(
 
         # Look for variables to interpolate (regexp matches patterns like $VAR or $FOO_BAR).
         while True:
-            m = re.search(r"\$(\w+)", rhs)
-            if not m:
+            match = re.search(r"\$(\w+)", rhs)
+            if not match:
                 break
-            key = m.group(1)
+            key = match.group(1)
             val = res.get(key, defaults.get(key))
             if not val:
                 raise RuntimeError(
@@ -655,24 +597,6 @@ def get_p11_key(
     key_class = KeyClass.PUBLIC if public else KeyClass.PRIVATE
     for module in p11modules:
         p11key = module.find_key_by_label(label, key_class)
-        if p11key is not None:
-            return p11key
-    return None
-
-
-def get_p11_secret_key(label: str, p11modules: KSKM_P11) -> Optional[KSKM_P11Key]:
-    """
-    Look for a secret key (wrapping key) with CKA_LABEL matching 'label'.
-
-    Iterates through all the available PKCS#11 modules, and returns a reference to the
-    first key found with the right label.
-
-    :param label: CKA_LABEL to look for
-    :param p11modules: The list of PKCS#11 modules
-    :return: None or a PKCS#11 key object reference
-    """
-    for module in p11modules:
-        p11key = module.find_key_by_label(label, key_class=KeyClass.SECRET)
         if p11key is not None:
             return p11key
     return None

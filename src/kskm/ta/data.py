@@ -10,12 +10,16 @@ from kskm.common.data import AlgorithmDNSSEC
 
 
 class DigestDNSSEC(Enum):
+    """DNSSEC Key Digest Types."""
+
     SHA1 = 1
     SHA256 = 2
 
 
 @dataclass(frozen=True)
-class KeyDigest(object):
+class KeyDigest:
+    """RFC 7958 Key Digest."""
+
     id: str
     key_tag: int
     algorithm: AlgorithmDNSSEC
@@ -49,7 +53,9 @@ class KeyDigest(object):
 
 
 @dataclass(frozen=True)
-class TrustAnchor(object):
+class TrustAnchor:
+    """RFC 7958 Trust Anchor."""
+
     id: str
     source: str
     zone: str

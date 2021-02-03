@@ -1,15 +1,15 @@
 """
 Functions to validate KSRs.
 
-The KSR validation is specified in docs/ksr-processing.md. The functions are
-organised to match the specification, starting with the top level function
-'validate_request' in this file.
+The functions are organized to match the specifications, starting with the top
+level function 'validate_request' in this file.
 
 NOTE: Only validation that can be performed with _only the KSR_ are done here.
       Some checks that are done with the current KSR (KSR(n)) and the previous
       SKR (SKR(n-1)) are done elsewhere (tools_common.daisy) to avoid the KSR
       package importing the SKR package.
 """
+
 import logging
 from dataclasses import asdict
 

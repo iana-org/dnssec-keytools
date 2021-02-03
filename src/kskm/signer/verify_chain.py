@@ -19,31 +19,22 @@ logger = logging.getLogger(__name__)
 class KSR_CHAIN_Violation(PolicyViolation):
     """An issue has been found when checking KSR against SKR(n-1)."""
 
-    pass
-
 
 class KSR_CHAIN_KEYS_Violation(KSR_CHAIN_Violation):
     """KSR-CHAIN-KEYS policy violation."""
-
-    pass
 
 
 class KSR_CHAIN_OVERLAP_Violation(KSR_CHAIN_Violation):
     """KSR-CHAIN-OVERLAP policy violation."""
 
-    pass
-
 
 def check_chain(ksr: Request, last_skr: Response, policy: RequestPolicy) -> None:
     """Validate that the current request continues a timeline ending with the previous response."""
-
     logger.info("Checking coherence between SKR(n-1) and this KSR")
-
     logger.debug("Last SKR (response):")
     [logger.debug(x) for x in format_bundles_for_humans(last_skr.bundles)]  # type: ignore
     logger.debug("This KSR (request):")
     [logger.debug(x) for x in format_bundles_for_humans(ksr.bundles)]  # type: ignore
-
     check_chain_keys(ksr, last_skr, policy)
     check_chain_overlap(ksr, last_skr, policy)
 
@@ -75,13 +66,14 @@ def check_chain_keys(ksr: Request, last_skr: Response, policy: RequestPolicy) ->
                 "Last key set in SKR(n-1) does not match first key set in KSR"
             )
     logger.info(
-        f"KSR-CHAIN-KEYS: The last keys in SKR(n-1) matches the first keys in this KSR"
+        "KSR-CHAIN-KEYS: The last keys in SKR(n-1) matches the first keys in this KSR"
     )
 
 
 def check_chain_overlap(
     ksr: Request, last_skr: Response, policy: RequestPolicy
 ) -> None:
+    """Check signature chain overlap."""
     if not policy.check_chain_overlap:
         logger.warning(
             "KSR-CHAIN-OVERLAP: Checking chain signature overlap disabled by policy (check_chain_overlap)"
@@ -155,7 +147,7 @@ def check_last_skr_key_present(
                 f"(bundle {last_bundle.id})"
             )
         hsmkey = public_key_to_dnssec_key(
-            key=p11key.public_key,
+            key=p11key.public_key,  # type: ignore
             key_identifier=sig.key_identifier,
             algorithm=sig.algorithm,
             flags=FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value,
@@ -174,7 +166,7 @@ def check_last_skr_key_present(
         count += 1
     if not count:
         raise KSR_CHAIN_KEYS_Violation(
-            f"KSR-CHAIN-KEYS: No signatures in the last bundle of the last SKR"
+            "KSR-CHAIN-KEYS: No signatures in the last bundle of the last SKR"
         )
     logger.info(
         f"KSR-CHAIN-KEYS: All {count} signatures in the last bundle of the last SKR were made with keys "

@@ -225,13 +225,6 @@ def _signature_from_list(signatures: List[dict]) -> Set[Signature]:
     )
 
 
-def optional_int(data: dict, name: str) -> Optional[int]:
-    """Read a value from a dict and parse it as int, or return None if it is not present."""
-    if name in data:
-        return int(data[name])
-    return None
-
-
 def is_sep_key(key: Key) -> bool:
     """
     Return True if the key has the SEP (secure entry point) bit set.
@@ -244,11 +237,6 @@ def is_sep_key(key: Key) -> bool:
 def is_zsk_key(key: Key) -> bool:
     """Return True if the key is a zone signing key (does not have SEP flag set)."""
     return not is_sep_key(key)
-
-
-def is_ksk_key(key: Key) -> bool:
-    """Return True if the key is a zone signing key (has SEP flag set)."""
-    return is_sep_key(key)
 
 
 def is_revoked_key(key: Key) -> bool:

@@ -21,7 +21,7 @@ _DEBUG_XML_PARSER = False
 
 
 @dataclass(frozen=False)
-class _XMLElement(object):
+class _XMLElement:
     name: str
     attrs: Optional[Dict[str, str]]
     value: Union[str, dict]

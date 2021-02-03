@@ -15,7 +15,7 @@ tls:
   ciphers:
     - ECDHE-RSA-AES256-GCM-SHA384
 
-  # True if TLS client authentication is required
+  # true if TLS client authentication is required
   require_client_cert: False
 
   # List of SHA-256 fingerprints of allowed TLS clients

@@ -1,9 +1,13 @@
+import re
+
 from setuptools import setup
-import subprocess
 
-version = "0.0.1"
-git_hash = subprocess.check_output("git rev-parse --short --verify HEAD", shell=True)
+with open('src/kskm/version.py', 'r') as fd:
+    __version__ = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', fd.read(), re.MULTILINE).group(1)
 
+
+# Requirements are pinned to known working versions. Later versions may work and
+# the version requirements can be relaxed given proper testing.
 install_requires = [
     "cffi==1.13.2",
     "click==7.0",
@@ -27,31 +31,35 @@ install_requires = [
     "typing-extensions==3.7.4.1",
     "unidecode==1.1.1",
     "voluptuous==0.11.7",
-    "Werkzeug==0.16.1",
 ]
 
 testing_extras = [
-    "black==19.10b0",
-    "coverage==5.0.3",
+    "black",
+    "coverage",
     "dnspython==1.16.0",
-    "eradicate==1.0",
+    "eradicate",
     "flask==1.1.1",
-    "green==3.1.0",
-    "mypy==0.761",
-    "nose==1.3.7",
-    "nosexcover==1.0.11",
+    "isort",
+    "mypy",
+    "nose",
+    "nosexcover",
+    "parsable",
     "pycryptodome==3.9.4",
-    "pylama==7.6.6",
+    "pylama",
     "pyopenssl==19.1.0",
-    "wheel==0.34.2",
+    "pytest",
+    "pytest-black",
+    "pytest-isort",
+    "wheel",
+
 ]
 
-online_extras = ["flask==1.1.1", "pyopenssl==19.1.0"]
+online_extras = ["flask==1.1.1", "pyopenssl==19.1.0", "Werkzeug==0.16.1"]
 
 setup(
     name="kskm",
-    version=version,
-    description=f"KSK Management tools ({git_hash})",
+    version=__version__,
+    description=f"KSK Management tools",
     classifiers=["Programming Language :: Python :: 3",],
     keywords="",
     packages=[

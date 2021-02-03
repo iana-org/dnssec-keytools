@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Trust anchor key exporter.
 
@@ -27,6 +26,7 @@ from kskm.common.logging import get_logger
 from kskm.misc.hsm import get_p11_key
 from kskm.ta import TrustAnchor
 from kskm.ta.keydigest import create_trustanchor_keydigest
+from kskm.version import __verbose_version__
 
 _DEFAULTS = {
     "debug": False,
@@ -42,7 +42,7 @@ def parse_args(defaults: dict) -> ArgsType:
     some things such as output verbosity is settable using command line arguments.
     """
     parser = argparse.ArgumentParser(
-        description="DNSSEC Trust Anchor exporter",
+        description=f"DNSSEC Trust Anchor exporter {__verbose_version__}",
         add_help=True,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
@@ -113,9 +113,7 @@ def output_trustanchor_xml(
 
 
 def trustanchor(
-    logger: logging.Logger,
-    args: Optional[ArgsType],
-    config: Optional[KSKMConfig] = None,
+    logger: logging.Logger, args: ArgsType, config: Optional[KSKMConfig] = None,
 ) -> bool:
     """Main entry point for generating trust anchors and writing them (as XML) to a file."""
     #
@@ -123,7 +121,11 @@ def trustanchor(
     #
     if config is None:
         _filename = args.config if args else None
-        config = get_config(_filename)
+        try:
+            config = get_config(_filename)
+        except FileNotFoundError as exc:
+            logger.critical(str(exc))
+            sys.exit(-1)
 
     #
     # Initialise PKCS#11 modules (HSMs)

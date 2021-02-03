@@ -21,11 +21,9 @@ logger = logging.getLogger(__name__)
 class KeyUsagePolicy_Violation(PolicyViolation):
     """Exception raised when a key can't be used because of policy."""
 
-    pass
-
 
 @dataclass()
-class CompositeKey(object):
+class CompositeKey:
     """Hold a key loaded from PKCS#11, and also converted to 'Key' format."""
 
     p11: KSKM_P11Key

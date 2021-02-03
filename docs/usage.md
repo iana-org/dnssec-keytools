@@ -46,18 +46,18 @@ The _KSR Receiver_ configuration is written YAML. See annotated [ksrsigner.yaml]
 
 ## Keymaster
 
-_Keymaster_ is a tool to create, delete, backup, restore keys as well as perform a key inventory.
+_Keymaster_ is a tool to create and delete keys as well as perform a key inventory.
 
 ### Command Line Usage
 
     usage: kskm-keymaster [-h] [--config CFGFILE] [--hsm HSM] [--debug]
-                          {inventory,keygen,wrapgen,keydelete,wrapdelete,backup,restore}
+                          {inventory,keygen,keydelete}
                           ...
 
     Keymaster
 
     positional arguments:
-      {inventory,keygen,wrapgen,keydelete,wrapdelete,backup,restore}
+      {inventory,keygen,keydelete}
 
     optional arguments:
       -h, --help            show this help message and exit
@@ -102,7 +102,7 @@ _Trust Anchor Exporter_ uses the `hsm` and `keys` sections from the _KSR Signer_
 
 ## KSR Receiver
 
-The _KSR Receiver_ is a simple web server that will receive upload KSR files and validate them using the KSR signer's validation logic. The result will be return as a web page together with an optional notification email.
+The _KSR Receiver_ (aka wksr) is a simple web server that will receive upload KSR files and validate them using the KSR signer's validation logic. The result will be return as a web page together with an optional notification email.
 
 ### Command Line Usage
 

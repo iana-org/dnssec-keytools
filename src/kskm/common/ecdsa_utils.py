@@ -10,6 +10,8 @@ __author__ = "ft"
 
 
 class ECCurve(Enum):
+    """ECC Curves."""
+
     P256 = "secp256r1"
     P384 = "secp384r1"
 
@@ -28,6 +30,7 @@ class KSKM_PublicKey_ECDSA(KSKM_PublicKey):
     curve: ECCurve
 
     def __str__(self) -> str:
+        """Return key as string."""
         return f"alg=EC bits={self.bits} curve={self.curve.value}"
 
 
@@ -40,11 +43,10 @@ def is_algorithm_ecdsa(alg: AlgorithmDNSSEC) -> bool:
 
 
 def algorithm_to_curve(alg: AlgorithmDNSSEC) -> ECCurve:
-    """Return EC Curve of ECDSA key"""
+    """Return EC Curve of ECDSA key."""
     if alg in ALGORITHM_TO_CURVE:
         return ALGORITHM_TO_CURVE[alg]
-    else:
-        raise ValueError("Unsupported algorithm")
+    raise ValueError("Unsupported algorithm")
 
 
 def parse_signature_policy_ecdsa(data: dict) -> AlgorithmPolicyECDSA:
@@ -96,11 +98,13 @@ def ecdsa_public_key_without_prefix(
 
 
 def get_ecdsa_pubkey_size(public_key: bytes) -> int:
+    """Return ECDSA public key size."""
     # pubkey is both x and y points concatenated, so divide by 2
     return len(public_key) * 8 // 2
 
 
 def expected_ecdsa_key_size(algorithm: AlgorithmDNSSEC) -> int:
+    """Return expected ECDSA public key size."""
     _expected = {
         AlgorithmDNSSEC.ECDSAP256SHA256: 256,
         AlgorithmDNSSEC.ECDSAP384SHA384: 384,

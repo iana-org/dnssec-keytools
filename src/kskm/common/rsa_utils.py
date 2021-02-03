@@ -44,6 +44,7 @@ class KSKM_PublicKey_RSA(KSKM_PublicKey):
     n: bytes = field(repr=False)
 
     def __str__(self) -> str:
+        """Return KSK Public Key as string."""
         return f"alg=RSA bits={self.bits} exp={self.exponent}"
 
 

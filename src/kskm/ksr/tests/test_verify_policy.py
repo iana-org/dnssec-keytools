@@ -34,21 +34,27 @@ class Test_Validate_KSR_policy(unittest.TestCase):
     def test_load_ksr_with_signatures_in_the_past(self):
         """ Test loading a KSR requesting signatures that has expired already """
         fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
-        policy = RequestPolicy(signature_horizon_days=180)
+        policy = RequestPolicy(
+            signature_horizon_days=180, rsa_approved_exponents=[3, 65537]
+        )
         with self.assertRaises(KSR_PolicyViolation):
             load_ksr(fn, policy, raise_original=True)
 
     def test_load_ksr_with_signatures_in_the_past2(self):
         """ Test loading a KSR requesting signatures that has expired already, but allowing it """
         fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
-        policy = RequestPolicy(signature_horizon_days=-1)
+        policy = RequestPolicy(
+            signature_horizon_days=-1, rsa_approved_exponents=[3, 65537]
+        )
         load_ksr(fn, policy, raise_original=True)
 
     def test_load_ksr_with_signatures_in_the_past3(self):
         """ Test loading a KSR requesting signatures just outside of policy """
         fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
         # first load the KSR, allowing the old signatures
-        policy = RequestPolicy(signature_horizon_days=-1)
+        policy = RequestPolicy(
+            signature_horizon_days=-1, rsa_approved_exponents=[3, 65537]
+        )
         ksr = load_ksr(fn, policy, raise_original=True)
         first_expire = ksr.bundles[0].expiration
         dt_now = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
@@ -82,7 +88,7 @@ class Test_Invalid_Requests_policy(Test_Requests):
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
             validate_request(
                 request, replace(self.policy, approved_algorithms=["RSASHA256", "DSA"])
-            ),
+            )
         self.assertEqual("Algorithm DSA deprecated", str(exc.exception))
 
     def test_RSASHA1_not_supported(self):
@@ -99,7 +105,7 @@ class Test_Invalid_Requests_policy(Test_Requests):
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
             validate_request(
                 request, replace(self.policy, approved_algorithms=["RSASHA256"])
-            ),
+            )
         self.assertEqual("Algorithm RSASHA1 not supported", str(exc.exception))
 
     def test_RSA_wrong_size(self):
@@ -116,7 +122,7 @@ class Test_Invalid_Requests_policy(Test_Requests):
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
             validate_request(
                 request, replace(self.policy, approved_algorithms=["RSASHA256"])
-            ),
+            )
         self.assertEqual(
             "ZSK policy has RSA-1024, but policy dictates [2048]", str(exc.exception)
         )
@@ -135,9 +141,9 @@ class Test_Invalid_Requests_policy(Test_Requests):
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
             validate_request(
                 request, replace(self.policy, approved_algorithms=["RSASHA256"])
-            ),
+            )
         self.assertEqual(
-            "ZSK policy has RSA exponent 17, but policy dictates [3, 65537]",
+            "ZSK policy has RSA exponent 17, but policy dictates [65537]",
             str(exc.exception),
         )
 
@@ -154,7 +160,7 @@ class Test_Invalid_Requests_policy(Test_Requests):
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
             validate_request(
                 request, replace(self.policy, approved_algorithms=["RSASHA256"])
-            ),
+            )
         self.assertEqual("Algorithm ECDSA is not supported", str(exc.exception))
 
 

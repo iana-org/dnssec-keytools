@@ -1,6 +1,7 @@
-"""The checks defined in the 'Verify KSR policy parameters' section of docs/ksr-processing.md."""
-import datetime
+"""Controls to verify KSR policy parameters."""
+from datetime import datetime, timedelta, timezone
 from logging import Logger
+from typing import Optional
 
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import (
@@ -21,49 +22,33 @@ __author__ = "ft"
 class KSR_PolicyViolation(PolicyViolation):
     """A bundle in the KSR does not conform with the KSK operators policy."""
 
-    pass
-
 
 class KSR_POLICY_KEYS_Violation(KSR_PolicyViolation):
     """KSR-POLICY-KEYS policy violation."""
-
-    pass
 
 
 class KSR_POLICY_ALG_Violation(KSR_PolicyViolation):
     """KSR-POLICY-ALG policy violation."""
 
-    pass
-
 
 class KSR_POLICY_SIG_OVERLAP_Violation(KSR_PolicyViolation):
     """KSR-POLICY-SIG-OVERLAP policy violation."""
-
-    pass
 
 
 class KSR_POLICY_SIG_VALIDITY_Violation(KSR_PolicyViolation):
     """KSR-POLICY-SIG-VALIDITY policy violation."""
 
-    pass
-
 
 class KSR_POLICY_SIG_HORIZON_Violation(KSR_PolicyViolation):
     """KSR-POLICY-SIG-HORIZON policy violation."""
-
-    pass
 
 
 class KSR_POLICY_BUNDLE_INTERVAL_Violation(KSR_PolicyViolation):
     """KSR-POLICY-BUNDLE-DURATION violation."""
 
-    pass
-
 
 class KSR_POLICY_SAFETY_Violation(KSR_PolicyViolation):
     """KSR-POLICY-SAFETY violation."""
-
-    pass
 
 
 def verify_policy(request: Request, policy: RequestPolicy, logger: Logger) -> None:
@@ -185,15 +170,17 @@ def check_signature_validity(
     )
 
 
-def check_signature_horizon(request, policy, logger):
-    """ Check that signatures do not expire too long into the future. """
+def check_signature_horizon(
+    request: Request, policy: RequestPolicy, logger: Logger
+) -> None:
+    """Check that signatures do not expire too long into the future."""
     if not policy.signature_check_expire_horizon:
         logger.warning(
             "KSR-POLICY-SIG-HORIZON: Disabled by policy (signature_check_expire_horizon)"
         )
         return
 
-    dt_now = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
+    dt_now = datetime.utcnow().replace(tzinfo=timezone.utc)
     for bundle in request.bundles:
         expire_days = (bundle.expiration - dt_now).days
         # DPS section 5.1.4: Any RRSIG record generated as a result of a KSK signing operation will not have
@@ -229,7 +216,8 @@ def check_zsk_policy_algorithm(
     request: Request, policy: RequestPolicy, logger: Logger
 ) -> None:
     """
-    KSR-POLICY-ALG:
+    KSR-POLICY-ALG.
+
     Verify that only signature algorithms listed in the KSK operators policy
     are used in the request and that the the signature algorithms listed in
     the KSR policy have parameters allowed by the KSK operators policy.
@@ -358,9 +346,7 @@ def check_bundle_overlaps(
 def check_bundle_intervals(
     request: Request, policy: RequestPolicy, logger: Logger
 ) -> None:
-    """
-    Check that the bundles' intervals fall within expected limits.
-    """
+    """Check that the bundles' intervals fall within expected limits."""
     if not policy.check_bundle_intervals:
         logger.warning(
             "KSR-POLICY-BUNDLE-INTERVALS: Disabled by policy (check_bundle_intervals)"
@@ -375,7 +361,7 @@ def check_bundle_intervals(
         "(from KSK operator policy)"
     )
     for num in range(len(request.bundles)):
-        interval = "-"
+        interval: Optional[timedelta] = None
         if num:
             interval = (
                 request.bundles[num].inception - request.bundles[num - 1].inception
@@ -384,7 +370,7 @@ def check_bundle_intervals(
             "{num:<2} {inception:29} {interval}".format(
                 num=num + 1,
                 inception=fmt_timestamp(request.bundles[num].inception),
-                interval=interval,
+                interval=interval or "-",
             )
         )
 

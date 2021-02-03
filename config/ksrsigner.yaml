@@ -73,7 +73,7 @@ request_policy:
   # Number of bundles in KSR (default is 9)
   num_bundles: 9
 
-  # Validate ZSK proof-of-possession (default True)
+  # Validate ZSK proof-of-possession (default true)
   validate_signatures: true
 
   # Check that the keys of a bundle match the claims in the SignaturePolicy
@@ -82,8 +82,8 @@ request_policy:
   # Should unsupport ECDSA be accepted (default false)
   enable_unsupported_ecdsa: false
 
-  # Check cycle length (default True)
-  check_cycle_length: True
+  # Check cycle length (default true)
+  check_cycle_length: true
 
   # Min/max cycle inception length (default 79-81 days)
   min_cycle_inception_length: P79D
@@ -93,26 +93,26 @@ request_policy:
   min_bundle_interval: P9D
   max_bundle_interval: P11D
 
-  # Check that the RSA exponent match the ZSK policy (default True)
+  # Check that the RSA exponent match the ZSK policy (default true)
   rsa_exponent_match_zsk_policy: true
 
   # Check that bundles are continuous and overlap according to policy
-  # (default True)
+  # (default true)
   check_bundle_overlap: true
 
   # Check that the signatures in a bundle match the claims in the SignaturePolic
-  # (default True)
+  # (default true)
   signature_validity_match_zsk_policy: true
 
   # Verify that only signature algorithms listed in the KSK operators policy
   # are used in the request and that the the signature algorithms listed in
   # the KSR policy have parameters allowed by the KSK operators policy.
   # Parameters checked are different for different algorithms.
-  # (default True) 
+  # (default true)
   signature_algorithms_match_zsk_policy: true
 
   # Check that the keys in the bundles match the KSK operator's configured
-  # policy (default True)
+  # policy (default true)
   check_keys_match_ksk_operator_policy: true
 
   # Number of keys per bundle (default [2, 1, 1, 1, 1, 1, 1, 1, 2])
@@ -125,27 +125,26 @@ request_policy:
   dns_ttl: 0
 
   # Check that signatures do not expire too long into the future
-  signature_check_expire_horizon: True
+  signature_check_expire_horizon: true
   signature_horizon_days: 180
 
-  # Check bundle intervals (default True)
-  check_bundle_intervals: True
+  # Check bundle intervals (default true)
+  check_bundle_intervals: true
 
   # Check the integrity of all ZSKs in the last SKR, SKR(n-1), by verifying the
   # KSK signature over each key bundle using the KSK stored in the HSM.
-  check_chain_keys: True
+  check_chain_keys: true
 
   # Check that the requested signature inceptions/expirations in the current
   # KSR are coherent with those in the last bundle from the SKR(n-1).
-  check_chain_overlap: True
+  check_chain_overlap: true
 
-  # Approved algorithms  (default [RSASHA256])
+  # Approved algorithms  (default RSASHA256)
   approved_algorithms:
     - RSASHA256
 
-  # Approved RSA exponents (default [3, 65537])
+  # Approved RSA exponents (default 65537)
   rsa_approved_exponents:
-    - 3
     - 65537
 
   # Approved RSA modulus sizes (default 2048)
@@ -158,7 +157,7 @@ response_policy:
   # Number of bundles in SKR (default is 9)
   num_bundles: 9
 
-  # Validate KSK proof-of-possession (default True)
+  # Validate KSK proof-of-possession (default true)
   validate_signatures: true
 
 

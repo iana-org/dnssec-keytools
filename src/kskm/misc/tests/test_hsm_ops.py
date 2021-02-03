@@ -13,11 +13,9 @@ from kskm.misc.hsm import KSKM_P11, KeyClass, init_pkcs11_modules_from_dict
 
 __author__ = "ft"
 
-if os.environ.get("SOFTHSM2_MODULE") and os.environ.get("SOFTHSM2_CONF"):
-    _TEST_SOFTHSM2 = True
-else:
-    _TEST_SOFTHSM2 = False
-
+_TEST_SOFTHSM2 = bool(
+    os.environ.get("SOFTHSM2_MODULE") and os.environ.get("SOFTHSM2_CONF")
+)
 
 _TEST_CONFIG = """
 ---

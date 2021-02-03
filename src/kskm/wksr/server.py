@@ -10,7 +10,7 @@ import smtplib
 import ssl
 from datetime import datetime
 from email.message import EmailMessage
-from typing import Dict, Set, Tuple
+from typing import Dict, Optional, Set, Tuple
 
 import jinja2
 from flask import Flask, render_template, request
@@ -22,6 +22,7 @@ from kskm.common.validate import PolicyViolation
 from kskm.ksr import load_ksr
 from kskm.signer.policy import check_skr_and_ksr
 from kskm.skr import load_skr
+from kskm.skr.data import Response
 
 from .peercert import PeerCertWSGIRequestHandler
 
@@ -60,7 +61,7 @@ def index() -> str:
     if "peercert" in request.environ:
         subject = str(request.environ["peercert"].get_subject().commonName)
         return f"Hello world: {subject}"
-    return f"Hello world: ANONYMOUS"
+    return "Hello world: ANONYMOUS"
 
 
 def upload() -> str:
@@ -79,14 +80,14 @@ def upload() -> str:
 
     # setup log capture
     log_capture_string = io.StringIO()
-    ch = logging.StreamHandler(log_capture_string)
-    ch.setLevel(logging.DEBUG)
-    logging.getLogger().addHandler(ch)
+    log_handler = logging.StreamHandler(log_capture_string)
+    log_handler.setLevel(logging.DEBUG)
+    logging.getLogger().addHandler(log_handler)
 
     result = validate_ksr(filename)
 
     # save captured log
-    logging.getLogger().removeHandler(ch)
+    logging.getLogger().removeHandler(log_handler)
     log_buffer = log_capture_string.getvalue()
     log_capture_string.close()
 
@@ -121,6 +122,7 @@ def validate_ksr(filename: str) -> dict:
 
     result = {}
     previous_skr_filename = config.get_filename("previous_skr")
+    previous_skr: Optional[Response]
 
     try:
         if previous_skr_filename is not None:
@@ -177,10 +179,10 @@ def save_ksr(upload_file: FileStorage) -> Tuple[str, str]:
     upload_file.stream.seek(0)
 
     # calculate file checksum
-    m = hashlib.new("sha256")
-    m.update(upload_file.stream.read())
+    digest = hashlib.new("sha256")
+    digest.update(upload_file.stream.read())
+    filehash = digest.hexdigest()
     upload_file.stream.seek(0)
-    filehash = m.hexdigest()
 
     filename_prefix = ksr_config.get("prefix", "upload_")
     filename_washed = re.sub(r"[^a-zA-Z0-9_]+", "_", str(upload_file.filename))
@@ -196,8 +198,10 @@ def save_ksr(upload_file: FileStorage) -> Tuple[str, str]:
     return filename, filehash
 
 
-def generate_ssl_context(config: dict = {}) -> ssl.SSLContext:
+def generate_ssl_context(config: Optional[dict] = None) -> ssl.SSLContext:
     """Generate SSL context for app."""
+    if config is None:
+        config = {}
     ssl_context = ssl.create_default_context(
         purpose=ssl.Purpose.CLIENT_AUTH, cafile=config.get("ca_cert")
     )

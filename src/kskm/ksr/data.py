@@ -9,11 +9,15 @@ from kskm.common.data import Bundle, SignaturePolicy, Signer
 
 @dataclass(frozen=True)
 class RequestBundle(Bundle):
+    """Request Bundle."""
+
     signers: Optional[Set[Signer]]
 
 
 @dataclass(frozen=True)
 class KSR(ABC):
+    """KSR Base Class."""
+
     id: str
     serial: int
     domain: str
@@ -22,6 +26,8 @@ class KSR(ABC):
 
 @dataclass(frozen=True)
 class Request(KSR):
+    """Key Signing Request."""
+
     zsk_policy: SignaturePolicy
     # 'bundles' is supposed to be a Set, but a set cannot contain other sets
     # (TypeError: unhashable type: 'set')

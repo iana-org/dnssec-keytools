@@ -1,3 +1,5 @@
+"""KSK Configuration Validation functions."""
+
 import binascii
 import logging
 

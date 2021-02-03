@@ -37,7 +37,7 @@ def key_to_crypto_pubkey(key: Key) -> CryptoPubKey:
     """Turn a Key (DNSKEY) into a CryptoPubKey that can be used with 'cryptography'."""
     if is_algorithm_rsa(key.algorithm):
         return pubkey_to_crypto_pubkey(decode_rsa_public_key(key.public_key))
-    elif is_algorithm_ecdsa(key.algorithm):
+    if is_algorithm_ecdsa(key.algorithm):
         crv = algorithm_to_curve(key.algorithm)
         return pubkey_to_crypto_pubkey(decode_ecdsa_public_key(key.public_key, crv))
     raise RuntimeError(f"Can't make cryptography public key from {key}")
@@ -47,17 +47,16 @@ def pubkey_to_crypto_pubkey(pubkey: Optional[KSKM_PublicKey]) -> CryptoPubKey:
     """Turn an KSKM_PublicKey into a CryptoPubKey."""
     if isinstance(pubkey, KSKM_PublicKey_RSA):
         return rsa_pubkey_to_crypto_pubkey(pubkey)
-    elif isinstance(pubkey, KSKM_PublicKey_ECDSA):
+    if isinstance(pubkey, KSKM_PublicKey_ECDSA):
         return ecdsa_pubkey_to_crypto_pubkey(pubkey)
-    else:
-        raise RuntimeError(f"Can't make cryptography public key from {pubkey}")
+    raise RuntimeError(f"Can't make cryptography public key from {pubkey}")
 
 
 def rsa_pubkey_to_crypto_pubkey(pubkey: KSKM_PublicKey_RSA) -> rsa.RSAPublicKey:
     """Convert an KSKM_PublicKey_RSA into a 'cryptography' rsa.RSAPublicKey."""
     rsa_n = int.from_bytes(pubkey.n, byteorder="big")
     public = rsa.RSAPublicNumbers(pubkey.exponent, rsa_n)
-    return default_backend().load_rsa_public_numbers(public)
+    return default_backend().load_rsa_public_numbers(public)  # type: ignore
 
 
 def ecdsa_pubkey_to_crypto_pubkey(
@@ -65,6 +64,7 @@ def ecdsa_pubkey_to_crypto_pubkey(
 ) -> ec.EllipticCurvePublicKey:
     """Convert an KSKM_PublicKey_ECDSA into a 'cryptography' ec.EllipticCurvePublicKey."""
     q = pubkey.q
+    curve: object
     if pubkey.curve == ECCurve.P256:
         curve = ec.SECP256R1()
         if len(q) == (256 // 8) * 2:
@@ -87,7 +87,7 @@ def verify_signature(
     _hash = _algorithm_to_hash(algorithm)
     try:
         if is_algorithm_rsa(algorithm):
-            pubkey.verify(signature, data, PKCS1v15(), _hash)
+            pubkey.verify(signature, data, PKCS1v15(), _hash)  # type: ignore
         elif is_algorithm_ecdsa(algorithm):
             # OpenSSL (which is at the bottom of 'cryptography' expects ECDSA signatures to
             # be in RFC3279 format (ASN.1 encoded).
@@ -96,7 +96,7 @@ def verify_signature(
             s = int.from_bytes(_s, byteorder="big")
             signature = encode_dss_signature(r, s)
             _ec_alg = ec.ECDSA(algorithm=_algorithm_to_hash(algorithm))
-            pubkey.verify(signature, data, _ec_alg)
+            pubkey.verify(signature, data, _ec_alg)  # type: ignore
         else:
             raise RuntimeError(
                 f"Don't know how to verify signature with {repr(pubkey)}"

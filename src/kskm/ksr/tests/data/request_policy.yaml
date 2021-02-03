@@ -1,3 +1,3 @@
 ---
 request_policy:
-    validate_signatures: True
+    validate_signatures: true

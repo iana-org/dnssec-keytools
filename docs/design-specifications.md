@@ -135,4 +135,4 @@ and validation of the previous SKR) to provide a useful, real-time response to
 the client, and generates a notification when a KSR has successfully been
 submitted.
 
-Implemented by: [`kskm.signer`](../src/kskm/wksr/)
+Implemented by: [`kskm.wksr`](../src/kskm/wksr/)

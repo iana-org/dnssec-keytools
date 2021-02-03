@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 KSR signer tool.
 
@@ -23,6 +22,7 @@ from kskm.common.logging import get_logger
 from kskm.common.wordlist import pgp_wordlist
 from kskm.signer import create_skr, output_skr_xml
 from kskm.signer.policy import check_last_skr_and_new_skr, check_skr_and_ksr
+from kskm.version import __verbose_version__
 
 __author__ = "ft"
 
@@ -50,7 +50,7 @@ def parse_args(defaults: dict) -> ArgsType:
     some things such as output verbosity is settable using command line arguments.
     """
     parser = argparse.ArgumentParser(
-        description="KSK request signer",
+        description=f"KSK request signer {__verbose_version__}",
         add_help=True,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
@@ -246,17 +246,19 @@ def ksrsigner(
             "KSR-CHAIN: Previous SKR *NOT* loaded - presence of SKR(n-1) in HSM not validated"
         )
 
-    if not args.force:
-        print("")
-        print("FILENAME:      ", request.xml_filename)
+    print("")
+    print("FILENAME:      ", request.xml_filename)
+    if request.xml_hash is not None:
         print("SHA-256 HEX:   ", binascii.hexlify(request.xml_hash).decode())
         print("SHA-256 WORDS: ", " ".join(pgp_wordlist(request.xml_hash)))
-        print("")
+    print("")
+
+    if not args.force:
         ack = input(
-            f'Sign KSR? Confirm with "Yes" (exactly) or anything else to abort: '
+            'Sign KSR? Confirm with "Yes" (exactly) or anything else to abort: '
         )
         if ack.strip("\n") != "Yes":
-            logger.warning(f"KSR signing aborted")
+            logger.warning("KSR signing aborted")
             return False
 
     #
@@ -290,7 +292,7 @@ def main() -> None:
         logging.critical("Fatal error, program stopped")
         sys.exit(EXIT_CODES["fatal"])
     except KeyboardInterrupt:
-        logging.warning(f"Keyboard interrupt, program stopped")
+        logging.warning("Keyboard interrupt, program stopped")
         sys.exit(EXIT_CODES["interrupt"])
     except ConfigurationError as exc:
         logger = logging.getLogger("configuration")

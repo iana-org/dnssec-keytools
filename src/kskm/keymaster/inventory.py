@@ -1,3 +1,5 @@
+"""Key inventory functions."""
+
 import logging
 from typing import Dict, List, Tuple
 
@@ -14,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 def key_inventory(p11modules: KSKM_P11, config: KSKMConfig) -> List[str]:
+    """Return key inventory."""
     res: List[str] = []
     for module in p11modules:
         res += [f"HSM {module.label}:"]
@@ -41,6 +44,7 @@ def key_inventory(p11modules: KSKM_P11, config: KSKMConfig) -> List[str]:
 def _format_keys(
     data: Dict[KeyClass, Dict[str, KeyInfo]], config: KSKMConfig
 ) -> List[str]:
+    """Format keys for inventory."""
     res: List[str] = []
     pairs: List[str] = []
     # First, find all pairs (CKA_LABEL+CKA_ID present in both PRIVATE and PUBLIC)
@@ -49,6 +53,8 @@ def _format_keys(
         initial_keylist = list(data[KeyClass.PUBLIC].keys())
         for label_and_id in initial_keylist:
             this = data[KeyClass.PUBLIC][label_and_id]
+            if this.pubkey is None:
+                raise RuntimeError("Invalid public key")
 
             ksk_info = "Matching KSK not found in configuration"
             # Look for the key in the config
@@ -92,12 +98,13 @@ def _format_keys(
             _leftovers += [f"      {this.label:7s} {_id_to_str(this.key_id)}"]
         if _leftovers:
             res += [f"    {cls.name} keys:"] + _leftovers
-
     return res
 
 
 def _id_to_str(key_id: Tuple[int]) -> str:
     """
+    Get string from CKA_ID.
+
     CKA_ID is tricky - quite often it is a hex number, like 0x0 but it can also be
     the CKA_LABEL as a tuple of integers.
 

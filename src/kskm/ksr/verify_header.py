@@ -1,4 +1,4 @@
-"""The checks defined in the 'Verify KSR header' section of docs/ksr-processing.md."""
+"""Controls to verify KSR header."""
 from logging import Logger
 
 from kskm.common.config_misc import RequestPolicy
@@ -9,19 +9,13 @@ from kskm.ksr import Request
 class KSR_HeaderPolicyViolation(PolicyViolation):
     """Policy violation in a KSRs header."""
 
-    pass
-
 
 class KSR_ID_Violation(KSR_HeaderPolicyViolation):
     """KSR-ID policy violation."""
 
-    pass
-
 
 class KSR_DOMAIN_Violation(KSR_HeaderPolicyViolation):
     """KSR-DOMAIN policy violation."""
-
-    pass
 
 
 def verify_header(request: Request, policy: RequestPolicy, logger: Logger) -> None:

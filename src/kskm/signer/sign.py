@@ -29,13 +29,9 @@ logger = logging.getLogger(__name__)
 class CreateSignatureError(Exception):
     """Failures to create a signature."""
 
-    pass
-
 
 class SKR_VERIFY_Failure(InvalidSignature):
     """SKR-VERIFY signature validation failure."""
-
-    pass
 
 
 def sign_bundles(
@@ -113,9 +109,11 @@ def sign_bundles(
         for _sign_key in signing_keys:
             logger.debug(f"Signing {len(updated_bundle.keys)} bundle keys:")
             for _this in updated_bundle.keys:
-                logger.debug(f"  {_this}")
+                logger.debug("  %s", _this)
             logger.debug(
-                f"Signing above {len(updated_bundle.keys)} bundle keys with sign_key {_sign_key}"
+                "Signing above %d bundle keys with sign_key %s",
+                len(updated_bundle.keys),
+                _sign_key,
             )
             _sig = _sign_keys(updated_bundle, _sign_key, ksk_policy)
             if _sig:
@@ -222,7 +220,7 @@ def _verify_using_crypto(
         logger.debug("Signature validated with software")
     except InvalidSignature:
         logger.error("Failed validating the signature created by the HSM")
-        logger.debug("RRSIG : {}".format(base64.b16encode(rrsig_raw)))
-        logger.debug("DIGEST: {}".format(hashlib.sha256(rrsig_raw).hexdigest()))
-        logger.debug("SIG   : {}".format(base64.b16encode(signature)))
+        logger.debug("RRSIG : %s", base64.b16encode(rrsig_raw))
+        logger.debug("DIGEST: %s", hashlib.sha256(rrsig_raw).hexdigest())
+        logger.debug("SIG   : %s", base64.b16encode(signature))
         raise
