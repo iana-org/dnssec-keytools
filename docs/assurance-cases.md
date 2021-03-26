@@ -34,11 +34,11 @@ The signer system will only **[proceed to process]** the KSR if a valid policy c
 
 Context: All parameters required to constitute a valid policy have been identified using the requirements from the DPS (Appendix A).
 
-### Sub Claim (1.1.2)
+### Sub Claim (1.1.1)
 
 The signer software checks that all **[required parameters]** exists and have been set to reasonable values in the **[configured policy]**.
 
-#### Argument (1.1.2.1)
+#### Argument (1.1.1.1)
 
 The **[configured policy]** is provided in the '--config' argument to 'keymaster.py' and defaults to 'ksrsigner.yaml' in the current directory.
 
@@ -47,7 +47,7 @@ The **[configured policy]** is provided in the '--config' argument to 'keymaster
 This is evident in 'main' from 'tools/ksrsigner.py'.
 
 
-#### Argument (1.1.2.2)
+#### Argument (1.1.1.2)
 
 The **[configured policy]** is parsed (in 'from\_yaml' of 'common/config.py') and checked to comply with the schema ('common/config\_schema.py').
 
@@ -55,7 +55,7 @@ The **[configured policy]** is parsed (in 'from\_yaml' of 'common/config.py') an
 
 Test cases provides evidence that (a) an invalid policy is rejected, and (b) a valid policy is accepted.
 
-#### Argument (1.1.2.3)
+#### Argument (1.1.1.3)
 
 If the **[configured policy]** does not comply with the schema, execution is aborted (in 'main' of 'tools/keymaster.py'). The program will not **[proceed to process]** the KSR.
 
