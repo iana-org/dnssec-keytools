@@ -11,4 +11,4 @@ The following documents are contained in this sub-directory:
 [Architectural Design and Functional Specification:](design-specifications.md)
 Describes the high-level architectural design of the KSR Signer software, describing the security domains and functions maintained by the software.
 
-[Test Framework:](test.md) Describes how to perform unit tests, what is cover and what is not covered.
+[Test Framework:](test.md) Describes the scope and method for unit testing.
