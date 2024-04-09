@@ -1,10 +1,86 @@
 # PEP 518: https://www.python.org/dev/peps/pep-0518/
 
+[tool.poetry]
+name = "kskm"
+version = "0.0.1"
+description = "KSK Management tools"
+authors = ["IANA <iana@iana.org>"]
+license = "BSD-2-Clause"
+repository = "https://github.com/iana-org/dnssec-keytools"
+readme = "README.md"
+packages = [{include = "src"}]
+
+[tool.poetry.dependencies]
+python = ">=3.11,<4"
+flask = {version = "^3.0.3", optional = true}
+pyopenssl = {version = "^24.1.0", optional = true}
+voluptuous = "^0.14.2"
+pyyaml = "^6.0.1"
+pykcs11 = "^1.5.14"
+jinja2 = "^3.1.3"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.3.0"
+pytest = "^8.1.1"
+coverage = "^7.4.4"
+isort = "^5.13.2"
+mypy = "^1.9.0"
+pylama = "^8.4.1"
+pytest-isort = "^4.0.0"
+pytest-black = "^0.3.12"
+cryptography = "^42.0.5"
+dnspython = "^2.6.1"
+
+[tool.poetry.extras]
+online = ["flask", "pyopenssl"]
+
+[tool.poetry.scripts]
+kskm-keymaster = "kskm.tools.keymaster:main"
+kskm-ksrsigner = "kskm.tools.ksrsigner:main"
+kskm-sha2wordlist = "kskm.tools.sha2wordlist:main"
+kskm-trustanchor = "kskm.tools.trustanchor:main"
+kskm-wksr = "kskm.tools.wksr:main"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.isort]
 profile = "black"
 
 [tool.coverage.run]
 omit = [
-    "src/*/tests/*",
-    "venv/*",
+    "src/*/tests/*"
 ]
+
+[tool.mypy]
+follow_imports = "silent"
+disallow_untyped_calls = false
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_subclassing_any = true
+disallow_untyped_decorators = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unused_ignores = true
+warn_unused_configs = true
+no_implicit_optional = true
+
+[tool.pylama]
+format = "pep8,pycodestyle,parsable"
+linters = "pycodestyle,pyflakes,mccabe,pydocstyle"
+# D203 and D211 are in conflict with each other
+# D212 and D213 are in conflict with each other
+# C0301 handled by black
+# C0103 justified sometimes
+# C0330, E203 conflicts with black
+# W1202, W1203 is annoying, f-string easier to read
+# R0902,R0912,R0913,R0914,R0915,R1718 are annoying
+ignore = "D203,D212,C0103,C0330,C0301,D401,E203,R0902,R0912,R0913,R0914,R0915,R1718,W1202,W1203,E231"
+
+[tool.pylama.linter.pycodestyle]
+max_line_length = 120
+
+[tool.pylama.linter.mccabe]
+complexity = 40
