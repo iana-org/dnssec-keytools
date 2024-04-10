@@ -4,7 +4,6 @@ import logging
 from typing import Optional, Union
 
 from cryptography.exceptions import InvalidSignature
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
 from cryptography.hazmat.primitives.asymmetric.utils import encode_dss_signature
@@ -56,7 +55,7 @@ def rsa_pubkey_to_crypto_pubkey(pubkey: KSKM_PublicKey_RSA) -> rsa.RSAPublicKey:
     """Convert an KSKM_PublicKey_RSA into a 'cryptography' rsa.RSAPublicKey."""
     rsa_n = int.from_bytes(pubkey.n, byteorder="big")
     public = rsa.RSAPublicNumbers(pubkey.exponent, rsa_n)
-    return default_backend().load_rsa_public_numbers(public)  # type: ignore
+    return public.public_key()
 
 
 def ecdsa_pubkey_to_crypto_pubkey(
