@@ -22,7 +22,7 @@ def check_skr_and_ksr(
     ksr: Request,
     last_skr: Response,
     policy: RequestPolicy,
-    p11modules: Optional[KSKM_P11],
+    p11modules: KSKM_P11 | None,
 ) -> None:
     """Perform some policy checks that validates consistency from last SKR to this KSR."""
     check_unique_ids(ksr, last_skr, policy)

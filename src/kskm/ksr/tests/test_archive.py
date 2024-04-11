@@ -107,7 +107,7 @@ class TestParseRealKSRs(unittest.TestCase):
 
     def _test_file(self, fn, filter_ids=None):
         fn = os.path.join(self.data_dir, fn)
-        with open(fn, "r") as fd:
+        with open(fn) as fd:
             xml = fd.read()
         ksr = request_from_xml(xml)
         for bundle in ksr.bundles:
@@ -115,7 +115,7 @@ class TestParseRealKSRs(unittest.TestCase):
                 continue
             try:
                 validate_signatures(bundle)
-                print("{}: Bundle {} validated successfully".format(fn, bundle.id))
+                print(f"{fn}: Bundle {bundle.id} validated successfully")
             except InvalidSignature:
-                print("{}: Bundle {} FAILED validation".format(fn, bundle.id))
+                print(f"{fn}: Bundle {bundle.id} FAILED validation")
                 raise

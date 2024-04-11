@@ -1,7 +1,7 @@
 """Config validation schema."""
 
 from datetime import datetime
-from typing import Callable
+from collections.abc import Callable
 
 from voluptuous import All, Any, Email, IsFile, Match, Range, Required, Schema
 from voluptuous.validators import DOMAIN_REGEX

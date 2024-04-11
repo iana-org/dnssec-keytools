@@ -17,7 +17,7 @@ class TestBundle_to_hashdigest(TestCase):
         """ Test hash computation of a single well-known bundle """
         fn = "ksr-root-2009-q4-2.xml"
         fn = os.path.join(self.data_dir, fn)
-        with open(fn, "r") as fd:
+        with open(fn) as fd:
             xml = fd.read()
         ksr = request_from_xml(xml)
         rrsig = make_raw_rrsig(ksr.bundles[0].signatures.pop(), ksr.bundles[0].keys)

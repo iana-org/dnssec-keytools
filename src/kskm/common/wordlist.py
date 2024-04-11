@@ -264,7 +264,7 @@ WORDS = [
 ]
 
 
-def pgp_wordlist(data: bytes) -> List[str]:
+def pgp_wordlist(data: bytes) -> list[str]:
     """Translate bytes to list of PGP words."""
     odd = False
     words = []

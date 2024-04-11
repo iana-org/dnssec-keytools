@@ -73,7 +73,7 @@ def keygen(
         raise RuntimeError("No public key returned by key generation")
 
     # Calculate the DNSSEC key tag of the new key and look for a collision in the configuration
-    key_tags: List[int] = []
+    key_tags: list[int] = []
     _key = public_key_to_dnssec_key(
         key=p11key.public_key,
         key_identifier=p11key.label,

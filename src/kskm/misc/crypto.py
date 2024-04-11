@@ -42,7 +42,7 @@ def key_to_crypto_pubkey(key: Key) -> CryptoPubKey:
     raise RuntimeError(f"Can't make cryptography public key from {key}")
 
 
-def pubkey_to_crypto_pubkey(pubkey: Optional[KSKM_PublicKey]) -> CryptoPubKey:
+def pubkey_to_crypto_pubkey(pubkey: KSKM_PublicKey | None) -> CryptoPubKey:
     """Turn an KSKM_PublicKey into a CryptoPubKey."""
     if isinstance(pubkey, KSKM_PublicKey_RSA):
         return rsa_pubkey_to_crypto_pubkey(pubkey)
@@ -105,7 +105,7 @@ def verify_signature(
         raise
 
 
-def _algorithm_to_hash(alg: AlgorithmDNSSEC) -> Union[SHA256, SHA384]:
+def _algorithm_to_hash(alg: AlgorithmDNSSEC) -> SHA256 | SHA384:
     if alg in [AlgorithmDNSSEC.RSASHA256, AlgorithmDNSSEC.ECDSAP256SHA256]:
         return SHA256()
     if alg in [AlgorithmDNSSEC.ECDSAP384SHA384]:

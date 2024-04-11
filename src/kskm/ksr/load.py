@@ -43,7 +43,7 @@ def load_ksr(
     try:
         if validate_request(request, policy) is not True:
             raise RuntimeError(
-                "Failed validating KSR request in file {}".format(filename)
+                f"Failed validating KSR request in file {filename}"
             )
     except PolicyViolation as exc:
         if raise_original:
@@ -51,7 +51,7 @@ def load_ksr(
             raise
         # This is better in regular operations since it adds information about the context
         raise RuntimeError(
-            "Failed validating KSR request in file {}: {}".format(filename, exc)
+            f"Failed validating KSR request in file {filename}: {exc}"
         )
     return request
 

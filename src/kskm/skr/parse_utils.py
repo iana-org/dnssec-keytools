@@ -7,7 +7,7 @@ from kskm.skr.data import ResponseBundle
 __author__ = "ft"
 
 
-def responsebundles_from_list_of_dicts(bundles: List[dict]) -> List[ResponseBundle]:
+def responsebundles_from_list_of_dicts(bundles: list[dict]) -> list[ResponseBundle]:
     """Parse a list of KSR request bundle dicts."""
     return [
         ResponseBundle(

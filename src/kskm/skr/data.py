@@ -20,7 +20,7 @@ class SKR(ABC):
     id: str
     serial: int
     domain: str
-    timestamp: Optional[datetime]
+    timestamp: datetime | None
 
 
 @dataclass(frozen=True)
@@ -31,4 +31,4 @@ class Response(SKR):
     ksk_policy: SignaturePolicy
     # 'bundles' is supposed to be a Set, but a set cannot contain other sets
     # (TypeError: unhashable type: 'set')
-    bundles: List[ResponseBundle]
+    bundles: list[ResponseBundle]

@@ -124,7 +124,7 @@ def check_chain_overlap(
 
 
 def check_last_skr_key_present(
-    skr: Response, policy: RequestPolicy, p11modules: Optional[KSKM_P11]
+    skr: Response, policy: RequestPolicy, p11modules: KSKM_P11 | None
 ) -> None:
     """Verify the KSK(s) that signed the last bundle in the SKR(n-1) is present in the available HSM(s)."""
     if not p11modules:

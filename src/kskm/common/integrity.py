@@ -12,7 +12,7 @@ def sha256(message: bytes) -> bytes:
     return hashlib.sha256(message).digest()
 
 
-def sha2wordlist(message: bytes) -> Tuple[str, List[str]]:
+def sha2wordlist(message: bytes) -> tuple[str, list[str]]:
     """Create SHA-256 hexdigest and word list from bytes."""
     digest = sha256(message)
     hexdigest = binascii.hexlify(digest).decode()

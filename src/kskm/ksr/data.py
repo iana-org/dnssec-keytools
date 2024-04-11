@@ -11,7 +11,7 @@ from kskm.common.data import Bundle, SignaturePolicy, Signer
 class RequestBundle(Bundle):
     """Request Bundle."""
 
-    signers: Optional[Set[Signer]]
+    signers: set[Signer] | None
 
 
 @dataclass(frozen=True)
@@ -21,7 +21,7 @@ class KSR(ABC):
     id: str
     serial: int
     domain: str
-    timestamp: Optional[datetime]
+    timestamp: datetime | None
 
 
 @dataclass(frozen=True)
@@ -31,7 +31,7 @@ class Request(KSR):
     zsk_policy: SignaturePolicy
     # 'bundles' is supposed to be a Set, but a set cannot contain other sets
     # (TypeError: unhashable type: 'set')
-    bundles: List[RequestBundle]
+    bundles: list[RequestBundle]
 
-    xml_filename: Optional[str] = None
-    xml_hash: Optional[bytes] = None
+    xml_filename: str | None = None
+    xml_hash: bytes | None = None

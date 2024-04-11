@@ -26,7 +26,7 @@ class KeyDigest:
     digest_type: DigestDNSSEC
     digest: bytes
     valid_from: datetime
-    valid_until: Optional[datetime] = None
+    valid_until: datetime | None = None
 
     @classmethod
     def format_datetime(cls, dt: datetime) -> str:
@@ -59,7 +59,7 @@ class TrustAnchor:
     id: str
     source: str
     zone: str
-    keydigests: Set[KeyDigest]
+    keydigests: set[KeyDigest]
 
     def to_xml_doc(self) -> str:
         """Export trust anchor as XML document."""

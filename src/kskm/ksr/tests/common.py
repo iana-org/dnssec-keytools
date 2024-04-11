@@ -24,8 +24,8 @@ class Test_Requests(unittest.TestCase):
     def _make_request(
         self,
         domain: str = ".",
-        request_policy: Optional[str] = None,
-        request_bundle: Optional[str] = None,
+        request_policy: str | None = None,
+        request_bundle: str | None = None,
     ):
         if request_policy is None:
             request_policy = self._make_request_policy()
@@ -42,7 +42,7 @@ class Test_Requests(unittest.TestCase):
     """
         return xml.strip()
 
-    def _make_request_policy(self, signature_algorithm: Optional[str] = None) -> str:
+    def _make_request_policy(self, signature_algorithm: str | None = None) -> str:
         if signature_algorithm is None:
             signature_algorithm = self._make_signature_algorithm()
         xml = f"""
@@ -77,10 +77,10 @@ class Test_Requests(unittest.TestCase):
         key_tag: int = 49920,
         flags: int = FlagsDNSKEY.ZONE.value,
         algorithm: int = AlgorithmDNSSEC.RSASHA256.value,
-        pubkey: Optional[str] = None,
+        pubkey: str | None = None,
         signature_inception: str = "2009-11-09T20:33:05",
         signature_expiration: str = "2009-12-09T20:33:05",
-        signature: Optional[str] = None,
+        signature: str | None = None,
     ) -> str:
         if pubkey is None:
             pubkey = (
@@ -146,9 +146,9 @@ class Test_Requests_With_Two_Bundles(Test_Requests):
     def _make_request(
         self,
         domain: str = ".",
-        request_policy: Optional[str] = None,
-        bundle1: Optional[str] = None,
-        bundle2: Optional[str] = None,
+        request_policy: str | None = None,
+        bundle1: str | None = None,
+        bundle2: str | None = None,
     ):
         signature = """
         qeD7321YJ0g2ihT8XHPGIkMVumQoL7tdTQ6fMttyxmLeCMSE3K2cQBBQd622FGuF88JRiZKrQxWMfx2aow5k0WehytAhqaXy
@@ -261,10 +261,10 @@ class Test_Validate_KSR_ECDSA(Test_Requests):
         key_tag: int = 45612,
         flags: int = FlagsDNSKEY.ZONE.value,
         algorithm: int = AlgorithmDNSSEC.ECDSAP256SHA256.value,
-        pubkey: Optional[str] = None,
+        pubkey: str | None = None,
         signature_inception: str = "2009-11-09T20:33:05",
         signature_expiration: str = "2009-12-09T20:33:05",
-        signature: Optional[str] = None,
+        signature: str | None = None,
     ) -> str:
         if pubkey is None:
             # Key EC1 in SoftHSM

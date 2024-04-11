@@ -36,7 +36,7 @@ def load_pkcs11_key(
     ksk_policy: KSKPolicy,
     bundle: RequestBundle,
     public: bool,
-) -> Optional[CompositeKey]:
+) -> CompositeKey | None:
     """
     Load a key from an HSM using a KSK key label and then validate it is the right key and is OK to use.
 

@@ -49,7 +49,7 @@ TA_20181219 = TrustAnchor(
     id="380DC50D-484E-40D0-A3AE-68F2B18F61C7",
     source="http://data.iana.org/root-anchors/root-anchors.xml",
     zone=".",
-    keydigests=set([DIGEST_2010, DIGEST_2017]),
+    keydigests={DIGEST_2010, DIGEST_2017},
 )
 
 

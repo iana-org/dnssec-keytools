@@ -18,7 +18,7 @@ class TestParseRealKSRs(unittest.TestCase):
     def test_parse_ksr_root_2009_q4_2(self):
         """ Test parsing ksr-root-2009-q4-2.xml """
         fn = os.path.join(self.data_dir, "ksr-root-2009-q4-2.xml")
-        with open(fn, "r") as fd:
+        with open(fn) as fd:
             xml = fd.read()
         ksr = request_from_xml(xml)
         self.assertEqual("acaf327e-65ff-448a-8a7c-519698b659ff", ksr.id)
@@ -44,7 +44,7 @@ class TestParseRealKSRs(unittest.TestCase):
     def test_parse_ksr_root_2010_q1_0(self):
         """ Test parsing ksr-root-2010-q1-0.xml """
         fn = os.path.join(self.data_dir, "ksr-root-2010-q1-0.xml")
-        with open(fn, "r") as fd:
+        with open(fn) as fd:
             xml = fd.read()
         ksr = request_from_xml(xml)
         self.assertEqual("ba050f09-e208-4a32-bad2-91de3f2c2a12", ksr.id)

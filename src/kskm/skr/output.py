@@ -64,7 +64,7 @@ def _skr_response_policy_to_xml2(name: str, policy: SignaturePolicy) -> str:
 """
 
 
-def _signature_algorithms_to_xml(algs: Set[AlgorithmPolicy]) -> str:
+def _signature_algorithms_to_xml(algs: set[AlgorithmPolicy]) -> str:
     res = ""
     for alg in algs:
         if isinstance(alg, AlgorithmPolicyRSA):
@@ -138,7 +138,7 @@ def _skr_signature_to_xml(sig: Signature) -> str:
 
 
 def _indent(data: str) -> str:
-    res: List[str] = []
+    res: list[str] = []
     for this in data.split("\n"):
         if not this:  # skip blank lines
             continue

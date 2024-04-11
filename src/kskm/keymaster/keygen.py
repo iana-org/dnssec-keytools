@@ -42,7 +42,7 @@ __author__ = "ft"
 logger = logging.getLogger(__name__)
 
 
-def generate_key_label(flags: int, now: Optional[int] = None) -> str:
+def generate_key_label(flags: int, now: int | None = None) -> str:
     """
     Generate CKA_LABEL monotonically from current time.
 
@@ -74,8 +74,8 @@ def generate_rsa_key(
     bits: int,
     p11modules: KSKM_P11,
     exponent: int = 65537,
-    label: Optional[str] = None,
-) -> Optional[KSKM_P11Key]:
+    label: str | None = None,
+) -> KSKM_P11Key | None:
     """Generate RSA key."""
     if label is None:
         label = generate_key_label(flags)
@@ -93,12 +93,12 @@ def generate_rsa_key(
 def public_key_template(
     label: str,
     key_type: int,
-    bits: Optional[int] = None,
-    rsa_exponent: Optional[int] = None,
-    rsa_modulus: Optional[bytes] = None,
-) -> List[Tuple]:
+    bits: int | None = None,
+    rsa_exponent: int | None = None,
+    rsa_modulus: bytes | None = None,
+) -> list[tuple]:
     """Return a template used when generating public keys."""
-    publicKeyTemplate: List[Tuple[Any, ...]] = [
+    publicKeyTemplate: list[tuple[Any, ...]] = [
         (CKA_LABEL, label),
         # (CKA_ID,              (0x0,)),
         (CKA_CLASS, CKO_PUBLIC_KEY),
@@ -122,7 +122,7 @@ def public_key_template(
     return publicKeyTemplate
 
 
-def private_key_template(label: str, key_type: int) -> List:
+def private_key_template(label: str, key_type: int) -> list:
     """Return a template used when generating or unwrapping private keys."""
     privateKeyTemplate = [
         (CKA_LABEL, label),
@@ -142,15 +142,15 @@ def private_key_template(label: str, key_type: int) -> List:
 
 
 def generate_ec_key(
-    flags: int, curve: ECCurve, p11modules: KSKM_P11, label: Optional[str] = None
-) -> Optional[KSKM_P11Key]:
+    flags: int, curve: ECCurve, p11modules: KSKM_P11, label: str | None = None
+) -> KSKM_P11Key | None:
     """Generate EC key."""
     raise NotImplementedError("EC key generation not implemented yet")
 
 
 def generate_key_from_templates(
-    publicKeyTemplate: List, privateKeyTemplate: List, label: str, p11modules: KSKM_P11
-) -> Optional[KSKM_P11Key]:
+    publicKeyTemplate: list, privateKeyTemplate: list, label: str, p11modules: KSKM_P11
+) -> KSKM_P11Key | None:
     """Generate a key pair using C_GenerateKeyPair."""
     # Check that a key with that label does not already exist
     existing_key = get_p11_key(label, p11modules, public=True)

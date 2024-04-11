@@ -15,13 +15,13 @@ __author__ = "ft"
 logger = logging.getLogger(__name__)
 
 
-def key_inventory(p11modules: KSKM_P11, config: KSKMConfig) -> List[str]:
+def key_inventory(p11modules: KSKM_P11, config: KSKMConfig) -> list[str]:
     """Return key inventory."""
-    res: List[str] = []
+    res: list[str] = []
     for module in p11modules:
         res += [f"HSM {module.label}:"]
         for slot, session in sorted(module.sessions.items()):
-            keys: Dict[KeyClass, Dict[str, KeyInfo]] = dict()
+            keys: dict[KeyClass, dict[str, KeyInfo]] = dict()
             for this in module.get_key_inventory(session):
                 if this.key_class not in keys:
                     keys[this.key_class] = {}
@@ -42,11 +42,11 @@ def key_inventory(p11modules: KSKM_P11, config: KSKMConfig) -> List[str]:
 
 
 def _format_keys(
-    data: Dict[KeyClass, Dict[str, KeyInfo]], config: KSKMConfig
-) -> List[str]:
+    data: dict[KeyClass, dict[str, KeyInfo]], config: KSKMConfig
+) -> list[str]:
     """Format keys for inventory."""
-    res: List[str] = []
-    pairs: List[str] = []
+    res: list[str] = []
+    pairs: list[str] = []
     # First, find all pairs (CKA_LABEL+CKA_ID present in both PRIVATE and PUBLIC)
     if KeyClass.PUBLIC in data and KeyClass.PRIVATE in data:
         # make copy of keys to be able to remove elements from dict below
@@ -93,7 +93,7 @@ def _format_keys(
 
     # Now, add all leftover keys
     for cls in data.keys():
-        _leftovers: List[str] = []
+        _leftovers: list[str] = []
         for this in list(data[cls].values()):
             _leftovers += [f"      {this.label:7s} {_id_to_str(this.key_id)}"]
         if _leftovers:
@@ -101,7 +101,7 @@ def _format_keys(
     return res
 
 
-def _id_to_str(key_id: Tuple[int]) -> str:
+def _id_to_str(key_id: tuple[int]) -> str:
     """
     Get string from CKA_ID.
 

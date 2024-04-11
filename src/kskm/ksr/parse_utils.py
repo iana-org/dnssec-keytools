@@ -23,7 +23,7 @@ __author__ = "ft"
 logger = logging.getLogger(__name__)
 
 
-def requestbundles_from_list_of_dicts(bundles: List[dict]) -> List[RequestBundle]:
+def requestbundles_from_list_of_dicts(bundles: list[dict]) -> list[RequestBundle]:
     """
     Parse a list of KSR request bundle dicts.
 

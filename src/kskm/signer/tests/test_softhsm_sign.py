@@ -72,7 +72,7 @@ def _get_test_config() -> KSKMConfig:
 
     _cfg_fn = os.path.join(softhsm_dir, "ksrsigner.yaml")
 
-    with open(_cfg_fn, "r") as fd:
+    with open(_cfg_fn) as fd:
         conf = io.StringIO(fd.read() + _TEST_CONFIG)
     return KSKMConfig.from_yaml(conf)
 
@@ -134,7 +134,7 @@ class SignWithSoftHSM_Baseclass:
 
     def _make_request(
         self,
-        zsk_keys: Set[Key],
+        zsk_keys: set[Key],
         inception=None,
         expiration=None,
         id_suffix="",
@@ -700,9 +700,9 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
         """ Test KSR-CHAIN-KEYS with real KSR/SKR, but not matching keys between last/first. """
         last_skr = response_from_xml(self.last_skr_xml)
         last_bundle = last_skr.bundles[-1]
-        _updated_keys = set(
-            [x for x in last_bundle.keys if x.key_tag != 14796]
-        )  # remove one of the ZSKs
+        _updated_keys = {
+            x for x in last_bundle.keys if x.key_tag != 14796
+        }  # remove one of the ZSKs
         last_bundle = replace(last_bundle, keys=_updated_keys)
         bundles = last_skr.bundles[:-1] + [last_bundle]
         last_skr = replace(last_skr, bundles=bundles)

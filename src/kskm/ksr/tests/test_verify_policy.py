@@ -57,7 +57,7 @@ class Test_Validate_KSR_policy(unittest.TestCase):
         )
         ksr = load_ksr(fn, policy, raise_original=True)
         first_expire = ksr.bundles[0].expiration
-        dt_now = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
+        dt_now = datetime.datetime.utcnow().replace(tzinfo=datetime.UTC)
         # Now, try load the KSR again but say the last allowed expiration date is that
         # of the first bundles signature expiration date. This should fail all but the
         # first bundle.

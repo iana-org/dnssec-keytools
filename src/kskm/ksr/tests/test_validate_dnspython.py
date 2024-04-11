@@ -34,7 +34,7 @@ class TestDnsPythonValidate_signatures(TestCase):
 
     def _test_file(self, fn, filter_ids=None):
         fn = os.path.join(self.data_dir, fn)
-        with open(fn, "r") as fd:
+        with open(fn) as fd:
             xml = fd.read()
         ksr = request_from_xml(xml)
         for bundle in ksr.bundles:
@@ -42,9 +42,9 @@ class TestDnsPythonValidate_signatures(TestCase):
                 continue
             try:
                 dnspython_validate_bundle(bundle)
-                print("{}: Bundle {} validated successfully".format(fn, bundle.id))
+                print(f"{fn}: Bundle {bundle.id} validated successfully")
             except ValidationFailure:
-                print("{}: Bundle {} FAILED validation".format(fn, bundle.id))
+                print(f"{fn}: Bundle {bundle.id} FAILED validation")
                 raise
 
 
@@ -62,29 +62,29 @@ def dnspython_validate_bundle(bundle: RequestBundle) -> bool:
             )
         _keys[key.key_tag] = key
     if not _keys:
-        raise ValueError("No keys in bundle {}".format(bundle.id))
+        raise ValueError(f"No keys in bundle {bundle.id}")
 
     for sig in bundle.signatures:
         if sig.key_tag not in _keys:
             raise ValueError(
-                "No key with key_tag {} in bundle {}".format(sig.key_tag, bundle.id)
+                f"No key with key_tag {sig.key_tag} in bundle {bundle.id}"
             )
         _keys.pop(sig.key_tag)
 
         try:
             res = dnspython_validate_key_sig(bundle.keys, sig)
-            logger.info("dnspython result: {}".format(res))
+            logger.info(f"dnspython result: {res}")
         except Exception:
             logger.exception("dnspython failed with an exception")
             raise
     if _keys:
         raise ValueError(
-            "One or more keys were not covered by a signature: {}".format(_keys.keys())
+            f"One or more keys were not covered by a signature: {_keys.keys()}"
         )
     return True
 
 
-def dnspython_validate_key_sig(keys: Set[Key], sig: Signature) -> bool:
+def dnspython_validate_key_sig(keys: set[Key], sig: Signature) -> bool:
     """
     Validate that the originator of the KSR has signed all ZSKs in this bundle.
 
