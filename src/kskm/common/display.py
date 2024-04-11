@@ -1,7 +1,7 @@
 """Functions to display data to humans."""
 import logging
 from datetime import datetime, timedelta
-from typing import List, Sequence, Union
+from collections.abc import Sequence
 
 import kskm.common
 from kskm.common.data import Bundle, BundleType
@@ -34,8 +34,8 @@ def format_bundles_for_humans(bundles: Sequence[BundleType]) -> Sequence[str]:
     num = 0
     for this in bundles:
         num += 1
-        zsk_info: List[str] = []
-        ksk_info: List[str] = []
+        zsk_info: list[str] = []
+        ksk_info: list[str] = []
         for key in this.keys:
             if kskm.common.parse_utils.is_zsk_key(key):
                 zsk_info += [str(key.key_tag)]
@@ -60,7 +60,7 @@ def format_bundles_for_humans(bundles: Sequence[BundleType]) -> Sequence[str]:
     return res
 
 
-def _fmt_fields(**kwargs: Union[int, str]) -> str:
+def _fmt_fields(**kwargs: int | str) -> str:
     """
     Format key bundle entries for human consumption.
 

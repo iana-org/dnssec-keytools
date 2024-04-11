@@ -3,7 +3,7 @@ import base64
 import hashlib
 import logging
 from dataclasses import replace
-from typing import Dict, Iterable, List, Optional
+from collections.abc import Iterable
 
 from cryptography.exceptions import InvalidSignature
 
@@ -47,9 +47,9 @@ def sign_bundles(
     This is typically to add one or more KSK keys to the key set, and then sign the
     DNSKEY RR set using the KSK key stored in a PKCS#11 module (HSM).
     """
-    res: List[ResponseBundle] = []
+    res: list[ResponseBundle] = []
     bundle_num = 0
-    _hush_key_ttl_warnings: Dict[str, bool] = {}
+    _hush_key_ttl_warnings: dict[str, bool] = {}
     for _bundle in request.bundles:
         bundle_num += 1
         this_schema = schema.actions[bundle_num]
@@ -120,8 +120,8 @@ def sign_bundles(
                 signatures.add(_sig)
 
         # Ensure the ZSK set of algorithms covering this bundle match the KSK set of algorithms
-        _zsk_algs = set([x.algorithm.name for x in _bundle.keys])
-        _ksk_algs = set([x.algorithm.name for x in signatures])
+        _zsk_algs = {x.algorithm.name for x in _bundle.keys}
+        _ksk_algs = {x.algorithm.name for x in signatures}
         if _zsk_algs != _ksk_algs:
             raise CreateSignatureError(
                 f"ZSK algorithms {_zsk_algs} does not match KSK algorithms {_ksk_algs} "
@@ -152,7 +152,7 @@ def _fetch_keys(
     ksk_keys: KSKKeysType,
     public: bool,
 ) -> Iterable[CompositeKey]:
-    res: List[CompositeKey] = []
+    res: list[CompositeKey] = []
     for _name in key_names:
         ksk = ksk_keys[_name]
         this_key = load_pkcs11_key(ksk, p11modules, ksk_policy, bundle, public=public)
@@ -171,7 +171,7 @@ def _fetch_keys(
 
 def _sign_keys(
     bundle: RequestBundle, signing_key: CompositeKey, ksk_policy: KSKPolicy
-) -> Optional[Signature]:
+) -> Signature | None:
     """Sign the bundle key RRSET using the HSM key identified by 'label'."""
     # All ZSK TTLs are guaranteed to be the same as ksk_policy.ttl at this point. Just do this for clarity.
     for _key in bundle.keys:

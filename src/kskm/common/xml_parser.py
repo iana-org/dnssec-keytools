@@ -8,12 +8,10 @@ Focus for this implementation is:
 
 NOT XML compliance. We just need to parse KSRs good enough.
 """
-from __future__ import absolute_import
 
 import logging
 import re
 from dataclasses import dataclass
-from typing import Dict, Optional, Tuple, Union
 
 __author__ = "ft"
 
@@ -23,8 +21,8 @@ _DEBUG_XML_PARSER = False
 @dataclass(frozen=False)
 class _XMLElement:
     name: str
-    attrs: Optional[Dict[str, str]]
-    value: Union[str, dict]
+    attrs: dict[str, str] | None
+    value: str | dict
 
 
 logger = logging.getLogger(__name__)
@@ -76,10 +74,10 @@ def _parse_recursively(xml: str, recurse: int, res: dict) -> None:
     while xml:
         xml = xml.strip()
         if xml[0] != "<":
-            raise ValueError("XML parser got lost at: {!r}".format(xml))
+            raise ValueError(f"XML parser got lost at: {xml!r}")
         # start of element
         if _DEBUG_XML_PARSER:
-            logger.debug("Start of element found: {!r}...".format(xml[:20]))
+            logger.debug(f"Start of element found: {xml[:20]!r}...")
         element, end_idx = parse_first_element(xml)
         sub_res: dict = {}
         # the isinstance helps the type checker be sure that element.value is in fact a string
@@ -132,7 +130,7 @@ def _store_element(element: _XMLElement, res: dict) -> None:
         res[element.name] = value
 
 
-def parse_first_element(xml: str) -> Tuple[_XMLElement, int]:
+def parse_first_element(xml: str) -> tuple[_XMLElement, int]:
     """
     Parse the first element from the start of the XML sub-string.
 
@@ -141,19 +139,19 @@ def parse_first_element(xml: str) -> Tuple[_XMLElement, int]:
     """
     name, attrs, tag_end = _parse_tag(xml)
     if _DEBUG_XML_PARSER:
-        logger.debug("Found tag {} with attrs {}".format(name, attrs))
+        logger.debug(f"Found tag {name} with attrs {attrs}")
     if xml[tag_end - 2 : tag_end] == "/>":
         # an element with no value
         return _XMLElement(name=name, attrs=attrs, value=""), tag_end
     value_start = tag_end
     value_end, element_end_idx = _find_end_of_element(xml, value_start, name)
     if _DEBUG_XML_PARSER:
-        logger.debug("Found end of element {} at idx {}".format(name, element_end_idx))
+        logger.debug(f"Found end of element {name} at idx {element_end_idx}")
     value = xml[value_start:value_end].strip()
     return _XMLElement(name=name, attrs=attrs, value=value), element_end_idx
 
 
-def _parse_tag(xml: str) -> Tuple[str, Optional[dict], int]:
+def _parse_tag(xml: str) -> tuple[str, dict | None, int]:
     """
     Parse the first XML start-of-elements into name and attributes.
 
@@ -189,7 +187,7 @@ def _parse_tag(xml: str) -> Tuple[str, Optional[dict], int]:
         name = m.groups()[0]
         end_idx = len(name) + 2
         return name, None, end_idx
-    raise ValueError("Failed parsing tag {!r}...".format(xml[:10]))
+    raise ValueError(f"Failed parsing tag {xml[:10]!r}...")
 
 
 def _parse_attrs(attrs: str) -> dict:
@@ -214,7 +212,7 @@ def _parse_attrs(attrs: str) -> dict:
     return res
 
 
-def _find_end_of_element(xml: str, start_idx: int, name: str) -> Tuple[int, int]:
+def _find_end_of_element(xml: str, start_idx: int, name: str) -> tuple[int, int]:
     """
     Locate the end of an element whose name has already been determined.
 
@@ -226,10 +224,10 @@ def _find_end_of_element(xml: str, start_idx: int, name: str) -> Tuple[int, int]
     :param name: Element name
     :return: End of value index, and end of element index
     """
-    element_end_tag = "</{}>".format(name)
+    element_end_tag = f"</{name}>"
     end_idx = xml.index(element_end_tag, start_idx)
     # Now check if there is another starting tag for this name before the end tag we found
-    for nested_tag in ["<{}>".format(name), "<{} ".format(name)]:
+    for nested_tag in [f"<{name}>", f"<{name} "]:
         try:
             inner_idx = xml.index(nested_tag)
             if inner_idx and inner_idx < end_idx:

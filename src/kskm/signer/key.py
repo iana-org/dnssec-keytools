@@ -1,7 +1,6 @@
 """PKCS#11 key interface."""
 import logging
 from dataclasses import dataclass, replace
-from typing import Optional
 
 from kskm.common.config_misc import KSKKey, KSKPolicy
 from kskm.common.data import FlagsDNSKEY, Key
@@ -36,7 +35,7 @@ def load_pkcs11_key(
     ksk_policy: KSKPolicy,
     bundle: RequestBundle,
     public: bool,
-) -> Optional[CompositeKey]:
+) -> CompositeKey | None:
     """
     Load a key from an HSM using a KSK key label and then validate it is the right key and is OK to use.
 

@@ -7,7 +7,6 @@ module know how to interpret parts of that dict and turn it into the
 dataclasses from kskm.ksr.data.
 """
 import logging
-from typing import List
 
 from kskm.common.parse_utils import (
     keys_from_dict,
@@ -23,7 +22,7 @@ __author__ = "ft"
 logger = logging.getLogger(__name__)
 
 
-def requestbundles_from_list_of_dicts(bundles: List[dict]) -> List[RequestBundle]:
+def requestbundles_from_list_of_dicts(bundles: list[dict]) -> list[RequestBundle]:
     """
     Parse a list of KSR request bundle dicts.
 

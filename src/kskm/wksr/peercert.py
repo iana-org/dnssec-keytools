@@ -1,7 +1,5 @@
 """Peer certificate functions."""
 
-from typing import Dict, Optional
-
 import OpenSSL
 import werkzeug.serving
 from flask import request
@@ -32,7 +30,7 @@ class PeerCertWSGIRequestHandler(werkzeug.serving.WSGIRequestHandler):
         peer certificate into the hash. That exposes it to us later in
         the request variable that Flask provides
         """
-        environ: Dict = super().make_environ()
+        environ: dict = super().make_environ()
         try:
             x509_binary = self.connection.getpeercert(True)
         except (AttributeError, KeyError):
@@ -46,7 +44,7 @@ class PeerCertWSGIRequestHandler(werkzeug.serving.WSGIRequestHandler):
         return environ
 
     @classmethod
-    def client_subject(cls) -> Optional[str]:
+    def client_subject(cls) -> str | None:
         """Find client certificate subject."""
         peercert = request.environ.get("peercert")
         if peercert is None:
@@ -57,7 +55,7 @@ class PeerCertWSGIRequestHandler(werkzeug.serving.WSGIRequestHandler):
         )
 
     @classmethod
-    def client_digest(cls) -> Optional[str]:
+    def client_digest(cls) -> str | None:
         """Find client certficate digest."""
         peercert = request.environ.get("peercert")
         if peercert is None:

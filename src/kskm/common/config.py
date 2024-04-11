@@ -3,7 +3,8 @@ from __future__ import annotations
 
 import logging
 from dataclasses import replace
-from typing import IO, Dict, Mapping, Optional, Type, cast
+from typing import IO, cast
+from collections.abc import Mapping
 
 import voluptuous.error
 import voluptuous.humanize
@@ -42,11 +43,11 @@ class KSKMConfig:
         """Initialise configuration from a Mapping."""
         self._data = dict(data)
         # lazily parsed parts of the configuration.
-        self._hsm: Optional[Mapping] = None
-        self._ksk_keys: Optional[KSKKeysType] = None
-        self._ksk_policy: Optional[KSKPolicy] = None
-        self._request_policy: Optional[RequestPolicy] = None
-        self._response_policy: Optional[ResponsePolicy] = None
+        self._hsm: Mapping | None = None
+        self._ksk_keys: KSKKeysType | None = None
+        self._ksk_policy: KSKPolicy | None = None
+        self._request_policy: RequestPolicy | None = None
+        self._response_policy: ResponsePolicy | None = None
 
     @property
     def hsm(self) -> Mapping:
@@ -115,7 +116,7 @@ class KSKMConfig:
 
         """
         if self._ksk_keys is None:
-            res: Dict[str, KSKKey] = {}
+            res: dict[str, KSKKey] = {}
             if "keys" not in self._data:
                 return cast(KSKKeysType, res)
             for name, v in self._data["keys"].items():
@@ -125,7 +126,7 @@ class KSKMConfig:
         assert self._ksk_keys is not None  # help type checker
         return self._ksk_keys
 
-    def get_filename(self, which: str) -> Optional[str]:
+    def get_filename(self, which: str) -> str | None:
         """
         Get a filename from the configuration.
 
@@ -220,7 +221,7 @@ class KSKMConfig:
 
         """
         data = self._data["schemas"][name]
-        _actions: Dict[int, SchemaAction] = {}
+        _actions: dict[int, SchemaAction] = {}
         for num in range(1, self.request_policy.num_bundles + 1):
             _this = SchemaAction(
                 publish=_parse_keylist(data[num]["publish"]),
@@ -244,7 +245,7 @@ class KSKMConfig:
             logger.debug(f"Config now: {self._data[k]}")
 
     @classmethod
-    def from_yaml(cls: Type[KSKMConfig], stream: IO) -> KSKMConfig:
+    def from_yaml(cls: type[KSKMConfig], stream: IO) -> KSKMConfig:
         """Load configuration from a YAML stream."""
         config = yaml.safe_load(stream)
         try:
@@ -257,7 +258,7 @@ class KSKMConfig:
         return cls(config)
 
 
-def get_config(filename: Optional[str]) -> KSKMConfig:
+def get_config(filename: str | None) -> KSKMConfig:
     """Top-level function to load configuration, or return a default ConfigType instance."""
     if not filename:
         # Avoid having Optional[ConfigType] everywhere by always having a config, even if it is empty

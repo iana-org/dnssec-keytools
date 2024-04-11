@@ -16,7 +16,7 @@ class TestParseRealSKRs(unittest.TestCase):
     def test_parse_skr_root_2018_q1_0_d_to_e(self):
         """ Test parsing skr-root-2018-q1-0-d_to_e.xml """
         fn = os.path.join(self.data_dir, "skr-root-2018-q1-0-d_to_e.xml")
-        with open(fn, "r") as fd:
+        with open(fn) as fd:
             xml = fd.read()
         skr = response_from_xml(xml)
         self.assertEqual("4fe9bb10-6f6b-4503-8575-7824e2d66925", skr.id)

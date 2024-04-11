@@ -189,7 +189,7 @@ class Test_signature_from_dict(TestCase):
             },
         }
         out = signature_from_dict(sig)
-        utc = datetime.timezone.utc
+        utc = datetime.UTC
         expected = {
             Signature(
                 key_identifier="ZSK-24315",

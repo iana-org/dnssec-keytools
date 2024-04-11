@@ -38,7 +38,7 @@ def load_skr(
         validate_response(response, policy)
     except PolicyViolation as exc:
         raise RuntimeError(
-            "Failed validating SKR response in file {}: {}".format(filename, exc)
+            f"Failed validating SKR response in file {filename}: {exc}"
         )
     return response
 

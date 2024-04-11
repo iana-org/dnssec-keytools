@@ -1,13 +1,11 @@
 """Utility functions used in parsing SKRs."""
-from typing import List
-
 from kskm.common.parse_utils import keys_from_dict, parse_datetime, signature_from_dict
 from kskm.skr.data import ResponseBundle
 
 __author__ = "ft"
 
 
-def responsebundles_from_list_of_dicts(bundles: List[dict]) -> List[ResponseBundle]:
+def responsebundles_from_list_of_dicts(bundles: list[dict]) -> list[ResponseBundle]:
     """Parse a list of KSR request bundle dicts."""
     return [
         ResponseBundle(

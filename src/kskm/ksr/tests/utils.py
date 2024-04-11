@@ -26,7 +26,7 @@ def _sign_using_softhsm(data: bytes, softhsm_signing_key="RSA1") -> None:
     )
     _cfg_fn = os.path.join(softhsm_dir, "ksrsigner.yaml")
 
-    with open(_cfg_fn, "r") as fd:
+    with open(_cfg_fn) as fd:
         conf = io.StringIO(fd.read())
     config = KSKMConfig.from_yaml(conf)
     p11modules = init_pkcs11_modules_from_dict(config.hsm)

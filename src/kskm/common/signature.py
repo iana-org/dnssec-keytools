@@ -5,7 +5,6 @@ import binascii
 import logging
 import struct
 from hashlib import sha256
-from typing import Dict, List, Set
 
 from kskm.common.data import Bundle, Key, Signature
 from kskm.common.dnssec import key_to_rdata
@@ -35,13 +34,13 @@ def validate_signatures(bundle: Bundle) -> bool:
     # To locate keys for signatures, and to make sure all keys are covered by
     # a signature, we make a copy of the keys indexed by key_identifier.
     if not bundle.keys:
-        raise ValueError("No keys in bundle {}".format(bundle.id))
+        raise ValueError(f"No keys in bundle {bundle.id}")
 
     if not bundle.signatures:
-        raise ValueError("No signature in bundle {}".format(bundle.id))
+        raise ValueError(f"No signature in bundle {bundle.id}")
 
     # check for duplicate key_tags and build a convenient key_identifier -> key lookup dict
-    _keys: Dict[str, Key] = {}
+    _keys: dict[str, Key] = {}
     for key in bundle.keys:
         if key.key_identifier in _keys:
             raise ValueError(
@@ -75,17 +74,17 @@ def validate_signatures(bundle: Bundle) -> bool:
             logger.debug("DIGEST: %s", sha256(rrsig_raw).hexdigest())
             if is_algorithm_rsa(key.algorithm):
                 _rsa_pk = decode_rsa_public_key(key.public_key)
-                logger.debug("Public key: {}".format(_rsa_pk))
+                logger.debug(f"Public key: {_rsa_pk}")
             elif is_algorithm_ecdsa(key.algorithm):
                 _ecdsa_pk = decode_ecdsa_public_key(
                     key.public_key, algorithm_to_curve(key.algorithm)
                 )
-                logger.debug("Public key: {}".format(_ecdsa_pk))
+                logger.debug(f"Public key: {_ecdsa_pk}")
             raise
     return True
 
 
-def make_raw_rrsig(sig: Signature, keys: Set[Key]) -> bytes:
+def make_raw_rrsig(sig: Signature, keys: set[Key]) -> bytes:
     """
     Create RRSIG raw data from a bundle.
 
@@ -109,7 +108,7 @@ def make_raw_rrsig(sig: Signature, keys: Set[Key]) -> bytes:
 
     # Construct a list of all the keys in wire format, so that we can sort them.
     # How this should be done is described in RFC4034 (6.3).
-    rdata: List[bytes] = []
+    rdata: list[bytes] = []
     for key in keys:
         rdata += [key_to_rdata(key)]
 

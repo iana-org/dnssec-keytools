@@ -1,6 +1,5 @@
 """Combined policy checks for last SKR+KSR."""
 import logging
-from typing import Optional
 
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.display import fmt_timedelta, format_bundles_for_humans
@@ -22,7 +21,7 @@ def check_skr_and_ksr(
     ksr: Request,
     last_skr: Response,
     policy: RequestPolicy,
-    p11modules: Optional[KSKM_P11],
+    p11modules: KSKM_P11 | None,
 ) -> None:
     """Perform some policy checks that validates consistency from last SKR to this KSR."""
     check_unique_ids(ksr, last_skr, policy)

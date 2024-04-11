@@ -1,7 +1,5 @@
 """Functions to convert to PGP word list."""
 
-from typing import List
-
 # https://en.wikipedia.org/wiki/PGP_word_list
 # https://philzimmermann.com/docs/PGP_word_list.pdf
 WORDS = [
@@ -264,7 +262,7 @@ WORDS = [
 ]
 
 
-def pgp_wordlist(data: bytes) -> List[str]:
+def pgp_wordlist(data: bytes) -> list[str]:
     """Translate bytes to list of PGP words."""
     odd = False
     words = []

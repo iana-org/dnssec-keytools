@@ -10,7 +10,6 @@ import logging.handlers
 import os
 import sys
 from argparse import Namespace as ArgsType
-from typing import Optional
 
 import kskm.common
 import kskm.ksr
@@ -152,26 +151,26 @@ def parse_args(defaults: dict) -> ArgsType:
     return args
 
 
-def _previous_skr_filename(args: ArgsType, config: KSKMConfig) -> Optional[str]:
+def _previous_skr_filename(args: ArgsType, config: KSKMConfig) -> str | None:
     if args and args.previous_skr:
         return str(args.previous_skr)
     return config.get_filename("previous_skr")
 
 
-def _ksr_filename(args: ArgsType, config: KSKMConfig) -> Optional[str]:
+def _ksr_filename(args: ArgsType, config: KSKMConfig) -> str | None:
     if args and args.ksr:
         return str(args.ksr)
     return config.get_filename("input_ksr")
 
 
-def _skr_filename(args: ArgsType, config: KSKMConfig) -> Optional[str]:
+def _skr_filename(args: ArgsType, config: KSKMConfig) -> str | None:
     if args and args.skr:
         return str(args.skr)
     return config.get_filename("output_skr")
 
 
 def ksrsigner(
-    logger: logging.Logger, args: ArgsType, config: Optional[KSKMConfig] = None
+    logger: logging.Logger, args: ArgsType, config: KSKMConfig | None = None
 ) -> bool:
     """Parse KSR and previous SKR. Produce a new SKR."""
     #

@@ -5,7 +5,7 @@ from base64 import b64decode
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Optional, Set, TypeVar
+from typing import TypeVar
 
 # Type definitions to refer to the ABC types declared below
 
@@ -100,14 +100,14 @@ class SignaturePolicy:
     min_signature_validity: timedelta
     max_validity_overlap: timedelta
     min_validity_overlap: timedelta
-    algorithms: Set[AlgorithmPolicy]
+    algorithms: set[AlgorithmPolicy]
 
 
 @dataclass(frozen=True)
 class Signer:
     """RRSIG Signer parameters."""
 
-    key_identifier: Optional[str]
+    key_identifier: str | None
 
 
 @dataclass(frozen=True)
@@ -176,5 +176,5 @@ class Bundle(ABC):
     id: str
     inception: datetime
     expiration: datetime
-    keys: Set[Key]
-    signatures: Set[Signature]
+    keys: set[Key]
+    signatures: set[Signature]

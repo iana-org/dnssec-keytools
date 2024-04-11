@@ -2,7 +2,6 @@
 import logging
 import re
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional, Set, Union
 
 from kskm.common.data import (
     AlgorithmDNSSEC,
@@ -42,7 +41,7 @@ def signature_policy_from_dict(policy: dict) -> SignaturePolicy:
     )
 
 
-def signers_from_list(signers: List[dict]) -> Optional[Set[Signer]]:
+def signers_from_list(signers: list[dict]) -> set[Signer] | None:
     """
     Parse RequestBundle signers.
 
@@ -53,17 +52,17 @@ def signers_from_list(signers: List[dict]) -> Optional[Set[Signer]]:
     """
     if not signers:
         return None
-    return set(
-        [Signer(key_identifier=this["attrs"]["keyIdentifier"]) for this in signers]
-    )
+    return {
+        Signer(key_identifier=this["attrs"]["keyIdentifier"]) for this in signers
+    }
 
 
-def _parse_signature_algorithms(algorithms: dict) -> Set[AlgorithmPolicy]:
+def _parse_signature_algorithms(algorithms: dict) -> set[AlgorithmPolicy]:
     if isinstance(algorithms, list):
         _algs = algorithms
     else:
         _algs = [algorithms]
-    res: Set[AlgorithmPolicy] = set()
+    res: set[AlgorithmPolicy] = set()
     for this in _algs:
         attr_alg = AlgorithmDNSSEC(int(this["attrs"]["algorithm"]))
         if is_algorithm_rsa(attr_alg):
@@ -74,7 +73,7 @@ def _parse_signature_algorithms(algorithms: dict) -> Set[AlgorithmPolicy]:
             res.add(parse_signature_policy_ecdsa(this))
         else:
             raise NotImplementedError(
-                "Unhandled SignaturePolicy algorithm: {}".format(attr_alg)
+                f"Unhandled SignaturePolicy algorithm: {attr_alg}"
             )
     return res
 
@@ -84,12 +83,12 @@ def _get_timedelta(policy: dict, name: str) -> timedelta:
     return duration_to_timedelta(policy[name])
 
 
-def duration_to_timedelta(duration: Optional[str]) -> timedelta:
+def duration_to_timedelta(duration: str | None) -> timedelta:
     """Parse strings such as P14D or PT1H5M (ISO8601 durations) into timedeltas."""
     if not duration:
         return timedelta()
     if not duration.startswith("P"):
-        raise ValueError('Duration does not start with "P": {}'.format(duration))
+        raise ValueError(f'Duration does not start with "P": {duration}')
     duration = duration[1:]
     res = timedelta()
     _re = re.compile(r"^(\d+?)([WDHMS])(.*)")
@@ -101,7 +100,7 @@ def duration_to_timedelta(duration: Optional[str]) -> timedelta:
             duration = duration[1:]
         m = _re.match(duration)
         if not m:
-            raise ValueError("Invalid ISO8601 duration (at {})".format(duration))
+            raise ValueError(f"Invalid ISO8601 duration (at {duration})")
         num_str, what, rest = m.groups()
         num = int(num_str)
         if what == "W":
@@ -140,12 +139,12 @@ def parse_datetime(date: str) -> datetime:
     dt = datetime.fromisoformat(date)
     if dt.tzinfo and dt.tzinfo is not timezone.utc:
         raise ValueError(
-            "Timestamps MUST be UTC (not {} as in {})".format(dt.tzinfo, date)
+            f"Timestamps MUST be UTC (not {dt.tzinfo} as in {date})"
         )
     return dt.replace(tzinfo=timezone.utc)
 
 
-def keys_from_dict(keys: Union[dict, list]) -> Set[Key]:
+def keys_from_dict(keys: dict | list) -> set[Key]:
     """
     Parse Bundle keys.
 
@@ -162,9 +161,8 @@ def keys_from_dict(keys: Union[dict, list]) -> Set[Key]:
     return _keys_from_list(keys)
 
 
-def _keys_from_list(keys: List[dict]) -> Set[Key]:
-    return set(
-        [
+def _keys_from_list(keys: list[dict]) -> set[Key]:
+    return {
             Key(
                 key_identifier=key["attrs"].get("keyIdentifier"),
                 key_tag=int(key["attrs"]["keyTag"]),
@@ -175,11 +173,10 @@ def _keys_from_list(keys: List[dict]) -> Set[Key]:
                 public_key=bytes(key["value"]["PublicKey"], "utf-8"),
             )
             for key in keys
-        ]
-    )
+    }
 
 
-def signature_from_dict(signatures: dict) -> Set[Signature]:
+def signature_from_dict(signatures: dict) -> set[Signature]:
     """
     Parse Bundle signature.
 
@@ -202,9 +199,8 @@ def signature_from_dict(signatures: dict) -> Set[Signature]:
     return _signature_from_list(signatures)
 
 
-def _signature_from_list(signatures: List[dict]) -> Set[Signature]:
-    return set(
-        [
+def _signature_from_list(signatures: list[dict]) -> set[Signature]:
+    return {
             Signature(
                 key_identifier=sig["attrs"].get("keyIdentifier"),
                 ttl=int(sig["value"]["TTL"]),
@@ -221,8 +217,7 @@ def _signature_from_list(signatures: List[dict]) -> Set[Signature]:
                 signature_data=bytes(sig["value"]["SignatureData"], "utf-8"),
             )
             for sig in signatures
-        ]
-    )
+    }
 
 
 def is_sep_key(key: Key) -> bool:

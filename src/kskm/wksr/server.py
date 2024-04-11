@@ -10,7 +10,6 @@ import smtplib
 import ssl
 from datetime import datetime
 from email.message import EmailMessage
-from typing import Dict, Optional, Set, Tuple
 
 import jinja2
 from flask import Flask, render_template, request
@@ -35,10 +34,10 @@ DEFAULT_TEMPLATES_CONFIG = {
 }
 DEFAULT_MAX_SIZE = 1024 * 1024
 
-client_whitelist: Set[str] = set()
+client_whitelist: set[str] = set()
 ksr_config = None
-notify_config: Dict[str, str] = {}
-template_config: Dict[str, str] = {}
+notify_config: dict[str, str] = {}
+template_config: dict[str, str] = {}
 
 
 logger = logging.getLogger(__name__)
@@ -122,7 +121,7 @@ def validate_ksr(filename: str) -> dict:
 
     result = {}
     previous_skr_filename = config.get_filename("previous_skr")
-    previous_skr: Optional[Response]
+    previous_skr: Response | None
 
     try:
         if previous_skr_filename is not None:
@@ -164,7 +163,7 @@ def notify(env: dict) -> None:
     smtp.quit()
 
 
-def save_ksr(upload_file: FileStorage) -> Tuple[str, str]:
+def save_ksr(upload_file: FileStorage) -> tuple[str, str]:
     """Process incoming KSR."""
     if ksr_config is None:
         raise RuntimeError("Missing configuration")
@@ -198,7 +197,7 @@ def save_ksr(upload_file: FileStorage) -> Tuple[str, str]:
     return filename, filehash
 
 
-def generate_ssl_context(config: Optional[dict] = None) -> ssl.SSLContext:
+def generate_ssl_context(config: dict | None = None) -> ssl.SSLContext:
     """Generate SSL context for app."""
     if config is None:
         config = {}

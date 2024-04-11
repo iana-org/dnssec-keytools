@@ -1,7 +1,7 @@
 """The more testable parts of the ksrsigner tool."""
 import logging
 from dataclasses import replace
-from typing import Iterable, Optional, Set
+from collections.abc import Iterable
 
 from kskm.common.config import KSKMConfig
 from kskm.common.config_misc import KSKPolicy, Schema
@@ -37,7 +37,7 @@ def create_skr(
 
 
 def output_skr_xml(
-    skr: Response, output_filename: Optional[str], log_contents: bool = False
+    skr: Response, output_filename: str | None, log_contents: bool = False
 ) -> None:
     """Return SKR as XML."""
     xml = skr_to_xml(skr)
@@ -58,7 +58,7 @@ def _ksk_signature_policy(
     ksk_policy: KSKPolicy, bundles: Iterable[ResponseBundle]
 ) -> SignaturePolicy:
     """Create the statement for what algorithms the SKR response contains."""
-    algorithms: Set[AlgorithmPolicy] = set()
+    algorithms: set[AlgorithmPolicy] = set()
     for bundle in bundles:
         for key in bundle.keys:
             if is_algorithm_rsa(key.algorithm):
