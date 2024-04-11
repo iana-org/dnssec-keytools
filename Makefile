@@ -51,6 +51,15 @@ reformat: $(VENV)
 typecheck: $(VENV)
 	$(VENV)/bin/mypy --ignore-missing-imports $(SOURCE)
 
+vscode_packages:
+	sudo apt-get update
+	sudo apt-get install -y swig softhsm2
+
+# This target is used by the devcontainer.json to configure the devcontainer
+vscode: vscode_packages softhsm
+	pip3 install poetry
+	poetry install
+
 $(BUILDINFO): $(SOURCE)
 	if [ -d .git ]; then \
 		printf "__commit__ = \"`git rev-parse HEAD`\"\n__timestamp__ = \"`date +'%Y-%m-%d %H:%M:%S %Z'`\"\n" > $@ ;\
