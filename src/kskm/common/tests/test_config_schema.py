@@ -60,7 +60,7 @@ class TestConfigSchema(unittest.TestCase):
     def test_loading_from_file_error_handling(self):
         with self.assertRaises(ConfigurationError) as exc:
             get_config(os.path.join(CONFIG_DIR, "ksrsigner.yaml"))
-        self.assertIn("not a file for dictionary value", str(exc.exception))
+        self.assertIn("Not a file for dictionary value", str(exc.exception))
 
     def test_wksr_example_config(self):
         """Test wksr example config"""
