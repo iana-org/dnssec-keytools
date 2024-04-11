@@ -376,7 +376,7 @@ class KSKM_P11Module:
                 # OID 1.2.840.10045.3.1.7 / prime256v1
                 b"\x06\x08\x2a\x86\x48\xce\x3d\x03\x01\x07": ECCurve.P256,
                 # OID 1.3.132.0.34 / prime384v1
-                b"\x06\x05\x2B\x81\x04\x00\x22": ECCurve.P384,
+                b"\x06\x05\x2b\x81\x04\x00\x22": ECCurve.P384,
             }
             crv = _ec_oid_to_curve.get(ec_params)
             logger.debug(
