@@ -8,7 +8,7 @@ BUILDINFO=		$(SOURCE)/kskm/buildinfo.py
 
 TEST_ENV=	SOFTHSM2_CONF=$(SOFTHSM2_CONF) \
 		SOFTHSM2_MODULE=$(SOFTHSM2_MODULE)
-PYTEST_OPTS=	--verbose --pylama --isort --black
+PYTEST_OPTS=	--verbose --pylama --ruff-format
 PYTEST_CACHE=	.pytest_cache
 
 all: $(BUILDINFO)
@@ -31,8 +31,7 @@ coverage: softhsm $(BUILDINFO)
 	poetry run coverage html
 
 reformat:
-	poetry run isort $(SOURCE)
-	poetry run black $(SOURCE)
+	poetry run ruff format $(SOURCE)
 
 typecheck:
 	poetry run mypy --ignore-missing-imports $(SOURCE)

@@ -21,16 +21,14 @@ pyyaml = "^6.0.1"
 pykcs11 = "^1.5.14"
 jinja2 = "^3.1.3"
 cryptography = "^42.0.5"
+ruff = "^0.3.5"
+pytest-ruff = "^0.3.1"
 
 [tool.poetry.group.dev.dependencies]
-black = "^24.3.0"
 pytest = "^8.1.1"
 coverage = "^7.4.4"
-isort = "^5.13.2"
 mypy = "^1.9.0"
 pylama = "^8.4.1"
-pytest-isort = "^4.0.0"
-pytest-black = "^0.3.12"
 dnspython = {extras = ["dnssec"], version = "^2.6.1"}
 setuptools = "^69.2.0"
 
