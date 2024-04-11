@@ -8,7 +8,7 @@ BUILDINFO=		$(SOURCE)/kskm/buildinfo.py
 
 TEST_ENV=	SOFTHSM2_CONF=$(SOFTHSM2_CONF) \
 		SOFTHSM2_MODULE=$(SOFTHSM2_MODULE)
-PYTEST_OPTS=	--verbose --ruff--ruff-format
+PYTEST_OPTS=	--verbose --ruff --ruff-format
 PYTEST_CACHE=	.pytest_cache
 
 all: $(BUILDINFO)

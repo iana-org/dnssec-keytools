@@ -54,7 +54,6 @@ TA_20181219 = TrustAnchor(
 
 
 class Test_TA(unittest.TestCase):
-
     # no idea why mypy complains about this function without the "-> None" and no other tests
     # src/kskm/ta/tests/test_ta.py:54: error: Function is missing a type annotation
     def test_ta(self) -> None:
