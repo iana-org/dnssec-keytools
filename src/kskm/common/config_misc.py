@@ -1,12 +1,13 @@
 """Sub-parts of KSKMConfig (in config.py)."""
+
 from __future__ import annotations
 
 from abc import ABC
+from collections.abc import Iterable, Mapping
 from copy import deepcopy
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from typing import NewType, TypeVar
-from collections.abc import Iterable, Mapping
 
 from kskm.common.data import AlgorithmDNSSEC, SignaturePolicy
 from kskm.common.parse_utils import duration_to_timedelta, parse_datetime
@@ -82,7 +83,9 @@ class RequestPolicy(Policy):
         default_factory=lambda: [2, 1, 1, 1, 1, 1, 1, 1, 2]
     )
     num_different_keys_in_all_bundles: int = 3
-    dns_ttl: int = 0  # if this is 0, the config value ksk_policy.ttl will be used instead
+    dns_ttl: int = (
+        0  # if this is 0, the config value ksk_policy.ttl will be used instead
+    )
     signature_check_expire_horizon: bool = True
     signature_horizon_days: int = 180
     check_bundle_intervals: bool = True

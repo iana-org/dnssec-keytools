@@ -42,17 +42,13 @@ def load_ksr(
     request = request_from_xml_file(filename, xml_bytes)
     try:
         if validate_request(request, policy) is not True:
-            raise RuntimeError(
-                f"Failed validating KSR request in file {filename}"
-            )
+            raise RuntimeError(f"Failed validating KSR request in file {filename}")
     except PolicyViolation as exc:
         if raise_original:
             # This is better in test cases
             raise
         # This is better in regular operations since it adds information about the context
-        raise RuntimeError(
-            f"Failed validating KSR request in file {filename}: {exc}"
-        )
+        raise RuntimeError(f"Failed validating KSR request in file {filename}: {exc}")
     return request
 
 

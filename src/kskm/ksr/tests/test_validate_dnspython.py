@@ -4,6 +4,7 @@ Testcode using a separate implementation of DNSSEC signature validation (dnspyth
 dnspython was used to validate the implementation of signature validation, and also
 to track down a bug with RDATA sorting. Thanks!
 """
+
 import logging
 import os
 from unittest import TestCase
@@ -22,11 +23,11 @@ logger = logging.getLogger(__name__)
 
 class TestDnsPythonValidate_signatures(TestCase):
     def setUp(self):
-        """ Prepare test instance """
+        """Prepare test instance"""
         self.data_dir = pkg_resources.resource_filename(__name__, "data")
 
     def test_keysize_change_dnspython(self):
-        """ Test file where ZSK changed from RSA1024 to RSA2048 using dnspython """
+        """Test file where ZSK changed from RSA1024 to RSA2048 using dnspython"""
         self._test_file(
             "ksr-root-2016-q3-0.xml", "a6b6162e-b299-427e-b11b-1a8c54a08910"
         )
@@ -48,7 +49,7 @@ class TestDnsPythonValidate_signatures(TestCase):
 
 
 def dnspython_validate_bundle(bundle: RequestBundle) -> bool:
-    """ Make sure the sets of signatures and keys in a bundle is consistent """
+    """Make sure the sets of signatures and keys in a bundle is consistent"""
     # To locate keys for signatures, and to make sure all keys are covered by
     # a signature, we make a copy of the keys indexed by key_tag.
     _keys = {}
@@ -65,9 +66,7 @@ def dnspython_validate_bundle(bundle: RequestBundle) -> bool:
 
     for sig in bundle.signatures:
         if sig.key_tag not in _keys:
-            raise ValueError(
-                f"No key with key_tag {sig.key_tag} in bundle {bundle.id}"
-            )
+            raise ValueError(f"No key with key_tag {sig.key_tag} in bundle {bundle.id}")
         _keys.pop(sig.key_tag)
 
         try:

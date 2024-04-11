@@ -1,7 +1,8 @@
 """Functions to display data to humans."""
+
 import logging
-from datetime import datetime, timedelta
 from collections.abc import Sequence
+from datetime import datetime, timedelta
 
 import kskm.common
 from kskm.common.data import Bundle, BundleType

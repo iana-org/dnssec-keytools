@@ -1,7 +1,8 @@
 """The more testable parts of the ksrsigner tool."""
+
 import logging
-from dataclasses import replace
 from collections.abc import Iterable
+from dataclasses import replace
 
 from kskm.common.config import KSKMConfig
 from kskm.common.config_misc import KSKPolicy, Schema
@@ -64,7 +65,9 @@ def _ksk_signature_policy(
             if is_algorithm_rsa(key.algorithm):
                 _pub = decode_rsa_public_key(key.public_key)
                 alg = AlgorithmPolicyRSA(
-                    exponent=_pub.exponent, bits=_pub.bits, algorithm=key.algorithm,
+                    exponent=_pub.exponent,
+                    bits=_pub.bits,
+                    algorithm=key.algorithm,
                 )
                 algorithms.add(alg)
             else:

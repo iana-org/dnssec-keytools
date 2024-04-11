@@ -1,4 +1,5 @@
 """PKCS#11 key interface."""
+
 import logging
 from dataclasses import dataclass, replace
 

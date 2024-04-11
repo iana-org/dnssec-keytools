@@ -175,7 +175,11 @@ def main() -> bool:
         help="Path to the KSR signer configuration file",
     )
     parser.add_argument(
-        "--hsm", dest="hsm", metavar="HSM", type=str, help="HSM to operate on",
+        "--hsm",
+        dest="hsm",
+        metavar="HSM",
+        type=str,
+        help="HSM to operate on",
     )
     parser.add_argument(
         "--debug",

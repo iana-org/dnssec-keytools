@@ -1,9 +1,10 @@
 """Sign request bundles and return response bundles."""
+
 import base64
 import hashlib
 import logging
-from dataclasses import replace
 from collections.abc import Iterable
+from dataclasses import replace
 
 from cryptography.exceptions import InvalidSignature
 

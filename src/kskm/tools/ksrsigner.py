@@ -4,6 +4,7 @@ KSR signer tool.
 Process a KSR received from the ZSK operator and produce an SKR response
 with signatures created using the KSK keys.
 """
+
 import argparse
 import binascii
 import logging.handlers

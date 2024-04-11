@@ -4,6 +4,7 @@ These tests only works if SOFTHSM2_MODULE and SOFTHSM2_CONF is set.
 Set SOFTHSM2_MODULE to the SoftHSM PKCS#11 and SOFTHSM2_CONF to the configuration
 file *with the test keys created using 'make softhsm' in testing/softhsm/ loaded*.
 """
+
 import datetime
 import io
 import os
@@ -64,7 +65,7 @@ FLAGS_ZSK = FlagsDNSKEY.ZONE.value
 
 
 def _get_test_config() -> KSKMConfig:
-    """ Load YAML from file, append the _TEST_CONFIG defined above and parse the result. """
+    """Load YAML from file, append the _TEST_CONFIG defined above and parse the result."""
     softhsm_dir = pkg_resources.resource_filename(
         __name__, "../../../../testing/softhsm"
     )
@@ -88,7 +89,7 @@ class SignWithSoftHSM_Baseclass:
             this.close()
 
     def setup_method(self):
-        """ Provide a baseline of things for each test. """
+        """Provide a baseline of things for each test."""
         # CKA_LABEL for one of the keys loaded into SoftHSM using testing/Makefile
         self.zsk_key_label = "RSA1"
         self.ksk_key_label = "RSA2"
@@ -166,7 +167,7 @@ class SignWithSoftHSM_Baseclass:
 class Test_SignWithSoftHSM_RSA(SignWithSoftHSM_Baseclass):
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_sign_with_softhsm(self) -> None:
-        """ Test signing a key record with SoftHSM and then verifying it """
+        """Test signing a key record with SoftHSM and then verifying it"""
         zsk_keys = {self._p11_to_dnskey(self.ksk_key_label, AlgorithmDNSSEC.RSASHA256)}
         request = self._make_request(zsk_keys=zsk_keys)
         new_bundles = sign_bundles(
@@ -179,7 +180,7 @@ class Test_SignWithSoftHSM_RSA(SignWithSoftHSM_Baseclass):
         validate_signatures(list(new_bundles)[0])
 
     def test_mocked_bad_signature_from_softhsm(self) -> None:
-        """ Test verification of signature made by SoftHSM """
+        """Test verification of signature made by SoftHSM"""
         zsk_keys = {self._p11_to_dnskey(self.ksk_key_label, AlgorithmDNSSEC.RSASHA256)}
         request = self._make_request(zsk_keys=zsk_keys)
         with patch("kskm.signer.sign.sign_using_p11") as mock_obj:
@@ -230,7 +231,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
 
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_ec_sign_with_softhsm(self) -> None:
-        """ Test ECDSA signing a key record with SoftHSM and then verifying it """
+        """Test ECDSA signing a key record with SoftHSM and then verifying it"""
         zsk_keys = {
             self._p11_to_dnskey(self.ksk_key_label, AlgorithmDNSSEC.ECDSAP256SHA256)
         }
@@ -246,7 +247,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
 
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_bundle_signers_are_ignored(self) -> None:
-        """ Test that bundles signers are ignored """
+        """Test that bundles signers are ignored"""
         zsk_keys = {
             self._p11_to_dnskey(self.ksk_key_label, AlgorithmDNSSEC.ECDSAP256SHA256)
         }
@@ -265,7 +266,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
 
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_ec_sign_rsa_zsk(self) -> None:
-        """ Test mismatching algorithms for ZSK and KSK. """
+        """Test mismatching algorithms for ZSK and KSK."""
         zsk_keys = {
             self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)
         }
@@ -281,13 +282,13 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
 
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_ec_key_wrong_algorithm(self) -> None:
-        """ Test loading an EC key with the wrong algorithm. """
+        """Test loading an EC key with the wrong algorithm."""
         with pytest.raises(ValueError):
             self._p11_to_dnskey("EC1", AlgorithmDNSSEC.ECDSAP384SHA384, flags=FLAGS_ZSK)
 
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_ec_sign_prepublish_key(self) -> None:
-        """ Test a schema pre-publishing a third key. """
+        """Test a schema pre-publishing a third key."""
         _PUBLISH_SCHEMA = """---
         schemas:
           test:
@@ -324,7 +325,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
 
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_ec_sign_revoke_key(self) -> None:
-        """ Test a schema revoking one key and signing with another. """
+        """Test a schema revoking one key and signing with another."""
         _REVOKE_SCHEMA = """---
         schemas:
           test:
@@ -392,7 +393,7 @@ class Test_SignWithSoftHSM_DualAlgorithm(SignWithSoftHSM_Baseclass):
 
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_single_zsk_dual_ksk(self) -> None:
-        """ Test algorithm mismatch with one ZSK algorithm and two KSK algorithms. """
+        """Test algorithm mismatch with one ZSK algorithm and two KSK algorithms."""
         zsk_keys = {
             self._p11_to_dnskey("EC1", AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK)
         }
@@ -408,7 +409,7 @@ class Test_SignWithSoftHSM_DualAlgorithm(SignWithSoftHSM_Baseclass):
 
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_ec_sign_prepublish_key(self) -> None:
-        """ Test signing a full dual algorithm request. """
+        """Test signing a full dual algorithm request."""
         zsk_keys = {
             self._p11_to_dnskey(
                 "EC1", AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK
@@ -436,7 +437,7 @@ class Test_SignWithSoftHSM_DualAlgorithm(SignWithSoftHSM_Baseclass):
 @pytest.mark.usefixtures("p11modules")
 class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
     def test_unknown_key(self):
-        """ Test referring to a key that does not exist in the PKCS#11 module (SoftHSM). """
+        """Test referring to a key that does not exist in the PKCS#11 module (SoftHSM)."""
         _BAD_KEYS = """---
         keys:
           ksk_RSA2:
@@ -464,7 +465,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             )
 
     def test_not_yet_valid_key(self):
-        """ Test referring to a key that is not yet valid. """
+        """Test referring to a key that is not yet valid."""
         zsk_keys = {
             self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)
         }
@@ -483,7 +484,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             )
 
     def test_expired_key(self):
-        """ Test referring to a key that has expired the same second. """
+        """Test referring to a key that has expired the same second."""
         _BAD_KEYS = """---
         keys:
           ksk_RSA2:
@@ -515,7 +516,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             )
 
     def test_not_an_RSA_key(self):
-        """ Test referring to a key that is EC instead of the expected RSA. """
+        """Test referring to a key that is EC instead of the expected RSA."""
         _BAD_KEYS = """---
         keys:
           ksk_RSA2:
@@ -543,7 +544,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             )
 
     def test_RSA_key_wrong_size(self):
-        """ Test referring to an RSA key that has incorrect size in the config. """
+        """Test referring to an RSA key that has incorrect size in the config."""
         _BAD_KEYS = """---
         keys:
           ksk_RSA2:
@@ -571,7 +572,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             )
 
     def test_RSA_key_wrong_exponent(self):
-        """ Test referring to an RSA key that has incorrect exponent in the config. """
+        """Test referring to an RSA key that has incorrect exponent in the config."""
         _BAD_KEYS = """---
         keys:
           ksk_RSA2:
@@ -599,7 +600,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             )
 
     def test_not_an_EC_key(self):
-        """ Test referring to a key that is RSA instead of the expected EC. """
+        """Test referring to a key that is RSA instead of the expected EC."""
         _BAD_KEYS = """---
         keys:
           ksk_RSA2:
@@ -661,7 +662,7 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
 
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_chain_keys_not_found_in_hsm(self) -> None:
-        """ Test KSR-CHAIN-KEYS with real KSR/SKR, signed with key not found in this HSM. """
+        """Test KSR-CHAIN-KEYS with real KSR/SKR, signed with key not found in this HSM."""
         with pytest.raises(
             KSR_CHAIN_KEYS_Violation, match="Key Kjqmt7v not found"
         ) as exc:
@@ -671,7 +672,7 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
 
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_check_chain_config(self) -> None:
-        """ Test KSR-CHAIN-KEYS configuration. """
+        """Test KSR-CHAIN-KEYS configuration."""
         policy = replace(
             self.policy,
             check_chain_keys=False,
@@ -683,7 +684,7 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
 
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_chain_keys_found_but_different(self) -> None:
-        """ Test KSR-CHAIN-KEYS with real KSR/SKR, signed with key found in this HSM, but wrong. """
+        """Test KSR-CHAIN-KEYS with real KSR/SKR, signed with key found in this HSM, but wrong."""
         ksr = request_from_xml(self.ksr_xml.replace("Kjqmt7v", self.ksk_key_label))
         last_skr = response_from_xml(
             self.last_skr_xml.replace("Kjqmt7v", self.ksk_key_label)
@@ -696,7 +697,7 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
 
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_last_key_set_mismatch(self) -> None:
-        """ Test KSR-CHAIN-KEYS with real KSR/SKR, but not matching keys between last/first. """
+        """Test KSR-CHAIN-KEYS with real KSR/SKR, but not matching keys between last/first."""
         last_skr = response_from_xml(self.last_skr_xml)
         last_bundle = last_skr.bundles[-1]
         _updated_keys = {
@@ -719,7 +720,7 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
 
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_last_bundle_without_signatures(self) -> None:
-        """ Test KSR-CHAIN-KEYS with real KSR/SKR, but no signatures in last_skr last bundle. """
+        """Test KSR-CHAIN-KEYS with real KSR/SKR, but no signatures in last_skr last bundle."""
         last_skr = response_from_xml(self.last_skr_xml)
         last_bundle = replace(
             last_skr.bundles[-1], signatures=set()
@@ -737,7 +738,7 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
 
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_sign_ksr_with_valid_last_skr(self) -> None:
-        """ Test KSR-CHAIN-KEYS with real KSR/SKR, signing a KSR with a valid last SKR. """
+        """Test KSR-CHAIN-KEYS with real KSR/SKR, signing a KSR with a valid last SKR."""
         zsk_keys = {
             self._p11_to_dnskey(
                 self.zsk_key_label,

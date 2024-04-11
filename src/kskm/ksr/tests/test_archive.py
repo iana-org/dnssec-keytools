@@ -27,7 +27,7 @@ def archive_dir(extra=None):
 
 class TestParseRealKSRs(unittest.TestCase):
     def setUp(self):
-        """ Prepare test instance """
+        """Prepare test instance"""
         self.data_dir = pkg_resources.resource_filename(__name__, "data")
 
     @unittest.skipUnless(archive_dir("ksr"), "KSKM_KSR_ARCHIVE_PATH not set or invalid")

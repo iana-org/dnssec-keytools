@@ -10,11 +10,11 @@ from kskm.skr.validate import validate_response
 
 class TestParseRealSKRs(unittest.TestCase):
     def setUp(self):
-        """ Prepare test instance """
+        """Prepare test instance"""
         self.data_dir = pkg_resources.resource_filename(__name__, "data")
 
     def test_recreate_2018_q1_0(self):
-        """ Test a parse->output->parse cycle with skr-root-2018-q1-0-d_to_e.xml """
+        """Test a parse->output->parse cycle with skr-root-2018-q1-0-d_to_e.xml"""
         fn = os.path.join(self.data_dir, "skr-root-2018-q1-0-d_to_e.xml")
         config = get_config(filename=None)
         policy = config.response_policy

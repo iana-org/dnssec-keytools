@@ -1,4 +1,5 @@
 """Parse utilities common to both KSRs and SKRs."""
+
 import logging
 import re
 from datetime import datetime, timedelta, timezone
@@ -52,9 +53,7 @@ def signers_from_list(signers: list[dict]) -> set[Signer] | None:
     """
     if not signers:
         return None
-    return {
-        Signer(key_identifier=this["attrs"]["keyIdentifier"]) for this in signers
-    }
+    return {Signer(key_identifier=this["attrs"]["keyIdentifier"]) for this in signers}
 
 
 def _parse_signature_algorithms(algorithms: dict) -> set[AlgorithmPolicy]:
@@ -138,9 +137,7 @@ def parse_datetime(date: str) -> datetime:
         date = date[:-1]
     dt = datetime.fromisoformat(date)
     if dt.tzinfo and dt.tzinfo is not timezone.utc:
-        raise ValueError(
-            f"Timestamps MUST be UTC (not {dt.tzinfo} as in {date})"
-        )
+        raise ValueError(f"Timestamps MUST be UTC (not {dt.tzinfo} as in {date})")
     return dt.replace(tzinfo=timezone.utc)
 
 
@@ -163,16 +160,16 @@ def keys_from_dict(keys: dict | list) -> set[Key]:
 
 def _keys_from_list(keys: list[dict]) -> set[Key]:
     return {
-            Key(
-                key_identifier=key["attrs"].get("keyIdentifier"),
-                key_tag=int(key["attrs"]["keyTag"]),
-                ttl=int(key["value"]["TTL"]),
-                flags=int(key["value"]["Flags"]),
-                protocol=int(key["value"]["Protocol"]),
-                algorithm=AlgorithmDNSSEC(int(key["value"]["Algorithm"])),
-                public_key=bytes(key["value"]["PublicKey"], "utf-8"),
-            )
-            for key in keys
+        Key(
+            key_identifier=key["attrs"].get("keyIdentifier"),
+            key_tag=int(key["attrs"]["keyTag"]),
+            ttl=int(key["value"]["TTL"]),
+            flags=int(key["value"]["Flags"]),
+            protocol=int(key["value"]["Protocol"]),
+            algorithm=AlgorithmDNSSEC(int(key["value"]["Algorithm"])),
+            public_key=bytes(key["value"]["PublicKey"], "utf-8"),
+        )
+        for key in keys
     }
 
 
@@ -201,22 +198,20 @@ def signature_from_dict(signatures: dict) -> set[Signature]:
 
 def _signature_from_list(signatures: list[dict]) -> set[Signature]:
     return {
-            Signature(
-                key_identifier=sig["attrs"].get("keyIdentifier"),
-                ttl=int(sig["value"]["TTL"]),
-                type_covered=TypeDNSSEC[sig["value"]["TypeCovered"]],
-                algorithm=AlgorithmDNSSEC(int(sig["value"]["Algorithm"])),
-                labels=int(sig["value"]["Labels"]),
-                original_ttl=int(sig["value"]["OriginalTTL"]),
-                signature_expiration=parse_datetime(
-                    sig["value"]["SignatureExpiration"]
-                ),
-                signature_inception=parse_datetime(sig["value"]["SignatureInception"]),
-                key_tag=int(sig["value"]["KeyTag"]),
-                signers_name=sig["value"]["SignersName"],
-                signature_data=bytes(sig["value"]["SignatureData"], "utf-8"),
-            )
-            for sig in signatures
+        Signature(
+            key_identifier=sig["attrs"].get("keyIdentifier"),
+            ttl=int(sig["value"]["TTL"]),
+            type_covered=TypeDNSSEC[sig["value"]["TypeCovered"]],
+            algorithm=AlgorithmDNSSEC(int(sig["value"]["Algorithm"])),
+            labels=int(sig["value"]["Labels"]),
+            original_ttl=int(sig["value"]["OriginalTTL"]),
+            signature_expiration=parse_datetime(sig["value"]["SignatureExpiration"]),
+            signature_inception=parse_datetime(sig["value"]["SignatureInception"]),
+            key_tag=int(sig["value"]["KeyTag"]),
+            signers_name=sig["value"]["SignersName"],
+            signature_data=bytes(sig["value"]["SignatureData"], "utf-8"),
+        )
+        for sig in signatures
     }
 
 

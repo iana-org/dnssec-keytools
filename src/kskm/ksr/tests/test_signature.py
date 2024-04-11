@@ -10,11 +10,11 @@ from kskm.ksr import request_from_xml
 
 class TestBundle_to_hashdigest(TestCase):
     def setUp(self):
-        """ Prepare test instance """
+        """Prepare test instance"""
         self.data_dir = pkg_resources.resource_filename(__name__, "data")
 
     def test_bundle_to_hashdigest(self):
-        """ Test hash computation of a single well-known bundle """
+        """Test hash computation of a single well-known bundle"""
         fn = "ksr-root-2009-q4-2.xml"
         fn = os.path.join(self.data_dir, fn)
         with open(fn) as fd:

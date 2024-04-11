@@ -104,7 +104,12 @@ def make_raw_rrsig(sig: Signature, keys: set[Key]) -> bytes:
     res += _dn2wire(sig.signers_name)
 
     prefix = _dn2wire(sig.signers_name)
-    prefix += struct.pack("!HHI", sig.type_covered.value, _CLASS_IN, sig.original_ttl,)
+    prefix += struct.pack(
+        "!HHI",
+        sig.type_covered.value,
+        _CLASS_IN,
+        sig.original_ttl,
+    )
 
     # Construct a list of all the keys in wire format, so that we can sort them.
     # How this should be done is described in RFC4034 (6.3).

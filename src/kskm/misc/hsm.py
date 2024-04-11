@@ -1,20 +1,18 @@
 """Hardware Security Module interface functions."""
+
 from __future__ import annotations
 
 import binascii
 import logging
 import os
 import re
+from collections.abc import Iterator, Mapping, MutableMapping
 from copy import copy
 from dataclasses import dataclass, field
 from enum import Enum
 from getpass import getpass
 from hashlib import sha1, sha256, sha384, sha512
-from typing import (
-    Any,
-    NewType,
-)
-from collections.abc import Iterator, Mapping, MutableMapping
+from typing import Any, NewType
 
 import PyKCS11
 from PyKCS11.LowLevel import CKF_RW_SESSION, CKU_SO, CKU_USER
@@ -229,9 +227,7 @@ class KSKM_P11Module:
 
         return self._sessions
 
-    def find_key_by_label(
-        self, label: str, key_class: KeyClass
-    ) -> KSKM_P11Key | None:
+    def find_key_by_label(self, label: str, key_class: KeyClass) -> KSKM_P11Key | None:
         """Query the PKCS#11 module for a key with CKA_LABEL matching 'label'."""
         _slots: list = []
         for _slot, _session in self.sessions.items():
@@ -292,12 +288,12 @@ class KSKM_P11Module:
                     key_type=KeyType(_cka_type),
                     key_class=KeyClass(key_class),
                     public_key=self._p11_object_to_public_key(session, this),
-                    privkey_handle=this
-                    if key_class == PyKCS11.LowLevel.CKO_PRIVATE_KEY
-                    else None,
-                    pubkey_handle=this
-                    if key_class == PyKCS11.LowLevel.CKO_PUBLIC_KEY
-                    else None,
+                    privkey_handle=(
+                        this if key_class == PyKCS11.LowLevel.CKO_PRIVATE_KEY else None
+                    ),
+                    pubkey_handle=(
+                        this if key_class == PyKCS11.LowLevel.CKO_PUBLIC_KEY else None
+                    ),
                     session=session,
                 )
                 res += [key]
@@ -512,9 +508,7 @@ def load_hsmconfig(
     with open(filename) as config_fd:
         res = parse_hsmconfig(config_fd, filename, defaults, max_lines)
     if "PKCS11_LIBRARY_PATH" not in res:
-        raise RuntimeError(
-            f"PKCS11_LIBRARY_PATH not set in HSM config {filename}"
-        )
+        raise RuntimeError(f"PKCS11_LIBRARY_PATH not set in HSM config {filename}")
     return res
 
 
@@ -544,9 +538,7 @@ def parse_hsmconfig(
         try:
             separator_idx = line.index("=")
         except ValueError:
-            raise ValueError(
-                f"Badly formed line {line!r} in HSM config {src}"
-            )
+            raise ValueError(f"Badly formed line {line!r} in HSM config {src}")
         lhs = line[:separator_idx]
         rhs = line[separator_idx + 1 :]
 
@@ -573,9 +565,7 @@ def parse_hsmconfig(
     return res
 
 
-def get_p11_key(
-    label: str, p11modules: KSKM_P11, public: bool
-) -> KSKM_P11Key | None:
+def get_p11_key(label: str, p11modules: KSKM_P11, public: bool) -> KSKM_P11Key | None:
     """
     Look for a key with CKA_LABEL matching 'label'.
 

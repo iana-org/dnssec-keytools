@@ -1,4 +1,5 @@
 """Code to create KeyDigest instances."""
+
 import binascii
 import logging
 from hashlib import sha256

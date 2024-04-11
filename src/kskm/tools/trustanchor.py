@@ -9,6 +9,7 @@ for each key in the ksr signer configuration file:
   - create keydigest using kskm.ta.data.KeyDigest
 export kskm.ta.data.TrustAnchor to file
 """
+
 import argparse
 import logging
 import os
@@ -72,7 +73,11 @@ def parse_args(defaults: dict) -> ArgsType:
         help="Path to write trust anchor XML to",
     )
     parser.add_argument(
-        "--id", dest="id", metavar="ID", type=str, help="Trust anchor identifier",
+        "--id",
+        dest="id",
+        metavar="ID",
+        type=str,
+        help="Trust anchor identifier",
     )
     parser.add_argument(
         "--hsm",
@@ -87,9 +92,7 @@ def parse_args(defaults: dict) -> ArgsType:
     return args
 
 
-def _trustanchor_filename(
-    args: ArgsType | None, config: KSKMConfig
-) -> str | None:
+def _trustanchor_filename(args: ArgsType | None, config: KSKMConfig) -> str | None:
     if args and args.trustanchor:
         return str(args.trustanchor)
     return config.get_filename("output_trustanchor")
@@ -112,7 +115,9 @@ def output_trustanchor_xml(
 
 
 def trustanchor(
-    logger: logging.Logger, args: ArgsType, config: KSKMConfig | None = None,
+    logger: logging.Logger,
+    args: ArgsType,
+    config: KSKMConfig | None = None,
 ) -> bool:
     """Main entry point for generating trust anchors and writing them (as XML) to a file."""
     #

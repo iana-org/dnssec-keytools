@@ -6,7 +6,6 @@ digest and PGP wordlist. Also able to process one or more files specified on
 the command line.
 """
 
-
 import argparse
 import hashlib
 import sys

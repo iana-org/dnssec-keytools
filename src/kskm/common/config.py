@@ -1,10 +1,11 @@
 """Load and parse configuration."""
+
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from dataclasses import replace
 from typing import IO, cast
-from collections.abc import Mapping
 
 import voluptuous.error
 import voluptuous.humanize

@@ -1,4 +1,5 @@
 """Code to validate daisy-chain properties between KSR(n) and SKR(n-1)."""
+
 import logging
 
 from kskm.common.config_misc import RequestPolicy

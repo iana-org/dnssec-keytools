@@ -1,4 +1,5 @@
 """Various functions relating to the ECDSA algorithm."""
+
 import base64
 from dataclasses import dataclass, field
 from enum import Enum
@@ -60,7 +61,10 @@ def parse_signature_policy_ecdsa(data: dict) -> AlgorithmPolicyECDSA:
     """
     attr_alg = AlgorithmDNSSEC(int(data["attrs"]["algorithm"]))
     attrs = data["value"]["ECDSA"]["attrs"]
-    ecdsa = AlgorithmPolicyECDSA(algorithm=attr_alg, bits=int(attrs["size"]),)
+    ecdsa = AlgorithmPolicyECDSA(
+        algorithm=attr_alg,
+        bits=int(attrs["size"]),
+    )
     return ecdsa
 
 
