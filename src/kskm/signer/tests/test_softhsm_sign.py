@@ -663,9 +663,7 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_chain_keys_not_found_in_hsm(self) -> None:
         """Test KSR-CHAIN-KEYS with real KSR/SKR, signed with key not found in this HSM."""
-        with pytest.raises(
-            KSR_CHAIN_KEYS_Violation, match="Key Kjqmt7v not found"
-        ) as exc:
+        with pytest.raises(KSR_CHAIN_KEYS_Violation, match="Key Kjqmt7v not found"):
             check_skr_and_ksr(
                 self.ksr, self.last_skr, self.policy, p11modules=self.p11modules
             )

@@ -60,7 +60,7 @@ class Test_Requests(unittest.TestCase):
         return xml.strip()
 
     def _make_signature_algorithm(self) -> str:
-        xml = f"""
+        xml = """
             <SignatureAlgorithm algorithm="8">
               <RSA size="1024" exponent="65537"/>
             </SignatureAlgorithm>

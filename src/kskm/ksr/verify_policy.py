@@ -115,7 +115,7 @@ def check_keys_in_bundles(
             )
 
     logger.info(
-        f"KSR-POLICY-KEYS: Validated number of keys per bundle, and for all bundles"
+        "KSR-POLICY-KEYS: Validated number of keys per bundle, and for all bundles"
     )
 
 
@@ -339,7 +339,7 @@ def check_bundle_overlaps(
                 )
             )
     logger.info(
-        f"KSR-POLICY-SIG-OVERLAP: All bundles overlap in accordance with the stated ZSK operator policy"
+        "KSR-POLICY-SIG-OVERLAP: All bundles overlap in accordance with the stated ZSK operator policy"
     )
 
 
@@ -392,5 +392,5 @@ def check_bundle_intervals(
             )
 
     logger.info(
-        f"KSR-POLICY-BUNDLE-INTERVALS: All bundles intervals in accordance with the KSK operator policy"
+        "KSR-POLICY-BUNDLE-INTERVALS: All bundles intervals in accordance with the KSK operator policy"
     )
