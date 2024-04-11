@@ -19,14 +19,14 @@ jobs:
         id: full-python-version
         run: |
           echo version=$(python -c "import sys, platform; print('.'.join(str(v) for v in sys.version_info[:3]) + '_' + platform.machine())") >> $GITHUB_OUTPUT
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y swig softhsm2
       - name: Install and set up Poetry
         run: |
           pip install poetry
           poetry config virtualenvs.create true --local
           poetry config virtualenvs.in-project true --local          
-      - name: Install dependencies
-        run: |
-          apt-get install -y swig softhsm2
       - name: Set up cache
         uses: actions/cache@v4
         with:
