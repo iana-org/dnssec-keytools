@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import replace
-from typing import IO, Dict, Optional, Type, cast
+from typing import IO, cast
 from collections.abc import Mapping
 
 import voluptuous.error

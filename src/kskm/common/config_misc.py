@@ -5,7 +5,7 @@ from abc import ABC
 from copy import deepcopy
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import List, NewType, Optional, Type, TypeVar, Union
+from typing import NewType, TypeVar
 from collections.abc import Iterable, Mapping
 
 from kskm.common.data import AlgorithmDNSSEC, SignaturePolicy

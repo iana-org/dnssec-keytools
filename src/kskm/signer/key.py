@@ -1,7 +1,6 @@
 """PKCS#11 key interface."""
 import logging
 from dataclasses import dataclass, replace
-from typing import Optional
 
 from kskm.common.config_misc import KSKKey, KSKPolicy
 from kskm.common.data import FlagsDNSKEY, Key

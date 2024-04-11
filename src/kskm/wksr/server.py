@@ -10,7 +10,6 @@ import smtplib
 import ssl
 from datetime import datetime
 from email.message import EmailMessage
-from typing import Dict, Optional, Set, Tuple
 
 import jinja2
 from flask import Flask, render_template, request

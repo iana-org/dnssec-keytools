@@ -10,7 +10,6 @@ import logging.handlers
 import os
 import sys
 from argparse import Namespace as ArgsType
-from typing import Optional
 
 import kskm.common
 import kskm.ksr

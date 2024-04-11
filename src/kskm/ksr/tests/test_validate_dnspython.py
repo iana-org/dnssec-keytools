@@ -6,7 +6,6 @@ to track down a bug with RDATA sorting. Thanks!
 """
 import logging
 import os
-from typing import Set
 from unittest import TestCase
 
 import dns

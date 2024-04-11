@@ -3,7 +3,6 @@
 from abc import ABC
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List, Optional
 
 from kskm.common.data import Bundle, SignaturePolicy
 

@@ -19,7 +19,6 @@ import logging
 import os
 import sys
 from datetime import datetime
-from typing import List
 
 from PyKCS11 import PyKCS11Error
 

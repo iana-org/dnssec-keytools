@@ -1,7 +1,6 @@
 """Controls to verify KSR policy parameters."""
 from datetime import datetime, timedelta, timezone
 from logging import Logger
-from typing import Optional
 
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import (

@@ -4,7 +4,7 @@ import base64
 import logging
 import math
 import time
-from typing import Any, List, Optional, Tuple
+from typing import Any
 
 from PyKCS11.LowLevel import (
     CK_FALSE,

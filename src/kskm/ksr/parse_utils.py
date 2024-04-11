@@ -7,7 +7,6 @@ module know how to interpret parts of that dict and turn it into the
 dataclasses from kskm.ksr.data.
 """
 import logging
-from typing import List
 
 from kskm.common.parse_utils import (
     keys_from_dict,

@@ -2,7 +2,6 @@
 import logging
 import re
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional, Set, Union
 
 from kskm.common.data import (
     AlgorithmDNSSEC,

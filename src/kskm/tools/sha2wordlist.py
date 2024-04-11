@@ -10,7 +10,6 @@ the command line.
 import argparse
 import hashlib
 import sys
-from typing import Optional
 
 from kskm.common.wordlist import pgp_wordlist
 from kskm.version import __verbose_version__

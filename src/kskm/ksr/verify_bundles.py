@@ -1,7 +1,6 @@
 """Controls to verify KSR bundles."""
 from base64 import b64decode
 from logging import Logger
-from typing import Dict, Optional
 
 from cryptography.exceptions import InvalidSignature
 

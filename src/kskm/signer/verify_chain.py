@@ -1,6 +1,5 @@
 """Code to validate daisy-chain properties between KSR(n) and SKR(n-1)."""
 import logging
-from typing import Optional
 
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import FlagsDNSKEY

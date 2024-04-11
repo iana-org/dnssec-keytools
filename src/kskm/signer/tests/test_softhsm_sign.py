@@ -9,7 +9,6 @@ import io
 import os
 import unittest
 from dataclasses import replace
-from typing import Set
 from unittest.mock import patch
 
 import pkg_resources

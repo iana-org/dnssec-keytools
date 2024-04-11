@@ -1,7 +1,7 @@
 """Code using the Cryptography library."""
 
 import logging
-from typing import Optional, Union
+from typing import Union
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric import ec, rsa

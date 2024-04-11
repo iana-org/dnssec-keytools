@@ -1,7 +1,6 @@
 """Functions to display data to humans."""
 import logging
 from datetime import datetime, timedelta
-from typing import List, Union
 from collections.abc import Sequence
 
 import kskm.common

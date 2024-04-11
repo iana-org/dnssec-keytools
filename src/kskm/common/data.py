@@ -5,7 +5,7 @@ from base64 import b64decode
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Optional, Set, TypeVar
+from typing import TypeVar
 
 # Type definitions to refer to the ABC types declared below
 

@@ -5,7 +5,6 @@ import binascii
 import logging
 import struct
 from hashlib import sha256
-from typing import Dict, List, Set
 
 from kskm.common.data import Bundle, Key, Signature
 from kskm.common.dnssec import key_to_rdata

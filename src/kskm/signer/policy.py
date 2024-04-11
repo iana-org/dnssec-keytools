@@ -1,6 +1,5 @@
 """Combined policy checks for last SKR+KSR."""
 import logging
-from typing import Optional
 
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.display import fmt_timedelta, format_bundles_for_humans

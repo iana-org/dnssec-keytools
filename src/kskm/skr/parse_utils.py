@@ -1,6 +1,4 @@
 """Utility functions used in parsing SKRs."""
-from typing import List
-
 from kskm.common.parse_utils import keys_from_dict, parse_datetime, signature_from_dict
 from kskm.skr.data import ResponseBundle
 

@@ -12,7 +12,6 @@ NOT XML compliance. We just need to parse KSRs good enough.
 import logging
 import re
 from dataclasses import dataclass
-from typing import Dict, Optional, Tuple, Union
 
 __author__ = "ft"
 

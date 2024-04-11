@@ -4,7 +4,6 @@ from binascii import hexlify
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Optional, Set
 
 from kskm.common.data import AlgorithmDNSSEC
 

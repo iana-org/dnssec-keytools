@@ -2,7 +2,6 @@
 
 import binascii
 import hashlib
-from typing import List, Tuple
 
 from kskm.common.wordlist import pgp_wordlist
 

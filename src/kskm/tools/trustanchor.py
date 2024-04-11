@@ -15,7 +15,6 @@ import os
 import sys
 import uuid
 from argparse import Namespace as ArgsType
-from typing import Optional
 
 import kskm
 from kskm.common.config import KSKMConfig, get_config

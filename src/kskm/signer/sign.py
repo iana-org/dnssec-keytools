@@ -3,7 +3,6 @@ import base64
 import hashlib
 import logging
 from dataclasses import replace
-from typing import Dict, List, Optional
 from collections.abc import Iterable
 
 from cryptography.exceptions import InvalidSignature

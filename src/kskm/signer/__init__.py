@@ -1,7 +1,6 @@
 """The more testable parts of the ksrsigner tool."""
 import logging
 from dataclasses import replace
-from typing import Optional, Set
 from collections.abc import Iterable
 
 from kskm.common.config import KSKMConfig
