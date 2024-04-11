@@ -21,7 +21,7 @@ softhsm:
 	(cd testing/softhsm; make SOFTHSM_CONF=$(SOFTHSM2_CONF) all)
 
 test: softhsm $(BUILDINFO)
-	env $(TEST_ENV) poetry run pytest $(PYTEST_OPTS) $(SOURCE)
+	env $(TEST_ENV) poetry run python -m pytest $(PYTEST_OPTS) $(SOURCE)
 
 container:
 	docker build --tag wksr .
