@@ -9,13 +9,13 @@ for each key in the ksr signer configuration file:
   - create keydigest using kskm.ta.data.KeyDigest
 export kskm.ta.data.TrustAnchor to file
 """
+
 import argparse
 import logging
 import os
 import sys
 import uuid
 from argparse import Namespace as ArgsType
-from typing import Optional
 
 import kskm
 from kskm.common.config import KSKMConfig, get_config
@@ -73,7 +73,11 @@ def parse_args(defaults: dict) -> ArgsType:
         help="Path to write trust anchor XML to",
     )
     parser.add_argument(
-        "--id", dest="id", metavar="ID", type=str, help="Trust anchor identifier",
+        "--id",
+        dest="id",
+        metavar="ID",
+        type=str,
+        help="Trust anchor identifier",
     )
     parser.add_argument(
         "--hsm",
@@ -88,16 +92,14 @@ def parse_args(defaults: dict) -> ArgsType:
     return args
 
 
-def _trustanchor_filename(
-    args: Optional[ArgsType], config: KSKMConfig
-) -> Optional[str]:
+def _trustanchor_filename(args: ArgsType | None, config: KSKMConfig) -> str | None:
     if args and args.trustanchor:
         return str(args.trustanchor)
     return config.get_filename("output_trustanchor")
 
 
 def output_trustanchor_xml(
-    ta: TrustAnchor, output_filename: Optional[str], logger: logging.Logger
+    ta: TrustAnchor, output_filename: str | None, logger: logging.Logger
 ) -> None:
     """Return trust anchor as XML."""
     xml = ta.to_xml_doc()
@@ -113,7 +115,9 @@ def output_trustanchor_xml(
 
 
 def trustanchor(
-    logger: logging.Logger, args: ArgsType, config: Optional[KSKMConfig] = None,
+    logger: logging.Logger,
+    args: ArgsType,
+    config: KSKMConfig | None = None,
 ) -> bool:
     """Main entry point for generating trust anchors and writing them (as XML) to a file."""
     #

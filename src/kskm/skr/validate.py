@@ -1,4 +1,5 @@
 """Functions to validate SKRs."""
+
 import logging
 
 from kskm.common.config_misc import ResponsePolicy

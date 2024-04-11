@@ -12,13 +12,13 @@ from kskm.ksr import load_ksr, request_from_xml
 
 class TestParseRealKSRs(unittest.TestCase):
     def setUp(self):
-        """ Prepare test instance """
+        """Prepare test instance"""
         self.data_dir = pkg_resources.resource_filename(__name__, "data")
 
     def test_parse_ksr_root_2009_q4_2(self):
-        """ Test parsing ksr-root-2009-q4-2.xml """
+        """Test parsing ksr-root-2009-q4-2.xml"""
         fn = os.path.join(self.data_dir, "ksr-root-2009-q4-2.xml")
-        with open(fn, "r") as fd:
+        with open(fn) as fd:
             xml = fd.read()
         ksr = request_from_xml(xml)
         self.assertEqual("acaf327e-65ff-448a-8a7c-519698b659ff", ksr.id)
@@ -42,9 +42,9 @@ class TestParseRealKSRs(unittest.TestCase):
         self.assertEqual(expected_ids, bundle_ids)
 
     def test_parse_ksr_root_2010_q1_0(self):
-        """ Test parsing ksr-root-2010-q1-0.xml """
+        """Test parsing ksr-root-2010-q1-0.xml"""
         fn = os.path.join(self.data_dir, "ksr-root-2010-q1-0.xml")
-        with open(fn, "r") as fd:
+        with open(fn) as fd:
             xml = fd.read()
         ksr = request_from_xml(xml)
         self.assertEqual("ba050f09-e208-4a32-bad2-91de3f2c2a12", ksr.id)
@@ -71,7 +71,7 @@ class TestParseRealKSRs(unittest.TestCase):
         self.assertEqual(expected_ids, bundle_ids)
 
     def test_parse_ksr_root_2010_q2_0(self):
-        """ Test parsing ksr-root-2010-q2-0.xml """
+        """Test parsing ksr-root-2010-q2-0.xml"""
         fn = os.path.join(self.data_dir, "ksr-root-2010-q2-0.xml")
         policy = RequestPolicy(
             rsa_exponent_match_zsk_policy=False,
@@ -106,7 +106,7 @@ class TestParseRealKSRs(unittest.TestCase):
         self.assertEqual(expected_ids, bundle_ids)
 
     def test_parse_ksr_root_2010_q2_0_verify_fails(self):
-        """ Test parsing ksr-root-2010-q2-0.xml """
+        """Test parsing ksr-root-2010-q2-0.xml"""
         fn = os.path.join(self.data_dir, "ksr-root-2010-q2-0.xml")
         # This policy actually works for this file
         policy = RequestPolicy(
@@ -146,7 +146,7 @@ class TestParseRealKSRs(unittest.TestCase):
             )
 
     def test_load_ksr_2016(self):
-        """ Test complete load and validate 2016 """
+        """Test complete load and validate 2016"""
         # Exception: Failed validating KSR request in file ksr-root-2016-q3-0.xml:
         #            Key 3028312630240603550403131d566572695369676e20444e5353656320526f6f74205a534b20312d3237
         #            in bundle df64b6da-c1c7-49df-9958-bef478c095d4 is RSA-1024, but ZSK SignaturePolicy says 2048
@@ -173,7 +173,7 @@ class TestParseRealKSRs(unittest.TestCase):
         self.assertEqual("2dc3b3f3-2db2-4074-a5c9-535dcfc04f63", ksr.id)
 
     def test_load_ksr_2018(self):
-        """ Test complete load and validate 2018 """
+        """Test complete load and validate 2018"""
         # Exception: Failed validating KSR request in file icann-ksr-archive/ksr/ksr-root-2010-q3-2.xml:
         #            Bundle signature expire in the past
         _signature_check_expire_horizon = False

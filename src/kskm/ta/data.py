@@ -4,7 +4,6 @@ from binascii import hexlify
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Optional, Set
 
 from kskm.common.data import AlgorithmDNSSEC
 
@@ -26,7 +25,7 @@ class KeyDigest:
     digest_type: DigestDNSSEC
     digest: bytes
     valid_from: datetime
-    valid_until: Optional[datetime] = None
+    valid_until: datetime | None = None
 
     @classmethod
     def format_datetime(cls, dt: datetime) -> str:
@@ -59,7 +58,7 @@ class TrustAnchor:
     id: str
     source: str
     zone: str
-    keydigests: Set[KeyDigest]
+    keydigests: set[KeyDigest]
 
     def to_xml_doc(self) -> str:
         """Export trust anchor as XML document."""

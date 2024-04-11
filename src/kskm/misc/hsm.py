@@ -1,26 +1,18 @@
 """Hardware Security Module interface functions."""
+
 from __future__ import annotations
 
 import binascii
 import logging
 import os
 import re
+from collections.abc import Iterator, Mapping, MutableMapping
 from copy import copy
 from dataclasses import dataclass, field
 from enum import Enum
 from getpass import getpass
 from hashlib import sha1, sha256, sha384, sha512
-from typing import (
-    Any,
-    Dict,
-    Iterator,
-    List,
-    Mapping,
-    MutableMapping,
-    NewType,
-    Optional,
-    Tuple,
-)
+from typing import Any, NewType
 
 import PyKCS11
 from PyKCS11.LowLevel import CKF_RW_SESSION, CKU_SO, CKU_USER
@@ -58,10 +50,10 @@ class KeyInfo:
     """Inventory information about a key found in a slot."""
 
     key_class: KeyClass
-    key_id: Tuple[int]
+    key_id: tuple[int]
     label: str
-    p11key: Optional[KSKM_P11Key] = field(repr=False, default=None)
-    pubkey: Optional[KSKM_PublicKey] = field(repr=False, default=None)
+    p11key: KSKM_P11Key | None = field(repr=False, default=None)
+    pubkey: KSKM_PublicKey | None = field(repr=False, default=None)
 
 
 @dataclass
@@ -71,12 +63,12 @@ class KSKM_P11Key:
     label: str  # for debugging
     key_type: KeyType
     key_class: KeyClass
-    public_key: Optional[KSKM_PublicKey]
+    public_key: KSKM_PublicKey | None
     session: Any = field(repr=False)  # PyKCS11 opaque data
-    privkey_handle: Optional[List[PyKCS11.CK_OBJECT_HANDLE]] = field(
+    privkey_handle: list[PyKCS11.CK_OBJECT_HANDLE] | None = field(
         repr=False, default=None
     )  # PyKCS11 opaque data
-    pubkey_handle: Optional[List[PyKCS11.CK_OBJECT_HANDLE]] = field(
+    pubkey_handle: list[PyKCS11.CK_OBJECT_HANDLE] | None = field(
         repr=False, default=None
     )  # PyKCS11 opaque data
 
@@ -94,12 +86,12 @@ class KSKM_P11Module:
     def __init__(
         self,
         module: str,
-        label: Optional[str] = None,
-        pin: Optional[str] = None,
-        so_pin: Optional[str] = None,
+        label: str | None = None,
+        pin: str | None = None,
+        so_pin: str | None = None,
         so_login: bool = False,
         rw_session: bool = False,
-        env: Optional[Dict[str, str]] = None,
+        env: dict[str, str] | None = None,
     ):
         """
         Load and initialise a PKCS#11 module.
@@ -159,9 +151,9 @@ class KSKM_P11Module:
             self.so_pin = str(pin)
 
         # Mapping from slot number to session
-        self._sessions: Dict[int, Any] = {}
+        self._sessions: dict[int, Any] = {}
 
-        self._slots: List[int] = self._lib.getSlotList(tokenPresent=True)
+        self._slots: list[int] = self._lib.getSlotList(tokenPresent=True)
 
         self.show_information()
 
@@ -192,7 +184,7 @@ class KSKM_P11Module:
         self._sessions = {}
 
     @property
-    def slots(self) -> List[int]:
+    def slots(self) -> list[int]:
         """Return all slots."""
         return self._slots
 
@@ -235,9 +227,7 @@ class KSKM_P11Module:
 
         return self._sessions
 
-    def find_key_by_label(
-        self, label: str, key_class: KeyClass
-    ) -> Optional[KSKM_P11Key]:
+    def find_key_by_label(self, label: str, key_class: KeyClass) -> KSKM_P11Key | None:
         """Query the PKCS#11 module for a key with CKA_LABEL matching 'label'."""
         _slots: list = []
         for _slot, _session in self.sessions.items():
@@ -277,10 +267,10 @@ class KSKM_P11Module:
         )
         return None
 
-    def find_key_by_id(self, key_id: int, session: Any) -> List[KSKM_P11Key]:
+    def find_key_by_id(self, key_id: int, session: Any) -> list[KSKM_P11Key]:
         """Query the PKCS#11 module for a key with CKA_ID matching 'key_id'."""
         template = [(PyKCS11.LowLevel.CKA_ID, key_id)]
-        res: List[KSKM_P11Key] = []
+        res: list[KSKM_P11Key] = []
         objs = session.findObjects(template)
         for this in objs:
             key_class, label = session.getAttributeValue(
@@ -298,20 +288,20 @@ class KSKM_P11Module:
                     key_type=KeyType(_cka_type),
                     key_class=KeyClass(key_class),
                     public_key=self._p11_object_to_public_key(session, this),
-                    privkey_handle=this
-                    if key_class == PyKCS11.LowLevel.CKO_PRIVATE_KEY
-                    else None,
-                    pubkey_handle=this
-                    if key_class == PyKCS11.LowLevel.CKO_PUBLIC_KEY
-                    else None,
+                    privkey_handle=(
+                        this if key_class == PyKCS11.LowLevel.CKO_PRIVATE_KEY else None
+                    ),
+                    pubkey_handle=(
+                        this if key_class == PyKCS11.LowLevel.CKO_PUBLIC_KEY else None
+                    ),
                     session=session,
                 )
                 res += [key]
         return res
 
-    def get_key_inventory(self, session: PyKCS11.Session) -> List[KeyInfo]:
+    def get_key_inventory(self, session: PyKCS11.Session) -> list[KeyInfo]:
         """Enumerate all keys found in a slot."""
-        res: List[KeyInfo] = []
+        res: list[KeyInfo] = []
 
         for this in session.findObjects([]):
             cls, label, key_id = session.getAttributeValue(
@@ -352,7 +342,7 @@ class KSKM_P11Module:
         return res
 
     @staticmethod
-    def _p11_object_to_public_key(session: Any, data: Any) -> Optional[KSKM_PublicKey]:
+    def _p11_object_to_public_key(session: Any, data: Any) -> KSKM_PublicKey | None:
         """Create an RSAPublicKeyData object from PKCS#11 findObject return data."""
         _cka_type = session.getAttributeValue(data, [PyKCS11.LowLevel.CKA_KEY_TYPE])[0]
         if _cka_type == PyKCS11.LowLevel.CKK_RSA:
@@ -403,7 +393,7 @@ class KSKM_P11Module:
                     f"Unexpected ECDSA key length {_ec_len} for curve {crv}"
                 )
             return KSKM_PublicKey_ECDSA(bits=_ec_len, q=ec_point, curve=crv)
-        raise NotImplementedError("Unknown CKA_TYPE: {}".format(PyKCS11.CKK[_cka_type]))
+        raise NotImplementedError(f"Unknown CKA_TYPE: {PyKCS11.CKK[_cka_type]}")
 
 
 def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) -> bytes:
@@ -465,12 +455,12 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) ->
     return bytes(sig)
 
 
-KSKM_P11 = NewType("KSKM_P11", List[KSKM_P11Module])
+KSKM_P11 = NewType("KSKM_P11", list[KSKM_P11Module])
 
 
 def init_pkcs11_modules_from_dict(
     config: Mapping,
-    name: Optional[str] = None,
+    name: str | None = None,
     so_login: bool = False,
     rw_session: bool = False,
 ) -> KSKM_P11:
@@ -499,7 +489,7 @@ def init_pkcs11_modules_from_dict(
 
 
 def load_hsmconfig(
-    filename: str, defaults: Optional[MutableMapping] = None, max_lines: int = 100
+    filename: str, defaults: MutableMapping | None = None, max_lines: int = 100
 ) -> dict:
     """
     Load a .hsmconfig file, and perform variable interpolation.
@@ -518,9 +508,7 @@ def load_hsmconfig(
     with open(filename) as config_fd:
         res = parse_hsmconfig(config_fd, filename, defaults, max_lines)
     if "PKCS11_LIBRARY_PATH" not in res:
-        raise RuntimeError(
-            "PKCS11_LIBRARY_PATH not set in HSM config {}".format(filename)
-        )
+        raise RuntimeError(f"PKCS11_LIBRARY_PATH not set in HSM config {filename}")
     return res
 
 
@@ -538,11 +526,11 @@ def parse_hsmconfig(
 
     :return: A dict to update os.environ with.
     """
-    res: Dict[str, str] = {}
+    res: dict[str, str] = {}
     for line in config:
         max_lines -= 1
         if not max_lines:
-            raise RuntimeError("HSM config source {} too long".format(src))
+            raise RuntimeError(f"HSM config source {src} too long")
         # Skip comments (line starting with (optional) whitespace and then '#') and empty lines
         line = line.strip().strip("\n")
         if not line or line.startswith("#"):
@@ -550,9 +538,7 @@ def parse_hsmconfig(
         try:
             separator_idx = line.index("=")
         except ValueError:
-            raise ValueError(
-                "Badly formed line {!r} in HSM config {}".format(line, src)
-            )
+            raise ValueError(f"Badly formed line {line!r} in HSM config {src}")
         lhs = line[:separator_idx]
         rhs = line[separator_idx + 1 :]
 
@@ -574,14 +560,12 @@ def parse_hsmconfig(
                     "Variable interpolation of {} in HSM config {} to new variable "
                     "({}) is not allowed".format(key, src, val)
                 )
-            rhs = rhs.replace("${}".format(key), val)
+            rhs = rhs.replace(f"${key}", val)
         res[lhs] = rhs
     return res
 
 
-def get_p11_key(
-    label: str, p11modules: KSKM_P11, public: bool
-) -> Optional[KSKM_P11Key]:
+def get_p11_key(label: str, p11modules: KSKM_P11, public: bool) -> KSKM_P11Key | None:
     """
     Look for a key with CKA_LABEL matching 'label'.
 

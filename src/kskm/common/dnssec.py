@@ -1,4 +1,5 @@
 """DNSSEC protocol specific functions."""
+
 import base64
 import struct
 from dataclasses import replace
@@ -17,7 +18,12 @@ __author__ = "ft"
 
 def key_to_rdata(key: Key) -> bytes:
     """Return key in DNS RDATA format (RFC 4034)."""
-    header = struct.pack("!HBB", key.flags, key.protocol, key.algorithm.value,)
+    header = struct.pack(
+        "!HBB",
+        key.flags,
+        key.protocol,
+        key.algorithm.value,
+    )
     pubkey = base64.b64decode(key.public_key)
     return header + pubkey
 

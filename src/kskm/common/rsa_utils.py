@@ -1,4 +1,5 @@
 """Various functions relating to the RSA algorithm."""
+
 import base64
 import math
 import struct
@@ -31,7 +32,9 @@ def parse_signature_policy_rsa(data: dict) -> AlgorithmPolicyRSA:
     attr_alg = AlgorithmDNSSEC(int(data["attrs"]["algorithm"]))
     attrs = data["value"]["RSA"]["attrs"]
     rsa = AlgorithmPolicyRSA(
-        bits=int(attrs["size"]), exponent=int(attrs["exponent"]), algorithm=attr_alg,
+        bits=int(attrs["size"]),
+        exponent=int(attrs["exponent"]),
+        algorithm=attr_alg,
     )
     return rsa
 

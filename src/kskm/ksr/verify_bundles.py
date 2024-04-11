@@ -1,7 +1,7 @@
 """Controls to verify KSR bundles."""
+
 from base64 import b64decode
 from logging import Logger
-from typing import Dict, Optional
 
 from cryptography.exceptions import InvalidSignature
 
@@ -83,7 +83,7 @@ def check_unique_ids(request: Request, policy: RequestPolicy, logger: Logger) ->
           SKR is loaded, another pass will be made to validate that no bundle ID from this request was
           present in the last SKR.
     """
-    seen: Dict[str, int] = {}
+    seen: dict[str, int] = {}
     for bundle in request.bundles:
         if bundle.id in seen:
             raise KSR_BUNDLE_UNIQUE_Violation(
@@ -110,7 +110,7 @@ def check_keys_match_zsk_policy(
         logger.warning("KSR-BUNDLE-KEYS: Disabled by policy (keys_match_zsk_policy)")
         return
 
-    seen: Dict[str, Key] = {}
+    seen: dict[str, Key] = {}
 
     for bundle in request.bundles:
         for key in bundle.keys:
@@ -200,7 +200,7 @@ def _find_matching_zsk_policy_rsa_alg(
     key: Key,
     pubkey: KSKM_PublicKey_RSA,
     ignore_exponent: bool = False,
-) -> Optional[AlgorithmPolicy]:
+) -> AlgorithmPolicy | None:
     for this in request.zsk_policy.algorithms:
         if not isinstance(this, AlgorithmPolicyRSA):
             # This branch is covered by test cases, but since the order of the set is not guaranteed
@@ -223,7 +223,7 @@ def _find_matching_zsk_policy_rsa_alg(
 
 def _find_matching_zsk_policy_ecdsa_alg(
     request: Request, key: Key
-) -> Optional[AlgorithmPolicy]:
+) -> AlgorithmPolicy | None:
     for this in request.zsk_policy.algorithms:
         if not isinstance(this, AlgorithmPolicyECDSA):
             # This branch is covered by test cases, but since the order of the set is not guaranteed

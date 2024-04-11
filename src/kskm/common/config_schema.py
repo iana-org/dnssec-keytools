@@ -1,7 +1,7 @@
 """Config validation schema."""
 
+from collections.abc import Callable
 from datetime import datetime
-from typing import Callable
 
 from voluptuous import All, Any, Email, IsFile, Match, Range, Required, Schema
 from voluptuous.validators import DOMAIN_REGEX
@@ -88,7 +88,10 @@ REQUEST_POLICY_SCHEMA = REQUEST_POLICY_SCHEMA.extend(
 )
 
 RESPONSE_POLICY_SCHEMA = REQUEST_POLICY_SCHEMA.extend(
-    {"num_bundles": All(int, Range(min=1)), "validate_signatures": bool,}
+    {
+        "num_bundles": All(int, Range(min=1)),
+        "validate_signatures": bool,
+    }
 )
 
 KSK_POLICY_SCHEMA = Schema(
@@ -152,10 +155,19 @@ WKSR_CONFIG_SCHEMA = Schema(
             }
         ),
         "templates": Schema(
-            {"upload": IsFile(), "result": IsFile(), "email": IsFile(),}
+            {
+                "upload": IsFile(),
+                "result": IsFile(),
+                "email": IsFile(),
+            }
         ),
         "notify": Schema(
-            {"from": Email(), "to": Email(), "subject": str, "smtp_server": HOST_NAME,}
+            {
+                "from": Email(),
+                "to": Email(),
+                "subject": str,
+                "smtp_server": HOST_NAME,
+            }
         ),
     }
 )

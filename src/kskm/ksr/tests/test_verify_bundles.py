@@ -28,12 +28,12 @@ from kskm.ksr.verify_header import KSR_DOMAIN_Violation
 
 class Test_Validate_KSR_bundles(unittest.TestCase):
     def setUp(self):
-        """ Prepare test instance """
+        """Prepare test instance"""
         self.data_dir = pkg_resources.resource_filename(__name__, "data")
         self.policy_fn = os.path.join(self.data_dir, "response_policy.yaml")
 
     def test_validate_ksr_with_invalid_signature(self):
-        """ Test manipulating KSR signature """
+        """Test manipulating KSR signature"""
         fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
         # Exception: Failed validating KSR request in file icann-ksr-archive/ksr/ksr-root-2010-q3-2.xml:
         #            Bundle signature expire in the past
@@ -62,7 +62,7 @@ class Test_Validate_KSR_bundles(unittest.TestCase):
         validate_request(ksr, replace(policy, validate_signatures=False))
 
     def test_validate_ksr_with_invalid_keys(self):
-        """ Test manipulating KSR keys """
+        """Test manipulating KSR keys"""
         fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
         # Exception: Failed validating KSR request in file icann-ksr-archive/ksr/ksr-root-2010-q3-2.xml:
         #            Bundle signature expire in the past
@@ -93,14 +93,14 @@ class Test_Validate_KSR_bundles(unittest.TestCase):
         )
 
     def test_load_ksr_with_policy_violation(self):
-        """ Test loading a KSR failing the supplied policy """
+        """Test loading a KSR failing the supplied policy"""
         fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
         policy = RequestPolicy(num_bundles=99)
         with self.assertRaises(KSR_BUNDLE_COUNT_Violation):
             load_ksr(fn, policy, raise_original=True)
 
     def test_mocked_invalid_signature(self):
-        """ Test loading a KSR where the call to validate_signatures fails unexpectedly """
+        """Test loading a KSR where the call to validate_signatures fails unexpectedly"""
         fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
         policy = RequestPolicy(signature_check_expire_horizon=False)
         with patch("kskm.ksr.verify_bundles.validate_signatures") as mock_obj:
@@ -115,13 +115,13 @@ class Test_Validate_KSR_bundles(unittest.TestCase):
 
 class Test_Valid_Requests(Test_Requests):
     def test_make_request(self):
-        """ Test that the _make_request function produces a basically correct KSR """
+        """Test that the _make_request function produces a basically correct KSR"""
         xml = self._make_request()
         request = request_from_xml(xml)
         self.assertTrue(validate_request(request, self.policy))
 
     def test_multiple_algorithms(self):
-        """ Test validating a KSR with multiple ZSK algorithms """
+        """Test validating a KSR with multiple ZSK algorithms"""
         signature_algorithm = """
             <SignatureAlgorithm algorithm="13">
               <ECDSA size="256"/>
@@ -344,13 +344,13 @@ class Test_Invalid_Requests(Test_Requests):
 
 class Test_ZSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
     def test_request_with_two_bundles(self):
-        """ Test that the _make_request function produces a basically correct KSR """
+        """Test that the _make_request function produces a basically correct KSR"""
         xml = self._make_request()
         request = request_from_xml(xml)
         self.assertTrue(validate_request(request, self.policy))
 
     def test_min_bundle_cycle_inception(self):
-        """ Test two bundles with too small inception interval """
+        """Test two bundles with too small inception interval"""
         xml = self._make_request()
         request = request_from_xml(xml)
         policy = replace(
@@ -364,7 +364,7 @@ class Test_ZSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
         )
 
     def test_max_bundle_cycle_inception(self):
-        """ Test two bundles with too large inception interval """
+        """Test two bundles with too large inception interval"""
         xml = self._make_request()
         request = request_from_xml(xml)
         policy = replace(
@@ -380,7 +380,7 @@ class Test_ZSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
 
 class Test_ECDSA_Bundles(Test_Validate_KSR_ECDSA):
     def test_wrong_size_EC_key(self):
-        """ Test a request with an RSA key of a size not matching the ZSK policy """
+        """Test a request with an RSA key of a size not matching the ZSK policy"""
         signature_algorithm = """
             <SignatureAlgorithm algorithm="13">
               <ECDSA size="384"/>

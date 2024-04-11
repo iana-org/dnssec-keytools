@@ -4,6 +4,7 @@ These tests only works if SOFTHSM2_MODULE and SOFTHSM2_CONF is set.
 Set SOFTHSM2_MODULE to the SoftHSM PKCS#11 and SOFTHSM2_CONF to the configuration
 file *with the test keys created using 'make softhsm' in th testing/softhsm/ loaded*.
 """
+
 import io
 import os
 import unittest
@@ -28,7 +29,7 @@ hsm:
 
 class OperationsWithSoftHSM(unittest.TestCase):
     def setUp(self) -> None:
-        """ Prepare for tests. """
+        """Prepare for tests."""
         self.p11modules: KSKM_P11 = KSKM_P11([])
         conf = io.StringIO(_TEST_CONFIG)
         self.config = KSKMConfig.from_yaml(conf)

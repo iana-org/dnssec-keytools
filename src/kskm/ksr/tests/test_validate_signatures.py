@@ -12,27 +12,27 @@ from kskm.ksr import request_from_xml
 
 class TestValidate_signatures(TestCase):
     def setUp(self):
-        """ Prepare test instance """
+        """Prepare test instance"""
         self.data_dir = pkg_resources.resource_filename(__name__, "data")
 
     def test_validate_ksk_proof_of_ownership_1(self):
-        """ Validate ZSK proof of ownership in ksr-root-2009-q4-2.xml """
+        """Validate ZSK proof of ownership in ksr-root-2009-q4-2.xml"""
         self._test_file("ksr-root-2009-q4-2.xml")
 
     def test_validate_ksk_proof_of_ownership_2(self):
-        """ Validate ZSK proof of ownership in ksr-root-2010-q1-0.xml """
+        """Validate ZSK proof of ownership in ksr-root-2010-q1-0.xml"""
         self._test_file("ksr-root-2010-q1-0.xml")
 
     def test_validate_ksk_proof_of_ownership_3(self):
-        """ Validate ZSK proof of ownership in ksr-root-2010-q2-0.xml """
+        """Validate ZSK proof of ownership in ksr-root-2010-q2-0.xml"""
         self._test_file("ksr-root-2010-q2-0.xml")
 
     def test_validate_ksk_proof_of_ownership_4(self):
-        """ Validate ZSK proof of ownership in ksr-root-2010-q2-0.xml """
+        """Validate ZSK proof of ownership in ksr-root-2010-q2-0.xml"""
         self._test_file("ksr-root-2016-q3-0.xml")
 
     def test_keysize_change(self):
-        """ Test file where ZSK changed from RSA1024 to RSA2048 """
+        """Test file where ZSK changed from RSA1024 to RSA2048"""
         # This bundle used to trigger a bug in the RDATA sorting before hashing
         self._test_file(
             "ksr-root-2016-q3-0.xml",
@@ -40,7 +40,7 @@ class TestValidate_signatures(TestCase):
         )
 
     def test_invalid_signature(self):
-        """ Change a key to break the signature """
+        """Change a key to break the signature"""
         bundle = self._load_bundle_from_file(
             "ksr-root-2016-q3-0.xml", "a6b6162e-b299-427e-b11b-1a8c54a08910"
         )
@@ -65,7 +65,7 @@ class TestValidate_signatures(TestCase):
             validate_signatures(bundle)
 
     def test_key_without_signature(self):
-        """ Add a key without a signature """
+        """Add a key without a signature"""
         bundle = self._load_bundle_from_file(
             "ksr-root-2016-q3-0.xml", "a6b6162e-b299-427e-b11b-1a8c54a08910"
         )
@@ -84,7 +84,7 @@ class TestValidate_signatures(TestCase):
             validate_signatures(bundle)
 
     def test_signature_without_key(self):
-        """ Add a key without a signature """
+        """Add a key without a signature"""
         bundle = self._load_bundle_from_file(
             "ksr-root-2016-q3-0.xml", "a6b6162e-b299-427e-b11b-1a8c54a08910"
         )
@@ -108,7 +108,7 @@ class TestValidate_signatures(TestCase):
             validate_signatures(bundle)
 
     def test_duplicate_key_identifier(self):
-        """ Add a key with the same key_identifier as another key in the set """
+        """Add a key with the same key_identifier as another key in the set"""
         bundle = self._load_bundle_from_file(
             "ksr-root-2016-q3-0.xml", "a6b6162e-b299-427e-b11b-1a8c54a08910"
         )
@@ -128,7 +128,7 @@ class TestValidate_signatures(TestCase):
 
     def _load_bundle_from_file(self, fn, bundle_id):
         fn = os.path.join(self.data_dir, fn)
-        with open(fn, "r") as fd:
+        with open(fn) as fd:
             xml = fd.read()
         ksr = request_from_xml(xml)
         for bundle in ksr.bundles:
@@ -137,7 +137,7 @@ class TestValidate_signatures(TestCase):
 
     def _test_file(self, fn, filter_ids=None):
         fn = os.path.join(self.data_dir, fn)
-        with open(fn, "r") as fd:
+        with open(fn) as fd:
             xml = fd.read()
         ksr = request_from_xml(xml)
         for bundle in ksr.bundles:
@@ -145,7 +145,7 @@ class TestValidate_signatures(TestCase):
                 continue
             try:
                 validate_signatures(bundle)
-                print("{}: Bundle {} validated successfully".format(fn, bundle.id))
+                print(f"{fn}: Bundle {bundle.id} validated successfully")
             except InvalidSignature:
-                print("{}: Bundle {} FAILED validation".format(fn, bundle.id))
+                print(f"{fn}: Bundle {bundle.id} FAILED validation")
                 raise

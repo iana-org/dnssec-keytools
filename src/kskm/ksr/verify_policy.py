@@ -1,7 +1,7 @@
 """Controls to verify KSR policy parameters."""
+
 from datetime import datetime, timedelta, timezone
 from logging import Logger
-from typing import Optional
 
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import (
@@ -115,7 +115,7 @@ def check_keys_in_bundles(
             )
 
     logger.info(
-        f"KSR-POLICY-KEYS: Validated number of keys per bundle, and for all bundles"
+        "KSR-POLICY-KEYS: Validated number of keys per bundle, and for all bundles"
     )
 
 
@@ -292,7 +292,7 @@ def check_bundle_overlaps(
         )
         return
 
-    logger.debug("Verifying request {} bundle times and overlap:".format(request.id))
+    logger.debug(f"Verifying request {request.id} bundle times and overlap:")
     for i in range(len(request.bundles)):
         overlap_str = "-"
         previous = request.bundles[i - 1]
@@ -339,7 +339,7 @@ def check_bundle_overlaps(
                 )
             )
     logger.info(
-        f"KSR-POLICY-SIG-OVERLAP: All bundles overlap in accordance with the stated ZSK operator policy"
+        "KSR-POLICY-SIG-OVERLAP: All bundles overlap in accordance with the stated ZSK operator policy"
     )
 
 
@@ -361,7 +361,7 @@ def check_bundle_intervals(
         "(from KSK operator policy)"
     )
     for num in range(len(request.bundles)):
-        interval: Optional[timedelta] = None
+        interval: timedelta | None = None
         if num:
             interval = (
                 request.bundles[num].inception - request.bundles[num - 1].inception
@@ -392,5 +392,5 @@ def check_bundle_intervals(
             )
 
     logger.info(
-        f"KSR-POLICY-BUNDLE-INTERVALS: All bundles intervals in accordance with the KSK operator policy"
+        "KSR-POLICY-BUNDLE-INTERVALS: All bundles intervals in accordance with the KSK operator policy"
     )

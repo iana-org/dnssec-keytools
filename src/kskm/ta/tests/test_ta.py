@@ -49,7 +49,7 @@ TA_20181219 = TrustAnchor(
     id="380DC50D-484E-40D0-A3AE-68F2B18F61C7",
     source="http://data.iana.org/root-anchors/root-anchors.xml",
     zone=".",
-    keydigests=set([DIGEST_2010, DIGEST_2017]),
+    keydigests={DIGEST_2010, DIGEST_2017},
 )
 
 
@@ -58,7 +58,7 @@ class Test_TA(unittest.TestCase):
     # no idea why mypy complains about this function without the "-> None" and no other tests
     # src/kskm/ta/tests/test_ta.py:54: error: Function is missing a type annotation
     def test_ta(self) -> None:
-        """ Test output of Trust Anchor as XML """
+        """Test output of Trust Anchor as XML"""
         self.maxDiff = None
         self.assertEqual(TA_20181219.to_xml_doc(), TA_20181219_XML)
 

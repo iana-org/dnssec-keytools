@@ -1,11 +1,13 @@
 """Sub-parts of KSKMConfig (in config.py)."""
+
 from __future__ import annotations
 
 from abc import ABC
+from collections.abc import Iterable, Mapping
 from copy import deepcopy
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Iterable, List, Mapping, NewType, Optional, Type, TypeVar, Union
+from typing import NewType, TypeVar
 
 from kskm.common.data import AlgorithmDNSSEC, SignaturePolicy
 from kskm.common.parse_utils import duration_to_timedelta, parse_datetime
@@ -22,10 +24,10 @@ class Policy(ABC):
     """Base class for RequestPolicy and ResponsePolicy."""
 
     # avoid upsetting type checker in from_dict below when arguments are passed to cls() without any attributes
-    _dataclass_placeholder: Optional[bool] = None
+    _dataclass_placeholder: bool | None = None
 
     @classmethod
-    def from_dict(cls: Type[PolicyType], data: dict) -> PolicyType:
+    def from_dict(cls: type[PolicyType], data: dict) -> PolicyType:
         """Instantiate ResponsePolicy from a dict of values."""
         _data = deepcopy(data)  # don't mess with caller's data
         # Convert durations provided as strings into datetime.timedelta instances
@@ -45,7 +47,7 @@ class RequestPolicy(Policy):
     """Configuration knobs for validating KSRs."""
 
     # Verify KSR header parameters
-    acceptable_domains: List[str] = field(default_factory=lambda: ["."])
+    acceptable_domains: list[str] = field(default_factory=lambda: ["."])
 
     # Verify KSR bundles
     num_bundles: int = 9
@@ -70,18 +72,20 @@ class RequestPolicy(Policy):
     # Verify KSR policy parameters
     check_bundle_overlap: bool = True
     signature_algorithms_match_zsk_policy: bool = True
-    approved_algorithms: List[str] = field(
+    approved_algorithms: list[str] = field(
         default_factory=lambda: [AlgorithmDNSSEC.RSASHA256.name]
     )
-    rsa_approved_exponents: List[int] = field(default_factory=lambda: [65537])
-    rsa_approved_key_sizes: List[int] = field(default_factory=lambda: [2048])
+    rsa_approved_exponents: list[int] = field(default_factory=lambda: [65537])
+    rsa_approved_key_sizes: list[int] = field(default_factory=lambda: [2048])
     signature_validity_match_zsk_policy: bool = True
     check_keys_match_ksk_operator_policy: bool = True
-    num_keys_per_bundle: List[int] = field(
+    num_keys_per_bundle: list[int] = field(
         default_factory=lambda: [2, 1, 1, 1, 1, 1, 1, 1, 2]
     )
     num_different_keys_in_all_bundles: int = 3
-    dns_ttl: int = 0  # if this is 0, the config value ksk_policy.ttl will be used instead
+    dns_ttl: int = (
+        0  # if this is 0, the config value ksk_policy.ttl will be used instead
+    )
     signature_check_expire_horizon: bool = True
     signature_horizon_days: int = 180
     check_bundle_intervals: bool = True
@@ -122,7 +126,7 @@ class Schema:
     actions: Mapping[int, SchemaAction]
 
 
-def _parse_keylist(elem: Union[str, List[str]]) -> List[SigningKey]:
+def _parse_keylist(elem: str | list[str]) -> list[SigningKey]:
     if isinstance(elem, list):
         return [SigningKey(x) for x in elem]
     return [SigningKey(elem)]
@@ -181,13 +185,13 @@ class KSKKey:
     key_tag: int
     algorithm: AlgorithmDNSSEC
     valid_from: datetime
-    valid_until: Optional[datetime] = None
-    rsa_size: Optional[int] = None
-    rsa_exponent: Optional[int] = None
-    ds_sha256: Optional[str] = None
+    valid_until: datetime | None = None
+    rsa_size: int | None = None
+    rsa_exponent: int | None = None
+    ds_sha256: str | None = None
 
     @classmethod
-    def from_dict(cls: Type[KSKKey], data: dict) -> KSKKey:
+    def from_dict(cls: type[KSKKey], data: dict) -> KSKKey:
         """Instantiate KSKKey from a dict of values."""
         # do not modify callers data
         _data = deepcopy(data)

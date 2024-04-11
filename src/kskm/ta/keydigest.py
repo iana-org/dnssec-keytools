@@ -1,4 +1,5 @@
 """Code to create KeyDigest instances."""
+
 import binascii
 import logging
 from hashlib import sha256
@@ -26,7 +27,7 @@ def create_trustanchor_keydigest(
     rr = _dn2wire(domain)
     rr += key_to_rdata(key)
     logger.debug(
-        f"Creating DS record for key %s using domain + DNSKEY RDATA\n%s",
+        "Creating DS record for key %s using domain + DNSKEY RDATA\n%s",
         ksk_key.label,
         binascii.hexlify(rr),
     )

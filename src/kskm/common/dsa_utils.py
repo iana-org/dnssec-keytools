@@ -1,4 +1,5 @@
 """Various functions relating to the DSA algorithm."""
+
 from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyDSA
 
 __author__ = "ft"
@@ -20,5 +21,8 @@ def parse_signature_policy_dsa(data: dict) -> AlgorithmPolicyDSA:
     """
     attr_alg = AlgorithmDNSSEC(int(data["attrs"]["algorithm"]))
     attrs = data["value"]["DSA"]["attrs"]
-    dsa = AlgorithmPolicyDSA(bits=int(attrs["size"]), algorithm=attr_alg,)
+    dsa = AlgorithmPolicyDSA(
+        bits=int(attrs["size"]),
+        algorithm=attr_alg,
+    )
     return dsa

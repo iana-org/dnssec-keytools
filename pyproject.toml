@@ -28,9 +28,10 @@ pytest-ruff = "^0.3.1"
 pytest = "^8.1.1"
 coverage = "^7.4.4"
 mypy = "^1.9.0"
-pylama = "^8.4.1"
 dnspython = {extras = ["dnssec"], version = "^2.6.1"}
 setuptools = "^69.2.0"
+ruff = "^0.3.5"
+pytest-ruff = "^0.3.1"
 
 [tool.poetry.extras]
 online = ["flask", "pyopenssl"]
@@ -67,21 +68,3 @@ warn_return_any = true
 warn_unused_ignores = true
 warn_unused_configs = true
 no_implicit_optional = true
-
-[tool.pylama]
-format = "pep8,pycodestyle,parsable"
-linters = "pycodestyle,pyflakes,mccabe,pydocstyle"
-# D203 and D211 are in conflict with each other
-# D212 and D213 are in conflict with each other
-# C0301 handled by black
-# C0103 justified sometimes
-# C0330, E203 conflicts with black
-# W1202, W1203 is annoying, f-string easier to read
-# R0902,R0912,R0913,R0914,R0915,R1718 are annoying
-ignore = "D203,D212,C0103,C0330,C0301,D401,E203,R0902,R0912,R0913,R0914,R0915,R1718,W1202,W1203,E231"
-
-[tool.pylama.linter.pycodestyle]
-max_line_length = 120
-
-[tool.pylama.linter.mccabe]
-complexity = 40
