@@ -8,6 +8,7 @@ authors = ["IANA <iana@iana.org>"]
 license = "BSD-2-Clause"
 repository = "https://github.com/iana-org/dnssec-keytools"
 readme = "README.md"
+exclude = ["src/**/tests"]
 packages = [
     { include = "kskm", from = "src" }
 ]
