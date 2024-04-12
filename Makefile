@@ -8,7 +8,7 @@ BUILDINFO=		$(SOURCE)/kskm/buildinfo.py
 
 TEST_ENV=	SOFTHSM2_CONF=$(SOFTHSM2_CONF) \
 		SOFTHSM2_MODULE=$(SOFTHSM2_MODULE)
-PYTEST_OPTS=	--verbose --ruff --ruff-format
+PYTEST_OPTS=	--verbose
 PYTEST_CACHE=	.pytest_cache
 
 all: $(BUILDINFO)
@@ -35,6 +35,9 @@ coverage: softhsm $(BUILDINFO)
 
 reformat:
 	poetry run ruff format $(SOURCE)
+
+lint:
+	poetry run ruff check $(SOURCE)
 
 typecheck:
 	poetry run mypy --ignore-missing-imports $(SOURCE)
