@@ -1,9 +1,9 @@
 """Version information."""
 
-import pkg_resources
+from importlib.metadata import version
 
 # https://www.python.org/dev/peps/pep-0440
-__version__ = pkg_resources.get_distribution("kskm").version
+__version__ = version("kskm")
 
 try:
     from kskm.buildinfo import __commit__, __timestamp__
