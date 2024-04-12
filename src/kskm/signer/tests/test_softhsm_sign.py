@@ -122,7 +122,7 @@ class SignWithSoftHSM_Baseclass:
         if not self.p11modules:
             pytest.skip("No HSM config")
         p11_key = get_p11_key(key_name, self.p11modules, public=True)
-        if not p11_key:
+        if not p11_key or not p11_key.public_key:
             pytest.fail("Key not found")
         zsk_key = public_key_to_dnssec_key(
             key=p11_key.public_key,
@@ -164,7 +164,7 @@ class SignWithSoftHSM_Baseclass:
         return request
 
 
-@pytest.mark.usefixtures("p11modules")
+@pytest.mark.usefixtures("p11modules_fixture")
 class Test_SignWithSoftHSM_RSA(SignWithSoftHSM_Baseclass):
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_sign_with_softhsm(self) -> None:
@@ -197,9 +197,9 @@ class Test_SignWithSoftHSM_RSA(SignWithSoftHSM_Baseclass):
             assert "Invalid KSK signature encountered in bundle test" == str(exc.value)
 
 
-@pytest.mark.usefixtures("p11modules")
+@pytest.mark.usefixtures("p11modules_fixture")
 class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
-    def setup_method(self):
+    def setup_method(self) -> None:
         super().setup_method()
         _EC_CONF = """---
         schemas:
@@ -373,9 +373,9 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
         assert revoked_EC2 in bundle_keys
 
 
-@pytest.mark.usefixtures("p11modules")
+@pytest.mark.usefixtures("p11modules_fixture")
 class Test_SignWithSoftHSM_DualAlgorithm(SignWithSoftHSM_Baseclass):
-    def setup_method(self):
+    def setup_method(self) -> None:
         super().setup_method()
         _SCHEMAS = """
         schemas:
@@ -435,9 +435,9 @@ class Test_SignWithSoftHSM_DualAlgorithm(SignWithSoftHSM_Baseclass):
         ]
 
 
-@pytest.mark.usefixtures("p11modules")
+@pytest.mark.usefixtures("p11modules_fixture")
 class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
-    def test_unknown_key(self):
+    def test_unknown_key(self) -> None:
         """Test referring to a key that does not exist in the PKCS#11 module (SoftHSM)."""
         _BAD_KEYS = """---
         keys:
@@ -503,6 +503,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)
         }
         ksk_key = self.config.ksk_keys["ksk_RSA2"]
+        assert ksk_key.valid_until is not None  # for typing
         request = self._make_request(
             zsk_keys=zsk_keys,
             expiration=ksk_key.valid_until + datetime.timedelta(seconds=1),
@@ -627,7 +628,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             )
 
 
-@pytest.mark.usefixtures("p11modules")
+@pytest.mark.usefixtures("p11modules_fixture")
 class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
     def setup_method(self) -> None:
         """Prepare for tests."""

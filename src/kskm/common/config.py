@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+from io import BufferedReader, StringIO
 import logging
 from collections.abc import Mapping
 from dataclasses import replace
-from typing import IO, cast
+from typing import Any, cast
 
 import voluptuous.error
 import voluptuous.humanize
@@ -19,7 +20,7 @@ from kskm.common.config_misc import (
     ResponsePolicy,
     Schema,
     SchemaAction,
-    _parse_keylist,
+    parse_keylist,
 )
 from kskm.common.config_schema import KSRSIGNER_CONFIG_SCHEMA
 from kskm.common.integrity import checksum_bytes2str
@@ -40,18 +41,18 @@ class KSKMConfig:
     Holds configuration loaded from ksrsigner.yaml.
     """
 
-    def __init__(self, data: Mapping):
+    def __init__(self, data: Mapping[str, Any]):
         """Initialise configuration from a Mapping."""
         self._data = dict(data)
         # lazily parsed parts of the configuration.
-        self._hsm: Mapping | None = None
+        self._hsm: Mapping[str, Any] | None = None
         self._ksk_keys: KSKKeysType | None = None
         self._ksk_policy: KSKPolicy | None = None
         self._request_policy: RequestPolicy | None = None
         self._response_policy: ResponsePolicy | None = None
 
     @property
-    def hsm(self) -> Mapping:
+    def hsm(self) -> Mapping[str, Any]:
         """
         HSM configuration.
 
@@ -225,19 +226,19 @@ class KSKMConfig:
         _actions: dict[int, SchemaAction] = {}
         for num in range(1, self.request_policy.num_bundles + 1):
             _this = SchemaAction(
-                publish=_parse_keylist(data[num]["publish"]),
-                sign=_parse_keylist(data[num]["sign"]),
-                revoke=_parse_keylist(data[num].get("revoke", [])),
+                publish=parse_keylist(data[num]["publish"]),
+                sign=parse_keylist(data[num]["sign"]),
+                revoke=parse_keylist(data[num].get("revoke", [])),
             )
             _actions[num] = _this
         return Schema(name=name, actions=_actions)
 
-    def update(self, data: Mapping) -> None:
+    def update(self, data: Mapping[str, Any]) -> None:
         """Update configuration on the fly. Usable in tests."""
         logger.warning(f"Updating configuration (sections {data.keys()})")
         self._data.update(data)
 
-    def merge_update(self, data: Mapping) -> None:
+    def merge_update(self, data: Mapping[str, Any]) -> None:
         """Merge-update configuration on the fly. Usable in tests."""
         logger.warning(f"Merging configuration (sections {data.keys()})")
         for k, v in data.items():
@@ -246,7 +247,9 @@ class KSKMConfig:
             logger.debug(f"Config now: {self._data[k]}")
 
     @classmethod
-    def from_yaml(cls: type[KSKMConfig], stream: IO) -> KSKMConfig:
+    def from_yaml(
+        cls: type[KSKMConfig], stream: BufferedReader | StringIO
+    ) -> KSKMConfig:
         """Load configuration from a YAML stream."""
         config = yaml.safe_load(stream)
         try:

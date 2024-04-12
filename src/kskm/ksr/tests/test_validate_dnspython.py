@@ -10,9 +10,11 @@ import os
 from unittest import TestCase
 
 import dns
+import dns.dnssec
+import dns.name
 import dns.rrset
 import pkg_resources
-from dns.dnssec import ValidationFailure
+from dns.exception import ValidationFailure
 
 from kskm.common.data import Key, Signature
 from kskm.ksr import request_from_xml
@@ -103,7 +105,7 @@ def dnspython_validate_key_sig(keys: set[Key], sig: Signature) -> bool:
     dnskey_rr = dns.rrset.from_text(
         sig.signers_name, sig.original_ttl, "IN", "DNSKEY", *text_rdata
     )
-    _keys = {
+    _keys: dict[dns.name.Name, dns.rrset.RRset] = {
         _domainname: dnskey_rr,
     }
 

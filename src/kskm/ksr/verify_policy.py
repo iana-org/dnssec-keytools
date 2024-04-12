@@ -1,6 +1,6 @@
 """Controls to verify KSR policy parameters."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 from logging import Logger
 
 from kskm.common.config_misc import RequestPolicy
@@ -180,7 +180,7 @@ def check_signature_horizon(
         )
         return
 
-    dt_now = datetime.utcnow().replace(tzinfo=timezone.utc)
+    dt_now = datetime.now(UTC).replace(tzinfo=timezone.utc)
     for bundle in request.bundles:
         expire_days = (bundle.expiration - dt_now).days
         # DPS section 5.1.4: Any RRSIG record generated as a result of a KSK signing operation will not have

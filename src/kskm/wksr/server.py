@@ -8,7 +8,7 @@ import logging
 import re
 import smtplib
 import ssl
-from datetime import datetime
+from datetime import datetime, UTC
 from email.message import EmailMessage
 from typing import Any
 
@@ -96,7 +96,7 @@ def upload() -> str:
         "request": request,
         "filename": filename,
         "filehash": filehash,
-        "timestamp": datetime.utcnow(),
+        "timestamp": datetime.now(UTC),
         "log": log_buffer,
     }
 
@@ -241,7 +241,7 @@ def generate_app(config: dict[str, Any]) -> Flask:
 
     app = Flask(__name__)
 
-    app.jinja_loader = jinja2.FileSystemLoader(".")  # type: ignore
+    app.jinja_loader = jinja2.FileSystemLoader(".")
     app.jinja_env.globals["client_subject"] = PeerCertWSGIRequestHandler.client_subject
     app.jinja_env.globals["client_digest"] = PeerCertWSGIRequestHandler.client_digest
 

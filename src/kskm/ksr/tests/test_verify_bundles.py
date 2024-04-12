@@ -130,8 +130,8 @@ class Test_Valid_Requests(Test_Requests):
               <RSA size="1024" exponent="65537"/>
             </SignatureAlgorithm>
         """.strip()
-        policy = self._make_request_policy(signature_algorithm=signature_algorithm)
-        xml = self._make_request(request_policy=policy)
+        policy_str = self._make_request_policy(signature_algorithm=signature_algorithm)
+        xml = self._make_request(request_policy=policy_str)
         policy = replace(
             self.policy,
             approved_algorithms=[
@@ -141,7 +141,7 @@ class Test_Valid_Requests(Test_Requests):
             enable_unsupported_ecdsa=True,
         )
         request = request_from_xml(xml)
-        self.assertTrue(validate_request(request, policy))
+        assert validate_request(request, policy) == True
 
 
 class Test_Invalid_Requests(Test_Requests):

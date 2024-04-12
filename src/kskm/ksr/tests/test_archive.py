@@ -64,7 +64,11 @@ class TestParseRealKSRs(unittest.TestCase):
         )
 
         _dir = archive_dir("ksr")
+        assert (
+            _dir is not None
+        )  # for typing, test would be skipped if archive_dir() returned None
         for fn in sorted(glob.glob(_dir + "/*")):
+            assert isinstance(fn, str)
             # print('Loading file {}'.format(fn))
             _policy = policy
             if fn.endswith("ksr-root-2016-q3-fallback-1.xml"):
@@ -97,8 +101,12 @@ class TestParseRealKSRs(unittest.TestCase):
     def test_load_and_validate_all_ksrs_in_archive(self) -> None:
         """Parse and validate all the KSRs in the ICANN archive."""
         _dir = archive_dir("ksr")
+        assert (
+            _dir is not None
+        )  # for typing, test would be skipped if archive_dir() returned None
         res = True
         for fn in sorted(glob.glob(_dir + "/*")):
+            assert isinstance(fn, str)
             try:
                 self._test_file(fn)
             except InvalidSignature:

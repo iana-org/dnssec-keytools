@@ -9,5 +9,5 @@ try:
     __verbose_version__ = f"{__version__} ({__commit__})"
 except (ImportError, ModuleNotFoundError):
     __verbose_version__ = __version__
-    __commit__ = None  # type: ignore
-    __timestamp__ = None  # type: ignore
+    __commit__ = None
+    __timestamp__ = None

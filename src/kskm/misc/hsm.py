@@ -15,6 +15,7 @@ from hashlib import sha1, sha256, sha384, sha512
 from typing import Any, NewType
 
 import PyKCS11
+import PyKCS11.LowLevel
 from PyKCS11.LowLevel import CKF_RW_SESSION, CKU_SO, CKU_USER
 
 from kskm.common.data import AlgorithmDNSSEC
@@ -236,7 +237,9 @@ class KSKM_P11Module:
                 (PyKCS11.LowLevel.CKA_CLASS, key_class.value),
             ]
             _slots += [_slot]
-            res = _session.findObjects(template)
+            res: list[PyKCS11.LowLevel.CK_OBJECT_HANDLE] = _session.findObjects(
+                template
+            )
             if res:
                 if len(res) > 1:
                     logger.warning(
@@ -416,13 +419,15 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) ->
     #
     # but not with the AEP Keyper, so we implement RSA PKCS#1 1.5 padding ourselves here
     # and instead use the 'raw' RSA signing mechanism CKM_RSA_X_509.
-    mechanism = {
+    _mechanisms: Mapping[AlgorithmDNSSEC, Any] = {
         AlgorithmDNSSEC.RSASHA1: PyKCS11.LowLevel.CKM_RSA_X_509,
         AlgorithmDNSSEC.RSASHA256: PyKCS11.LowLevel.CKM_RSA_X_509,
         AlgorithmDNSSEC.RSASHA512: PyKCS11.LowLevel.CKM_RSA_X_509,
         AlgorithmDNSSEC.ECDSAP256SHA256: PyKCS11.LowLevel.CKM_ECDSA,
         AlgorithmDNSSEC.ECDSAP384SHA384: PyKCS11.LowLevel.CKM_ECDSA,
-    }.get(algorithm)
+    }
+
+    mechanism = _mechanisms.get(algorithm)
     if mechanism is None:
         raise RuntimeError(f"Can't PKCS#11 sign data with algorithm {algorithm.name}")
 

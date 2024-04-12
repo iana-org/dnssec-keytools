@@ -8,6 +8,7 @@ from cryptography.exceptions import InvalidSignature
 from kskm.common.data import AlgorithmDNSSEC, Key, Signature
 from kskm.common.signature import validate_signatures
 from kskm.ksr import request_from_xml
+from kskm.ksr.data import RequestBundle
 
 
 class TestValidate_signatures(TestCase):
@@ -44,6 +45,7 @@ class TestValidate_signatures(TestCase):
         bundle = self._load_bundle_from_file(
             "ksr-root-2016-q3-0.xml", "a6b6162e-b299-427e-b11b-1a8c54a08910"
         )
+        assert bundle is not None
         # validate signature is OK with the original key
         self.assertTrue(validate_signatures(bundle))
         key = bundle.keys.pop()
@@ -69,6 +71,7 @@ class TestValidate_signatures(TestCase):
         bundle = self._load_bundle_from_file(
             "ksr-root-2016-q3-0.xml", "a6b6162e-b299-427e-b11b-1a8c54a08910"
         )
+        assert bundle is not None
         new_key = Key(
             key_identifier="ZSK-24315",
             key_tag=24315,
@@ -88,6 +91,7 @@ class TestValidate_signatures(TestCase):
         bundle = self._load_bundle_from_file(
             "ksr-root-2016-q3-0.xml", "a6b6162e-b299-427e-b11b-1a8c54a08910"
         )
+        assert bundle is not None
         _sig = list(bundle.signatures)[0]
         new_sig = Signature(
             key_identifier="test id",
@@ -112,6 +116,7 @@ class TestValidate_signatures(TestCase):
         bundle = self._load_bundle_from_file(
             "ksr-root-2016-q3-0.xml", "a6b6162e-b299-427e-b11b-1a8c54a08910"
         )
+        assert bundle is not None
         new_key = Key(
             key_identifier=list(bundle.keys)[0].key_identifier,
             key_tag=4711,
