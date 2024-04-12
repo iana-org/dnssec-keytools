@@ -64,3 +64,20 @@ warn_return_any = true
 warn_unused_ignores = true
 warn_unused_configs = true
 no_implicit_optional = true
+
+[tool.ruff.lint]
+select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+]
+ignore = ["E501"]
