@@ -2,6 +2,7 @@ import os
 import unittest
 
 import pkg_resources
+
 from kskm.common.config import get_config
 from kskm.common.config_misc import RequestPolicy
 

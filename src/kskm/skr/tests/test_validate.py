@@ -4,6 +4,7 @@ import unittest
 from dataclasses import replace
 
 import pkg_resources
+
 from kskm.common.config_misc import ResponsePolicy
 from kskm.skr import load_skr
 from kskm.skr.validate import InvalidSignatureViolation, validate_response

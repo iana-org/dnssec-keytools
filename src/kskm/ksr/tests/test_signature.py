@@ -3,6 +3,7 @@ from hashlib import sha256
 from unittest import TestCase
 
 import pkg_resources
+
 from kskm.common.signature import make_raw_rrsig
 from kskm.ksr import request_from_xml
 

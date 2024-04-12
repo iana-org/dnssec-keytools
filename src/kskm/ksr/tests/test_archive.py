@@ -5,6 +5,7 @@ from dataclasses import replace
 
 import pkg_resources
 from cryptography.exceptions import InvalidSignature
+
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.signature import validate_signatures
 from kskm.ksr import load_ksr, request_from_xml

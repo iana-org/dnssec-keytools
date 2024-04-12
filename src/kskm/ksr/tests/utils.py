@@ -4,6 +4,7 @@ import io
 import os
 
 import pkg_resources
+
 from kskm.common.data import AlgorithmDNSSEC
 from kskm.misc.hsm import get_p11_key, sign_using_p11
 

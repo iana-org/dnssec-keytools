@@ -15,6 +15,7 @@ import dns.name
 import dns.rrset
 import pkg_resources
 from dns.exception import ValidationFailure
+
 from kskm.common.data import Key, Signature
 from kskm.ksr import request_from_xml
 from kskm.ksr.data import RequestBundle

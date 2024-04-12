@@ -8,14 +8,15 @@ file *with the test keys created using 'make softhsm' in testing/softhsm/ loaded
 import datetime
 import io
 import os
+from typing import Any, Generator
 import unittest
 from dataclasses import replace
-from typing import Any, Generator
 from unittest.mock import patch
 
 import pkg_resources
 import pytest
 import yaml
+
 from kskm.common.config import ConfigurationError, KSKMConfig
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY, Key, Signer

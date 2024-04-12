@@ -1,7 +1,6 @@
 """Various functions relating to the DSA algorithm."""
 
 from typing import Any
-
 from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyDSA
 
 __author__ = "ft"
