@@ -4,7 +4,6 @@ from unittest import TestCase
 
 import pkg_resources
 from cryptography.exceptions import InvalidSignature
-
 from kskm.common.data import AlgorithmDNSSEC, Key, Signature
 from kskm.common.signature import validate_signatures
 from kskm.ksr import request_from_xml

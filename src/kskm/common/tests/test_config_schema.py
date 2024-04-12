@@ -8,7 +8,6 @@ import pkg_resources
 import voluptuous.error
 import voluptuous.humanize
 import yaml
-
 from kskm.common.config import ConfigurationError, get_config
 from kskm.common.config_schema import KSRSIGNER_CONFIG_SCHEMA, WKSR_CONFIG_SCHEMA
 

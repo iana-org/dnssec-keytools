@@ -2,7 +2,6 @@ import os
 from unittest import TestCase
 
 import pkg_resources
-
 from kskm.misc import hsm
 
 

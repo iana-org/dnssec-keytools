@@ -5,7 +5,6 @@ import unittest
 from dataclasses import replace
 
 import pkg_resources
-
 from kskm.common.config_misc import RequestPolicy
 from kskm.ksr import request_from_xml
 from kskm.ksr.verify_bundles import KSR_BUNDLE_UNIQUE_Violation

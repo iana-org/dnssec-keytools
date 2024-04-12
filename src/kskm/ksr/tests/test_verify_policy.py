@@ -4,7 +4,6 @@ import unittest
 from dataclasses import replace
 
 import pkg_resources
-
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import AlgorithmDNSSEC
 from kskm.common.parse_utils import duration_to_timedelta
