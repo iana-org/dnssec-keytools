@@ -120,7 +120,7 @@ class Test_Requests(unittest.TestCase):
 
 
 class Test_Requests_With_Two_Bundles(Test_Requests):
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
         # the public part of key RSA1 in softhsm
         self.RSA1 = """
@@ -235,7 +235,7 @@ class Test_Requests_With_Two_Bundles(Test_Requests):
 
 
 class Test_Validate_KSR_ECDSA(Test_Requests):
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
         self.policy = replace(
             self.policy,

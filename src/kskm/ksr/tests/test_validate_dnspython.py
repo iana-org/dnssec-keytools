@@ -22,11 +22,11 @@ logger = logging.getLogger(__name__)
 
 
 class TestDnsPythonValidate_signatures(TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         """Prepare test instance"""
         self.data_dir = pkg_resources.resource_filename(__name__, "data")
 
-    def test_keysize_change_dnspython(self):
+    def test_keysize_change_dnspython(self) -> None:
         """Test file where ZSK changed from RSA1024 to RSA2048 using dnspython"""
         self._test_file(
             "ksr-root-2016-q3-0.xml", "a6b6162e-b299-427e-b11b-1a8c54a08910"

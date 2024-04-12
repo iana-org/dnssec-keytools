@@ -44,11 +44,11 @@ class Test_KSR_SKR_policy(unittest.TestCase):
 
         self.policy = RequestPolicy()
 
-    def test_last_skr_and_new_skr(self):
+    def test_last_skr_and_new_skr(self) -> None:
         """Test with two consecutive SKRs from the archive"""
         check_last_skr_and_new_skr(self.skr1, self.skr2, self.policy)
 
-    def test_bad_skr_sequence(self):
+    def test_bad_skr_sequence(self) -> None:
         """Test with two SKRs not adjacent to each other in time"""
         with self.assertRaises(KSR_POLICY_SAFETY_Violation):
             check_last_skr_and_new_skr(self.skr1, self.skr3, self.policy)
@@ -57,12 +57,12 @@ class Test_KSR_SKR_policy(unittest.TestCase):
         _policy = replace(self.policy, check_keys_publish_safety=False)
         check_last_skr_and_new_skr(self.skr1, self.skr3, _policy)
 
-    def test_last_skr_and_new_skr_wrong_order(self):
+    def test_last_skr_and_new_skr_wrong_order(self) -> None:
         """Test with two consecutive SKRs from the archive"""
         with self.assertRaises(KSR_POLICY_SAFETY_Violation):
             check_last_skr_and_new_skr(self.skr2, self.skr1, self.policy)
 
-    def test_key_missing_from_last_skr_last_bundle(self):
+    def test_key_missing_from_last_skr_last_bundle(self) -> None:
         """Test removing the signing key from the last bundle of the previous SKR"""
         # create local instance of skr1 to not mess with other tests
         skr1 = response_from_xml(self.skr_xml1)
@@ -82,7 +82,7 @@ class Test_KSR_SKR_policy(unittest.TestCase):
         _policy = replace(self.policy, check_keys_publish_safety=False)
         check_last_skr_and_new_skr(skr1, self.skr2, _policy)
 
-    def test_key_missing_from_new_skr_last_bundle(self):
+    def test_key_missing_from_new_skr_last_bundle(self) -> None:
         """Test bad signing schema not adding key to the last bundle"""
         # create local instance of skr2 to not mess with other tests
         skr2 = response_from_xml(self.skr_xml2)
@@ -109,7 +109,7 @@ class Test_KSR_SKR_policy(unittest.TestCase):
         _policy = replace(self.policy, check_keys_retire_safety=False)
         check_last_skr_and_new_skr(self.skr1, skr2, _policy)
 
-    def test_key_removed_prematurely(self):
+    def test_key_removed_prematurely(self) -> None:
         """Test bad signing schema not post-publishing a signing key long enough"""
         # create local instance of skr2 to not mess with other tests
         skr2 = response_from_xml(self.skr_xml2)
@@ -136,17 +136,17 @@ class Test_KSR_SKR_policy(unittest.TestCase):
 
 
 class Test_LastSKR_unique_ids(Test_KSR_SKR_policy):
-    def test_real_ksr_and_last_skr(self):
+    def test_real_ksr_and_last_skr(self) -> None:
         """Test loading a real KSR and the produced SKR from the archives"""
         check_skr_and_ksr(self.ksr, self.skr1, self.policy, p11modules=None)
 
-    def test_ksr_and_last_skr_duplicate_id(self):
+    def test_ksr_and_last_skr_duplicate_id(self) -> None:
         """Test that duplicate request/response IDs are detected"""
         new_ksr = replace(self.ksr, id=self.skr1.id)
         with self.assertRaises(KSR_ID_Violation):
             check_skr_and_ksr(new_ksr, self.skr1, self.policy, p11modules=None)
 
-    def test_repeated_bundle_id(self):
+    def test_repeated_bundle_id(self) -> None:
         """Test that repeated bundle IDs are detected"""
         ksr_bundles = self.ksr.bundles
         ksr_bundles[1] = replace(ksr_bundles[1], id=self.skr1.bundles[-1].id)
@@ -156,7 +156,7 @@ class Test_LastSKR_unique_ids(Test_KSR_SKR_policy):
 
 
 class Test_Chain(Test_KSR_SKR_policy):
-    def test_timeline_gap(self):
+    def test_timeline_gap(self) -> None:
         """Test that a gap in the bundles timeline is detected"""
         ksr_bundles = self.ksr.bundles
         last_expire = self.skr1.bundles[-1].expiration
@@ -166,7 +166,7 @@ class Test_Chain(Test_KSR_SKR_policy):
         with self.assertRaises(KSR_CHAIN_OVERLAP_Violation):
             check_skr_and_ksr(new_ksr, self.skr1, self.policy, p11modules=None)
 
-    def test_timeline_too_small_overlap(self):
+    def test_timeline_too_small_overlap(self) -> None:
         """Test that a too small overlap in the bundles timeline is detected"""
         ksr_bundles = self.ksr.bundles
         last_expire = self.skr1.bundles[-1].expiration
@@ -188,7 +188,7 @@ class Test_Chain(Test_KSR_SKR_policy):
         with self.assertRaises(KSR_CHAIN_OVERLAP_Violation):
             check_skr_and_ksr(new_ksr, self.skr1, self.policy, p11modules=None)
 
-    def test_timeline_too_large_overlap(self):
+    def test_timeline_too_large_overlap(self) -> None:
         """Test that a too large overlap in the bundles timeline is detected"""
         ksr_bundles = self.ksr.bundles
         last_inception = self.skr1.bundles[-1].inception

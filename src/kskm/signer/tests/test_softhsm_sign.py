@@ -88,7 +88,7 @@ class SignWithSoftHSM_Baseclass:
         for this in self.p11modules:
             this.close()
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Provide a baseline of things for each test."""
         # CKA_LABEL for one of the keys loaded into SoftHSM using testing/Makefile
         self.zsk_key_label = "RSA1"
@@ -464,7 +464,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
                 ksk_policy=self.config.ksk_policy,
             )
 
-    def test_not_yet_valid_key(self):
+    def test_not_yet_valid_key(self) -> None:
         """Test referring to a key that is not yet valid."""
         zsk_keys = {
             self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)
@@ -483,7 +483,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
                 ksk_policy=self.config.ksk_policy,
             )
 
-    def test_expired_key(self):
+    def test_expired_key(self) -> None:
         """Test referring to a key that has expired the same second."""
         _BAD_KEYS = """---
         keys:
@@ -515,7 +515,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
                 ksk_policy=self.config.ksk_policy,
             )
 
-    def test_not_an_RSA_key(self):
+    def test_not_an_RSA_key(self) -> None:
         """Test referring to a key that is EC instead of the expected RSA."""
         _BAD_KEYS = """---
         keys:
@@ -543,7 +543,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
                 ksk_policy=self.config.ksk_policy,
             )
 
-    def test_RSA_key_wrong_size(self):
+    def test_RSA_key_wrong_size(self) -> None:
         """Test referring to an RSA key that has incorrect size in the config."""
         _BAD_KEYS = """---
         keys:
@@ -571,7 +571,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
                 ksk_policy=self.config.ksk_policy,
             )
 
-    def test_RSA_key_wrong_exponent(self):
+    def test_RSA_key_wrong_exponent(self) -> None:
         """Test referring to an RSA key that has incorrect exponent in the config."""
         _BAD_KEYS = """---
         keys:
@@ -599,7 +599,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
                 ksk_policy=self.config.ksk_policy,
             )
 
-    def test_not_an_EC_key(self):
+    def test_not_an_EC_key(self) -> None:
         """Test referring to a key that is RSA instead of the expected EC."""
         _BAD_KEYS = """---
         keys:

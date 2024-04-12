@@ -16,7 +16,7 @@ CONFIG_DIR = pkg_resources.resource_filename(__name__, "../../../../config")
 
 
 class TestConfigSchema(unittest.TestCase):
-    def test_ksrsigner_example_config(self):
+    def test_ksrsigner_example_config(self) -> None:
         """Test ksrsigner example config"""
         _, file_placeholder = mkstemp()
         with open(os.path.join(CONFIG_DIR, "ksrsigner.yaml")) as input_file:
@@ -31,7 +31,7 @@ class TestConfigSchema(unittest.TestCase):
         )
         os.unlink(file_placeholder)
 
-    def test_ksrsigner_bad_config(self):
+    def test_ksrsigner_bad_config(self) -> None:
         """Test ksrsigner example config"""
         config = {"xyzzy": False}
         with self.assertRaises(voluptuous.error.Error):
@@ -39,7 +39,7 @@ class TestConfigSchema(unittest.TestCase):
                 config, KSRSIGNER_CONFIG_SCHEMA
             )
 
-    def test_loading_from_file(self):
+    def test_loading_from_file(self) -> None:
         _, config_fn = mkstemp()
         _, file_placeholder = mkstemp()
         with open(os.path.join(CONFIG_DIR, "ksrsigner.yaml")) as input_file:
@@ -57,12 +57,12 @@ class TestConfigSchema(unittest.TestCase):
         os.unlink(file_placeholder)
         os.unlink(config_fn)
 
-    def test_loading_from_file_error_handling(self):
+    def test_loading_from_file_error_handling(self) -> None:
         with self.assertRaises(ConfigurationError) as exc:
             get_config(os.path.join(CONFIG_DIR, "ksrsigner.yaml"))
         self.assertIn("Not a file for dictionary value", str(exc.exception))
 
-    def test_wksr_example_config(self):
+    def test_wksr_example_config(self) -> None:
         """Test wksr example config"""
         _, file_placeholder = mkstemp()
         with open(os.path.join(CONFIG_DIR, "wksr.yaml")) as input_file:
@@ -77,7 +77,7 @@ class TestConfigSchema(unittest.TestCase):
         voluptuous.humanize.validate_with_humanized_errors(config, WKSR_CONFIG_SCHEMA)
         os.unlink(file_placeholder)
 
-    def test_wksr_bad_config(self):
+    def test_wksr_bad_config(self) -> None:
         """Test wksr example config"""
         config = {"xyzzy": False}
         with self.assertRaises(voluptuous.error.Error):

@@ -26,12 +26,12 @@ from kskm.ksr.verify_policy import (
 
 
 class Test_Validate_KSR_policy(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         """Prepare test instance"""
         self.data_dir = pkg_resources.resource_filename(__name__, "data")
         self.policy_fn = os.path.join(self.data_dir, "response_policy.yaml")
 
-    def test_load_ksr_with_signatures_in_the_past(self):
+    def test_load_ksr_with_signatures_in_the_past(self) -> None:
         """Test loading a KSR requesting signatures that has expired already"""
         fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
         policy = RequestPolicy(
@@ -40,7 +40,7 @@ class Test_Validate_KSR_policy(unittest.TestCase):
         with self.assertRaises(KSR_PolicyViolation):
             load_ksr(fn, policy, raise_original=True)
 
-    def test_load_ksr_with_signatures_in_the_past2(self):
+    def test_load_ksr_with_signatures_in_the_past2(self) -> None:
         """Test loading a KSR requesting signatures that has expired already, but allowing it"""
         fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
         policy = RequestPolicy(
@@ -48,7 +48,7 @@ class Test_Validate_KSR_policy(unittest.TestCase):
         )
         load_ksr(fn, policy, raise_original=True)
 
-    def test_load_ksr_with_signatures_in_the_past3(self):
+    def test_load_ksr_with_signatures_in_the_past3(self) -> None:
         """Test loading a KSR requesting signatures just outside of policy"""
         fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
         # first load the KSR, allowing the old signatures
@@ -68,7 +68,7 @@ class Test_Validate_KSR_policy(unittest.TestCase):
 
 
 class Test_Invalid_Requests_policy(Test_Requests):
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
         self.policy = RequestPolicy(
             num_bundles=0,
@@ -76,7 +76,7 @@ class Test_Invalid_Requests_policy(Test_Requests):
             num_different_keys_in_all_bundles=0,
         )
 
-    def test_DSA_algorithm_not_allowed(self):
+    def test_DSA_algorithm_not_allowed(self) -> None:
         """Test validating a KSR with the DSA algorithm"""
         signature_algorithm = """
             <SignatureAlgorithm algorithm="3">
@@ -93,7 +93,7 @@ class Test_Invalid_Requests_policy(Test_Requests):
             )
         self.assertEqual("Algorithm DSA deprecated", str(exc.exception))
 
-    def test_RSASHA1_not_supported(self):
+    def test_RSASHA1_not_supported(self) -> None:
         """Test validating a KSR with RSA-SHA1 (not supported)"""
         signature_algorithm = f"""
             <SignatureAlgorithm algorithm="{AlgorithmDNSSEC.RSASHA1.value}">
@@ -110,7 +110,7 @@ class Test_Invalid_Requests_policy(Test_Requests):
             )
         self.assertEqual("Algorithm RSASHA1 not supported", str(exc.exception))
 
-    def test_RSA_wrong_size(self):
+    def test_RSA_wrong_size(self) -> None:
         """Test validating a KSR with RSA-1024, with policy stipulating RSA-2048"""
         signature_algorithm = f"""
             <SignatureAlgorithm algorithm="{AlgorithmDNSSEC.RSASHA256.value}">
@@ -129,7 +129,7 @@ class Test_Invalid_Requests_policy(Test_Requests):
             "ZSK policy has RSA-1024, but policy dictates [2048]", str(exc.exception)
         )
 
-    def test_RSA_wrong_exponent(self):
+    def test_RSA_wrong_exponent(self) -> None:
         """Test validating a KSR with RSA-SHA1 (not supported)"""
         signature_algorithm = f"""
             <SignatureAlgorithm algorithm="{AlgorithmDNSSEC.RSASHA256.value}">
@@ -149,7 +149,7 @@ class Test_Invalid_Requests_policy(Test_Requests):
             str(exc.exception),
         )
 
-    def test_ECDSA_not_enabled(self):
+    def test_ECDSA_not_enabled(self) -> None:
         """Test validating a KSR with ECDSA (not enabled)"""
         signature_algorithm = f"""
             <SignatureAlgorithm algorithm="{AlgorithmDNSSEC.ECDSAP384SHA384.value}">
@@ -167,7 +167,7 @@ class Test_Invalid_Requests_policy(Test_Requests):
 
 
 class Test_ECDSA_Policy(Test_Validate_KSR_ECDSA):
-    def test_validate_ksr_with_ecdsa_not_in_policy(self):
+    def test_validate_ksr_with_ecdsa_not_in_policy(self) -> None:
         """Test KSR with ECDSA key"""
         xml = self._make_request()
         request = request_from_xml(xml)
@@ -184,7 +184,7 @@ class Test_ECDSA_Policy(Test_Validate_KSR_ECDSA):
         policy = replace(policy, signature_algorithms_match_zsk_policy=False)
         self.assertTrue(validate_request(request, policy))
 
-    def test_validate_ksr_with_ecdsa_key(self):
+    def test_validate_ksr_with_ecdsa_key(self) -> None:
         """Test KSR with ECDSA key"""
         xml = self._make_request()
         request = request_from_xml(xml)
@@ -192,13 +192,13 @@ class Test_ECDSA_Policy(Test_Validate_KSR_ECDSA):
 
 
 class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
-    def test_request_with_two_bundles(self):
+    def test_request_with_two_bundles(self) -> None:
         """Test that the _make_request function produces a basically correct KSR"""
         xml = self._make_request()
         request = request_from_xml(xml)
         self.assertTrue(validate_request(request, self.policy))
 
-    def test_zsk_policy_no_bundle_overlap(self):
+    def test_zsk_policy_no_bundle_overlap(self) -> None:
         """Test two bundles not overlapping (against ZSK policy)"""
         signature_algorithm = self._make_signature_algorithm()
         request_policy = f"""
@@ -236,7 +236,7 @@ class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
             str(exc.exception),
         )
 
-    def test_zsk_policy_min_bundle_overlap(self):
+    def test_zsk_policy_min_bundle_overlap(self) -> None:
         """Test two bundles with too little overlap (against ZSK policy)"""
         (
             bundle1,
@@ -262,7 +262,7 @@ class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
             str(exc.exception),
         )
 
-    def test_zsk_policy_max_bundle_overlap(self):
+    def test_zsk_policy_max_bundle_overlap(self) -> None:
         """Test two bundles with too little overlap (against ZSK policy)"""
         (
             bundle1,
@@ -288,7 +288,7 @@ class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
             str(exc.exception),
         )
 
-    def test_request_with_one_day_overlap_problem(self):
+    def test_request_with_one_day_overlap_problem(self) -> None:
         """Test that the _make_request function produces a basically correct KSR"""
         (
             bundle1,
@@ -322,7 +322,7 @@ class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
         )
         self.assertTrue(validate_request(request, policy))
 
-    def test_wrong_number_of_bundles(self):
+    def test_wrong_number_of_bundles(self) -> None:
         """Test with two bundles where three was expected"""
         xml = self._make_request()
         request = request_from_xml(xml)
@@ -334,7 +334,7 @@ class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
             str(exc.exception),
         )
 
-    def test_wrong_number_of_keys_in_a_bundle(self):
+    def test_wrong_number_of_keys_in_a_bundle(self) -> None:
         """Test with one key in a bundle where two was expected"""
         xml = self._make_request()
         request = request_from_xml(xml)
@@ -343,7 +343,7 @@ class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
             validate_request(request, policy)
         self.assertEqual("Bundle #1/test-1 has 1 keys, not 2", str(exc.exception))
 
-    def test_wrong_total_number_of_keys(self):
+    def test_wrong_total_number_of_keys(self) -> None:
         """Test with one key where two different keys were expected"""
         xml = self._make_request()
         request = request_from_xml(xml)
@@ -355,7 +355,7 @@ class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
             str(exc.exception),
         )
 
-    def test_too_short_signature_validity(self):
+    def test_too_short_signature_validity(self) -> None:
         """Test two bundles with too short signature validity (against ZSK policy)"""
         (
             bundle1,
@@ -380,7 +380,7 @@ class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
             str(exc.exception),
         )
 
-    def test_too_long_signature_validity(self):
+    def test_too_long_signature_validity(self) -> None:
         """Test two bundles with too long signature validity (against ZSK policy)"""
         (
             bundle1,
@@ -405,7 +405,7 @@ class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
             str(exc.exception),
         )
 
-    def test_min_bundle_interval(self):
+    def test_min_bundle_interval(self) -> None:
         """Test two bundles with too low interval"""
         xml = self._make_request()
         request = request_from_xml(xml)
@@ -417,7 +417,7 @@ class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
             str(exc.exception),
         )
 
-    def test_max_bundle_interval(self):
+    def test_max_bundle_interval(self) -> None:
         """Test two bundles with too large interval"""
         xml = self._make_request()
         request = request_from_xml(xml)

@@ -11,12 +11,12 @@ from kskm.skr.validate import InvalidSignatureViolation, validate_response
 
 
 class Test_Validate_SKR(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         """Prepare test instance"""
         self.data_dir = pkg_resources.resource_filename(__name__, "data")
         self.policy_fn = os.path.join(self.data_dir, "response_policy.yaml")
 
-    def test_validate_skr_with_invalid_signature(self):
+    def test_validate_skr_with_invalid_signature(self) -> None:
         """Test manipulating SKR signature"""
         fn = os.path.join(self.data_dir, "skr-root-2018-q1-0-d_to_e.xml")
         policy = ResponsePolicy()
@@ -40,7 +40,7 @@ class Test_Validate_SKR(unittest.TestCase):
         # Test that the invalid SKR is accepted with signature validations turned off
         validate_response(skr, replace(policy, validate_signatures=False))
 
-    def test_load_skr_with_policy_violation(self):
+    def test_load_skr_with_policy_violation(self) -> None:
         """Test loading an SKR failing the supplied policy"""
         fn = os.path.join(self.data_dir, "skr-root-2018-q1-0-d_to_e.xml")
         policy = ResponsePolicy(num_bundles=99)

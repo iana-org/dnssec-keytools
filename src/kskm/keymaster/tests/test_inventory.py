@@ -44,7 +44,7 @@ class Test_Key_Inventory(unittest.TestCase):
             this.close()
 
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
-    def test_inventory(self):
+    def test_inventory(self) -> None:
         res = key_inventory(self.p11modules, self.config)
         # key inventory is expected to be at least 10 (15) lines when loaded with
         # the test keys from testing/softhsm/Makefile.

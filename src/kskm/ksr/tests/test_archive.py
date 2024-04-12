@@ -23,15 +23,16 @@ def archive_dir(extra=None):
             _archive_dir = os.path.join(_archive_dir, extra)
         if os.path.isdir(_archive_dir):
             return _archive_dir
+    return None
 
 
 class TestParseRealKSRs(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         """Prepare test instance"""
         self.data_dir = pkg_resources.resource_filename(__name__, "data")
 
     @unittest.skipUnless(archive_dir("ksr"), "KSKM_KSR_ARCHIVE_PATH not set or invalid")
-    def test_parse_all_ksrs_in_archive(self):
+    def test_parse_all_ksrs_in_archive(self) -> None:
         """Parse (but do not validate) all the KSRs in the ICANN archive."""
         # Create a policy that allows some errors that are present in one or more of the historical KSRs.
         #
@@ -93,7 +94,7 @@ class TestParseRealKSRs(unittest.TestCase):
             load_ksr(fn, _policy, raise_original=True)
 
     @unittest.skipUnless(archive_dir("ksr"), "KSKM_KSR_ARCHIVE_PATH not set or invalid")
-    def test_load_and_validate_all_ksrs_in_archive(self):
+    def test_load_and_validate_all_ksrs_in_archive(self) -> None:
         """Parse and validate all the KSRs in the ICANN archive."""
         _dir = archive_dir("ksr")
         res = True
@@ -105,7 +106,7 @@ class TestParseRealKSRs(unittest.TestCase):
         if not res:
             self.fail()
 
-    def _test_file(self, fn, filter_ids=None):
+    def _test_file(self, fn: str, filter_ids: list[str] | None = None) -> None:
         fn = os.path.join(self.data_dir, fn)
         with open(fn) as fd:
             xml = fd.read()
