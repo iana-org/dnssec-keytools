@@ -11,7 +11,7 @@ from kskm.common.signature import validate_signatures
 from kskm.ksr import load_ksr, request_from_xml
 
 
-def archive_dir(extra=None):
+def archive_dir(extra: str | None = None) -> str | None:
     """
     Return path to KSR archives, if found using environment variable KSKM_KSR_ARCHIVE_PATH.
 

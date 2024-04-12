@@ -3,6 +3,7 @@
 import base64
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Any
 
 from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyECDSA
 from kskm.common.public_key import KSKM_PublicKey
@@ -50,7 +51,7 @@ def algorithm_to_curve(alg: AlgorithmDNSSEC) -> ECCurve:
     raise ValueError("Unsupported algorithm")
 
 
-def parse_signature_policy_ecdsa(data: dict) -> AlgorithmPolicyECDSA:
+def parse_signature_policy_ecdsa(data: dict[str, Any]) -> AlgorithmPolicyECDSA:
     """
     Parse ECDSA ZSK SignatureAlgorithm entries.
 

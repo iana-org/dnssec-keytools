@@ -1,7 +1,7 @@
 """Config validation schema."""
 
 from collections.abc import Callable
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from voluptuous import All, Any, Email, IsFile, Match, Range, Required, Schema
 from voluptuous.validators import DOMAIN_REGEX
@@ -10,7 +10,7 @@ from kskm.common.data import AlgorithmDNSSEC
 from kskm.common.parse_utils import duration_to_timedelta
 
 
-def iso8601_duration() -> Callable:
+def iso8601_duration() -> Callable[[str | None], timedelta]:
     """Validation ISO 8601 durations."""
     return lambda v: duration_to_timedelta(v)
 

@@ -126,7 +126,7 @@ class TestValidate_signatures(TestCase):
         with self.assertRaises(ValueError):
             validate_signatures(bundle)
 
-    def _load_bundle_from_file(self, fn, bundle_id):
+    def _load_bundle_from_file(self, fn: str, bundle_id: str) -> RequestBundle | None:
         fn = os.path.join(self.data_dir, fn)
         with open(fn) as fd:
             xml = fd.read()
@@ -136,7 +136,7 @@ class TestValidate_signatures(TestCase):
                 return bundle
         return None
 
-    def _test_file(self, fn, filter_ids=None):
+    def _test_file(self, fn: str, filter_ids: list[str] | None = None) -> None:
         fn = os.path.join(self.data_dir, fn)
         with open(fn) as fd:
             xml = fd.read()

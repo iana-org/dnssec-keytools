@@ -165,7 +165,7 @@ class KSKM_P11Module:
             _ = self.sessions
             _info = self._lib.getTokenInfo(self._slots[0])
             if _info:
-                info = _info.to_dict()
+                info: Mapping[str, str] = _info.to_dict()
                 logger.info(f'HSM First slot:      {info.get("label")}')
                 logger.info(f'HSM ManufacturerID:  {info.get("manufacturerID")}')
                 logger.info(f'HSM Model:           {info.get("model")}')
@@ -229,9 +229,9 @@ class KSKM_P11Module:
 
     def find_key_by_label(self, label: str, key_class: KeyClass) -> KSKM_P11Key | None:
         """Query the PKCS#11 module for a key with CKA_LABEL matching 'label'."""
-        _slots: list = []
+        _slots: list[int] = []
         for _slot, _session in self.sessions.items():
-            template = [
+            template: list[tuple[Any, Any]] = [
                 (PyKCS11.LowLevel.CKA_LABEL, label),
                 (PyKCS11.LowLevel.CKA_CLASS, key_class.value),
             ]
@@ -459,7 +459,7 @@ KSKM_P11 = NewType("KSKM_P11", list[KSKM_P11Module])
 
 
 def init_pkcs11_modules_from_dict(
-    config: Mapping,
+    config: Mapping[str, Any],
     name: str | None = None,
     so_login: bool = False,
     rw_session: bool = False,
@@ -471,7 +471,7 @@ def init_pkcs11_modules_from_dict(
 
     :return: A list of PyKCS11 library instances.
     """
-    modules: list = []
+    modules: list[KSKM_P11Module] = []
     for label, _kwargs in config.items():
         if name and label != name:
             continue
@@ -489,8 +489,10 @@ def init_pkcs11_modules_from_dict(
 
 
 def load_hsmconfig(
-    filename: str, defaults: MutableMapping | None = None, max_lines: int = 100
-) -> dict:
+    filename: str,
+    defaults: MutableMapping[str, Any] | None = None,
+    max_lines: int = 100,
+) -> dict[str, Any]:
     """
     Load a .hsmconfig file, and perform variable interpolation.
 
@@ -513,8 +515,11 @@ def load_hsmconfig(
 
 
 def parse_hsmconfig(
-    config: Iterator, src: str, defaults: MutableMapping, max_lines: int = 100
-) -> dict:
+    config: Iterator[str],
+    src: str,
+    defaults: MutableMapping[str, Any],
+    max_lines: int = 100,
+) -> dict[str, Any]:
     """
     Parse configuration data and perform variable interpolation.
 

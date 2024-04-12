@@ -32,7 +32,7 @@ class TestDnsPythonValidate_signatures(TestCase):
             "ksr-root-2016-q3-0.xml", "a6b6162e-b299-427e-b11b-1a8c54a08910"
         )
 
-    def _test_file(self, fn, filter_ids=None):
+    def _test_file(self, fn: str, filter_ids: str | None = None) -> None:
         fn = os.path.join(self.data_dir, fn)
         with open(fn) as fd:
             xml = fd.read()
@@ -52,7 +52,7 @@ def dnspython_validate_bundle(bundle: RequestBundle) -> bool:
     """Make sure the sets of signatures and keys in a bundle is consistent"""
     # To locate keys for signatures, and to make sure all keys are covered by
     # a signature, we make a copy of the keys indexed by key_tag.
-    _keys = {}
+    _keys: dict[int, Key] = {}
     for key in bundle.keys:
         if key.key_tag in _keys:
             raise ValueError(
@@ -90,7 +90,7 @@ def dnspython_validate_key_sig(keys: set[Key], sig: Signature) -> bool:
     """
     res = True
     _domainname = dns.name.from_text(sig.signers_name)
-    text_rdata = []
+    text_rdata: list[str] = []
     for key in keys:
         _dnskey = "{flags} {proto} {alg} {pkey}".format(
             flags=key.flags,

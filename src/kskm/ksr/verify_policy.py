@@ -96,7 +96,7 @@ def check_keys_in_bundles(
     # but on some occasions a different number might be acceptable.
     # In ksr-root-2016-q3-fallback-1.xml, there were only two key sets.
     if policy.num_different_keys_in_all_bundles is not None:
-        _keys = {}
+        _keys: dict[str, int] = {}
         for _bundle in request.bundles:
             for _key in _bundle.keys:
                 _keys[_key.key_identifier] = 1

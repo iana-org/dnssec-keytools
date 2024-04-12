@@ -8,6 +8,7 @@ file *with the test keys created using 'make softhsm' in testing/softhsm/ loaded
 import datetime
 import io
 import os
+from typing import Any, Generator
 import unittest
 from dataclasses import replace
 from unittest.mock import patch
@@ -79,7 +80,7 @@ def _get_test_config() -> KSKMConfig:
 
 class SignWithSoftHSM_Baseclass:
     @pytest.fixture()
-    def p11modules(self):
+    def p11modules_fixture(self) -> Generator[None, Any, None]:
         self.p11modules = init_pkcs11_modules_from_dict(self.config.hsm)
         # when the fixture yields, the actual test method runs
         yield
@@ -117,7 +118,7 @@ class SignWithSoftHSM_Baseclass:
         algorithm: AlgorithmDNSSEC,
         flags: int = FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value,
         ttl: int = 10,
-    ):
+    ) -> Key:
         if not self.p11modules:
             pytest.skip("No HSM config")
         p11_key = get_p11_key(key_name, self.p11modules, public=True)
@@ -135,11 +136,11 @@ class SignWithSoftHSM_Baseclass:
     def _make_request(
         self,
         zsk_keys: set[Key],
-        inception=None,
-        expiration=None,
-        id_suffix="",
-        signers=None,
-    ):
+        inception: datetime.datetime | None = None,
+        expiration: datetime.datetime | None = None,
+        id_suffix: str = "",
+        signers: set[Signer] | None = None,
+    ) -> Request:
         if inception is None:
             inception = parse_datetime("2018-01-01T00:00:00+00:00")
         if expiration is None:
