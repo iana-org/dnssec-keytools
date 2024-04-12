@@ -13,6 +13,9 @@ PYTEST_CACHE=	.pytest_cache
 
 all: $(BUILDINFO)
 
+depend: softhsm
+	poetry install --all-extras
+
 wheel: $(BUILDINFO)
 	poetry build -f wheel
 
