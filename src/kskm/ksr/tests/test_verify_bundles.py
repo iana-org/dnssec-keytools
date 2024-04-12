@@ -27,12 +27,12 @@ from kskm.ksr.verify_header import KSR_DOMAIN_Violation
 
 
 class Test_Validate_KSR_bundles(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         """Prepare test instance"""
         self.data_dir = pkg_resources.resource_filename(__name__, "data")
         self.policy_fn = os.path.join(self.data_dir, "response_policy.yaml")
 
-    def test_validate_ksr_with_invalid_signature(self):
+    def test_validate_ksr_with_invalid_signature(self) -> None:
         """Test manipulating KSR signature"""
         fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
         # Exception: Failed validating KSR request in file icann-ksr-archive/ksr/ksr-root-2010-q3-2.xml:
@@ -61,7 +61,7 @@ class Test_Validate_KSR_bundles(unittest.TestCase):
         # Test that the invalid KSR is accepted with signature validations turned off
         validate_request(ksr, replace(policy, validate_signatures=False))
 
-    def test_validate_ksr_with_invalid_keys(self):
+    def test_validate_ksr_with_invalid_keys(self) -> None:
         """Test manipulating KSR keys"""
         fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
         # Exception: Failed validating KSR request in file icann-ksr-archive/ksr/ksr-root-2010-q3-2.xml:
@@ -92,14 +92,14 @@ class Test_Validate_KSR_bundles(unittest.TestCase):
             ksr, replace(policy, validate_signatures=False, keys_match_zsk_policy=False)
         )
 
-    def test_load_ksr_with_policy_violation(self):
+    def test_load_ksr_with_policy_violation(self) -> None:
         """Test loading a KSR failing the supplied policy"""
         fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
         policy = RequestPolicy(num_bundles=99)
         with self.assertRaises(KSR_BUNDLE_COUNT_Violation):
             load_ksr(fn, policy, raise_original=True)
 
-    def test_mocked_invalid_signature(self):
+    def test_mocked_invalid_signature(self) -> None:
         """Test loading a KSR where the call to validate_signatures fails unexpectedly"""
         fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
         policy = RequestPolicy(signature_check_expire_horizon=False)
@@ -114,13 +114,13 @@ class Test_Validate_KSR_bundles(unittest.TestCase):
 
 
 class Test_Valid_Requests(Test_Requests):
-    def test_make_request(self):
+    def test_make_request(self) -> None:
         """Test that the _make_request function produces a basically correct KSR"""
         xml = self._make_request()
         request = request_from_xml(xml)
         self.assertTrue(validate_request(request, self.policy))
 
-    def test_multiple_algorithms(self):
+    def test_multiple_algorithms(self) -> None:
         """Test validating a KSR with multiple ZSK algorithms"""
         signature_algorithm = """
             <SignatureAlgorithm algorithm="13">
@@ -130,8 +130,8 @@ class Test_Valid_Requests(Test_Requests):
               <RSA size="1024" exponent="65537"/>
             </SignatureAlgorithm>
         """.strip()
-        policy = self._make_request_policy(signature_algorithm=signature_algorithm)
-        xml = self._make_request(request_policy=policy)
+        policy_str = self._make_request_policy(signature_algorithm=signature_algorithm)
+        xml = self._make_request(request_policy=policy_str)
         policy = replace(
             self.policy,
             approved_algorithms=[
@@ -141,11 +141,11 @@ class Test_Valid_Requests(Test_Requests):
             enable_unsupported_ecdsa=True,
         )
         request = request_from_xml(xml)
-        self.assertTrue(validate_request(request, policy))
+        assert validate_request(request, policy) == True
 
 
 class Test_Invalid_Requests(Test_Requests):
-    def test_bundle_with_unhandled_key_type(self):
+    def test_bundle_with_unhandled_key_type(self) -> None:
         """Test validating a KSR with a key/signature using an unhandled key type"""
         bundle = self._make_request_bundle(algorithm=AlgorithmDNSSEC.ED448.value)
         xml = self._make_request(request_bundle=bundle)
@@ -158,7 +158,7 @@ class Test_Invalid_Requests(Test_Requests):
             str(exc.exception),
         )
 
-    def test_invalid_domain(self):
+    def test_invalid_domain(self) -> None:
         """Test validating a KSR for an unknown domain"""
         xml = self._make_request(domain="test.", request_bundle="")
         policy = RequestPolicy(
@@ -173,7 +173,7 @@ class Test_Invalid_Requests(Test_Requests):
             validate_request(request, policy)
         self.assertIn("not in policy's acceptable domains", str(exc.exception))
 
-    def test_bundles_with_same_id(self):
+    def test_bundles_with_same_id(self) -> None:
         """Test validating a KSR with two bundles having the same ID."""
         bundle = self._make_request_bundle()
         xml = self._make_request(request_bundle=f"{bundle}\n       {bundle}\n")
@@ -183,7 +183,7 @@ class Test_Invalid_Requests(Test_Requests):
             validate_request(request, policy)
         self.assertEqual("More than one bundle with id test-id", str(exc.exception))
 
-    def test_single_bundle_missing_info(self):
+    def test_single_bundle_missing_info(self) -> None:
         """Test validating a KSR with a single bundle missing mandatory data."""
         bundle = """
         <RequestBundle id="test-non-unique-id">
@@ -198,7 +198,7 @@ class Test_Invalid_Requests(Test_Requests):
             "Bundle test-non-unique-id missing mandatory Key", str(exc.exception)
         )
 
-    def test_wrong_RSA_key_size(self):
+    def test_wrong_RSA_key_size(self) -> None:
         """Test a request with an RSA key of a size not matching the ZSK policy."""
         signature_algorithm = """
             <SignatureAlgorithm algorithm="8">
@@ -217,7 +217,7 @@ class Test_Invalid_Requests(Test_Requests):
             str(exc.exception),
         )
 
-    def test_wrong_RSA_key_exponent(self):
+    def test_wrong_RSA_key_exponent(self) -> None:
         """Test a request with an RSA key with an exponent not matching the ZSK policy."""
         signature_algorithm = """
             <SignatureAlgorithm algorithm="8">
@@ -241,7 +241,7 @@ class Test_Invalid_Requests(Test_Requests):
         policy = replace(self.policy, rsa_exponent_match_zsk_policy=False)
         self.assertTrue(validate_request(request, policy))
 
-    def test_bad_key_flags(self):
+    def test_bad_key_flags(self) -> None:
         """Test a request with a non-ZSK key."""
         bundle = self._make_request_bundle(
             flags=FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value
@@ -255,7 +255,7 @@ class Test_Invalid_Requests(Test_Requests):
             str(exc.exception),
         )
 
-    def test_wrong_key_tag(self):
+    def test_wrong_key_tag(self) -> None:
         """Test a request with a key with the wrong tag."""
         bundle = self._make_request_bundle(key_tag=12345)
         xml = self._make_request(request_bundle=bundle)
@@ -267,7 +267,7 @@ class Test_Invalid_Requests(Test_Requests):
             str(exc.exception),
         )
 
-    def test_extra_key_in_bundle(self):
+    def test_extra_key_in_bundle(self) -> None:
         """Test a request with a key without a matching signature (no proof of possession)."""
         RSA1 = """
         AwEAAcBH41eazGJG/DBdDmKxGxO8Bv4XbgNQiButvR60Aqzprd6DMT2J0xtR91MkkGYKj9Gc0nO9nBQFC4/zPEAlqE1HWnx4E57o
@@ -343,13 +343,13 @@ class Test_Invalid_Requests(Test_Requests):
 
 
 class Test_ZSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
-    def test_request_with_two_bundles(self):
+    def test_request_with_two_bundles(self) -> None:
         """Test that the _make_request function produces a basically correct KSR"""
         xml = self._make_request()
         request = request_from_xml(xml)
         self.assertTrue(validate_request(request, self.policy))
 
-    def test_min_bundle_cycle_inception(self):
+    def test_min_bundle_cycle_inception(self) -> None:
         """Test two bundles with too small inception interval"""
         xml = self._make_request()
         request = request_from_xml(xml)
@@ -363,7 +363,7 @@ class Test_ZSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
             str(exc.exception),
         )
 
-    def test_max_bundle_cycle_inception(self):
+    def test_max_bundle_cycle_inception(self) -> None:
         """Test two bundles with too large inception interval"""
         xml = self._make_request()
         request = request_from_xml(xml)
@@ -379,7 +379,7 @@ class Test_ZSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
 
 
 class Test_ECDSA_Bundles(Test_Validate_KSR_ECDSA):
-    def test_wrong_size_EC_key(self):
+    def test_wrong_size_EC_key(self) -> None:
         """Test a request with an RSA key of a size not matching the ZSK policy"""
         signature_algorithm = """
             <SignatureAlgorithm algorithm="13">

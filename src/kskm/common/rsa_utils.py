@@ -4,6 +4,7 @@ import base64
 import math
 import struct
 from dataclasses import dataclass, field
+from typing import Any
 
 from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyRSA
 from kskm.common.public_key import KSKM_PublicKey
@@ -20,7 +21,7 @@ def is_algorithm_rsa(alg: AlgorithmDNSSEC) -> bool:
     ]
 
 
-def parse_signature_policy_rsa(data: dict) -> AlgorithmPolicyRSA:
+def parse_signature_policy_rsa(data: dict[str, Any]) -> AlgorithmPolicyRSA:
     """
     Parse RSA ZSK SignatureAlgorithm entries.
 

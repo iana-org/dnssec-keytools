@@ -18,7 +18,7 @@ TESTS = [
 
 
 class Test_PGP_Wordlist(unittest.TestCase):
-    def test_wordlist(self):
+    def test_wordlist(self) -> None:
         """Test PGP Wordlist."""
         for test in TESTS:
             m = hashlib.new("sha256")

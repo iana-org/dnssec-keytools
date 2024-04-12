@@ -41,7 +41,7 @@ lint:
 	poetry run ruff check $(SOURCE)
 
 typecheck:
-	poetry run mypy --ignore-missing-imports $(SOURCE)
+	poetry run mypy --install-types --non-interactive --pretty --ignore-missing-imports $(SOURCE)
 
 vscode_packages:
 	sudo apt-get update

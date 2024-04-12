@@ -11,11 +11,11 @@ from kskm.ksr import load_ksr, request_from_xml
 
 
 class TestParseRealKSRs(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         """Prepare test instance"""
         self.data_dir = pkg_resources.resource_filename(__name__, "data")
 
-    def test_parse_ksr_root_2009_q4_2(self):
+    def test_parse_ksr_root_2009_q4_2(self) -> None:
         """Test parsing ksr-root-2009-q4-2.xml"""
         fn = os.path.join(self.data_dir, "ksr-root-2009-q4-2.xml")
         with open(fn) as fd:
@@ -41,7 +41,7 @@ class TestParseRealKSRs(unittest.TestCase):
         )
         self.assertEqual(expected_ids, bundle_ids)
 
-    def test_parse_ksr_root_2010_q1_0(self):
+    def test_parse_ksr_root_2010_q1_0(self) -> None:
         """Test parsing ksr-root-2010-q1-0.xml"""
         fn = os.path.join(self.data_dir, "ksr-root-2010-q1-0.xml")
         with open(fn) as fd:
@@ -70,7 +70,7 @@ class TestParseRealKSRs(unittest.TestCase):
         )
         self.assertEqual(expected_ids, bundle_ids)
 
-    def test_parse_ksr_root_2010_q2_0(self):
+    def test_parse_ksr_root_2010_q2_0(self) -> None:
         """Test parsing ksr-root-2010-q2-0.xml"""
         fn = os.path.join(self.data_dir, "ksr-root-2010-q2-0.xml")
         policy = RequestPolicy(
@@ -105,7 +105,7 @@ class TestParseRealKSRs(unittest.TestCase):
         )
         self.assertEqual(expected_ids, bundle_ids)
 
-    def test_parse_ksr_root_2010_q2_0_verify_fails(self):
+    def test_parse_ksr_root_2010_q2_0_verify_fails(self) -> None:
         """Test parsing ksr-root-2010-q2-0.xml"""
         fn = os.path.join(self.data_dir, "ksr-root-2010-q2-0.xml")
         # This policy actually works for this file
@@ -145,7 +145,7 @@ class TestParseRealKSRs(unittest.TestCase):
                 raise_original=True,
             )
 
-    def test_load_ksr_2016(self):
+    def test_load_ksr_2016(self) -> None:
         """Test complete load and validate 2016"""
         # Exception: Failed validating KSR request in file ksr-root-2016-q3-0.xml:
         #            Key 3028312630240603550403131d566572695369676e20444e5353656320526f6f74205a534b20312d3237
@@ -172,7 +172,7 @@ class TestParseRealKSRs(unittest.TestCase):
         ksr = load_ksr(fn, policy)
         self.assertEqual("2dc3b3f3-2db2-4074-a5c9-535dcfc04f63", ksr.id)
 
-    def test_load_ksr_2018(self):
+    def test_load_ksr_2018(self) -> None:
         """Test complete load and validate 2018"""
         # Exception: Failed validating KSR request in file icann-ksr-archive/ksr/ksr-root-2010-q3-2.xml:
         #            Bundle signature expire in the past

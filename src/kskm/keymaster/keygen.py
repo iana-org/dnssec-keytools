@@ -96,7 +96,7 @@ def public_key_template(
     bits: int | None = None,
     rsa_exponent: int | None = None,
     rsa_modulus: bytes | None = None,
-) -> list[tuple]:
+) -> list[tuple[Any, Any]]:
     """Return a template used when generating public keys."""
     publicKeyTemplate: list[tuple[Any, ...]] = [
         (CKA_LABEL, label),
@@ -122,9 +122,9 @@ def public_key_template(
     return publicKeyTemplate
 
 
-def private_key_template(label: str, key_type: int) -> list:
+def private_key_template(label: str, key_type: int) -> list[tuple[Any, Any]]:
     """Return a template used when generating or unwrapping private keys."""
-    privateKeyTemplate = [
+    privateKeyTemplate: list[tuple[Any, Any]] = [
         (CKA_LABEL, label),
         # (CKA_ID,          (0x0,)),
         (CKA_CLASS, CKO_PRIVATE_KEY),
@@ -149,7 +149,10 @@ def generate_ec_key(
 
 
 def generate_key_from_templates(
-    publicKeyTemplate: list, privateKeyTemplate: list, label: str, p11modules: KSKM_P11
+    publicKeyTemplate: list[tuple[Any, Any]],
+    privateKeyTemplate: list[tuple[Any, Any]],
+    label: str,
+    p11modules: KSKM_P11,
 ) -> KSKM_P11Key | None:
     """Generate a key pair using C_GenerateKeyPair."""
     # Check that a key with that label does not already exist

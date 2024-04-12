@@ -101,9 +101,9 @@ def make_raw_rrsig(sig: Signature, keys: set[Key]) -> bytes:
         sig.key_tag,
     )
 
-    res += _dn2wire(sig.signers_name)
+    res += dn2wire(sig.signers_name)
 
-    prefix = _dn2wire(sig.signers_name)
+    prefix = dn2wire(sig.signers_name)
     prefix += struct.pack(
         "!HHI",
         sig.type_covered.value,
@@ -124,7 +124,7 @@ def make_raw_rrsig(sig: Signature, keys: set[Key]) -> bytes:
     return res
 
 
-def _dn2wire(dn: str) -> bytes:
+def dn2wire(dn: str) -> bytes:
     if dn == ".":
         return b"\00"
     raise NotImplementedError("Non-root dn2wire not implemented")

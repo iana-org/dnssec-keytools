@@ -3,6 +3,7 @@
 import logging
 import re
 from datetime import datetime, timedelta, timezone
+from typing import Any
 
 from kskm.common.data import (
     AlgorithmDNSSEC,
@@ -29,7 +30,7 @@ logger = logging.getLogger(__name__)
 #
 
 
-def signature_policy_from_dict(policy: dict) -> SignaturePolicy:
+def signature_policy_from_dict(policy: dict[str, Any]) -> SignaturePolicy:
     """Parse RequestBundle signature policy."""
     return SignaturePolicy(
         publish_safety=_get_timedelta(policy, "PublishSafety"),
@@ -42,7 +43,7 @@ def signature_policy_from_dict(policy: dict) -> SignaturePolicy:
     )
 
 
-def signers_from_list(signers: list[dict]) -> set[Signer] | None:
+def signers_from_list(signers: list[dict[str, Any]]) -> set[Signer] | None:
     """
     Parse RequestBundle signers.
 
@@ -56,7 +57,9 @@ def signers_from_list(signers: list[dict]) -> set[Signer] | None:
     return {Signer(key_identifier=this["attrs"]["keyIdentifier"]) for this in signers}
 
 
-def _parse_signature_algorithms(algorithms: dict) -> set[AlgorithmPolicy]:
+def _parse_signature_algorithms(
+    algorithms: dict[str, Any] | list[dict[str, Any]],
+) -> set[AlgorithmPolicy]:
     if isinstance(algorithms, list):
         _algs = algorithms
     else:
@@ -77,7 +80,7 @@ def _parse_signature_algorithms(algorithms: dict) -> set[AlgorithmPolicy]:
     return res
 
 
-def _get_timedelta(policy: dict, name: str) -> timedelta:
+def _get_timedelta(policy: dict[str, Any], name: str) -> timedelta:
     """Extract a timedelta from the policy."""
     return duration_to_timedelta(policy[name])
 
@@ -141,7 +144,7 @@ def parse_datetime(date: str) -> datetime:
     return dt.replace(tzinfo=timezone.utc)
 
 
-def keys_from_dict(keys: dict | list) -> set[Key]:
+def keys_from_dict(keys: dict[str, Any] | list[dict[str, Any]]) -> set[Key]:
     """
     Parse Bundle keys.
 
@@ -158,7 +161,7 @@ def keys_from_dict(keys: dict | list) -> set[Key]:
     return _keys_from_list(keys)
 
 
-def _keys_from_list(keys: list[dict]) -> set[Key]:
+def _keys_from_list(keys: list[dict[str, Any]]) -> set[Key]:
     return {
         Key(
             key_identifier=key["attrs"].get("keyIdentifier"),
@@ -173,7 +176,7 @@ def _keys_from_list(keys: list[dict]) -> set[Key]:
     }
 
 
-def signature_from_dict(signatures: dict) -> set[Signature]:
+def signature_from_dict(signatures: dict[str, Any]) -> set[Signature]:
     """
     Parse Bundle signature.
 
@@ -196,7 +199,7 @@ def signature_from_dict(signatures: dict) -> set[Signature]:
     return _signature_from_list(signatures)
 
 
-def _signature_from_list(signatures: list[dict]) -> set[Signature]:
+def _signature_from_list(signatures: list[dict[str, Any]]) -> set[Signature]:
     return {
         Signature(
             key_identifier=sig["attrs"].get("keyIdentifier"),
