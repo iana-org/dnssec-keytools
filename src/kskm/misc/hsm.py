@@ -15,6 +15,7 @@ from hashlib import sha1, sha256, sha384, sha512
 from typing import Any, NewType
 
 import PyKCS11
+import PyKCS11.LowLevel
 from PyKCS11.LowLevel import CKF_RW_SESSION, CKU_SO, CKU_USER
 
 from kskm.common.data import AlgorithmDNSSEC
@@ -165,7 +166,7 @@ class KSKM_P11Module:
             _ = self.sessions
             _info = self._lib.getTokenInfo(self._slots[0])
             if _info:
-                info = _info.to_dict()
+                info: Mapping[str, str] = _info.to_dict()
                 logger.info(f'HSM First slot:      {info.get("label")}')
                 logger.info(f'HSM ManufacturerID:  {info.get("manufacturerID")}')
                 logger.info(f'HSM Model:           {info.get("model")}')
@@ -229,14 +230,16 @@ class KSKM_P11Module:
 
     def find_key_by_label(self, label: str, key_class: KeyClass) -> KSKM_P11Key | None:
         """Query the PKCS#11 module for a key with CKA_LABEL matching 'label'."""
-        _slots: list = []
+        _slots: list[int] = []
         for _slot, _session in self.sessions.items():
-            template = [
+            template: list[tuple[Any, Any]] = [
                 (PyKCS11.LowLevel.CKA_LABEL, label),
                 (PyKCS11.LowLevel.CKA_CLASS, key_class.value),
             ]
             _slots += [_slot]
-            res = _session.findObjects(template)
+            res: list[PyKCS11.LowLevel.CK_OBJECT_HANDLE] = _session.findObjects(
+                template
+            )
             if res:
                 if len(res) > 1:
                     logger.warning(
@@ -416,13 +419,15 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) ->
     #
     # but not with the AEP Keyper, so we implement RSA PKCS#1 1.5 padding ourselves here
     # and instead use the 'raw' RSA signing mechanism CKM_RSA_X_509.
-    mechanism = {
+    _mechanisms: Mapping[AlgorithmDNSSEC, Any] = {
         AlgorithmDNSSEC.RSASHA1: PyKCS11.LowLevel.CKM_RSA_X_509,
         AlgorithmDNSSEC.RSASHA256: PyKCS11.LowLevel.CKM_RSA_X_509,
         AlgorithmDNSSEC.RSASHA512: PyKCS11.LowLevel.CKM_RSA_X_509,
         AlgorithmDNSSEC.ECDSAP256SHA256: PyKCS11.LowLevel.CKM_ECDSA,
         AlgorithmDNSSEC.ECDSAP384SHA384: PyKCS11.LowLevel.CKM_ECDSA,
-    }.get(algorithm)
+    }
+
+    mechanism = _mechanisms.get(algorithm)
     if mechanism is None:
         raise RuntimeError(f"Can't PKCS#11 sign data with algorithm {algorithm.name}")
 
@@ -459,7 +464,7 @@ KSKM_P11 = NewType("KSKM_P11", list[KSKM_P11Module])
 
 
 def init_pkcs11_modules_from_dict(
-    config: Mapping,
+    config: Mapping[str, Any],
     name: str | None = None,
     so_login: bool = False,
     rw_session: bool = False,
@@ -471,7 +476,7 @@ def init_pkcs11_modules_from_dict(
 
     :return: A list of PyKCS11 library instances.
     """
-    modules: list = []
+    modules: list[KSKM_P11Module] = []
     for label, _kwargs in config.items():
         if name and label != name:
             continue
@@ -489,8 +494,10 @@ def init_pkcs11_modules_from_dict(
 
 
 def load_hsmconfig(
-    filename: str, defaults: MutableMapping | None = None, max_lines: int = 100
-) -> dict:
+    filename: str,
+    defaults: MutableMapping[str, Any] | None = None,
+    max_lines: int = 100,
+) -> dict[str, Any]:
     """
     Load a .hsmconfig file, and perform variable interpolation.
 
@@ -513,8 +520,11 @@ def load_hsmconfig(
 
 
 def parse_hsmconfig(
-    config: Iterator, src: str, defaults: MutableMapping, max_lines: int = 100
-) -> dict:
+    config: Iterator[str],
+    src: str,
+    defaults: MutableMapping[str, Any],
+    max_lines: int = 100,
+) -> dict[str, Any]:
     """
     Parse configuration data and perform variable interpolation.
 

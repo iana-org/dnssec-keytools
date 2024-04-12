@@ -11,6 +11,7 @@ import logging.handlers
 import os
 import sys
 from argparse import Namespace as ArgsType
+from typing import Any
 
 import kskm.common
 import kskm.ksr
@@ -42,7 +43,7 @@ _DEFAULTS = {
 EXIT_CODES = {"success": 0, "interrupt": 1, "config": 2, "fatal": 3}
 
 
-def parse_args(defaults: dict) -> ArgsType:
+def parse_args(defaults: dict[str, Any]) -> ArgsType:
     """
     Parse command line arguments.
 

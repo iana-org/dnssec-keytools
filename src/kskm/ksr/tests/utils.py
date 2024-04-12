@@ -9,7 +9,7 @@ from kskm.common.data import AlgorithmDNSSEC
 from kskm.misc.hsm import get_p11_key, sign_using_p11
 
 
-def _sign_using_softhsm(data: bytes, softhsm_signing_key="RSA1") -> None:
+def sign_using_softhsm(data: bytes, softhsm_signing_key: str = "RSA1") -> None:
     """
     Calculate the correct ZSK operator signature using the key in SoftHSM.
 
@@ -32,11 +32,12 @@ def _sign_using_softhsm(data: bytes, softhsm_signing_key="RSA1") -> None:
     p11modules = init_pkcs11_modules_from_dict(config.hsm)
 
     signing_key = get_p11_key(softhsm_signing_key, p11modules, public=False)
+    assert signing_key is not None
     rrsig = binascii.unhexlify(data)
     signature_data = sign_using_p11(signing_key, rrsig, AlgorithmDNSSEC.RSASHA256)
     correct_sig = base64.b64encode(signature_data)
 
     print(
-        f"Correct signature (using key {softhsm_signing_key}) for RRSIG {binascii.hexlify(rrsig)}\n"
-        f" (SHA-256 digest {hashlib.sha256(rrsig).hexdigest()}):\n{correct_sig}"
+        f"Correct signature (using key {softhsm_signing_key}) for RRSIG {binascii.hexlify(rrsig).decode()}\n"
+        f" (SHA-256 digest {hashlib.sha256(rrsig).hexdigest()}):\n{correct_sig.decode()}"
     )

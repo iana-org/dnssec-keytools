@@ -12,6 +12,7 @@ NOT XML compliance. We just need to parse KSRs good enough.
 import logging
 import re
 from dataclasses import dataclass
+from typing import Any
 
 __author__ = "ft"
 
@@ -28,7 +29,7 @@ class _XMLElement:
 logger = logging.getLogger(__name__)
 
 
-def parse_ksr(xml: str) -> dict:
+def parse_ksr(xml: str) -> dict[str, Any]:
     """
     Parse a KSR XML.
 
@@ -38,7 +39,7 @@ def parse_ksr(xml: str) -> dict:
     return parse(xml[idx:])
 
 
-def parse(xml: str, recurse: int = 5) -> dict:
+def parse(xml: str, recurse: int = 5) -> dict[str, Any]:
     """
     Parse something that is probably a KSR XML file without anything fancy in it into a dict.
 
@@ -151,7 +152,7 @@ def parse_first_element(xml: str) -> tuple[_XMLElement, int]:
     return _XMLElement(name=name, attrs=attrs, value=value), element_end_idx
 
 
-def _parse_tag(xml: str) -> tuple[str, dict | None, int]:
+def _parse_tag(xml: str) -> tuple[str, dict[str, str] | None, int]:
     """
     Parse the first XML start-of-elements into name and attributes.
 
@@ -190,7 +191,7 @@ def _parse_tag(xml: str) -> tuple[str, dict | None, int]:
     raise ValueError(f"Failed parsing tag {xml[:10]!r}...")
 
 
-def _parse_attrs(attrs: str) -> dict:
+def _parse_attrs(attrs: str) -> dict[str, str]:
     """
     Parse element attributes into a dict.
 
@@ -202,7 +203,7 @@ def _parse_attrs(attrs: str) -> dict:
     :param attrs: Element sub-string
     :return: Element attributes as dictionary
     """
-    res = {}
+    res: dict[str, str] = {}
     while attrs:
         attrs = attrs.strip()
         m = re.match(r'^(\w+)="(.+?)"\s*(.*)', attrs)

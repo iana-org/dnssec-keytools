@@ -10,9 +10,11 @@ import os
 from unittest import TestCase
 
 import dns
+import dns.dnssec
+import dns.name
 import dns.rrset
 import pkg_resources
-from dns.dnssec import ValidationFailure
+from dns.exception import ValidationFailure
 
 from kskm.common.data import Key, Signature
 from kskm.ksr import request_from_xml
@@ -22,17 +24,17 @@ logger = logging.getLogger(__name__)
 
 
 class TestDnsPythonValidate_signatures(TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         """Prepare test instance"""
         self.data_dir = pkg_resources.resource_filename(__name__, "data")
 
-    def test_keysize_change_dnspython(self):
+    def test_keysize_change_dnspython(self) -> None:
         """Test file where ZSK changed from RSA1024 to RSA2048 using dnspython"""
         self._test_file(
             "ksr-root-2016-q3-0.xml", "a6b6162e-b299-427e-b11b-1a8c54a08910"
         )
 
-    def _test_file(self, fn, filter_ids=None):
+    def _test_file(self, fn: str, filter_ids: str | None = None) -> None:
         fn = os.path.join(self.data_dir, fn)
         with open(fn) as fd:
             xml = fd.read()
@@ -52,7 +54,7 @@ def dnspython_validate_bundle(bundle: RequestBundle) -> bool:
     """Make sure the sets of signatures and keys in a bundle is consistent"""
     # To locate keys for signatures, and to make sure all keys are covered by
     # a signature, we make a copy of the keys indexed by key_tag.
-    _keys = {}
+    _keys: dict[int, Key] = {}
     for key in bundle.keys:
         if key.key_tag in _keys:
             raise ValueError(
@@ -90,7 +92,7 @@ def dnspython_validate_key_sig(keys: set[Key], sig: Signature) -> bool:
     """
     res = True
     _domainname = dns.name.from_text(sig.signers_name)
-    text_rdata = []
+    text_rdata: list[str] = []
     for key in keys:
         _dnskey = "{flags} {proto} {alg} {pkey}".format(
             flags=key.flags,
@@ -103,7 +105,7 @@ def dnspython_validate_key_sig(keys: set[Key], sig: Signature) -> bool:
     dnskey_rr = dns.rrset.from_text(
         sig.signers_name, sig.original_ttl, "IN", "DNSKEY", *text_rdata
     )
-    _keys = {
+    _keys: dict[dns.name.Name, dns.rrset.RRset] = {
         _domainname: dnskey_rr,
     }
 

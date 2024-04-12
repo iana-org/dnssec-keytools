@@ -11,7 +11,7 @@ from cryptography.exceptions import InvalidSignature
 from kskm.common.config import ConfigurationError, KSKMConfig
 from kskm.common.config_ksk import validate_dnskey_matches_ksk
 from kskm.common.config_misc import KSKKeysType, KSKPolicy, Schema
-from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY, Signature, TypeDNSSEC
+from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY, Key, Signature, TypeDNSSEC
 from kskm.common.dnssec import calculate_key_tag
 from kskm.common.signature import dndepth, make_raw_rrsig
 from kskm.ksr import Request
@@ -63,7 +63,7 @@ def sign_bundles(
         # All DNSKEY RRs in a set *has* to have the same TTL. Ensure all keys have the TTL
         # configured by the KSK operator. A warning is logged for any discrepancies found,
         # because an earlier policy check (KSR-POLICY-KEYS) should have found this unless disabled.
-        _new_keys = set()
+        _new_keys: set[Key] = set()
         for _key in _bundle.keys:
             if _key.ttl != ksk_policy.ttl:
                 if _key.key_identifier not in _hush_key_ttl_warnings:
@@ -106,7 +106,7 @@ def sign_bundles(
         #
         # Using the 'signing' keys for this bundle in the schema, sign all the keys in the bundle
         #
-        signatures = set()
+        signatures: set[Signature] = set()
         for _sign_key in signing_keys:
             logger.debug(f"Signing {len(updated_bundle.keys)} bundle keys:")
             for _this in updated_bundle.keys:

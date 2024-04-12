@@ -11,54 +11,54 @@ from kskm.ksr.parse_utils import signers_from_list
 
 
 class Test_duration_to_timedelta(TestCase):
-    def test_duration_to_timedelta_empty(self):
+    def test_duration_to_timedelta_empty(self) -> None:
         """Test empty input"""
         td = duration_to_timedelta("")
         self.assertEqual(td.total_seconds(), 0)
 
-    def test_duration_to_timedelta_basic(self):
+    def test_duration_to_timedelta_basic(self) -> None:
         """Test the most basic case"""
         td = duration_to_timedelta("P1D")
         self.assertEqual(td.total_seconds(), 86400)
 
-    def test_duration_to_timedelta_day_hour(self):
+    def test_duration_to_timedelta_day_hour(self) -> None:
         """Test hour"""
         td = duration_to_timedelta("P1H")
         self.assertEqual(td.total_seconds(), 3600)
 
-    def test_duration_to_timedelta_day_minute(self):
+    def test_duration_to_timedelta_day_minute(self) -> None:
         """Test both day and minute"""
         td = duration_to_timedelta("P1DT1M")
         self.assertEqual(td.total_seconds(), 86460)
 
-    def test_duration_to_timedelta_day_second(self):
+    def test_duration_to_timedelta_day_second(self) -> None:
         """Test day and second"""
         td = duration_to_timedelta("P1D1")
         self.assertEqual(td.total_seconds(), 86401)
 
-    def test_duration_to_timedelta_second(self):
+    def test_duration_to_timedelta_second(self) -> None:
         """Test second"""
         td = duration_to_timedelta("P11S")
         self.assertEqual(td.total_seconds(), 11)
 
-    def test_duration_to_timedelta_week(self):
+    def test_duration_to_timedelta_week(self) -> None:
         """Test second"""
         td = duration_to_timedelta("P1W")
         self.assertEqual(td.total_seconds(), 86400 * 7)
 
-    def test_bogus(self):
+    def test_bogus(self) -> None:
         """Test totally bogus duration"""
         with self.assertRaises(ValueError):
             duration_to_timedelta("foo")
 
-    def test_invalid(self):
+    def test_invalid(self) -> None:
         """Test invalid duration"""
         with self.assertRaises(ValueError):
             duration_to_timedelta("Pfoo")
 
 
 class Test_signers_from_list(TestCase):
-    def test_basic(self):
+    def test_basic(self) -> None:
         """Test basic KSR Signer parsing"""
         data = [
             {"attrs": {"keyIdentifier": "KC00020"}, "value": ""},
@@ -69,13 +69,13 @@ class Test_signers_from_list(TestCase):
             out, {Signer(key_identifier="KC00020"), Signer(key_identifier="KC00094")}
         )
 
-    def test_no_signer(self):
+    def test_no_signer(self) -> None:
         """Test that KSR Signer is optional"""
         self.assertIsNone(signers_from_list([]))
 
 
 class Test_keys_from_list(TestCase):
-    def test_basic(self):
+    def test_basic(self) -> None:
         """Test basic KSR Key parsing"""
         data = [
             {
@@ -103,7 +103,7 @@ class Test_keys_from_list(TestCase):
         }
         self.assertEqual(out, expected)
 
-    def test_with_ttl(self):
+    def test_with_ttl(self) -> None:
         """Test Key with TTL"""
         data = [
             {
@@ -131,7 +131,7 @@ class Test_keys_from_list(TestCase):
         }
         self.assertEqual(out, expected)
 
-    def test_ecdsa_key(self):
+    def test_ecdsa_key(self) -> None:
         """Test loading an ECDSA key"""
         public_key = r"BGuqYyOGr0p/uKXm0MmP4Cuiml/a8FCPRDLerVyBS4jHmJlKTJmYk/nCbOp936DSh5SMu6+2WYJUI6K5AYfXbTE="
         data = [
@@ -171,7 +171,7 @@ class Test_keys_from_list(TestCase):
 
 
 class Test_signature_from_dict(TestCase):
-    def test_basic(self):
+    def test_basic(self) -> None:
         """Test basic KSR Signature parsing"""
         sig = {
             "attrs": {"keyIdentifier": "ZSK-24315"},

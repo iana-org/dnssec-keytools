@@ -265,7 +265,7 @@ WORDS = [
 def pgp_wordlist(data: bytes) -> list[str]:
     """Translate bytes to list of PGP words."""
     odd = False
-    words = []
+    words: list[str] = []
     for byte in data:
         if odd:
             words.append(WORDS[byte][1])

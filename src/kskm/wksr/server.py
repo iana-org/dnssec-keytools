@@ -8,8 +8,9 @@ import logging
 import re
 import smtplib
 import ssl
-from datetime import datetime
+from datetime import datetime, UTC
 from email.message import EmailMessage
+from typing import Any
 
 import jinja2
 from flask import Flask, render_template, request
@@ -90,12 +91,12 @@ def upload() -> str:
     log_buffer = log_capture_string.getvalue()
     log_capture_string.close()
 
-    env = {
+    env: dict[str, Any] = {
         "result": result,
         "request": request,
         "filename": filename,
         "filehash": filehash,
-        "timestamp": datetime.utcnow(),
+        "timestamp": datetime.now(UTC),
         "log": log_buffer,
     }
 
@@ -104,7 +105,7 @@ def upload() -> str:
     return str(render_template(template_config["result"], **env))
 
 
-def validate_ksr(filename: str) -> dict:
+def validate_ksr(filename: str) -> dict[str, Any]:
     """Validate incoming KSR and optionally check previous SKR."""
     global ksr_config
 
@@ -148,7 +149,7 @@ def validate_ksr(filename: str) -> dict:
     return result
 
 
-def notify(env: dict) -> None:
+def notify(env: dict[str, Any]) -> None:
     """Send notification about incoming KSR."""
     if "smtp_server" not in notify_config:
         return
@@ -197,7 +198,7 @@ def save_ksr(upload_file: FileStorage) -> tuple[str, str]:
     return filename, filehash
 
 
-def generate_ssl_context(config: dict | None = None) -> ssl.SSLContext:
+def generate_ssl_context(config: dict[str, Any] | None = None) -> ssl.SSLContext:
     """Generate SSL context for app."""
     if config is None:
         config = {}
@@ -225,7 +226,7 @@ def generate_ssl_context(config: dict | None = None) -> ssl.SSLContext:
     return ssl_context
 
 
-def generate_app(config: dict) -> Flask:
+def generate_app(config: dict[str, Any]) -> Flask:
     """Generate app."""
     global ksr_config, notify_config, template_config
 
@@ -240,7 +241,7 @@ def generate_app(config: dict) -> Flask:
 
     app = Flask(__name__)
 
-    app.jinja_loader = jinja2.FileSystemLoader(".")  # type: ignore
+    app.jinja_loader = jinja2.FileSystemLoader(".")
     app.jinja_env.globals["client_subject"] = PeerCertWSGIRequestHandler.client_subject
     app.jinja_env.globals["client_digest"] = PeerCertWSGIRequestHandler.client_digest
 

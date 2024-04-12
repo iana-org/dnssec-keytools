@@ -41,16 +41,16 @@ class OperationsWithSoftHSM(unittest.TestCase):
             this.close()
 
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
-    def test_find_key_by_id(self):
+    def test_find_key_by_id(self) -> None:
         """Test finding key objects by CKA_ID"""
         module = self.p11modules[0]
         # Well-known CKA_LABEL/CKA_ID for one of the keys loaded into SoftHSM using testing/Makefile
         by_label = module.find_key_by_label("RSA1", KeyClass.PUBLIC)
-        self.assertIsNotNone(by_label)
+        assert by_label is not None
 
         by_id = None
         for _slot, session in module.sessions.items():
-            _res = module.find_key_by_id((1,), session)
+            _res = module.find_key_by_id(1, session)
             if _res:
                 for this in _res:
                     if this.pubkey_handle is not None:
@@ -59,7 +59,8 @@ class OperationsWithSoftHSM(unittest.TestCase):
                 if by_id is not None:
                     break
 
-        self.assertEqual(by_label.label, by_id.label)
-        self.assertEqual(by_label.key_type, by_id.key_type)
-        self.assertEqual(by_label.key_class, by_id.key_class)
-        self.assertEqual(by_label.public_key, by_id.public_key)
+        assert by_id is not None
+        assert by_label.label == by_id.label
+        assert by_label.key_type == by_id.key_type
+        assert by_label.key_class == by_id.key_class
+        assert by_label.public_key == by_id.public_key

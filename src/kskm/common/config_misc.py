@@ -7,7 +7,7 @@ from collections.abc import Iterable, Mapping
 from copy import deepcopy
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import NewType, TypeVar
+from typing import Any, NewType, TypeVar
 
 from kskm.common.data import AlgorithmDNSSEC, SignaturePolicy
 from kskm.common.parse_utils import duration_to_timedelta, parse_datetime
@@ -27,7 +27,7 @@ class Policy(ABC):
     _dataclass_placeholder: bool | None = None
 
     @classmethod
-    def from_dict(cls: type[PolicyType], data: dict) -> PolicyType:
+    def from_dict(cls: type[PolicyType], data: dict[str, Any]) -> PolicyType:
         """Instantiate ResponsePolicy from a dict of values."""
         _data = deepcopy(data)  # don't mess with caller's data
         # Convert durations provided as strings into datetime.timedelta instances
@@ -126,7 +126,7 @@ class Schema:
     actions: Mapping[int, SchemaAction]
 
 
-def _parse_keylist(elem: str | list[str]) -> list[SigningKey]:
+def parse_keylist(elem: str | list[str]) -> list[SigningKey]:
     if isinstance(elem, list):
         return [SigningKey(x) for x in elem]
     return [SigningKey(elem)]
@@ -145,7 +145,7 @@ class KSKPolicy:
     signers_name: str
 
     @classmethod
-    def from_dict(cls, data: Mapping) -> KSKPolicy:
+    def from_dict(cls, data: Mapping[str, Any]) -> KSKPolicy:
         """
         Load the 'ksk_policy' section of the configuration.
 
@@ -191,7 +191,7 @@ class KSKKey:
     ds_sha256: str | None = None
 
     @classmethod
-    def from_dict(cls: type[KSKKey], data: dict) -> KSKKey:
+    def from_dict(cls: type[KSKKey], data: dict[str, Any]) -> KSKKey:
         """Instantiate KSKKey from a dict of values."""
         # do not modify callers data
         _data = deepcopy(data)

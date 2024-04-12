@@ -1,5 +1,6 @@
 """Peer certificate functions."""
 
+from typing import Any
 import OpenSSL
 import werkzeug.serving
 from flask import request
@@ -19,7 +20,7 @@ class PeerCertWSGIRequestHandler(werkzeug.serving.WSGIRequestHandler):
     in the application.
     """
 
-    def make_environ(self) -> dict:
+    def make_environ(self) -> dict[str, Any]:
         """
         Create request environment.
 
@@ -30,7 +31,7 @@ class PeerCertWSGIRequestHandler(werkzeug.serving.WSGIRequestHandler):
         peer certificate into the hash. That exposes it to us later in
         the request variable that Flask provides
         """
-        environ: dict = super().make_environ()
+        environ: dict[str, Any] = super().make_environ()
         try:
             x509_binary = self.connection.getpeercert(True)
         except (AttributeError, KeyError):
