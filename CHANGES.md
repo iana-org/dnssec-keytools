@@ -7,4 +7,4 @@
 - Adjust code for Python 3.12 and upgrade dependencies
 - Use Poetry for building
 - Replace black/isort with ruff for formatting and linting
-- Import version from pkg resources
+- Import version using importlib.metadata
