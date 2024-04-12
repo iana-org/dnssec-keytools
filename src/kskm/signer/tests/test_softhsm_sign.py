@@ -8,9 +8,9 @@ file *with the test keys created using 'make softhsm' in testing/softhsm/ loaded
 import datetime
 import io
 import os
-from typing import Any, Generator
 import unittest
 from dataclasses import replace
+from typing import Any, Generator
 from unittest.mock import patch
 
 import pkg_resources

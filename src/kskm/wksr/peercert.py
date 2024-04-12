@@ -1,6 +1,7 @@
 """Peer certificate functions."""
 
 from typing import Any
+
 import OpenSSL
 import werkzeug.serving
 from flask import request

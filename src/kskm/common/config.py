@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from io import BufferedReader, StringIO
 import logging
 from collections.abc import Mapping
 from dataclasses import replace
+from io import BufferedReader, StringIO
 from typing import Any, cast
 
 import voluptuous.error

@@ -8,7 +8,7 @@ import logging
 import re
 import smtplib
 import ssl
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from email.message import EmailMessage
 from typing import Any
 
