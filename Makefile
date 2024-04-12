@@ -43,7 +43,7 @@ vscode_packages:
 # This target is used by the devcontainer.json to configure the devcontainer
 vscode: vscode_packages softhsm
 	pip3 install poetry
-	poetry install
+	poetry install --all-extras
 
 $(BUILDINFO): $(SOURCE)
 	if [ -d .git ]; then \
