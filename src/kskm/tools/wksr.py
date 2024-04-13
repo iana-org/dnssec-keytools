@@ -52,7 +52,9 @@ def main() -> None:
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    config = yaml.load(open(args.config).read(), Loader=yaml.SafeLoader)
+    with open(args.config) as fp:
+        config = yaml.load(fp.read(), Loader=yaml.SafeLoader)
+
     try:
         voluptuous.humanize.validate_with_humanized_errors(config, WKSR_CONFIG_SCHEMA)
     except voluptuous.error.Error as exc:
