@@ -92,13 +92,8 @@ def check_chain_overlap(
             + fmt_timedelta(ksr.zsk_policy.min_validity_overlap)
         )
         raise KSR_CHAIN_OVERLAP_Violation(
-            'Bundle "{}" (from SKR(n-1)) '
-            'overlap {} with "{}" is < claimed minimum {}'.format(
-                fmt_bundle(ksr_first),
-                fmt_timedelta(overlap),
-                fmt_bundle(previous),
-                fmt_timedelta(ksr.zsk_policy.min_validity_overlap),
-            )
+            f'Bundle "{fmt_bundle(ksr_first)}" (from SKR(n-1)) '
+            f'overlap {fmt_timedelta(overlap)} with "{fmt_bundle(previous)}" is < claimed minimum {fmt_timedelta(ksr.zsk_policy.min_validity_overlap)}'
         )
     if overlap > ksr.zsk_policy.max_validity_overlap:
         logger.debug(f"Last bundle in SKR(n-1) expiration: {previous.expiration}")
@@ -108,13 +103,8 @@ def check_chain_overlap(
             + fmt_timedelta(ksr.zsk_policy.max_validity_overlap)
         )
         raise KSR_CHAIN_OVERLAP_Violation(
-            'Bundle "{}" (from SRK(n-1)) '
-            'overlap {} with "{}" is > claimed maximum {}'.format(
-                fmt_bundle(ksr_first),
-                fmt_timedelta(overlap),
-                fmt_bundle(previous),
-                fmt_timedelta(ksr.zsk_policy.max_validity_overlap),
-            )
+            f'Bundle "{fmt_bundle(ksr_first)}" (from SRK(n-1)) '
+            f'overlap {fmt_timedelta(overlap)} with "{fmt_bundle(previous)}" is > claimed maximum {fmt_timedelta(ksr.zsk_policy.max_validity_overlap)}'
         )
 
     logger.info(

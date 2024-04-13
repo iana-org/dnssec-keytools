@@ -104,9 +104,7 @@ def check_keys_in_bundles(
 
         if num_keys != 3:
             logger.warning(
-                "Request {} does not have three (early,on-time,late) key sets in it ({})".format(
-                    request.id, num_keys
-                )
+                f"Request {request.id} does not have three (early,on-time,late) key sets in it ({num_keys})"
             )
         if num_keys != policy.num_different_keys_in_all_bundles:
             raise KSR_POLICY_KEYS_Violation(
@@ -135,12 +133,7 @@ def check_signature_validity(
         num += 1
         validity = bundle.expiration - bundle.inception
         logger.debug(
-            "{num:<2} {inception:29} {expiration:30} {validity}".format(
-                num=num,
-                inception=fmt_timestamp(bundle.inception),
-                expiration=fmt_timestamp(bundle.expiration),
-                validity=validity,
-            )
+            f"{num:<2} {fmt_timestamp(bundle.inception):29} {fmt_timestamp(bundle.expiration):30} {validity}"
         )
 
     for bundle in request.bundles:
@@ -301,13 +294,7 @@ def check_bundle_overlaps(
             overlap = previous.expiration - this.inception
             overlap_str = fmt_timedelta(overlap)
         logger.debug(
-            "{num:<2} {id:8} {inception:19} {expiration:20} {overlap}".format(
-                num=i + 1,
-                id=this.id[:8],
-                inception=fmt_timestamp(this.inception),
-                expiration=fmt_timestamp(this.expiration),
-                overlap=overlap_str,
-            )
+            f"{i + 1:<2} {this.id[:8]:8} {fmt_timestamp(this.inception):19} {fmt_timestamp(this.expiration):20} {overlap_str}"
         )
 
     # check that bundles overlap, and with how much
@@ -322,21 +309,11 @@ def check_bundle_overlaps(
         overlap = previous.expiration - this.inception
         if overlap < request.zsk_policy.min_validity_overlap:
             raise KSR_POLICY_SIG_OVERLAP_Violation(
-                'Bundle "{}" overlap {} with "{}" is < claimed minimum {}'.format(
-                    fmt_bundle(this),
-                    fmt_timedelta(overlap),
-                    fmt_bundle(previous),
-                    fmt_timedelta(request.zsk_policy.min_validity_overlap),
-                )
+                f'Bundle "{fmt_bundle(this)}" overlap {fmt_timedelta(overlap)} with "{fmt_bundle(previous)}" is < claimed minimum {fmt_timedelta(request.zsk_policy.min_validity_overlap)}'
             )
         if overlap > request.zsk_policy.max_validity_overlap:
             raise KSR_POLICY_SIG_OVERLAP_Violation(
-                'Bundle "{}" overlap {} with "{}" is > claimed maximum {}'.format(
-                    fmt_bundle(this),
-                    fmt_timedelta(overlap),
-                    fmt_bundle(previous),
-                    fmt_timedelta(request.zsk_policy.max_validity_overlap),
-                )
+                f'Bundle "{fmt_bundle(this)}" overlap {fmt_timedelta(overlap)} with "{fmt_bundle(previous)}" is > claimed maximum {fmt_timedelta(request.zsk_policy.max_validity_overlap)}'
             )
     logger.info(
         "KSR-POLICY-SIG-OVERLAP: All bundles overlap in accordance with the stated ZSK operator policy"

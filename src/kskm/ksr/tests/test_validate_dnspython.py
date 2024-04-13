@@ -58,9 +58,7 @@ def dnspython_validate_bundle(bundle: RequestBundle) -> bool:
     for key in bundle.keys:
         if key.key_tag in _keys:
             raise ValueError(
-                "More than one key with keytag {} in bundle {}".format(
-                    key.key_tag, bundle.id
-                )
+                f"More than one key with keytag {key.key_tag} in bundle {bundle.id}"
             )
         _keys[key.key_tag] = key
     if not _keys:
