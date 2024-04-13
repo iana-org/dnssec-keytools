@@ -49,10 +49,8 @@ def sign_bundles(
     DNSKEY RR set using the KSK key stored in a PKCS#11 module (HSM).
     """
     res: list[ResponseBundle] = []
-    bundle_num = 0
     _hush_key_ttl_warnings: dict[str, bool] = {}
-    for _bundle in request.bundles:
-        bundle_num += 1
+    for bundle_num, _bundle in enumerate(request.bundles, 1):
         this_schema = schema.actions[bundle_num]
 
         if _bundle.signers:
