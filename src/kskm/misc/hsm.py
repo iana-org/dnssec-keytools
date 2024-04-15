@@ -561,14 +561,12 @@ def parse_hsmconfig(
             val = res.get(key, defaults.get(key))
             if not val:
                 raise RuntimeError(
-                    "Failed interpolating variable ${} in HSM config {}: not set".format(
-                        key, src
-                    )
+                    f"Failed interpolating variable ${key} in HSM config {src}: not set"
                 )
             if "$" in val:
                 raise ValueError(
-                    "Variable interpolation of {} in HSM config {} to new variable "
-                    "({}) is not allowed".format(key, src, val)
+                    f"Variable interpolation of {key} in HSM config {src} to new variable "
+                    f"({val}) is not allowed"
                 )
             rhs = rhs.replace(f"${key}", val)
         res[lhs] = rhs
