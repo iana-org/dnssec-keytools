@@ -1,9 +1,10 @@
 {
         "ruff.fixAll": true,
         "editor.codeActionsOnSave": {
-                 "source.organizeImports": "explicit"
+                "source.organizeImports": "explicit"
         },
         "editor.defaultFormatter": "charliermarsh.ruff",
         "editor.formatOnSave": true,
-        "editor.formatOnPaste": true
+        "editor.formatOnPaste": true,
+        "python.envFile": "${workspaceFolder}/.vscode/.env"
 }
