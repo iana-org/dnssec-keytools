@@ -50,7 +50,7 @@ class OperationsWithSoftHSM(unittest.TestCase):
 
         by_id = None
         for _slot, session in module.sessions.items():
-            _res = module.find_key_by_id(1, session)
+            _res = module.find_key_by_id((1,), session)
             if _res:
                 for this in _res:
                     if this.pubkey_handle is not None:

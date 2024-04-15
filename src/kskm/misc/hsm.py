@@ -270,7 +270,7 @@ class KSKM_P11Module:
         )
         return None
 
-    def find_key_by_id(self, key_id: int, session: Any) -> list[KSKM_P11Key]:
+    def find_key_by_id(self, key_id: tuple[int], session: Any) -> list[KSKM_P11Key]:
         """Query the PKCS#11 module for a key with CKA_ID matching 'key_id'."""
         template = [(PyKCS11.LowLevel.CKA_ID, key_id)]
         res: list[KSKM_P11Key] = []
