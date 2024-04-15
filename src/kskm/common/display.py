@@ -13,13 +13,11 @@ __author__ = "ft"
 
 def log_file_contents(filename: str, contents: bytes, logger: logging.Logger) -> None:
     """Log file contents with filename and line number."""
-    lineno = 0
     lines = contents.decode().splitlines()
     digits_in_lineno = len(str(len(lines)))
     format_str = f"{{0}} {{1:0{digits_in_lineno}}}: {{2}}"
-    for line in lines:
+    for lineno, line in enumerate(lines, 1):
         logger.info(format_str.format(filename, lineno, line))
-        lineno += 1
 
 
 def format_bundles_for_humans(bundles: Sequence[BundleType]) -> Sequence[str]:
@@ -33,9 +31,7 @@ def format_bundles_for_humans(bundles: Sequence[BundleType]) -> Sequence[str]:
             ksk_tag="KSK(CKA_LABEL)",
         )
     ]
-    num = 0
-    for this in bundles:
-        num += 1
+    for num, this in enumerate(bundles, 1):
         zsk_info: list[str] = []
         ksk_info: list[str] = []
         for key in this.keys:

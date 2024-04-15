@@ -130,9 +130,7 @@ def check_signature_validity(
         return
 
     logger.debug("Verifying RequestBundles validity parameters:")
-    num = 0
-    for bundle in request.bundles:
-        num += 1
+    for num, bundle in enumerate(request.bundles, 1):
         validity = bundle.expiration - bundle.inception
         logger.debug(
             "{num:<2} {inception:29} {expiration:30} {validity}".format(
