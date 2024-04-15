@@ -48,7 +48,9 @@ def load_ksr(
             # This is better in test cases
             raise
         # This is better in regular operations since it adds information about the context
-        raise RuntimeError(f"Failed validating KSR request in file {filename}: {exc}")
+        raise RuntimeError(
+            f"Failed validating KSR request in file {filename}: {exc}"
+        ) from exc
     return request
 
 

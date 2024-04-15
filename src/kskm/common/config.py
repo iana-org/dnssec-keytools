@@ -258,7 +258,7 @@ class KSKMConfig:
             )
             logger.info("Configuration validated")
         except voluptuous.error.Error as exc:
-            raise ConfigurationError(str(exc))
+            raise ConfigurationError(str(exc)) from exc
         return cls(config)
 
 
