@@ -8,3 +8,4 @@
 - Use Poetry for building
 - Replace black/isort with ruff for formatting and linting
 - Import version using importlib.metadata
+- Improve container (docker) build
