@@ -4,7 +4,6 @@ import os
 import unittest
 from dataclasses import replace
 
-import pkg_resources
 
 from kskm.common.config_misc import RequestPolicy
 from kskm.ksr import request_from_xml
@@ -24,7 +23,7 @@ logger = logging.getLogger(__name__)
 class Test_KSR_SKR_policy(unittest.TestCase):
     def setUp(self) -> None:
         # Initialise KSR and last SKR data structures
-        self.data_dir = pkg_resources.resource_filename(__name__, "data")
+        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
 
         with open(os.path.join(self.data_dir, "ksr-root-2017-q2-0.xml")) as fd:
             self.ksr_xml = fd.read()

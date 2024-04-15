@@ -3,7 +3,6 @@ import binascii
 import io
 import os
 
-import pkg_resources
 
 from kskm.common.data import AlgorithmDNSSEC
 from kskm.misc.hsm import get_p11_key, sign_using_p11
@@ -21,9 +20,7 @@ def sign_using_softhsm(data: bytes, softhsm_signing_key: str = "RSA1") -> None:
     from kskm.common.config import KSKMConfig
     from kskm.misc.hsm import init_pkcs11_modules_from_dict
 
-    softhsm_dir = pkg_resources.resource_filename(
-        __name__, "../../../../testing/softhsm"
-    )
+    softhsm_dir = os.path.join(os.path.dirname(__file__), "../../../../testing/softhsm")
     _cfg_fn = os.path.join(softhsm_dir, "ksrsigner.yaml")
 
     with open(_cfg_fn) as fd:

@@ -4,7 +4,6 @@ import os
 import unittest
 from tempfile import mkstemp
 
-import pkg_resources
 import voluptuous.error
 import voluptuous.humanize
 import yaml
@@ -12,7 +11,7 @@ import yaml
 from kskm.common.config import ConfigurationError, get_config
 from kskm.common.config_schema import KSRSIGNER_CONFIG_SCHEMA, WKSR_CONFIG_SCHEMA
 
-CONFIG_DIR = pkg_resources.resource_filename(__name__, "../../../../config")
+CONFIG_DIR = os.path.join(os.path.dirname(__file__), "../../../../config")
 
 
 class TestConfigSchema(unittest.TestCase):

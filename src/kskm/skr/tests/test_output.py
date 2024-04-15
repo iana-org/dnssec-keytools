@@ -1,7 +1,6 @@
 import os
 import unittest
 
-import pkg_resources
 
 from kskm.common.config import get_config
 from kskm.skr import load_skr, response_from_xml, skr_to_xml
@@ -11,7 +10,7 @@ from kskm.skr.validate import validate_response
 class TestParseRealSKRs(unittest.TestCase):
     def setUp(self) -> None:
         """Prepare test instance"""
-        self.data_dir = pkg_resources.resource_filename(__name__, "data")
+        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
 
     def test_recreate_2018_q1_0(self) -> None:
         """Test a parse->output->parse cycle with skr-root-2018-q1-0-d_to_e.xml"""

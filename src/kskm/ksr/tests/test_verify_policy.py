@@ -3,7 +3,6 @@ import os
 import unittest
 from dataclasses import replace
 
-import pkg_resources
 
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import AlgorithmDNSSEC
@@ -28,7 +27,7 @@ from kskm.ksr.verify_policy import (
 class Test_Validate_KSR_policy(unittest.TestCase):
     def setUp(self) -> None:
         """Prepare test instance"""
-        self.data_dir = pkg_resources.resource_filename(__name__, "data")
+        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
         self.policy_fn = os.path.join(self.data_dir, "response_policy.yaml")
 
     def test_load_ksr_with_signatures_in_the_past(self) -> None:

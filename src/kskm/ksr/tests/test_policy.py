@@ -1,8 +1,6 @@
 import os
 import unittest
 
-import pkg_resources
-
 from kskm.common.config import get_config
 from kskm.common.config_misc import RequestPolicy
 
@@ -10,7 +8,7 @@ from kskm.common.config_misc import RequestPolicy
 class TestRequestPolicy(unittest.TestCase):
     def setUp(self) -> None:
         """Prepare test instance"""
-        self.data_dir = pkg_resources.resource_filename(__name__, "data")
+        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
 
     def test_load_request_policy(self) -> None:
         """Test loading the request policy from file"""

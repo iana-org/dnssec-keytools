@@ -3,7 +3,6 @@ import os
 import unittest
 from dataclasses import replace
 
-import pkg_resources
 from cryptography.exceptions import InvalidSignature
 
 from kskm.common.config_misc import RequestPolicy
@@ -29,7 +28,8 @@ def archive_dir(extra: str | None = None) -> str | None:
 class TestParseRealKSRs(unittest.TestCase):
     def setUp(self) -> None:
         """Prepare test instance"""
-        self.data_dir = pkg_resources.resource_filename(__name__, "data")
+        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
+        #self.data_dir = os.path.join(os.path.dirname(__file__), "data")
 
     @unittest.skipUnless(archive_dir("ksr"), "KSKM_KSR_ARCHIVE_PATH not set or invalid")
     def test_parse_all_ksrs_in_archive(self) -> None:

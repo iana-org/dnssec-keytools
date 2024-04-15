@@ -13,7 +13,6 @@ import dns
 import dns.dnssec
 import dns.name
 import dns.rrset
-import pkg_resources
 from dns.exception import ValidationFailure
 
 from kskm.common.data import Key, Signature
@@ -26,7 +25,7 @@ logger = logging.getLogger(__name__)
 class TestDnsPythonValidate_signatures(TestCase):
     def setUp(self) -> None:
         """Prepare test instance"""
-        self.data_dir = pkg_resources.resource_filename(__name__, "data")
+        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
 
     def test_keysize_change_dnspython(self) -> None:
         """Test file where ZSK changed from RSA1024 to RSA2048 using dnspython"""
