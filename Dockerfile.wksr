@@ -1,6 +1,8 @@
 # Dockerfile for building standalone wksr server
 
-FROM python:3.12 as builder
+ARG PYTHON_VERSION
+
+FROM python:${PYTHON_VERSION} as builder
 
 ADD . /src
 WORKDIR /src
@@ -9,7 +11,7 @@ RUN pip install poetry
 RUN poetry build
 
 
-FROM python:3.12
+FROM python:${PYTHON_VERSION}
 
 ARG UID=5353
 ARG GID=5353
