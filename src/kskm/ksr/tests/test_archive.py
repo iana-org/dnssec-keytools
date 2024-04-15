@@ -29,7 +29,6 @@ class TestParseRealKSRs(unittest.TestCase):
     def setUp(self) -> None:
         """Prepare test instance"""
         self.data_dir = os.path.join(os.path.dirname(__file__), "data")
-        #self.data_dir = os.path.join(os.path.dirname(__file__), "data")
 
     @unittest.skipUnless(archive_dir("ksr"), "KSKM_KSR_ARCHIVE_PATH not set or invalid")
     def test_parse_all_ksrs_in_archive(self) -> None:
