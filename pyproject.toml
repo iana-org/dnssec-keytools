@@ -83,4 +83,4 @@ select = [
     # isort
     "I",
 ]
-ignore = ["E501"]
+ignore = ["E501", "I001"]

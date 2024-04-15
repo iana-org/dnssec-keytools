@@ -190,7 +190,7 @@ class Test_SignWithSoftHSM_RSA(SignWithSoftHSM_Baseclass):
                     config=self.config,
                     ksk_policy=self.config.ksk_policy,
                 )
-            assert "Invalid KSK signature encountered in bundle test" == str(exc.value)
+            assert str(exc.value) == "Invalid KSK signature encountered in bundle test"
 
 
 @pytest.mark.usefixtures("p11modules_fixture")

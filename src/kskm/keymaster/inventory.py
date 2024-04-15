@@ -91,7 +91,7 @@ def _format_keys(
         res += ["    Signing key pairs:"] + pairs
 
     # Now, add all leftover keys
-    for cls in data.keys():
+    for cls in data:
         _leftovers: list[str] = []
         for this in list(data[cls].values()):
             _leftovers += [f"      {this.label:7s} {_id_to_str(this.key_id)}"]

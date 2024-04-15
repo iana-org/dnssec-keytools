@@ -139,7 +139,7 @@ class Test_Valid_Requests(Test_Requests):
             enable_unsupported_ecdsa=True,
         )
         request = request_from_xml(xml)
-        assert validate_request(request, policy) == True
+        assert validate_request(request, policy)
 
 
 class Test_Invalid_Requests(Test_Requests):
