@@ -60,10 +60,7 @@ def signers_from_list(signers: list[dict[str, Any]]) -> set[Signer] | None:
 def _parse_signature_algorithms(
     algorithms: dict[str, Any] | list[dict[str, Any]],
 ) -> set[AlgorithmPolicy]:
-    if isinstance(algorithms, list):
-        _algs = algorithms
-    else:
-        _algs = [algorithms]
+    _algs = algorithms if isinstance(algorithms, list) else [algorithms]
     res: set[AlgorithmPolicy] = set()
     for this in _algs:
         attr_alg = AlgorithmDNSSEC(int(this["attrs"]["algorithm"]))

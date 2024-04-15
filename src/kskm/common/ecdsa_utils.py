@@ -91,7 +91,7 @@ def ecdsa_public_key_without_prefix(
     for a particular algorithm, and the first byte is 0x04 we remove it.
     """
     size = get_ecdsa_pubkey_size(public_key)
-    if size != expected_ecdsa_key_size(algorithm):
+    if size != expected_ecdsa_key_size(algorithm):  # noqa
         # Current size indicates there might be a prefix byte, check if the first byte is an 0x04.
         # We could be more stringent here and only remove the 0x04 if it would result in the expected
         # amount of bytes, but the we get less readable error messages saying "Unexpected size 352 instead of 256"

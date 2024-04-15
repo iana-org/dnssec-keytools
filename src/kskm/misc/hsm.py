@@ -119,7 +119,7 @@ class KSKM_P11Module:
         # configure environment
         old_env = {}
         if env:
-            for key in env.keys():
+            for key in env:
                 old_env[key] = os.environ.get(key)
             os.environ.update(env)
 
@@ -216,11 +216,8 @@ class KSKM_P11Module:
                         )
                     self._sessions[_slot] = _session
                 except PyKCS11.PyKCS11Error:
-                    if not _success_count:
-                        _level = logging.WARNING
-                    else:
-                        # not an error if one or more slots succeeded before this one
-                        _level = logging.DEBUG
+                    # not an error if one or more slots succeeded before this one
+                    _level = logging.WARNING if not _success_count else logging.DEBUG
                     logger.log(
                         _level, f"Login to module {self.label} slot {_slot} failed"
                     )
