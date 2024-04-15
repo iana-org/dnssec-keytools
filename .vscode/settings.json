@@ -6,5 +6,9 @@
         "editor.defaultFormatter": "charliermarsh.ruff",
         "editor.formatOnSave": true,
         "editor.formatOnPaste": true,
-        "python.envFile": "${workspaceFolder}/.vscode/.env"
+        "python.envFile": "${workspaceFolder}/.vscode/.env",
+        "isort.check": true,
+        "isort.args": [
+                "[\"--profile\",\"black\"]"
+        ]
 }
