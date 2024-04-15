@@ -7,6 +7,8 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import TypeVar
 
+from pydantic import BaseModel, ConfigDict, Field
+
 # Type definitions to refer to the ABC types declared below
 
 BundleType = TypeVar("BundleType", bound="Bundle")
@@ -90,17 +92,18 @@ class AlgorithmPolicyDSA(AlgorithmPolicy):
     """Algorithm Policy for DSA signatures."""
 
 
-@dataclass(frozen=True)
-class SignaturePolicy:
+class SignaturePolicy(BaseModel):
     """DNSSEC Signature Policy."""
 
-    publish_safety: timedelta
-    retire_safety: timedelta
-    max_signature_validity: timedelta
-    min_signature_validity: timedelta
-    max_validity_overlap: timedelta
-    min_validity_overlap: timedelta
-    algorithms: set[AlgorithmPolicy]
+    model_config = ConfigDict(frozen=True)
+
+    publish_safety: timedelta = Field(default=timedelta())
+    retire_safety: timedelta = Field(default=timedelta())
+    max_signature_validity: timedelta = Field(default=timedelta())
+    min_signature_validity: timedelta = Field(default=timedelta())
+    max_validity_overlap: timedelta = Field(default=timedelta())
+    min_validity_overlap: timedelta = Field(default=timedelta())
+    algorithms: set[AlgorithmPolicy] = Field(default_factory=set)
 
 
 @dataclass(frozen=True)

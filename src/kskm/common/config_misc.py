@@ -9,6 +9,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from typing import Any, NewType, TypeVar
 
+from pydantic import BaseModel
+
 from kskm.common.data import AlgorithmDNSSEC, SignaturePolicy
 from kskm.common.parse_utils import duration_to_timedelta, parse_datetime
 
@@ -132,44 +134,19 @@ def parse_keylist(elem: str | list[str]) -> list[SigningKey]:
     return [SigningKey(elem)]
 
 
-@dataclass()
-class KSKPolicy:
+class KSKPolicy(BaseModel):
     """
     Signing policy for the KSK operator.
 
     This corresponds to the 'ksk_policy' section of ksrsigner.yaml.
+
+    Algorithms are not initialised here, but rather created dynamically from the KSK keys used
+    in the schema.
     """
 
     signature_policy: SignaturePolicy
-    ttl: int
-    signers_name: str
-
-    @classmethod
-    def from_dict(cls, data: Mapping[str, Any]) -> KSKPolicy:
-        """
-        Load the 'ksk_policy' section of the configuration.
-
-        Algorithms are not initialised here, but rather created dynamically from the KSK keys used
-        in the schema.
-        """
-
-        def _get_timedelta(name: str) -> timedelta:
-            return duration_to_timedelta(data.get(name))
-
-        _sp = SignaturePolicy(
-            publish_safety=_get_timedelta("publish_safety"),
-            retire_safety=_get_timedelta("retire_safety"),
-            max_signature_validity=_get_timedelta("max_signature_validity"),
-            min_signature_validity=_get_timedelta("min_signature_validity"),
-            max_validity_overlap=_get_timedelta("max_validity_overlap"),
-            min_validity_overlap=_get_timedelta("min_validity_overlap"),
-            algorithms=set(),
-        )
-        return cls(
-            signature_policy=_sp,
-            ttl=int(data.get("ttl", 172800)),
-            signers_name=data.get("signers_name", "."),
-        )
+    ttl: int = 172800
+    signers_name: str = "."
 
 
 @dataclass()

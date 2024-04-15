@@ -93,7 +93,14 @@ class KSKMConfig:
 
         """
         if self._ksk_policy is None:
-            self._ksk_policy = KSKPolicy.from_dict(self._data.get("ksk_policy", {}))
+            # put everything except ttl and signers_name into signature_policy
+            _signature_policy = self._data.get("ksk_policy", {})
+            _data = {"signature_policy": _signature_policy}
+            if "ttl" in _signature_policy:
+                _data["ttl"] = _signature_policy.pop("ttl", None)
+            if "signers_name" in _signature_policy:
+                _data["signers_name"] = _signature_policy.pop("signers_name", None)
+            self._ksk_policy = KSKPolicy.model_validate(_data)
         assert self._ksk_policy is not None  # help type checker
         return self._ksk_policy
 
