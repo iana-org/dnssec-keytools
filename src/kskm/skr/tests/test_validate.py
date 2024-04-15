@@ -3,7 +3,6 @@ import os
 import unittest
 from dataclasses import replace
 
-import pkg_resources
 
 from kskm.common.config_misc import ResponsePolicy
 from kskm.skr import load_skr
@@ -13,7 +12,7 @@ from kskm.skr.validate import InvalidSignatureViolation, validate_response
 class Test_Validate_SKR(unittest.TestCase):
     def setUp(self) -> None:
         """Prepare test instance"""
-        self.data_dir = pkg_resources.resource_filename(__name__, "data")
+        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
         self.policy_fn = os.path.join(self.data_dir, "response_policy.yaml")
 
     def test_validate_skr_with_invalid_signature(self) -> None:

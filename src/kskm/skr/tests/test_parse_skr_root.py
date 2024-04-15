@@ -1,7 +1,6 @@
 import os
 import unittest
 
-import pkg_resources
 
 from kskm.common.config import get_config
 from kskm.skr import load_skr, response_from_xml
@@ -10,7 +9,7 @@ from kskm.skr import load_skr, response_from_xml
 class TestParseRealSKRs(unittest.TestCase):
     def setUp(self) -> None:
         """Prepare test instance"""
-        self.data_dir = pkg_resources.resource_filename(__name__, "data")
+        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
         self.policy_fn = os.path.join(self.data_dir, "response_policy.yaml")
 
     def test_parse_skr_root_2018_q1_0_d_to_e(self) -> None:

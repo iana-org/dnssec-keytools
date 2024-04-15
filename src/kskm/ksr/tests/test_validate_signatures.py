@@ -2,7 +2,6 @@ import base64
 import os
 from unittest import TestCase
 
-import pkg_resources
 from cryptography.exceptions import InvalidSignature
 
 from kskm.common.data import AlgorithmDNSSEC, Key, Signature
@@ -14,7 +13,7 @@ from kskm.ksr.data import RequestBundle
 class TestValidate_signatures(TestCase):
     def setUp(self) -> None:
         """Prepare test instance"""
-        self.data_dir = pkg_resources.resource_filename(__name__, "data")
+        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
 
     def test_validate_ksk_proof_of_ownership_1(self) -> None:
         """Validate ZSK proof of ownership in ksr-root-2009-q4-2.xml"""

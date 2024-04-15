@@ -2,8 +2,6 @@ import os
 import unittest
 from dataclasses import replace
 
-import pkg_resources
-
 import kskm.ksr.verify_bundles
 import kskm.ksr.verify_policy
 from kskm.common.config_misc import RequestPolicy
@@ -13,7 +11,7 @@ from kskm.ksr import load_ksr, request_from_xml
 class TestParseRealKSRs(unittest.TestCase):
     def setUp(self) -> None:
         """Prepare test instance"""
-        self.data_dir = pkg_resources.resource_filename(__name__, "data")
+        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
 
     def test_parse_ksr_root_2009_q4_2(self) -> None:
         """Test parsing ksr-root-2009-q4-2.xml"""

@@ -13,7 +13,6 @@ from dataclasses import replace
 from typing import Any, Generator
 from unittest.mock import patch
 
-import pkg_resources
 import pytest
 import yaml
 
@@ -67,10 +66,7 @@ FLAGS_ZSK = FlagsDNSKEY.ZONE.value
 
 def _get_test_config() -> KSKMConfig:
     """Load YAML from file, append the _TEST_CONFIG defined above and parse the result."""
-    softhsm_dir = pkg_resources.resource_filename(
-        __name__, "../../../../testing/softhsm"
-    )
-
+    softhsm_dir = os.path.join(os.path.dirname(__file__), "../../../../testing/softhsm")
     _cfg_fn = os.path.join(softhsm_dir, "ksrsigner.yaml")
 
     with open(_cfg_fn) as fd:
@@ -650,7 +646,7 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
         self.config.update(yaml.safe_load(io.StringIO(_SCHEMAS)))
 
         # Initialise KSR and last SKR data structures
-        self.data_dir = pkg_resources.resource_filename(__name__, "data")
+        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
 
         with open(os.path.join(self.data_dir, "ksr-root-2017-q2-0.xml")) as fd:
             self.ksr_xml = fd.read()

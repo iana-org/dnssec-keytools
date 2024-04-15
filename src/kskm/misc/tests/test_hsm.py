@@ -1,7 +1,6 @@
 import os
 from unittest import TestCase
 
-import pkg_resources
 
 from kskm.misc import hsm
 
@@ -9,7 +8,7 @@ from kskm.misc import hsm
 class Test_load_hsmconfig(TestCase):
     def setUp(self) -> None:
         """Prepare test instance"""
-        self.data_dir = pkg_resources.resource_filename(__name__, "data")
+        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
         self.config_fn = os.path.join(self.data_dir, "test.hsmconfig")
 
     def test_load_hsmconfig(self) -> None:

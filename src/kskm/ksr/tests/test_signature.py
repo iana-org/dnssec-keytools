@@ -2,8 +2,6 @@ import os
 from hashlib import sha256
 from unittest import TestCase
 
-import pkg_resources
-
 from kskm.common.signature import make_raw_rrsig
 from kskm.ksr import request_from_xml
 
@@ -11,7 +9,7 @@ from kskm.ksr import request_from_xml
 class TestBundle_to_hashdigest(TestCase):
     def setUp(self) -> None:
         """Prepare test instance"""
-        self.data_dir = pkg_resources.resource_filename(__name__, "data")
+        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
 
     def test_bundle_to_hashdigest(self) -> None:
         """Test hash computation of a single well-known bundle"""
