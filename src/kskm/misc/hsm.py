@@ -547,8 +547,8 @@ def parse_hsmconfig(
             continue
         try:
             separator_idx = line.index("=")
-        except ValueError:
-            raise ValueError(f"Badly formed line {line!r} in HSM config {src}")
+        except ValueError as exc:
+            raise ValueError(f"Badly formed line {line!r} in HSM config {src}") from exc
         lhs = line[:separator_idx]
         rhs = line[separator_idx + 1 :]
 

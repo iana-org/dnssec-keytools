@@ -48,7 +48,7 @@ def check_valid_signatures(bundle: ResponseBundle, policy: ResponsePolicy) -> No
             raise InvalidSignatureViolation(
                 f"Unknown signature validation result in bundle {bundle.id}"
             )
-    except InvalidSignature:
+    except InvalidSignature as exc:
         raise InvalidSignatureViolation(
             f"Invalid signature encountered in bundle {bundle.id}"
-        )
+        ) from exc

@@ -202,10 +202,10 @@ def _sign_keys(
         _verify_using_crypto(
             signing_key.p11, rrsig_raw, signature_data, signing_key.dns.algorithm
         )
-    except InvalidSignature:
+    except InvalidSignature as exc:
         raise SKR_VERIFY_Failure(
             f"Invalid KSK signature encountered in bundle {bundle.id}"
-        )
+        ) from exc
 
     sig = replace(sig, signature_data=base64.b64encode(signature_data))
     return sig
