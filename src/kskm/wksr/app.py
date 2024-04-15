@@ -11,6 +11,6 @@ DEFAULT_CONFIG = "wksr.yaml"
 logging.basicConfig(level=logging.INFO)
 
 with open(DEFAULT_CONFIG) as fp:
-        config = yaml.load(fp.read(), Loader=yaml.SafeLoader)
+    config = yaml.load(fp.read(), Loader=yaml.SafeLoader)
 
 application = generate_app(config)
