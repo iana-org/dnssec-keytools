@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import copy
 import logging
 from collections.abc import Mapping
 from io import BufferedReader, StringIO
@@ -12,6 +13,7 @@ from pydantic import BaseModel, Field
 
 from kskm.common.config_misc import (
     KSKMHSM,
+    FrozenBaseModel,
     KSKKey,
     KSKMFilenames,
     KSKPolicy,
@@ -32,14 +34,12 @@ class ConfigurationError(Exception):
     """Base exception for errors in the configuration."""
 
 
-class KSKMConfig(BaseModel):
+class KSKMConfig(FrozenBaseModel):
     """
     Configuration object.
 
     Holds configuration loaded from ksrsigner.yaml.
     """
-
-    # TODO: model_config = ConfigDict(extra="forbid")
 
     data_: dict[str, Any]
     """
@@ -168,11 +168,13 @@ class KSKMConfig(BaseModel):
         _name = SchemaName(name)
         return Schema(name=_name, actions=self.schemas[_name])
 
-    def update(self, data: Mapping[str, Any]) -> None:
+    def update(self, data: Mapping[str, Any]) -> KSKMConfig:
         """Update configuration on the fly. Usable in tests."""
         logger.warning(f"Updating configuration (sections {data.keys()})")
-        self.data_.update(data)
-        self._update_parts()
+        _data = copy(self.data_)
+        _data.update(data)
+        _data["data_"] = copy(self.data_)
+        return self.model_validate(_data)
 
     def _update_parts(self) -> None:
         new_config = KSKMConfig.from_dict(self.data_)
@@ -184,14 +186,16 @@ class KSKMConfig(BaseModel):
         self.response_policy = new_config.response_policy
         self.schemas = new_config.schemas
 
-    def merge_update(self, data: Mapping[str, Any]) -> None:
+    def merge_update(self, data: Mapping[str, Any]) -> KSKMConfig:
         """Merge-update configuration on the fly. Usable in tests."""
         logger.warning(f"Merging configuration (sections {data.keys()})")
+        _data = copy(self.data_)
         for k, v in data.items():
             logger.debug(f"Updating config section {k} with {v}")
-            self.data_[k].update(v)
-            logger.debug(f"Config now: {self.data_[k]}")
-        self._update_parts()
+            _data[k].update(v)
+            logger.debug(f"Config now: {_data[k]}")
+        _data["data_"] = copy(self.data_)
+        return self.model_validate(_data)
 
     @classmethod
     def from_yaml(
