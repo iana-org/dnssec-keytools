@@ -87,7 +87,7 @@ class Test_Invalid_Requests_policy(Test_Requests):
         # DSA is not allowed, even if it is in approved_algorithms
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
             validate_request(
-                request, replace(self.policy, approved_algorithms=["RSASHA256", "DSA"])
+                request, self.policy.replace(approved_algorithms=["RSASHA256", "DSA"])
             )
         self.assertEqual("Algorithm DSA deprecated", str(exc.exception))
 
@@ -104,7 +104,7 @@ class Test_Invalid_Requests_policy(Test_Requests):
         # RSA is supported, but not RSASHA1
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
             validate_request(
-                request, replace(self.policy, approved_algorithms=["RSASHA256"])
+                request, self.policy.replace(approved_algorithms=["RSASHA256"])
             )
         self.assertEqual("Algorithm RSASHA1 not supported", str(exc.exception))
 
@@ -121,7 +121,7 @@ class Test_Invalid_Requests_policy(Test_Requests):
         # RSA is supported, but not RSASHA1
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
             validate_request(
-                request, replace(self.policy, approved_algorithms=["RSASHA256"])
+                request, self.policy.replace(approved_algorithms=["RSASHA256"])
             )
         self.assertEqual(
             "ZSK policy has RSA-1024, but policy dictates [2048]", str(exc.exception)
@@ -140,7 +140,7 @@ class Test_Invalid_Requests_policy(Test_Requests):
         # RSA is supported, but not RSASHA1
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
             validate_request(
-                request, replace(self.policy, approved_algorithms=["RSASHA256"])
+                request, self.policy.replace(approved_algorithms=["RSASHA256"])
             )
         self.assertEqual(
             "ZSK policy has RSA exponent 17, but policy dictates [65537]",
@@ -159,7 +159,7 @@ class Test_Invalid_Requests_policy(Test_Requests):
         request = request_from_xml(xml)
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
             validate_request(
-                request, replace(self.policy, approved_algorithms=["RSASHA256"])
+                request, self.policy.replace(approved_algorithms=["RSASHA256"])
             )
         self.assertEqual("Algorithm ECDSA is not supported", str(exc.exception))
 
@@ -169,9 +169,7 @@ class Test_ECDSA_Policy(Test_Validate_KSR_ECDSA):
         """Test KSR with ECDSA key"""
         xml = self._make_request()
         request = request_from_xml(xml)
-        policy = replace(
-            self.policy, approved_algorithms=[AlgorithmDNSSEC.RSASHA256.name]
-        )
+        policy = self.policy.replace(approved_algorithms=["RSASHA256"])
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
             validate_request(request, policy)
         self.assertIn(
@@ -179,7 +177,7 @@ class Test_ECDSA_Policy(Test_Validate_KSR_ECDSA):
         )
 
         # test disabling check
-        policy = replace(policy, signature_algorithms_match_zsk_policy=False)
+        policy = self.policy.replace(signature_algorithms_match_zsk_policy=False)
         self.assertTrue(validate_request(request, policy))
 
     def test_validate_ksr_with_ecdsa_key(self) -> None:
@@ -221,8 +219,7 @@ class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
             request_policy=request_policy, bundle1=bundle1, bundle2=bundle2
         )
         request = request_from_xml(xml)
-        policy = replace(
-            self.policy,
+        policy = self.policy.replace(
             check_bundle_intervals=False,  # want to test against ZSK policy, not KSK policy
             check_cycle_length=False,  # want to test against ZSK policy, not KSK policy
         )
@@ -247,8 +244,7 @@ class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
         )
         xml = self._make_request(bundle1=bundle1, bundle2=bundle2)
         request = request_from_xml(xml)
-        policy = replace(
-            self.policy,
+        policy = self.policy.replace(
             check_bundle_intervals=False,  # want to test against ZSK policy, not KSK policy
             check_cycle_length=False,  # want to test against ZSK policy, not KSK policy
         )
@@ -273,8 +269,7 @@ class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
         )
         xml = self._make_request(bundle1=bundle1, bundle2=bundle2)
         request = request_from_xml(xml)
-        policy = replace(
-            self.policy,
+        policy = self.policy.replace(
             check_bundle_intervals=False,  # want to test against ZSK policy, not KSK policy
             check_cycle_length=False,  # want to test against ZSK policy, not KSK policy
         )
@@ -299,8 +294,7 @@ class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
         )
         xml = self._make_request(bundle1=bundle1, bundle2=bundle2)
         request = request_from_xml(xml)
-        policy = replace(
-            self.policy,
+        policy = self.policy.replace(
             check_bundle_intervals=False,  # want to test against ZSK policy, not KSK policy
             check_cycle_length=False,  # want to test against ZSK policy, not KSK policy
         )
@@ -313,8 +307,7 @@ class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
         )
 
         # test that the check can be disabled
-        policy = replace(
-            self.policy,
+        policy = self.policy.replace(
             check_bundle_overlap=False,
             max_bundle_interval=duration_to_timedelta("P13D"),
         )
@@ -324,7 +317,7 @@ class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
         """Test with two bundles where three was expected"""
         xml = self._make_request()
         request = request_from_xml(xml)
-        policy = replace(self.policy, num_keys_per_bundle=[1, 1, 1])
+        policy = self.policy.replace(num_keys_per_bundle=[1, 1, 1])
         with self.assertRaises(KSR_POLICY_KEYS_Violation) as exc:
             validate_request(request, policy)
         self.assertEqual(
@@ -336,7 +329,7 @@ class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
         """Test with one key in a bundle where two was expected"""
         xml = self._make_request()
         request = request_from_xml(xml)
-        policy = replace(self.policy, num_keys_per_bundle=[2, 1])
+        policy = self.policy.replace(num_keys_per_bundle=[2, 1])
         with self.assertRaises(KSR_POLICY_KEYS_Violation) as exc:
             validate_request(request, policy)
         self.assertEqual("Bundle #1/test-1 has 1 keys, not 2", str(exc.exception))
@@ -345,7 +338,7 @@ class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
         """Test with one key where two different keys were expected"""
         xml = self._make_request()
         request = request_from_xml(xml)
-        policy = replace(self.policy, num_different_keys_in_all_bundles=2)
+        policy = self.policy.replace(num_different_keys_in_all_bundles=2)
         with self.assertRaises(KSR_POLICY_KEYS_Violation) as exc:
             validate_request(request, policy)
         self.assertEqual(
@@ -366,8 +359,7 @@ class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
         )
         xml = self._make_request(bundle1=bundle1, bundle2=bundle2)
         request = request_from_xml(xml)
-        policy = replace(
-            self.policy,
+        policy = self.policy.replace(
             check_bundle_intervals=False,
             check_cycle_length=False,
         )
@@ -391,8 +383,7 @@ class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
         )
         xml = self._make_request(bundle1=bundle1, bundle2=bundle2)
         request = request_from_xml(xml)
-        policy = replace(
-            self.policy,
+        policy = self.policy.replace(
             check_bundle_intervals=False,  # want to test against ZSK policy, not KSK policy
             check_cycle_length=False,  # want to test against ZSK policy, not KSK policy
         )
@@ -407,7 +398,7 @@ class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
         """Test two bundles with too low interval"""
         xml = self._make_request()
         request = request_from_xml(xml)
-        policy = replace(self.policy, min_bundle_interval=duration_to_timedelta("P15D"))
+        policy = self.policy.replace(min_bundle_interval=duration_to_timedelta("P15D"))
         with self.assertRaises(KSR_POLICY_BUNDLE_INTERVAL_Violation) as exc:
             validate_request(request, policy)
         self.assertEqual(
@@ -419,7 +410,7 @@ class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
         """Test two bundles with too large interval"""
         xml = self._make_request()
         request = request_from_xml(xml)
-        policy = replace(self.policy, max_bundle_interval=duration_to_timedelta("P9D"))
+        policy = self.policy.replace(max_bundle_interval=duration_to_timedelta("P9D"))
         with self.assertRaises(KSR_POLICY_BUNDLE_INTERVAL_Violation) as exc:
             validate_request(request, policy)
         self.assertEqual(
@@ -428,5 +419,5 @@ class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
         )
 
         # test that the check can be disabled
-        policy = replace(self.policy, check_bundle_intervals=False)
+        policy = self.policy.replace(check_bundle_intervals=False)
         self.assertTrue(validate_request(request, policy))

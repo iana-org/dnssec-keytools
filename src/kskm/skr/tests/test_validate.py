@@ -36,7 +36,7 @@ class Test_Validate_SKR(unittest.TestCase):
             validate_response(skr, policy)
 
         # Test that the invalid SKR is accepted with signature validations turned off
-        validate_response(skr, replace(policy, validate_signatures=False))
+        validate_response(skr, policy.replace(validate_signatures=False))
 
     def test_load_skr_with_policy_violation(self) -> None:
         """Test loading an SKR failing the supplied policy"""

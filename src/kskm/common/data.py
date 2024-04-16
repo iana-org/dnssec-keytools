@@ -95,7 +95,7 @@ class AlgorithmPolicyDSA(AlgorithmPolicy):
 class SignaturePolicy(BaseModel):
     """DNSSEC Signature Policy."""
 
-    model_config = ConfigDict(frozen=True)
+    model_config = ConfigDict(frozen=True)  # TODO: , extra="forbid")
 
     publish_safety: timedelta = Field(default=timedelta())
     retire_safety: timedelta = Field(default=timedelta())

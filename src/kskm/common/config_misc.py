@@ -4,12 +4,11 @@ from __future__ import annotations
 
 from abc import ABC
 from collections.abc import Iterable, Mapping
-from copy import deepcopy
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, NewType, TypeVar
+from typing import Any, NewType, Self, TypeVar
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from kskm.common.data import AlgorithmDNSSEC, SignaturePolicy
 from kskm.common.parse_utils import duration_to_timedelta
@@ -21,35 +20,23 @@ PolicyType = TypeVar("PolicyType", bound="Policy")
 KSKKeysType = NewType("KSKKeysType", Mapping[str, "KSKKey"])
 
 
-@dataclass(frozen=True)
-class Policy(ABC):
+class Policy(BaseModel, ABC):
     """Base class for RequestPolicy and ResponsePolicy."""
 
-    # avoid upsetting type checker in from_dict below when arguments are passed to cls() without any attributes
-    _dataclass_placeholder: bool | None = None
+    model_config = ConfigDict(frozen=True, extra="forbid")
 
-    @classmethod
-    def from_dict(cls: type[PolicyType], data: dict[str, Any]) -> PolicyType:
-        """Instantiate ResponsePolicy from a dict of values."""
-        _data = deepcopy(data)  # don't mess with caller's data
-        # Convert durations provided as strings into datetime.timedelta instances
-        for this_td in [
-            "min_bundle_interval",
-            "max_bundle_interval",
-            "min_cycle_inception_length",
-            "max_cycle_inception_length",
-        ]:
-            if this_td in _data:
-                _data[this_td] = duration_to_timedelta(data[this_td])
-        return cls(**_data)
+    def replace(self, **kwargs: Any) -> Self:
+        """Return a new instance with the provided attributes updated. Used in tests."""
+        _data = self.model_dump()
+        _data.update(kwargs)
+        return self.model_validate(_data)
 
 
-@dataclass(frozen=True)
 class RequestPolicy(Policy):
     """Configuration knobs for validating KSRs."""
 
     # Verify KSR header parameters
-    acceptable_domains: list[str] = field(default_factory=lambda: ["."])
+    acceptable_domains: list[str] = Field(default_factory=lambda: ["."])
 
     # Verify KSR bundles
     num_bundles: int = 9
@@ -58,30 +45,30 @@ class RequestPolicy(Policy):
     rsa_exponent_match_zsk_policy: bool = True
     enable_unsupported_ecdsa: bool = False
     check_cycle_length: bool = True
-    min_cycle_inception_length: timedelta = field(
+    min_cycle_inception_length: timedelta = Field(
         default_factory=lambda: duration_to_timedelta("P79D")
     )
-    max_cycle_inception_length: timedelta = field(
+    max_cycle_inception_length: timedelta = Field(
         default_factory=lambda: duration_to_timedelta("P81D")
     )
-    min_bundle_interval: timedelta = field(
+    min_bundle_interval: timedelta = Field(
         default_factory=lambda: duration_to_timedelta("P9D")
     )
-    max_bundle_interval: timedelta = field(
+    max_bundle_interval: timedelta = Field(
         default_factory=lambda: duration_to_timedelta("P11D")
     )
 
     # Verify KSR policy parameters
     check_bundle_overlap: bool = True
     signature_algorithms_match_zsk_policy: bool = True
-    approved_algorithms: list[str] = field(
+    approved_algorithms: list[str] = Field(
         default_factory=lambda: [AlgorithmDNSSEC.RSASHA256.name]
     )
-    rsa_approved_exponents: list[int] = field(default_factory=lambda: [65537])
-    rsa_approved_key_sizes: list[int] = field(default_factory=lambda: [2048])
+    rsa_approved_exponents: list[int] = Field(default_factory=lambda: [65537])
+    rsa_approved_key_sizes: list[int] = Field(default_factory=lambda: [2048])
     signature_validity_match_zsk_policy: bool = True
     check_keys_match_ksk_operator_policy: bool = True
-    num_keys_per_bundle: list[int] = field(
+    num_keys_per_bundle: list[int] = Field(
         default_factory=lambda: [2, 1, 1, 1, 1, 1, 1, 1, 2]
     )
     num_different_keys_in_all_bundles: int = 3
@@ -100,7 +87,6 @@ class RequestPolicy(Policy):
     check_keys_retire_safety: bool = True
 
 
-@dataclass(frozen=True)
 class ResponsePolicy(Policy):
     """Validation parameters for SKRs."""
 

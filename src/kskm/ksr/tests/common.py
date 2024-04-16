@@ -1,5 +1,5 @@
+from typing import Any
 import unittest
-from dataclasses import replace
 
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY
@@ -237,10 +237,9 @@ class Test_Requests_With_Two_Bundles(Test_Requests):
 class Test_Validate_KSR_ECDSA(Test_Requests):
     def setUp(self) -> None:
         super().setUp()
-        self.policy = replace(
-            self.policy,
-            enable_unsupported_ecdsa=True,
+        self.policy = self.policy.replace(
             approved_algorithms=[AlgorithmDNSSEC.ECDSAP256SHA256.name],
+            enable_unsupported_ecdsa=True,
         )
 
     def _make_signature_algorithm(self) -> str:

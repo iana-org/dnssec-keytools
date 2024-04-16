@@ -133,10 +133,10 @@ def validate_ksr(filename: str) -> dict[str, str]:
             logger.warning("No previous SKR loaded")
             previous_skr = None
 
-        ksr = load_ksr(filename, config.request_policy, raise_original=True)
+        ksr = load_ksr(filename, config.get_request_policy, raise_original=True)
 
         if previous_skr is not None:
-            check_skr_and_ksr(ksr, previous_skr, config.request_policy, p11modules=None)
+            check_skr_and_ksr(ksr, previous_skr, config.get_request_policy, p11modules=None)
             logger.info("Previous SKR checked: %s", previous_skr_filename)
         else:
             logger.warning("Previous SKR not checked")

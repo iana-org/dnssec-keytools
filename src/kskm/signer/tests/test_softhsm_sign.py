@@ -669,8 +669,7 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_check_chain_config(self) -> None:
         """Test KSR-CHAIN-KEYS configuration."""
-        policy = replace(
-            self.policy,
+        policy = self.policy.replace(
             check_chain_keys=False,
             check_bundle_overlap=False,
             check_chain_overlap=False,
@@ -702,8 +701,7 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
         last_bundle = replace(last_bundle, keys=_updated_keys)
         bundles = last_skr.bundles[:-1] + [last_bundle]
         last_skr = replace(last_skr, bundles=bundles)
-        policy = replace(
-            self.policy,
+        policy = self.policy.replace(
             check_bundle_overlap=False,
             check_chain_overlap=False,
             check_chain_keys_in_hsm=False,
@@ -723,8 +721,8 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
         )  # remove all signatures
         bundles = last_skr.bundles[:-1] + [last_bundle]
         last_skr = replace(self.last_skr, bundles=bundles)
-        policy = replace(
-            self.policy, check_bundle_overlap=False, check_chain_overlap=False
+        policy = self.policy.replace(
+            check_bundle_overlap=False, check_chain_overlap=False
         )
         with pytest.raises(
             KSR_CHAIN_KEYS_Violation,
@@ -739,7 +737,7 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
             self._p11_to_dnskey(
                 self.zsk_key_label,
                 AlgorithmDNSSEC.RSASHA256,
-                ttl=self.config.request_policy.dns_ttl,
+                ttl=self.config.get_request_policy.dns_ttl,
             )
         }
         first_ksr = self._make_request(

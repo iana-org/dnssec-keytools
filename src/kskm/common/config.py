@@ -8,7 +8,7 @@ from dataclasses import replace
 from io import BufferedReader, StringIO
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 import voluptuous.error
 import voluptuous.humanize
 import yaml
@@ -40,6 +40,8 @@ class KSKMConfig(BaseModel):
 
     Holds configuration loaded from ksrsigner.yaml.
     """
+
+    # TODO: model_config = ConfigDict(extra="forbid")
 
     data_: dict[str, Any]
     """
@@ -97,8 +99,8 @@ class KSKMConfig(BaseModel):
 
     """
     ksk_policy: KSKPolicy = KSKPolicy()
-    _request_policy: RequestPolicy | None = None
-    _response_policy: ResponsePolicy | None = None
+    request_policy: RequestPolicy = RequestPolicy()
+    response_policy: ResponsePolicy = ResponsePolicy()
 
     def get_filename(self, which: str) -> str | None:
         """
@@ -120,7 +122,7 @@ class KSKMConfig(BaseModel):
         return None
 
     @property
-    def request_policy(self) -> RequestPolicy:
+    def get_request_policy(self) -> RequestPolicy:
         """
         Policy for validating a request (KSR).
 
@@ -133,35 +135,13 @@ class KSKMConfig(BaseModel):
               ...
 
         """
-        if self._request_policy is None:
-            policy = RequestPolicy.from_dict(self.data_.get("request_policy", {}))
-            if policy.dns_ttl == 0:
-                # Replace with the value configured to be used when signing the bundles
-                policy = replace(policy, dns_ttl=self.ksk_policy.ttl)
-            self._request_policy = policy
-        return self._request_policy
-
-    @property
-    def response_policy(self) -> ResponsePolicy:
-        """
-        Policy for validating a response (SKR).
-
-        Since responses loaded have likely been created by the KSR signer itself,
-        only some basic validation is performed.
-
-        Example:
-        -------
-            response_policy:
-              num_bundles: 9
-              validate_signatures: True
-
-        """
-        if self._response_policy is None:
-            self._response_policy = ResponsePolicy.from_dict(
-                self.data_.get("response_policy", {})
-            )
-        assert self._response_policy is not None  # help type checker
-        return self._response_policy
+        # TODO: Implement this when parsing the policy instead of when using it
+        if self.request_policy.dns_ttl == 0:
+            # Replace with the value configured to be used when signing the bundles
+            _data = self.request_policy.model_dump()
+            _data["dns_ttl"] = self.ksk_policy.ttl
+            return RequestPolicy(**_data)
+        return self.request_policy
 
     def get_schema(self, name: str) -> Schema:
         """
@@ -196,7 +176,7 @@ class KSKMConfig(BaseModel):
         """
         data = self.data_["schemas"][name]
         _actions: dict[int, SchemaAction] = {}
-        for num in range(1, self.request_policy.num_bundles + 1):
+        for num in range(1, self.get_request_policy.num_bundles + 1):
             _this = SchemaAction(
                 publish=parse_keylist(data[num]["publish"]),
                 sign=parse_keylist(data[num]["sign"]),
@@ -246,12 +226,11 @@ class KSKMConfig(BaseModel):
         if "ksk_policy" in config:
             # put everything except ttl and signers_name into signature_policy
             _signature_policy = config.get("ksk_policy", {})
-            _data = {"signature_policy": _signature_policy}
-            if "ttl" in _signature_policy:
-                _data["ttl"] = _signature_policy.pop("ttl", None)
-            if "signers_name" in _signature_policy:
-                _data["signers_name"] = _signature_policy.pop("signers_name", None)
-            config["ksk_policy"] = _data
+            _new_ksk_policy = {"signature_policy": _signature_policy}
+            for _move in ["ttl", "signers_name"]:
+                if _move in _signature_policy:
+                    _new_ksk_policy[_move] = _signature_policy.pop(_move)
+            config["ksk_policy"] = _new_ksk_policy
 
         return cls(**config, data_=config)
 
