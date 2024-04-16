@@ -124,7 +124,7 @@ def validate_ksr(filename: str) -> dict[str, str]:
     logger.debug("ksrsigner configuration loaded")
 
     result: dict[str, str] = {}
-    previous_skr_filename = config.get_filename("previous_skr")
+    previous_skr_filename = config.filenames.previous_skr
     previous_skr: Response | None
 
     try:

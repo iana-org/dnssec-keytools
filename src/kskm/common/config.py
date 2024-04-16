@@ -4,23 +4,23 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Mapping
-from dataclasses import replace
 from io import BufferedReader, StringIO
 from typing import Any
 
 import voluptuous.error
 import voluptuous.humanize
 import yaml
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 
 from kskm.common.config_misc import (
     KSKKey,
+    KSKMFilenames,
     KSKPolicy,
     RequestPolicy,
     ResponsePolicy,
     Schema,
     SchemaAction,
-    parse_keylist,
+    SchemaName
 )
 from kskm.common.config_schema import KSRSIGNER_CONFIG_SCHEMA
 from kskm.common.integrity import checksum_bytes2str
@@ -57,7 +57,6 @@ class KSKMConfig(BaseModel):
             pin: 123456
             env:
                 SOFTHSM2_CONF: /path/to/softhsm.conf
-
     """
     hsm: Mapping[str, Any] | None = None
 
@@ -77,7 +76,6 @@ class KSKMConfig(BaseModel):
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
             ds_sha256: 49AAC11D7B6F6446702E54A1607371607A1A41855200FD2CE1CDDE32F24E8FB5
-
     """
     ksk_keys: Mapping[str, KSKKey] = Field(default_factory=dict, alias="keys")
 
@@ -96,30 +94,50 @@ class KSKMConfig(BaseModel):
             max_validity_overlap: P16D
             min_validity_overlap: P9D
             ttl: 172800
-
     """
     ksk_policy: KSKPolicy = KSKPolicy()
     request_policy: RequestPolicy = RequestPolicy()
     response_policy: ResponsePolicy = ResponsePolicy()
 
-    def get_filename(self, which: str) -> str | None:
-        """
-        Get a filename from the configuration.
+    """
+    Various configurable filenames.
 
-        Example:
-        -------
-            filenames:
-              previous_skr: prev-skr.xml
-              input_ksr: ksr.xml
-              output_skr: skr.xml
-              output_trustanchor: root-anchors.xml
+    Example:
+    -------
+        filenames:
+            previous_skr: prev-skr.xml
+            input_ksr: ksr.xml
+            output_skr: skr.xml
+            output_trustanchor: root-anchors.xml
+    """
+    filenames: KSKMFilenames = KSKMFilenames()
 
-        """
-        if "filenames" in self.data_:
-            _this = self.data_["filenames"].get(which)
-            if isinstance(_this, str):
-                return _this
-        return None
+    """
+    Example:
+    -------
+        schemas:
+            test:
+            1:
+                publish:
+                - ksk_current
+                - ksk_next
+                sign: ksk_next
+            2:
+                publish: ksk_next
+                revoke: ksk_current
+                sign:
+                - ksk_current
+                - ksk_next
+            ...
+            9:
+                publish: ksk_next
+                sign: ksk_next
+
+    Note that 'revoke' is optional. Entries may be single key names, or
+    list of key names. In the resulting Schema, it is always a list of key names,
+    even if there is a single key name in the list.
+    """
+    schemas: Mapping[SchemaName, Mapping[int, SchemaAction]] = Field(default_factory=dict)
 
     @property
     def get_request_policy(self) -> RequestPolicy:
@@ -133,7 +151,6 @@ class KSKMConfig(BaseModel):
                 - "."
               num_bundles: 9
               ...
-
         """
         # TODO: Implement this when parsing the policy instead of when using it
         if self.request_policy.dns_ttl == 0:
@@ -147,43 +164,11 @@ class KSKMConfig(BaseModel):
         """
         Parse a named entry from the 'schemas' section of config.
 
-        Example:
-        -------
-            schemas:
-              revoke:
-            1:
-              publish:
-                - ksk_current
-                - ksk_next
-              sign: ksk_next
-            2:
-              publish: ksk_next
-              revoke: ksk_current
-              sign:
-                - ksk_current
-                - ksk_next
-            ...
-            9:
-              publish: ksk_next
-              sign: ksk_next
-
-        Note that 'revoke' is optional. Entries may be single key names, or
-        list of key names. In the resulting Schema, it is always a list of key names,
-        even if there is a single key name in the list.
-
         :return: A Schema instance for the schema requested.
 
         """
-        data = self.data_["schemas"][name]
-        _actions: dict[int, SchemaAction] = {}
-        for num in range(1, self.get_request_policy.num_bundles + 1):
-            _this = SchemaAction(
-                publish=parse_keylist(data[num]["publish"]),
-                sign=parse_keylist(data[num]["sign"]),
-                revoke=parse_keylist(data[num].get("revoke", [])),
-            )
-            _actions[num] = _this
-        return Schema(name=name, actions=_actions)
+        _name = SchemaName(name)
+        return Schema(name=_name, actions=self.schemas[_name])
 
     def update(self, data: Mapping[str, Any]) -> None:
         """Update configuration on the fly. Usable in tests."""
@@ -196,6 +181,10 @@ class KSKMConfig(BaseModel):
         self.hsm = new_config.hsm
         self.ksk_keys = new_config.ksk_keys
         self.ksk_policy = new_config.ksk_policy
+        self.filenames = new_config.filenames
+        self.request_policy = new_config.request_policy
+        self.response_policy = new_config.response_policy
+        self.schemas = new_config.schemas
 
     def merge_update(self, data: Mapping[str, Any]) -> None:
         """Merge-update configuration on the fly. Usable in tests."""

@@ -95,7 +95,7 @@ def parse_args(defaults: dict) -> ArgsType:
 def _trustanchor_filename(args: ArgsType | None, config: KSKMConfig) -> str | None:
     if args and args.trustanchor:
         return str(args.trustanchor)
-    return config.get_filename("output_trustanchor")
+    return config.filenames.output_trustanchor
 
 
 def output_trustanchor_xml(

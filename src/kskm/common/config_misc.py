@@ -19,11 +19,11 @@ __author__ = "ft"
 PolicyType = TypeVar("PolicyType", bound="Policy")
 KSKKeysType = NewType("KSKKeysType", Mapping[str, "KSKKey"])
 
-
-class Policy(BaseModel, ABC):
-    """Base class for RequestPolicy and ResponsePolicy."""
-
+class FrozenBaseModel(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
+
+class Policy(FrozenBaseModel, ABC):
+    """Base class for RequestPolicy and ResponsePolicy."""
 
     def replace(self, **kwargs: Any) -> Self:
         """Return a new instance with the provided attributes updated. Used in tests."""
@@ -96,28 +96,29 @@ class ResponsePolicy(Policy):
 
 SigningKey = NewType("SigningKey", str)
 
+SchemaName = NewType("SchemaName", str)
 
-@dataclass(frozen=True)
-class SchemaAction:
+class SchemaAction(FrozenBaseModel):
     """Actions to take for a specific bundle."""
 
-    publish: Iterable[SigningKey]
-    sign: Iterable[SigningKey]
-    revoke: Iterable[SigningKey]
+    publish: list[SigningKey]
+    sign: list[SigningKey]
+    revoke: list[SigningKey] = []
+
+    @field_validator("*", mode="before")
+    @classmethod
+    def turn_into_string(cls, v: str | list[Any]) -> list[Any]:
+        if isinstance(v, str):
+            # Turn single strings into a list with one element
+            return [v]
+        return v
 
 
-@dataclass(frozen=True)
-class Schema:
+class Schema(FrozenBaseModel):
     """A named schema used when signing KSRs."""
 
-    name: str
+    name: SchemaName
     actions: Mapping[int, SchemaAction]
-
-
-def parse_keylist(elem: str | list[str]) -> list[SigningKey]:
-    if isinstance(elem, list):
-        return [SigningKey(x) for x in elem]
-    return [SigningKey(elem)]
 
 
 class KSKPolicy(BaseModel):
@@ -161,3 +162,16 @@ class KSKKey(BaseModel):
             return AlgorithmDNSSEC[v]
         except KeyError:
             raise ValueError("invalid algorithm")
+
+
+class KSKMFilenames(BaseModel):
+    """
+    Filenames for various files.
+
+    This corresponds to the 'filenames' section of ksrsigner.yaml.
+    """
+
+    previous_skr: str | None = None
+    input_ksr: str | None = None
+    output_skr: str | None = None
+    output_trustanchor: str | None = None

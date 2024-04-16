@@ -156,19 +156,19 @@ def parse_args(defaults: dict[str, Any]) -> ArgsType:
 def _previous_skr_filename(args: ArgsType, config: KSKMConfig) -> str | None:
     if args and args.previous_skr:
         return str(args.previous_skr)
-    return config.get_filename("previous_skr")
+    return config.filenames.previous_skr
 
 
 def _ksr_filename(args: ArgsType, config: KSKMConfig) -> str | None:
     if args and args.ksr:
         return str(args.ksr)
-    return config.get_filename("input_ksr")
+    return config.filenames.input_ksr
 
 
 def _skr_filename(args: ArgsType, config: KSKMConfig) -> str | None:
     if args and args.skr:
         return str(args.skr)
-    return config.get_filename("output_skr")
+    return config.filenames.output_skr
 
 
 def ksrsigner(
