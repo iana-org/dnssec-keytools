@@ -6,13 +6,13 @@ from abc import ABC
 from collections.abc import Iterable, Mapping
 from copy import deepcopy
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from typing import Any, NewType, TypeVar
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from kskm.common.data import AlgorithmDNSSEC, SignaturePolicy
-from kskm.common.parse_utils import duration_to_timedelta, parse_datetime
+from kskm.common.parse_utils import duration_to_timedelta
 
 __author__ = "ft"
 
@@ -144,13 +144,12 @@ class KSKPolicy(BaseModel):
     in the schema.
     """
 
-    signature_policy: SignaturePolicy
+    signature_policy: SignaturePolicy = SignaturePolicy()
     ttl: int = 172800
     signers_name: str = "."
 
 
-@dataclass()
-class KSKKey:
+class KSKKey(BaseModel):
     """
     A key that can be used in schemas.
 
@@ -167,19 +166,12 @@ class KSKKey:
     rsa_exponent: int | None = None
     ds_sha256: str | None = None
 
+    @field_validator('algorithm', mode='before')
     @classmethod
-    def from_dict(cls: type[KSKKey], data: dict[str, Any]) -> KSKKey:
-        """Instantiate KSKKey from a dict of values."""
-        # do not modify callers data
-        _data = deepcopy(data)
-        if "algorithm" in _data:
-            _data["algorithm"] = AlgorithmDNSSEC[_data["algorithm"]]
-        for _dt in ["valid_from", "valid_until"]:
-            # If the dict is loaded from YAML, these values will already be converted to datetime.
-            # If they are not, convert them here.
-            if _dt in _data and not isinstance(_data[_dt], datetime):
-                _data[_dt] = parse_datetime(_data[_dt])
-            elif _dt in _data:
-                # Set timezone UTC in the datetime
-                _data[_dt] = _data[_dt].replace(tzinfo=timezone.utc)
-        return cls(**_data)
+    def algorithm_by_name(cls, v: str | AlgorithmDNSSEC) -> AlgorithmDNSSEC:
+        if isinstance(v, AlgorithmDNSSEC):
+            return v
+        try:
+            return AlgorithmDNSSEC[v]
+        except KeyError:
+            raise ValueError('invalid algorithm')

@@ -6,15 +6,15 @@ import logging
 from collections.abc import Mapping
 from dataclasses import replace
 from io import BufferedReader, StringIO
-from typing import Any, cast
+from typing import Any
 
+from pydantic import BaseModel, Field
 import voluptuous.error
 import voluptuous.humanize
 import yaml
 
 from kskm.common.config_misc import (
     KSKKey,
-    KSKKeysType,
     KSKPolicy,
     RequestPolicy,
     ResponsePolicy,
@@ -34,106 +34,71 @@ class ConfigurationError(Exception):
     """Base exception for errors in the configuration."""
 
 
-class KSKMConfig:
+class KSKMConfig(BaseModel):
     """
     Configuration object.
 
     Holds configuration loaded from ksrsigner.yaml.
     """
 
-    def __init__(self, data: Mapping[str, Any]):
-        """Initialise configuration from a Mapping."""
-        self._data = dict(data)
-        # lazily parsed parts of the configuration.
-        self._hsm: Mapping[str, Any] | None = None
-        self._ksk_keys: KSKKeysType | None = None
-        self._ksk_policy: KSKPolicy | None = None
-        self._request_policy: RequestPolicy | None = None
-        self._response_policy: ResponsePolicy | None = None
+    data_: dict[str, Any]
+    """
+    HSM configuration.
 
-    @property
-    def hsm(self) -> Mapping[str, Any]:
-        """
-        HSM configuration.
+    Returns a plain dict with the configuration for now.
 
-        Returns a plain dict with the configuration for now.
+    Example:
+    -------
+        hsm:
+            softhsm:
+            module: /path/to/softhsm/libsofthsm2.so
+            pin: 123456
+            env:
+                SOFTHSM2_CONF: /path/to/softhsm.conf
 
-        Example:
-        -------
-            hsm:
-              softhsm:
-                module: /path/to/softhsm/libsofthsm2.so
-                pin: 123456
-                env:
-                  SOFTHSM2_CONF: /path/to/softhsm.conf
+    """
+    hsm: Mapping[str, Any] | None = None
 
-        """
-        if self._hsm is None:
-            self._hsm = self._data.get("hsm", {})
-        assert self._hsm is not None  # help type checker
-        return self._hsm
+    """
+    Load KSK key definitions from the config.
 
-    @property
-    def ksk_policy(self) -> KSKPolicy:
-        """
-        Key Signing Key policy.
+    Example:
+    -------
+        keys:
+            ksk_current:
+            description: Root DNSSEC KSK 2010
+            label: Kjqmt7v
+            key_tag: 19036
+            algorithm: RSASHA256
+            rsa_size: 2048
+            rsa_exponent: 65537
+            valid_from: 2010-07-15T00:00:00+00:00
+            valid_until: 2019-01-11T00:00:00+00:00
+            ds_sha256: 49AAC11D7B6F6446702E54A1607371607A1A41855200FD2CE1CDDE32F24E8FB5
 
-        Parameters from here are used when creating an SKR.
+    """
+    ksk_keys: Mapping[str, KSKKey] = Field(default_factory=dict, alias="keys")
 
-        Example:
-        -------
-            ksk_policy:
-              publish_safety: PT0S
-              retire_safety: P28D
-              max_signature_validity: P21D
-              min_signature_validity: P21D
-              max_validity_overlap: P16D
-              min_validity_overlap: P9D
-              ttl: 172800
+    """
+    Key Signing Key policy.
 
-        """
-        if self._ksk_policy is None:
-            # put everything except ttl and signers_name into signature_policy
-            _signature_policy = self._data.get("ksk_policy", {})
-            _data = {"signature_policy": _signature_policy}
-            if "ttl" in _signature_policy:
-                _data["ttl"] = _signature_policy.pop("ttl", None)
-            if "signers_name" in _signature_policy:
-                _data["signers_name"] = _signature_policy.pop("signers_name", None)
-            self._ksk_policy = KSKPolicy.model_validate(_data)
-        assert self._ksk_policy is not None  # help type checker
-        return self._ksk_policy
+    Parameters from here are used when creating an SKR.
 
-    @property
-    def ksk_keys(self) -> KSKKeysType:
-        """
-        Load KSK key definitions from the config.
+    Example:
+    -------
+        ksk_policy:
+            publish_safety: PT0S
+            retire_safety: P28D
+            max_signature_validity: P21D
+            min_signature_validity: P21D
+            max_validity_overlap: P16D
+            min_validity_overlap: P9D
+            ttl: 172800
 
-        Example:
-        -------
-            keys:
-              ksk_current:
-                description: Root DNSSEC KSK 2010
-                label: Kjqmt7v
-                key_tag: 19036
-                algorithm: RSASHA256
-                rsa_size: 2048
-                rsa_exponent: 65537
-                valid_from: 2010-07-15T00:00:00+00:00
-                valid_until: 2019-01-11T00:00:00+00:00
-                ds_sha256: 49AAC11D7B6F6446702E54A1607371607A1A41855200FD2CE1CDDE32F24E8FB5
-
-        """
-        if self._ksk_keys is None:
-            res: dict[str, KSKKey] = {}
-            if "keys" not in self._data:
-                return cast(KSKKeysType, res)
-            for name, v in self._data["keys"].items():
-                key = KSKKey.from_dict(v)
-                res[name] = key
-            self._ksk_keys = cast(KSKKeysType, res)
-        assert self._ksk_keys is not None  # help type checker
-        return self._ksk_keys
+    """
+    ksk_policy: KSKPolicy = KSKPolicy()
+    _request_policy: RequestPolicy | None = None
+    _response_policy: ResponsePolicy | None = None
 
     def get_filename(self, which: str) -> str | None:
         """
@@ -148,8 +113,8 @@ class KSKMConfig:
               output_trustanchor: root-anchors.xml
 
         """
-        if "filenames" in self._data:
-            _this = self._data["filenames"].get(which)
+        if "filenames" in self.data_:
+            _this = self.data_["filenames"].get(which)
             if isinstance(_this, str):
                 return _this
         return None
@@ -169,7 +134,7 @@ class KSKMConfig:
 
         """
         if self._request_policy is None:
-            policy = RequestPolicy.from_dict(self._data.get("request_policy", {}))
+            policy = RequestPolicy.from_dict(self.data_.get("request_policy", {}))
             if policy.dns_ttl == 0:
                 # Replace with the value configured to be used when signing the bundles
                 policy = replace(policy, dns_ttl=self.ksk_policy.ttl)
@@ -193,7 +158,7 @@ class KSKMConfig:
         """
         if self._response_policy is None:
             self._response_policy = ResponsePolicy.from_dict(
-                self._data.get("response_policy", {})
+                self.data_.get("response_policy", {})
             )
         assert self._response_policy is not None  # help type checker
         return self._response_policy
@@ -229,7 +194,7 @@ class KSKMConfig:
         :return: A Schema instance for the schema requested.
 
         """
-        data = self._data["schemas"][name]
+        data = self.data_["schemas"][name]
         _actions: dict[int, SchemaAction] = {}
         for num in range(1, self.request_policy.num_bundles + 1):
             _this = SchemaAction(
@@ -243,15 +208,23 @@ class KSKMConfig:
     def update(self, data: Mapping[str, Any]) -> None:
         """Update configuration on the fly. Usable in tests."""
         logger.warning(f"Updating configuration (sections {data.keys()})")
-        self._data.update(data)
+        self.data_.update(data)
+        self._update_parts()
+
+    def _update_parts(self) -> None:
+        new_config = KSKMConfig.from_dict(self.data_)
+        self.hsm = new_config.hsm
+        self.ksk_keys = new_config.ksk_keys
+        self.ksk_policy = new_config.ksk_policy
 
     def merge_update(self, data: Mapping[str, Any]) -> None:
         """Merge-update configuration on the fly. Usable in tests."""
         logger.warning(f"Merging configuration (sections {data.keys()})")
         for k, v in data.items():
             logger.debug(f"Updating config section {k} with {v}")
-            self._data[k].update(v)
-            logger.debug(f"Config now: {self._data[k]}")
+            self.data_[k].update(v)
+            logger.debug(f"Config now: {self.data_[k]}")
+        self._update_parts()
 
     @classmethod
     def from_yaml(
@@ -266,7 +239,21 @@ class KSKMConfig:
             logger.info("Configuration validated")
         except voluptuous.error.Error as exc:
             raise ConfigurationError(str(exc)) from exc
-        return cls(config)
+        return KSKMConfig.from_dict(config)
+
+    @classmethod
+    def from_dict(cls: type[KSKMConfig], config: dict[str, Any]) -> KSKMConfig:
+        if "ksk_policy" in config:
+            # put everything except ttl and signers_name into signature_policy
+            _signature_policy = config.get("ksk_policy", {})
+            _data = {"signature_policy": _signature_policy}
+            if "ttl" in _signature_policy:
+                _data["ttl"] = _signature_policy.pop("ttl", None)
+            if "signers_name" in _signature_policy:
+                _data["signers_name"] = _signature_policy.pop("signers_name", None)
+            config["ksk_policy"] = _data
+
+        return cls(**config, data_=config)
 
 
 def get_config(filename: str | None) -> KSKMConfig:
@@ -276,7 +263,7 @@ def get_config(filename: str | None) -> KSKMConfig:
         logger.warning(
             "No configuration filename provided, using default configuration."
         )
-        return KSKMConfig({})
+        return KSKMConfig(data_={})
     with open(filename, "rb") as fd:
         config_bytes = fd.read()
         logger.info(
