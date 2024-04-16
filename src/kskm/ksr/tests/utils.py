@@ -17,7 +17,7 @@ def sign_using_softhsm(data: bytes, softhsm_signing_key: str = "RSA1") -> None:
     import hashlib
 
     from kskm.common.config import KSKMConfig
-    from kskm.misc.hsm import init_pkcs11_modules_from_dict
+    from kskm.misc.hsm import init_pkcs11_modules
 
     softhsm_dir = os.path.join(os.path.dirname(__file__), "../../../../testing/softhsm")
     _cfg_fn = os.path.join(softhsm_dir, "ksrsigner.yaml")
@@ -25,7 +25,7 @@ def sign_using_softhsm(data: bytes, softhsm_signing_key: str = "RSA1") -> None:
     with open(_cfg_fn) as fd:
         conf = io.StringIO(fd.read())
     config = KSKMConfig.from_yaml(conf)
-    p11modules = init_pkcs11_modules_from_dict(config.hsm)
+    p11modules = init_pkcs11_modules(config)
 
     signing_key = get_p11_key(softhsm_signing_key, p11modules, public=False)
     assert signing_key is not None

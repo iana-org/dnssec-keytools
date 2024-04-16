@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, NewType, Self, TypeVar
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, FilePath, field_validator
 
 from kskm.common.data import AlgorithmDNSSEC, SignaturePolicy
 from kskm.common.parse_utils import duration_to_timedelta
@@ -171,7 +171,14 @@ class KSKMFilenames(BaseModel):
     This corresponds to the 'filenames' section of ksrsigner.yaml.
     """
 
-    previous_skr: str | None = None
-    input_ksr: str | None = None
+    previous_skr: FilePath | None = None
+    input_ksr: FilePath | None = None
     output_skr: str | None = None
     output_trustanchor: str | None = None
+
+
+class KSKMHSM(FrozenBaseModel):
+    module: FilePath | str
+    pin: str | int
+    so_pin: str | int | None = None
+    env: Mapping[str, Any] = Field(default_factory=dict)

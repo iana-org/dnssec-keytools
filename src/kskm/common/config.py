@@ -7,12 +7,11 @@ from collections.abc import Mapping
 from io import BufferedReader, StringIO
 from typing import Any
 
-import voluptuous.error
-import voluptuous.humanize
 import yaml
 from pydantic import BaseModel, Field
 
 from kskm.common.config_misc import (
+    KSKMHSM,
     KSKKey,
     KSKMFilenames,
     KSKPolicy,
@@ -22,7 +21,6 @@ from kskm.common.config_misc import (
     SchemaAction,
     SchemaName
 )
-from kskm.common.config_schema import KSRSIGNER_CONFIG_SCHEMA
 from kskm.common.integrity import checksum_bytes2str
 
 __author__ = "ft"
@@ -58,7 +56,7 @@ class KSKMConfig(BaseModel):
             env:
                 SOFTHSM2_CONF: /path/to/softhsm.conf
     """
-    hsm: Mapping[str, Any] | None = None
+    hsm: Mapping[str, KSKMHSM] = Field(default_factory=dict)
 
     """
     Load KSK key definitions from the config.
@@ -201,13 +199,6 @@ class KSKMConfig(BaseModel):
     ) -> KSKMConfig:
         """Load configuration from a YAML stream."""
         config = yaml.safe_load(stream)
-        try:
-            voluptuous.humanize.validate_with_humanized_errors(
-                config, KSRSIGNER_CONFIG_SCHEMA
-            )
-            logger.info("Configuration validated")
-        except voluptuous.error.Error as exc:
-            raise ConfigurationError(str(exc)) from exc
         return KSKMConfig.from_dict(config)
 
     @classmethod
