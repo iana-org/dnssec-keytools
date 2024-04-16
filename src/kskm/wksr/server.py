@@ -14,11 +14,11 @@ from typing import Any
 
 import jinja2
 from flask import Flask, render_template, request
-from kskm.common.config_schema import WKSR_TLS, WKSRConfig
 from werkzeug.datastructures import FileStorage
 from werkzeug.exceptions import BadRequest, Forbidden, RequestEntityTooLarge
 
 from kskm.common.config import get_config
+from kskm.common.config_schema import WKSR_TLS, WKSRConfig
 from kskm.common.validate import PolicyViolation
 from kskm.ksr import load_ksr
 from kskm.signer.policy import check_skr_and_ksr
@@ -68,7 +68,9 @@ def upload() -> str:
         raise RuntimeError("Missing configuration")
 
     if request.method == "GET":
-        return str(render_template(str(wksr_config.templates.upload), action=request.base_url))
+        return str(
+            render_template(str(wksr_config.templates.upload), action=request.base_url)
+        )
 
     if "ksr" not in request.files:
         raise BadRequest
@@ -136,7 +138,9 @@ def validate_ksr(filename: str) -> dict[str, str]:
         ksr = load_ksr(filename, config.get_request_policy, raise_original=True)
 
         if previous_skr is not None:
-            check_skr_and_ksr(ksr, previous_skr, config.get_request_policy, p11modules=None)
+            check_skr_and_ksr(
+                ksr, previous_skr, config.get_request_policy, p11modules=None
+            )
             logger.info("Previous SKR checked: %s", previous_skr_filename)
         else:
             logger.warning("Previous SKR not checked")
@@ -208,7 +212,7 @@ def generate_ssl_context(config: WKSR_TLS) -> ssl.SSLContext:
     ssl_context.options |= ssl.OP_NO_TLSv1
     ssl_context.options |= ssl.OP_NO_TLSv1_1
 
-    ssl_context.set_ciphers(':'.join(config.ciphers))
+    ssl_context.set_ciphers(":".join(config.ciphers))
 
     if config.require_client_cert:
         ssl_context.verify_mode = ssl.CERT_REQUIRED

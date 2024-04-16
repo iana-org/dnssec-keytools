@@ -152,7 +152,7 @@ class KSKKey(BaseModel):
     rsa_exponent: int | None = None
     ds_sha256: str | None = None
 
-    @field_validator('algorithm', mode='before')
+    @field_validator("algorithm", mode="before")
     @classmethod
     def algorithm_by_name(cls, v: str | AlgorithmDNSSEC) -> AlgorithmDNSSEC:
         if isinstance(v, AlgorithmDNSSEC):
@@ -160,4 +160,4 @@ class KSKKey(BaseModel):
         try:
             return AlgorithmDNSSEC[v]
         except KeyError:
-            raise ValueError('invalid algorithm')
+            raise ValueError("invalid algorithm")

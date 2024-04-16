@@ -84,6 +84,5 @@
 #                 config, WKSR_CONFIG_SCHEMA
 #             )
 
-
 if __name__ == "__main__":
     unittest.main()

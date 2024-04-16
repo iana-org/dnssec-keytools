@@ -9,7 +9,11 @@ from werkzeug.serving import run_simple
 from kskm.common.config_schema import WKSR_Templates, WKSRConfig
 from kskm.version import __verbose_version__
 from kskm.wksr.peercert import PeerCertWSGIRequestHandler
-from kskm.wksr.server import DEFAULT_TEMPLATES_CONFIG, generate_app, generate_ssl_context
+from kskm.wksr.server import (
+    DEFAULT_TEMPLATES_CONFIG,
+    generate_app,
+    generate_ssl_context,
+)
 
 DEFAULT_HOSTNAME = "127.0.0.1"
 DEFAULT_PORT = 8443

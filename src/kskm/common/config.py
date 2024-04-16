@@ -8,10 +8,10 @@ from dataclasses import replace
 from io import BufferedReader, StringIO
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
 import voluptuous.error
 import voluptuous.humanize
 import yaml
+from pydantic import BaseModel, ConfigDict, Field
 
 from kskm.common.config_misc import (
     KSKKey,

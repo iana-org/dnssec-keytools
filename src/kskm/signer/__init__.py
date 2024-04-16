@@ -73,5 +73,7 @@ def _ksk_signature_policy(
             else:
                 raise NotImplementedError("Only RSA is implemented at this time")
     # update algorithms even though ksk_policy.signature_policy is a frozen BaseModel
-    ksk_policy.signature_policy = ksk_policy.signature_policy.model_copy(update={"algorithms": algorithms})
+    ksk_policy.signature_policy = ksk_policy.signature_policy.model_copy(
+        update={"algorithms": algorithms}
+    )
     return ksk_policy.signature_policy

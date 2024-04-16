@@ -1,4 +1,5 @@
 """Config validation schema."""
+
 from collections.abc import Callable
 from datetime import datetime, timedelta
 from typing import Annotated
@@ -178,9 +179,16 @@ class WKSR_TLS(BaseModel):
     cert: FilePath
     key: FilePath
     ca_cert: FilePath
-    ciphers: list[str] = Field(default_factory=lambda: ["ECDHE-RSA-AES256-GCM-SHA384", "ECDHE-RSA-AES256-SHA384"])  # TODO: could be a colon-separated string too before
+    ciphers: list[str] = Field(
+        default_factory=lambda: [
+            "ECDHE-RSA-AES256-GCM-SHA384",
+            "ECDHE-RSA-AES256-SHA384",
+        ]
+    )  # TODO: could be a colon-separated string too before
     require_client_cert: bool
-    client_whitelist: list[Annotated[str, Field(pattern=r'[0-9a-fA-F]+', default_factory=list)]]
+    client_whitelist: list[
+        Annotated[str, Field(pattern=r"[0-9a-fA-F]+", default_factory=list)]
+    ]
 
 
 class WKSR_KSR(BaseModel):
@@ -189,16 +197,19 @@ class WKSR_KSR(BaseModel):
     prefix: str = "upload_"
     ksrsigner_configfile: FilePath
 
+
 class WKSR_Templates(BaseModel):
     upload: FilePath
     result: FilePath
     email: FilePath
+
 
 class WKSR_Notify(BaseModel):
     from_: EmailStr
     to: EmailStr
     subject: str
     smtp_server: str
+
 
 class WKSRConfig(BaseModel):
     tls: WKSR_TLS
