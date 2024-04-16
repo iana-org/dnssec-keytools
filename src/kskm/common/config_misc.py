@@ -159,7 +159,7 @@ class KSKKey:
 
     description: str
     label: str
-    key_tag: int
+    key_tag: int | None
     algorithm: AlgorithmDNSSEC
     valid_from: datetime
     valid_until: datetime | None = None
