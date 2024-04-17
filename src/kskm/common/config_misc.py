@@ -10,7 +10,6 @@ from typing import Annotated, Any, NewType, Self, TypeVar
 
 from pydantic import (
     BaseModel,
-    ConfigDict,
     Field,
     FilePath,
     PositiveInt,
@@ -18,17 +17,13 @@ from pydantic import (
     field_validator,
 )
 
-from kskm.common.data import AlgorithmDNSSEC, SignaturePolicy
+from kskm.common.data import AlgorithmDNSSEC, SignaturePolicy, FrozenBaseModel
 from kskm.common.parse_utils import duration_to_timedelta
 
 __author__ = "ft"
 
 
 PolicyType = TypeVar("PolicyType", bound="Policy")
-
-
-class FrozenBaseModel(BaseModel):
-    model_config = ConfigDict(frozen=True, extra="forbid")
 
 
 class Policy(FrozenBaseModel, ABC):
@@ -53,7 +48,7 @@ class RequestPolicy(Policy):
     acceptable_domains: list[DomainNameString] = Field(default_factory=lambda: ["."])
 
     # Verify KSR bundles
-    num_bundles: int = 9
+    num_bundles: int = 9  # can be 0 in tests, but will be enforced ge=1 upon load
     validate_signatures: bool = True
     keys_match_zsk_policy: bool = True
     rsa_exponent_match_zsk_policy: bool = True
@@ -85,7 +80,9 @@ class RequestPolicy(Policy):
     num_keys_per_bundle: list[PositiveInt] = Field(
         default_factory=lambda: [2, 1, 1, 1, 1, 1, 1, 1, 2]
     )
-    num_different_keys_in_all_bundles: int = 3
+    num_different_keys_in_all_bundles: int = (
+        3  # can be 0 in tests, but will be enforced ge=1 upon load
+    )
     dns_ttl: IntegerDNSTTL = (
         0  # if this is 0, the config value ksk_policy.ttl will be used instead
     )
@@ -148,7 +145,7 @@ class KSKPolicy(BaseModel):
     in the schema.
     """
 
-    signature_policy: SignaturePolicy = SignaturePolicy()
+    signature_policy: SignaturePolicy = Field(default_factory=SignaturePolicy)
     ttl: IntegerDNSTTL = 172800
     signers_name: DomainNameString = "."
 

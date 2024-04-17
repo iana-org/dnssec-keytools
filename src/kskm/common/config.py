@@ -12,7 +12,6 @@ from pydantic import Field
 
 from kskm.common.config_misc import (
     KSKMHSM,
-    FrozenBaseModel,
     KSKKey,
     KSKMFilenames,
     KSKPolicy,
@@ -22,6 +21,7 @@ from kskm.common.config_misc import (
     SchemaAction,
     SchemaName,
 )
+from kskm.common.data import FrozenBaseModel
 from kskm.common.integrity import checksum_bytes2str
 
 __author__ = "ft"
@@ -215,13 +215,16 @@ class KSKMConfig(FrozenBaseModel):
     def _transform_config(cls, config: Mapping[str, Any]) -> dict[str, Any]:
         """Adjust the dict representation of the config somewhat before loading it using the Pydantic model."""
         _config = dict(config)  # do not modify the caller's data
-        if "ksk_policy" in _config:
+        if "ksk_policy" in _config and "signature_policy" not in _config["ksk_policy"]:
             # put everything except ttl and signers_name into signature_policy
-            _signature_policy = _config.get("ksk_policy", {})
-            _new_ksk_policy = {"signature_policy": _signature_policy}
+            _old_ksk_policy = _config.get("ksk_policy", {})
+            _new_ksk_policy: dict[str, Any] = {}
+            # move ttl and signers_name to top level
             for _move in ["ttl", "signers_name"]:
-                if _move in _signature_policy:
-                    _new_ksk_policy[_move] = _signature_policy.pop(_move)
+                if _move in _old_ksk_policy:
+                    _new_ksk_policy[_move] = _old_ksk_policy.pop(_move)
+            # put everything else in "signature_policy"
+            _new_ksk_policy["signature_policy"] = _old_ksk_policy
             _config["ksk_policy"] = _new_ksk_policy
 
         if "keys" in _config:

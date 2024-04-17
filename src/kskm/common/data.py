@@ -15,6 +15,10 @@ BundleType = TypeVar("BundleType", bound="Bundle")
 AlgorithmPolicyType = TypeVar("AlgorithmPolicyType", bound="AlgorithmPolicy")
 
 
+class FrozenBaseModel(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+
 class AlgorithmDNSSEC(Enum):
     """
     DNSSEC Algorithms.
@@ -92,10 +96,8 @@ class AlgorithmPolicyDSA(AlgorithmPolicy):
     """Algorithm Policy for DSA signatures."""
 
 
-class SignaturePolicy(BaseModel):
+class SignaturePolicy(FrozenBaseModel):
     """DNSSEC Signature Policy."""
-
-    model_config = ConfigDict(frozen=True)  # TODO: , extra="forbid")
 
     publish_safety: timedelta = Field(default=timedelta())
     retire_safety: timedelta = Field(default=timedelta())
