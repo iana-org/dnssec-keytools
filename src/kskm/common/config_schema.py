@@ -2,13 +2,15 @@
 
 # from collections.abc import Callable
 # from datetime import timedelta
+from pathlib import Path
 from typing import Annotated
 
 from pydantic import BaseModel, EmailStr, Field, FilePath
-#from voluptuous import All, Any, Email, IsFile, Match, Range, Required, Schema
-#from voluptuous.validators import DOMAIN_REGEX
 
-#from kskm.common.parse_utils import duration_to_timedelta
+# from voluptuous import All, Any, Email, IsFile, Match, Range, Required, Schema
+# from voluptuous.validators import DOMAIN_REGEX
+
+# from kskm.common.parse_utils import duration_to_timedelta
 
 
 # def iso8601_duration() -> Callable[[str | None], timedelta]:
@@ -193,7 +195,7 @@ class WKSR_TLS(BaseModel):
 class WKSR_KSR(BaseModel):
     max_size: Annotated[int, Field(gt=0, default=1024 * 1024)]
     content_type: str = "application/xml"
-    prefix: str = "upload_"
+    prefix: Path = Path("upload_")
     ksrsigner_configfile: FilePath
 
 

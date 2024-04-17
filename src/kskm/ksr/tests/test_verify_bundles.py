@@ -2,6 +2,7 @@ import base64
 import os
 import unittest
 from dataclasses import replace
+from pathlib import Path
 from unittest.mock import patch
 
 from kskm.common.config_misc import RequestPolicy
@@ -27,12 +28,12 @@ from kskm.ksr.verify_header import KSR_DOMAIN_Violation
 class Test_Validate_KSR_bundles(unittest.TestCase):
     def setUp(self) -> None:
         """Prepare test instance"""
-        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
-        self.policy_fn = os.path.join(self.data_dir, "response_policy.yaml")
+        self.data_dir = Path(os.path.dirname(__file__), "data")
+        self.policy_fn = self.data_dir.joinpath("response_policy.yaml")
 
     def test_validate_ksr_with_invalid_signature(self) -> None:
         """Test manipulating KSR signature"""
-        fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
+        fn = self.data_dir.joinpath("ksr-root-2018-q1-0-d_to_e.xml")
         # Exception: Failed validating KSR request in file icann-ksr-archive/ksr/ksr-root-2010-q3-2.xml:
         #            Bundle signature expire in the past
         _signature_check_expire_horizon = False
@@ -61,7 +62,7 @@ class Test_Validate_KSR_bundles(unittest.TestCase):
 
     def test_validate_ksr_with_invalid_keys(self) -> None:
         """Test manipulating KSR keys"""
-        fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
+        fn = self.data_dir.joinpath("ksr-root-2018-q1-0-d_to_e.xml")
         # Exception: Failed validating KSR request in file icann-ksr-archive/ksr/ksr-root-2010-q3-2.xml:
         #            Bundle signature expire in the past
         _signature_check_expire_horizon = False
@@ -92,14 +93,14 @@ class Test_Validate_KSR_bundles(unittest.TestCase):
 
     def test_load_ksr_with_policy_violation(self) -> None:
         """Test loading a KSR failing the supplied policy"""
-        fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
+        fn = self.data_dir.joinpath("ksr-root-2018-q1-0-d_to_e.xml")
         policy = RequestPolicy(num_bundles=99)
         with self.assertRaises(KSR_BUNDLE_COUNT_Violation):
             load_ksr(fn, policy, raise_original=True)
 
     def test_mocked_invalid_signature(self) -> None:
         """Test loading a KSR where the call to validate_signatures fails unexpectedly"""
-        fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
+        fn = self.data_dir.joinpath("ksr-root-2018-q1-0-d_to_e.xml")
         policy = RequestPolicy(signature_check_expire_horizon=False)
         with patch("kskm.ksr.verify_bundles.validate_signatures") as mock_obj:
             mock_obj.return_value = False

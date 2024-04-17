@@ -11,6 +11,7 @@ import logging.handlers
 import os
 import sys
 from argparse import Namespace as ArgsType
+from pathlib import Path
 from typing import Any
 
 import kskm.common
@@ -153,21 +154,21 @@ def parse_args(defaults: dict[str, Any]) -> ArgsType:
     return args
 
 
-def _previous_skr_filename(args: ArgsType, config: KSKMConfig) -> str | None:
+def _previous_skr_filename(args: ArgsType, config: KSKMConfig) -> Path | None:
     if args and args.previous_skr:
-        return str(args.previous_skr)
+        return Path(args.previous_skr)
     return config.filenames.previous_skr
 
 
-def _ksr_filename(args: ArgsType, config: KSKMConfig) -> str | None:
+def _ksr_filename(args: ArgsType, config: KSKMConfig) -> Path | None:
     if args and args.ksr:
-        return str(args.ksr)
+        return Path(args.ksr)
     return config.filenames.input_ksr
 
 
-def _skr_filename(args: ArgsType, config: KSKMConfig) -> str | None:
+def _skr_filename(args: ArgsType, config: KSKMConfig) -> Path | None:
     if args and args.skr:
-        return str(args.skr)
+        return Path(args.skr)
     return config.filenames.output_skr
 
 
@@ -227,9 +228,7 @@ def ksrsigner(
     # Initialise PKCS#11 modules (HSMs)
     #
     try:
-        p11modules = kskm.misc.hsm.init_pkcs11_modules_from_dict(
-            config.hsm, name=args.hsm
-        )
+        p11modules = kskm.misc.hsm.init_pkcs11_modules(config, name=args.hsm)
     except Exception as e:
         logger.critical("HSM initialisation error: %s", str(e))
         return False

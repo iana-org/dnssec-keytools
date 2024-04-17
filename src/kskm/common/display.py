@@ -3,6 +3,7 @@
 import logging
 from collections.abc import Sequence
 from datetime import datetime, timedelta
+from pathlib import Path
 
 import kskm.common
 import kskm.common.parse_utils
@@ -11,7 +12,7 @@ from kskm.common.data import Bundle, BundleType
 __author__ = "ft"
 
 
-def log_file_contents(filename: str, contents: bytes, logger: logging.Logger) -> None:
+def log_file_contents(filename: Path, contents: bytes, logger: logging.Logger) -> None:
     """Log file contents with filename and line number."""
     lines = contents.decode().splitlines()
     digits_in_lineno = len(str(len(lines)))

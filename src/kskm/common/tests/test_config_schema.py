@@ -1,7 +1,8 @@
 """Test configuration schema validation using example config file"""
 
 # import os
-# import unittest
+import unittest
+
 # from tempfile import mkstemp
 
 # import voluptuous.error

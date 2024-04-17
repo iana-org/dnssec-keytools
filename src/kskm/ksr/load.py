@@ -2,6 +2,7 @@
 
 import logging
 import os
+from pathlib import Path
 from typing import Any
 
 from kskm.common.config_misc import RequestPolicy
@@ -23,7 +24,7 @@ MAX_KSR_SIZE = 1024 * 1024
 
 
 def load_ksr(
-    filename: str,
+    filename: Path,
     policy: RequestPolicy,
     raise_original: bool = False,
     log_contents: bool = False,
@@ -54,7 +55,7 @@ def load_ksr(
     return request
 
 
-def request_from_xml_file(filename: str, xml_bytes: bytes) -> Request:
+def request_from_xml_file(filename: Path, xml_bytes: bytes) -> Request:
     """Parse XML data and return Request instance."""
     xml_hash = sha256(xml_bytes)
     return request_from_xml(

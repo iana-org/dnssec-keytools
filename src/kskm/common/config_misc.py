@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from abc import ABC
-from collections.abc import Iterable, Mapping
-from dataclasses import dataclass
+from collections.abc import Mapping
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any, NewType, Self, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field, FilePath, field_validator
@@ -17,10 +17,11 @@ __author__ = "ft"
 
 
 PolicyType = TypeVar("PolicyType", bound="Policy")
-KSKKeysType = NewType("KSKKeysType", Mapping[str, "KSKKey"])
+
 
 class FrozenBaseModel(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
+
 
 class Policy(FrozenBaseModel, ABC):
     """Base class for RequestPolicy and ResponsePolicy."""
@@ -98,6 +99,7 @@ SigningKey = NewType("SigningKey", str)
 
 SchemaName = NewType("SchemaName", str)
 
+
 class SchemaAction(FrozenBaseModel):
     """Actions to take for a specific bundle."""
 
@@ -173,8 +175,8 @@ class KSKMFilenames(BaseModel):
 
     previous_skr: FilePath | None = None
     input_ksr: FilePath | None = None
-    output_skr: str | None = None
-    output_trustanchor: str | None = None
+    output_skr: Path | None = None
+    output_trustanchor: Path | None = None
 
 
 class KSKMHSM(FrozenBaseModel):

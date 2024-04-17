@@ -34,9 +34,7 @@ class Test_Key_Inventory(unittest.TestCase):
         self.p11modules: KSKM_P11 = KSKM_P11([])
         conf = io.StringIO(_TEST_CONFIG)
         self.config = KSKMConfig.from_yaml(conf)
-        self.p11modules = init_pkcs11_modules(
-            self.config, rw_session=True
-        )
+        self.p11modules = init_pkcs11_modules(self.config, rw_session=True)
 
     def tearDown(self) -> None:
         """Unload PKCS#11 modules, lest they might not work for the next test that starts."""

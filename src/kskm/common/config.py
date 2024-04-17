@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Mapping
 from io import BufferedReader, StringIO
-from typing import Any
+from typing import Any, NewType
 
 import yaml
 from pydantic import Field
@@ -20,7 +20,7 @@ from kskm.common.config_misc import (
     ResponsePolicy,
     Schema,
     SchemaAction,
-    SchemaName
+    SchemaName,
 )
 from kskm.common.integrity import checksum_bytes2str
 
@@ -31,6 +31,9 @@ logger = logging.getLogger(__name__)
 
 class ConfigurationError(Exception):
     """Base exception for errors in the configuration."""
+
+
+KSKKeysType = NewType("KSKKeysType", Mapping[str, KSKKey])
 
 
 class KSKMConfig(FrozenBaseModel):
@@ -71,7 +74,7 @@ class KSKMConfig(FrozenBaseModel):
             valid_until: 2019-01-11T00:00:00+00:00
             ds_sha256: 49AAC11D7B6F6446702E54A1607371607A1A41855200FD2CE1CDDE32F24E8FB5
     """
-    ksk_keys: Mapping[str, KSKKey] = Field(default_factory=dict)
+    ksk_keys: KSKKeysType = Field(default_factory=dict)
 
     """
     Key Signing Key policy.
@@ -143,7 +146,9 @@ class KSKMConfig(FrozenBaseModel):
     list of key names. In the resulting Schema, it is always a list of key names,
     even if there is a single key name in the list.
     """
-    schemas: Mapping[SchemaName, Mapping[int, SchemaAction]] = Field(default_factory=dict)
+    schemas: Mapping[SchemaName, Mapping[int, SchemaAction]] = Field(
+        default_factory=dict
+    )
 
     def get_schema(self, name: str) -> Schema:
         """
@@ -189,7 +194,7 @@ class KSKMConfig(FrozenBaseModel):
 
     @classmethod
     def _transform_config(cls, config: Mapping[str, Any]) -> dict[str, Any]:
-        """ Adjust the dict representation of the config somewhat before loading it using the Pydantic model."""
+        """Adjust the dict representation of the config somewhat before loading it using the Pydantic model."""
         _config = dict(config)  # do not modify the caller's data
         if "ksk_policy" in _config:
             # put everything except ttl and signers_name into signature_policy

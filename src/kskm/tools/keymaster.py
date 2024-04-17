@@ -35,7 +35,7 @@ from kskm.common.wordlist import pgp_wordlist
 from kskm.keymaster.delete import key_delete
 from kskm.keymaster.inventory import key_inventory
 from kskm.keymaster.keygen import generate_ec_key, generate_rsa_key
-from kskm.misc.hsm import KSKM_P11, KeyType
+from kskm.misc.hsm import KSKM_P11, KeyType, init_pkcs11_modules
 from kskm.ta.keydigest import create_trustanchor_keydigest
 from kskm.version import __verbose_version__
 
@@ -277,9 +277,7 @@ def main() -> bool:
     # Initialise PKCS#11 modules (HSMs)
     #
     try:
-        p11modules = kskm.misc.hsm.init_pkcs11_modules_from_dict(
-            config.hsm, name=args.hsm, rw_session=True
-        )
+        p11modules = init_pkcs11_modules(config, name=args.hsm, rw_session=True)
     except Exception as e:
         logger.critical("HSM initialisation error: %s", str(e))
         return False
