@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-from copy import copy
 import logging
 from collections.abc import Mapping
 from io import BufferedReader, StringIO
 from typing import Any
 
 import yaml
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from kskm.common.config_misc import (
     KSKMHSM,
@@ -41,7 +40,6 @@ class KSKMConfig(FrozenBaseModel):
     Holds configuration loaded from ksrsigner.yaml.
     """
 
-    data_: dict[str, Any]
     """
     HSM configuration.
 
@@ -75,7 +73,7 @@ class KSKMConfig(FrozenBaseModel):
             valid_until: 2019-01-11T00:00:00+00:00
             ds_sha256: 49AAC11D7B6F6446702E54A1607371607A1A41855200FD2CE1CDDE32F24E8FB5
     """
-    ksk_keys: Mapping[str, KSKKey] = Field(default_factory=dict, alias="keys")
+    ksk_keys: Mapping[str, KSKKey] = Field(default_factory=dict)
 
     """
     Key Signing Key policy.
@@ -170,32 +168,22 @@ class KSKMConfig(FrozenBaseModel):
 
     def update(self, data: Mapping[str, Any]) -> KSKMConfig:
         """Update configuration on the fly. Usable in tests."""
+        data = self._transform_config((data))
         logger.warning(f"Updating configuration (sections {data.keys()})")
-        _data = copy(self.data_)
-        _data.update(data)
-        _data["data_"] = copy(self.data_)
-        return self.model_validate(_data)
-
-    def _update_parts(self) -> None:
-        new_config = KSKMConfig.from_dict(self.data_)
-        self.hsm = new_config.hsm
-        self.ksk_keys = new_config.ksk_keys
-        self.ksk_policy = new_config.ksk_policy
-        self.filenames = new_config.filenames
-        self.request_policy = new_config.request_policy
-        self.response_policy = new_config.response_policy
-        self.schemas = new_config.schemas
+        _config = self.model_dump()
+        _config.update(data)
+        return self.from_dict(_config)
 
     def merge_update(self, data: Mapping[str, Any]) -> KSKMConfig:
         """Merge-update configuration on the fly. Usable in tests."""
+        data = self._transform_config(data)
         logger.warning(f"Merging configuration (sections {data.keys()})")
-        _data = copy(self.data_)
+        _config = self.model_dump()
         for k, v in data.items():
             logger.debug(f"Updating config section {k} with {v}")
-            _data[k].update(v)
-            logger.debug(f"Config now: {_data[k]}")
-        _data["data_"] = copy(self.data_)
-        return self.model_validate(_data)
+            _config[k].update(v)
+            logger.debug(f"Config now: {_config[k]}")
+        return self.from_dict(_config)
 
     @classmethod
     def from_yaml(
@@ -207,16 +195,27 @@ class KSKMConfig(FrozenBaseModel):
 
     @classmethod
     def from_dict(cls: type[KSKMConfig], config: dict[str, Any]) -> KSKMConfig:
-        if "ksk_policy" in config:
+        config = cls._transform_config(config)
+        return cls.model_validate(config)
+
+    @classmethod
+    def _transform_config(cls, config: Mapping[str, Any]) -> dict[str, Any]:
+        """ Adjust the dict representation of the config somewhat before loading it using the Pydantic model."""
+        _config = dict(config)  # do not modify the caller's data
+        if "ksk_policy" in _config:
             # put everything except ttl and signers_name into signature_policy
-            _signature_policy = config.get("ksk_policy", {})
+            _signature_policy = _config.get("ksk_policy", {})
             _new_ksk_policy = {"signature_policy": _signature_policy}
             for _move in ["ttl", "signers_name"]:
                 if _move in _signature_policy:
                     _new_ksk_policy[_move] = _signature_policy.pop(_move)
-            config["ksk_policy"] = _new_ksk_policy
+            _config["ksk_policy"] = _new_ksk_policy
 
-        return cls(**config, data_=config)
+        if "keys" in _config:
+            # move keys to ksk_keys
+            _config["ksk_keys"] = _config.pop("keys")
+
+        return _config
 
 
 def get_config(filename: str | None) -> KSKMConfig:
@@ -226,7 +225,7 @@ def get_config(filename: str | None) -> KSKMConfig:
         logger.warning(
             "No configuration filename provided, using default configuration."
         )
-        return KSKMConfig(data_={})
+        return KSKMConfig()
     with open(filename, "rb") as fd:
         config_bytes = fd.read()
         logger.info(
