@@ -24,7 +24,7 @@ from kskm.common.parse_utils import parse_datetime, signature_policy_from_dict
 from kskm.common.signature import validate_signatures
 from kskm.ksr import Request, request_from_xml
 from kskm.ksr.data import RequestBundle
-from kskm.misc.hsm import get_p11_key, init_pkcs11_modules_from_dict
+from kskm.misc.hsm import get_p11_key, init_pkcs11_modules
 from kskm.signer import create_skr, sign_bundles
 from kskm.signer.key import KeyUsagePolicy_Violation
 from kskm.signer.policy import check_skr_and_ksr
@@ -77,7 +77,7 @@ def _get_test_config() -> KSKMConfig:
 class SignWithSoftHSM_Baseclass:
     @pytest.fixture()
     def p11modules_fixture(self) -> Generator[None, Any, None]:
-        self.p11modules = init_pkcs11_modules_from_dict(self.config.hsm)
+        self.p11modules = init_pkcs11_modules(self.config)
         # when the fixture yields, the actual test method runs
         yield
 
@@ -219,7 +219,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
         """
-        self.config.merge_update(yaml.safe_load(io.StringIO(_EC_CONF)))
+        self.config = self.config.merge_update(yaml.safe_load(io.StringIO(_EC_CONF)))
         self.schema = self.config.get_schema("test")
 
         # CKA_LABEL for one of the keys loaded into SoftHSM using testing/Makefile
@@ -299,7 +299,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
             8: {publish: ksk_EC3, sign: ksk_EC2}
             9: {publish: ksk_EC3, sign: ksk_EC2}
         """
-        self.config.update(yaml.safe_load(io.StringIO(_PUBLISH_SCHEMA)))
+        self.config = self.config.update(yaml.safe_load(io.StringIO(_PUBLISH_SCHEMA)))
         self.schema = self.config.get_schema("test")
         zsk_keys = {
             self._p11_to_dnskey("EC1", AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK)
@@ -336,7 +336,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
             8: {revoke: ksk_EC2, publish: [], sign: ksk_EC3}
             9: {revoke: ksk_EC2, publish: [], sign: ksk_EC3}
         """
-        self.config.update(yaml.safe_load(io.StringIO(_REVOKE_SCHEMA)))
+        self.config = self.config.update(yaml.safe_load(io.StringIO(_REVOKE_SCHEMA)))
         self.schema = self.config.get_schema("test")
         zsk_keys = {
             self._p11_to_dnskey("EC1", AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK)
@@ -386,7 +386,7 @@ class Test_SignWithSoftHSM_DualAlgorithm(SignWithSoftHSM_Baseclass):
             8: {publish: [], sign: [ksk_EC2, ksk_RSA2]}
             9: {publish: [], sign: [ksk_EC2, ksk_RSA2]}
         """
-        self.config.update(yaml.safe_load(io.StringIO(_SCHEMAS)))
+        self.config = self.config.update(yaml.safe_load(io.StringIO(_SCHEMAS)))
 
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_single_zsk_dual_ksk(self) -> None:
@@ -447,7 +447,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
         """
-        self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
+        self.config = self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
         zsk_keys = {
             self._p11_to_dnskey("EC1", AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK)
         }
@@ -494,7 +494,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
         """
-        self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
+        self.config = self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
         zsk_keys = {
             self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)
         }
@@ -527,7 +527,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
         """
-        self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
+        self.config = self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
         zsk_keys = {
             self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)
         }
@@ -555,7 +555,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
         """
-        self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
+        self.config = self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
         zsk_keys = {
             self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)
         }
@@ -583,7 +583,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
         """
-        self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
+        self.config = self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
         zsk_keys = {
             self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)
         }
@@ -609,7 +609,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
         """
-        self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
+        self.config = self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
         zsk_keys = {
             self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)
         }
@@ -643,7 +643,7 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
             8: {publish: [], sign: [ksk_RSA2]}
             9: {publish: [], sign: [ksk_RSA2]}
         """
-        self.config.update(yaml.safe_load(io.StringIO(_SCHEMAS)))
+        self.config = self.config.update(yaml.safe_load(io.StringIO(_SCHEMAS)))
 
         # Initialise KSR and last SKR data structures
         self.data_dir = os.path.join(os.path.dirname(__file__), "data")
@@ -669,8 +669,7 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_check_chain_config(self) -> None:
         """Test KSR-CHAIN-KEYS configuration."""
-        policy = replace(
-            self.policy,
+        policy = self.policy.replace(
             check_chain_keys=False,
             check_bundle_overlap=False,
             check_chain_overlap=False,
@@ -702,8 +701,7 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
         last_bundle = replace(last_bundle, keys=_updated_keys)
         bundles = last_skr.bundles[:-1] + [last_bundle]
         last_skr = replace(last_skr, bundles=bundles)
-        policy = replace(
-            self.policy,
+        policy = self.policy.replace(
             check_bundle_overlap=False,
             check_chain_overlap=False,
             check_chain_keys_in_hsm=False,
@@ -723,8 +721,8 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
         )  # remove all signatures
         bundles = last_skr.bundles[:-1] + [last_bundle]
         last_skr = replace(self.last_skr, bundles=bundles)
-        policy = replace(
-            self.policy, check_bundle_overlap=False, check_chain_overlap=False
+        policy = self.policy.replace(
+            check_bundle_overlap=False, check_chain_overlap=False
         )
         with pytest.raises(
             KSR_CHAIN_KEYS_Violation,

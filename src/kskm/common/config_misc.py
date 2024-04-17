@@ -3,91 +3,87 @@
 from __future__ import annotations
 
 from abc import ABC
-from collections.abc import Iterable, Mapping
-from copy import deepcopy
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from typing import Any, NewType, TypeVar
+from collections.abc import Mapping
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Annotated, Any, NewType, Self, TypeVar
 
-from kskm.common.data import AlgorithmDNSSEC, SignaturePolicy
-from kskm.common.parse_utils import duration_to_timedelta, parse_datetime
+from pydantic import Field, FilePath, PositiveInt, StringConstraints, field_validator
+
+from kskm.common.data import AlgorithmDNSSEC, FrozenBaseModel, SignaturePolicy
+from kskm.common.parse_utils import duration_to_timedelta
 
 __author__ = "ft"
 
 
+DomainNameString = Annotated[str, StringConstraints(pattern=r"^[\w\.]+$")]
+IntegerRSASize = Annotated[int, Field(ge=1, le=65535)]
+IntegerDNSTTL = Annotated[int, Field(ge=0)]
+HexDigestString = Annotated[str, StringConstraints(pattern=r"^[0-9a-fA-F]+$")]
+
+
 PolicyType = TypeVar("PolicyType", bound="Policy")
-KSKKeysType = NewType("KSKKeysType", Mapping[str, "KSKKey"])
 
 
-@dataclass(frozen=True)
-class Policy(ABC):
+class Policy(FrozenBaseModel, ABC):
     """Base class for RequestPolicy and ResponsePolicy."""
 
-    # avoid upsetting type checker in from_dict below when arguments are passed to cls() without any attributes
-    _dataclass_placeholder: bool | None = None
-
-    @classmethod
-    def from_dict(cls: type[PolicyType], data: dict[str, Any]) -> PolicyType:
-        """Instantiate ResponsePolicy from a dict of values."""
-        _data = deepcopy(data)  # don't mess with caller's data
-        # Convert durations provided as strings into datetime.timedelta instances
-        for this_td in [
-            "min_bundle_interval",
-            "max_bundle_interval",
-            "min_cycle_inception_length",
-            "max_cycle_inception_length",
-        ]:
-            if this_td in _data:
-                _data[this_td] = duration_to_timedelta(data[this_td])
-        return cls(**_data)
+    def replace(self, **kwargs: Any) -> Self:
+        """Return a new instance with the provided attributes updated. Used in tests."""
+        _data = self.model_dump()
+        _data.update(kwargs)
+        return self.model_validate(_data)
 
 
-@dataclass(frozen=True)
 class RequestPolicy(Policy):
     """Configuration knobs for validating KSRs."""
 
     # Verify KSR header parameters
-    acceptable_domains: list[str] = field(default_factory=lambda: ["."])
+    acceptable_domains: list[DomainNameString] = Field(default_factory=lambda: ["."])
 
     # Verify KSR bundles
-    num_bundles: int = 9
+    num_bundles: int = 9  # can be 0 in tests, but will be enforced ge=1 upon load
     validate_signatures: bool = True
     keys_match_zsk_policy: bool = True
     rsa_exponent_match_zsk_policy: bool = True
     enable_unsupported_ecdsa: bool = False
     check_cycle_length: bool = True
-    min_cycle_inception_length: timedelta = field(
+    min_cycle_inception_length: timedelta = Field(
         default_factory=lambda: duration_to_timedelta("P79D")
     )
-    max_cycle_inception_length: timedelta = field(
+    max_cycle_inception_length: timedelta = Field(
         default_factory=lambda: duration_to_timedelta("P81D")
     )
-    min_bundle_interval: timedelta = field(
+    min_bundle_interval: timedelta = Field(
         default_factory=lambda: duration_to_timedelta("P9D")
     )
-    max_bundle_interval: timedelta = field(
+    max_bundle_interval: timedelta = Field(
         default_factory=lambda: duration_to_timedelta("P11D")
     )
 
     # Verify KSR policy parameters
     check_bundle_overlap: bool = True
     signature_algorithms_match_zsk_policy: bool = True
-    approved_algorithms: list[str] = field(
+    approved_algorithms: list[str] = Field(
         default_factory=lambda: [AlgorithmDNSSEC.RSASHA256.name]
     )
-    rsa_approved_exponents: list[int] = field(default_factory=lambda: [65537])
-    rsa_approved_key_sizes: list[int] = field(default_factory=lambda: [2048])
+    rsa_approved_exponents: list[PositiveInt] = Field(default_factory=lambda: [65537])
+    rsa_approved_key_sizes: list[IntegerRSASize] = Field(default_factory=lambda: [2048])
     signature_validity_match_zsk_policy: bool = True
     check_keys_match_ksk_operator_policy: bool = True
-    num_keys_per_bundle: list[int] = field(
+    num_keys_per_bundle: list[PositiveInt] = Field(
         default_factory=lambda: [2, 1, 1, 1, 1, 1, 1, 1, 2]
     )
-    num_different_keys_in_all_bundles: int = 3
-    dns_ttl: int = (
+    num_different_keys_in_all_bundles: int = (
+        3  # can be 0 in tests, but will be enforced ge=1 upon load
+    )
+    dns_ttl: IntegerDNSTTL = (
         0  # if this is 0, the config value ksk_policy.ttl will be used instead
     )
     signature_check_expire_horizon: bool = True
-    signature_horizon_days: int = 180
+    signature_horizon_days: int = (
+        180  # can be negative in tests, but will be enforced positive on config load
+    )
     check_bundle_intervals: bool = True
 
     # Verify KSR/SKR chaining
@@ -98,82 +94,57 @@ class RequestPolicy(Policy):
     check_keys_retire_safety: bool = True
 
 
-@dataclass(frozen=True)
 class ResponsePolicy(Policy):
     """Validation parameters for SKRs."""
 
-    num_bundles: int = 9
+    num_bundles: PositiveInt = 9
     validate_signatures: bool = True
 
 
-SigningKey = NewType("SigningKey", str)
+KeyName = Annotated[str, StringConstraints(pattern=r"^[\w_]+$")]
+
+SchemaName = NewType("SchemaName", str)
 
 
-@dataclass(frozen=True)
-class SchemaAction:
+class SchemaAction(FrozenBaseModel):
     """Actions to take for a specific bundle."""
 
-    publish: Iterable[SigningKey]
-    sign: Iterable[SigningKey]
-    revoke: Iterable[SigningKey]
+    publish: list[KeyName]
+    sign: list[KeyName]
+    revoke: list[KeyName] = []
+
+    @field_validator("*", mode="before")
+    @classmethod
+    def turn_into_string(cls, v: str | list[Any]) -> list[Any]:
+        if isinstance(v, str):
+            # Turn single strings into a list with one element
+            return [v]
+        return v
 
 
-@dataclass(frozen=True)
-class Schema:
+class Schema(FrozenBaseModel):
     """A named schema used when signing KSRs."""
 
-    name: str
+    name: SchemaName
     actions: Mapping[int, SchemaAction]
 
 
-def parse_keylist(elem: str | list[str]) -> list[SigningKey]:
-    if isinstance(elem, list):
-        return [SigningKey(x) for x in elem]
-    return [SigningKey(elem)]
-
-
-@dataclass()
-class KSKPolicy:
+class KSKPolicy(FrozenBaseModel):
     """
     Signing policy for the KSK operator.
 
     This corresponds to the 'ksk_policy' section of ksrsigner.yaml.
+
+    Algorithms are not initialised here, but rather created dynamically from the KSK keys used
+    in the schema.
     """
 
-    signature_policy: SignaturePolicy
-    ttl: int
-    signers_name: str
-
-    @classmethod
-    def from_dict(cls, data: Mapping[str, Any]) -> KSKPolicy:
-        """
-        Load the 'ksk_policy' section of the configuration.
-
-        Algorithms are not initialised here, but rather created dynamically from the KSK keys used
-        in the schema.
-        """
-
-        def _get_timedelta(name: str) -> timedelta:
-            return duration_to_timedelta(data.get(name))
-
-        _sp = SignaturePolicy(
-            publish_safety=_get_timedelta("publish_safety"),
-            retire_safety=_get_timedelta("retire_safety"),
-            max_signature_validity=_get_timedelta("max_signature_validity"),
-            min_signature_validity=_get_timedelta("min_signature_validity"),
-            max_validity_overlap=_get_timedelta("max_validity_overlap"),
-            min_validity_overlap=_get_timedelta("min_validity_overlap"),
-            algorithms=set(),
-        )
-        return cls(
-            signature_policy=_sp,
-            ttl=int(data.get("ttl", 172800)),
-            signers_name=data.get("signers_name", "."),
-        )
+    signature_policy: SignaturePolicy = Field(default_factory=SignaturePolicy)
+    ttl: IntegerDNSTTL = 172800
+    signers_name: DomainNameString = "."
 
 
-@dataclass()
-class KSKKey:
+class KSKKey(FrozenBaseModel):
     """
     A key that can be used in schemas.
 
@@ -181,28 +152,41 @@ class KSKKey:
     """
 
     description: str
-    label: str
-    key_tag: int
+    label: KeyName
+    key_tag: int | None = Field(default=None, ge=1, le=65535)
     algorithm: AlgorithmDNSSEC
     valid_from: datetime
     valid_until: datetime | None = None
-    rsa_size: int | None = None
-    rsa_exponent: int | None = None
-    ds_sha256: str | None = None
+    rsa_size: IntegerRSASize | None = None
+    rsa_exponent: PositiveInt | None = None
+    ds_sha256: HexDigestString | None = None
 
+    @field_validator("algorithm", mode="before")
     @classmethod
-    def from_dict(cls: type[KSKKey], data: dict[str, Any]) -> KSKKey:
-        """Instantiate KSKKey from a dict of values."""
-        # do not modify callers data
-        _data = deepcopy(data)
-        if "algorithm" in _data:
-            _data["algorithm"] = AlgorithmDNSSEC[_data["algorithm"]]
-        for _dt in ["valid_from", "valid_until"]:
-            # If the dict is loaded from YAML, these values will already be converted to datetime.
-            # If they are not, convert them here.
-            if _dt in _data and not isinstance(_data[_dt], datetime):
-                _data[_dt] = parse_datetime(_data[_dt])
-            elif _dt in _data:
-                # Set timezone UTC in the datetime
-                _data[_dt] = _data[_dt].replace(tzinfo=timezone.utc)
-        return cls(**_data)
+    def algorithm_by_name(cls, v: str | AlgorithmDNSSEC) -> AlgorithmDNSSEC:
+        if isinstance(v, AlgorithmDNSSEC):
+            return v
+        try:
+            return AlgorithmDNSSEC[v]
+        except KeyError as err:
+            raise ValueError("invalid algorithm") from err
+
+
+class KSKMFilenames(FrozenBaseModel):
+    """
+    Filenames for various files.
+
+    This corresponds to the 'filenames' section of ksrsigner.yaml.
+    """
+
+    previous_skr: FilePath | None = None
+    input_ksr: FilePath | None = None
+    output_skr: Path | None = None
+    output_trustanchor: Path | None = None
+
+
+class KSKMHSM(FrozenBaseModel):
+    module: FilePath | str
+    pin: str | int
+    so_pin: str | int | None = None
+    env: Mapping[str, Any] = Field(default_factory=dict)

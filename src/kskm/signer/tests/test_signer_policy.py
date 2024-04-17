@@ -52,7 +52,7 @@ class Test_KSR_SKR_policy(unittest.TestCase):
             check_last_skr_and_new_skr(self.skr1, self.skr3, self.policy)
 
         # test turning off the check
-        _policy = replace(self.policy, check_keys_publish_safety=False)
+        _policy = self.policy.replace(check_keys_publish_safety=False)
         check_last_skr_and_new_skr(self.skr1, self.skr3, _policy)
 
     def test_last_skr_and_new_skr_wrong_order(self) -> None:
@@ -77,7 +77,7 @@ class Test_KSR_SKR_policy(unittest.TestCase):
             check_last_skr_and_new_skr(skr1, self.skr2, self.policy)
 
         # verify check can be disabled using configuration
-        _policy = replace(self.policy, check_keys_publish_safety=False)
+        _policy = self.policy.replace(check_keys_publish_safety=False)
         check_last_skr_and_new_skr(skr1, self.skr2, _policy)
 
     def test_key_missing_from_new_skr_last_bundle(self) -> None:
@@ -104,7 +104,7 @@ class Test_KSR_SKR_policy(unittest.TestCase):
         )
 
         # verify check can be disabled using configuration
-        _policy = replace(self.policy, check_keys_retire_safety=False)
+        _policy = self.policy.replace(check_keys_retire_safety=False)
         check_last_skr_and_new_skr(self.skr1, skr2, _policy)
 
     def test_key_removed_prematurely(self) -> None:

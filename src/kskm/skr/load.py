@@ -2,6 +2,7 @@
 
 import logging
 import os
+from pathlib import Path
 
 from kskm.common.config_misc import ResponsePolicy
 from kskm.common.display import log_file_contents
@@ -20,7 +21,7 @@ MAX_SKR_SIZE = 1024 * 1024
 
 
 def load_skr(
-    filename: str, policy: ResponsePolicy, log_contents: bool = False
+    filename: Path, policy: ResponsePolicy, log_contents: bool = False
 ) -> Response:
     """Load a SKR response XML file."""
     with open(filename, "rb") as fd:

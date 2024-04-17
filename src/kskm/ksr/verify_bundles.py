@@ -290,7 +290,7 @@ def check_bundle_count(request: Request, policy: RequestPolicy, logger: Logger) 
       Verify that the number of requested bundles are within acceptable limits.
     """
     _num_bundles = len(request.bundles)
-    if policy.num_bundles is not None and _num_bundles != policy.num_bundles:
+    if _num_bundles != policy.num_bundles:
         raise KSR_BUNDLE_COUNT_Violation(
             f"Wrong number of bundles in request ({_num_bundles}, "
             f"expected {policy.num_bundles})"

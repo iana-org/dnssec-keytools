@@ -10,7 +10,7 @@ import os
 import unittest
 
 from kskm.common.config import KSKMConfig
-from kskm.misc.hsm import KSKM_P11, KeyClass, init_pkcs11_modules_from_dict
+from kskm.misc.hsm import KSKM_P11, KeyClass, init_pkcs11_modules
 
 __author__ = "ft"
 
@@ -33,7 +33,7 @@ class OperationsWithSoftHSM(unittest.TestCase):
         self.p11modules: KSKM_P11 = KSKM_P11([])
         conf = io.StringIO(_TEST_CONFIG)
         self.config = KSKMConfig.from_yaml(conf)
-        self.p11modules = init_pkcs11_modules_from_dict(self.config.hsm)
+        self.p11modules = init_pkcs11_modules(self.config)
 
     def tearDown(self) -> None:
         """Unload PKCS#11 modules, lest they might not work for the next test that starts."""

@@ -2,6 +2,7 @@ import base64
 import os
 import unittest
 from dataclasses import replace
+from pathlib import Path
 from unittest.mock import patch
 
 from kskm.common.config_misc import RequestPolicy
@@ -27,12 +28,12 @@ from kskm.ksr.verify_header import KSR_DOMAIN_Violation
 class Test_Validate_KSR_bundles(unittest.TestCase):
     def setUp(self) -> None:
         """Prepare test instance"""
-        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
-        self.policy_fn = os.path.join(self.data_dir, "response_policy.yaml")
+        self.data_dir = Path(os.path.dirname(__file__), "data")
+        self.policy_fn = self.data_dir.joinpath("response_policy.yaml")
 
     def test_validate_ksr_with_invalid_signature(self) -> None:
         """Test manipulating KSR signature"""
-        fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
+        fn = self.data_dir.joinpath("ksr-root-2018-q1-0-d_to_e.xml")
         # Exception: Failed validating KSR request in file icann-ksr-archive/ksr/ksr-root-2010-q3-2.xml:
         #            Bundle signature expire in the past
         _signature_check_expire_horizon = False
@@ -57,11 +58,11 @@ class Test_Validate_KSR_bundles(unittest.TestCase):
             validate_request(ksr, policy)
 
         # Test that the invalid KSR is accepted with signature validations turned off
-        validate_request(ksr, replace(policy, validate_signatures=False))
+        validate_request(ksr, policy.replace(validate_signatures=False))
 
     def test_validate_ksr_with_invalid_keys(self) -> None:
         """Test manipulating KSR keys"""
-        fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
+        fn = self.data_dir.joinpath("ksr-root-2018-q1-0-d_to_e.xml")
         # Exception: Failed validating KSR request in file icann-ksr-archive/ksr/ksr-root-2010-q3-2.xml:
         #            Bundle signature expire in the past
         _signature_check_expire_horizon = False
@@ -83,23 +84,23 @@ class Test_Validate_KSR_bundles(unittest.TestCase):
 
         # Now try and verify the KSR again and ensure it fails signature validation
         with self.assertRaises(KSR_BUNDLE_KEYS_Violation):
-            validate_request(ksr, replace(policy, validate_signatures=False))
+            validate_request(ksr, policy.replace(validate_signatures=False))
 
         # test that the check can be disabled
         validate_request(
-            ksr, replace(policy, validate_signatures=False, keys_match_zsk_policy=False)
+            ksr, policy.replace(validate_signatures=False, keys_match_zsk_policy=False)
         )
 
     def test_load_ksr_with_policy_violation(self) -> None:
         """Test loading a KSR failing the supplied policy"""
-        fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
+        fn = self.data_dir.joinpath("ksr-root-2018-q1-0-d_to_e.xml")
         policy = RequestPolicy(num_bundles=99)
         with self.assertRaises(KSR_BUNDLE_COUNT_Violation):
             load_ksr(fn, policy, raise_original=True)
 
     def test_mocked_invalid_signature(self) -> None:
         """Test loading a KSR where the call to validate_signatures fails unexpectedly"""
-        fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
+        fn = self.data_dir.joinpath("ksr-root-2018-q1-0-d_to_e.xml")
         policy = RequestPolicy(signature_check_expire_horizon=False)
         with patch("kskm.ksr.verify_bundles.validate_signatures") as mock_obj:
             mock_obj.return_value = False
@@ -130,8 +131,7 @@ class Test_Valid_Requests(Test_Requests):
         """.strip()
         policy_str = self._make_request_policy(signature_algorithm=signature_algorithm)
         xml = self._make_request(request_policy=policy_str)
-        policy = replace(
-            self.policy,
+        policy = self.policy.replace(
             approved_algorithms=[
                 AlgorithmDNSSEC.RSASHA256.name,
                 AlgorithmDNSSEC.ECDSAP256SHA256.name,
@@ -236,7 +236,7 @@ class Test_Invalid_Requests(Test_Requests):
 
         # test that we don't get an exception if we turn off the exponent validation (possible because some old
         # requests in the KSR archive have the wrong exponent)
-        policy = replace(self.policy, rsa_exponent_match_zsk_policy=False)
+        policy = self.policy.replace(rsa_exponent_match_zsk_policy=False)
         self.assertTrue(validate_request(request, policy))
 
     def test_bad_key_flags(self) -> None:
@@ -330,7 +330,7 @@ class Test_Invalid_Requests(Test_Requests):
         )
         xml = self._make_request(request_policy=request_policy, request_bundle=bundle)
         request = request_from_xml(xml)
-        policy = replace(self.policy, rsa_approved_key_sizes=[1024, 2048])
+        policy = self.policy.replace(rsa_approved_key_sizes=[1024, 2048])
         with self.assertRaises(KSR_BUNDLE_POP_Violation) as exc:
             validate_request(request, policy)
 
@@ -351,8 +351,8 @@ class Test_ZSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
         """Test two bundles with too small inception interval"""
         xml = self._make_request()
         request = request_from_xml(xml)
-        policy = replace(
-            self.policy, min_cycle_inception_length=duration_to_timedelta("P20D")
+        policy = self.policy.replace(
+            min_cycle_inception_length=duration_to_timedelta("P20D")
         )
         with self.assertRaises(KSR_BUNDLE_CYCLE_DURATION_Violation) as exc:
             validate_request(request, policy)
@@ -365,8 +365,8 @@ class Test_ZSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
         """Test two bundles with too large inception interval"""
         xml = self._make_request()
         request = request_from_xml(xml)
-        policy = replace(
-            self.policy, max_cycle_inception_length=duration_to_timedelta("P10D")
+        policy = self.policy.replace(
+            max_cycle_inception_length=duration_to_timedelta("P10D")
         )
         with self.assertRaises(KSR_BUNDLE_CYCLE_DURATION_Violation) as exc:
             validate_request(request, policy)
@@ -389,8 +389,8 @@ class Test_ECDSA_Bundles(Test_Validate_KSR_ECDSA):
         )
         xml = self._make_request(request_policy=request_policy)
         request = request_from_xml(xml)
-        policy = replace(
-            self.policy, approved_algorithms=[AlgorithmDNSSEC.ECDSAP384SHA384.name]
+        policy = self.policy.replace(
+            approved_algorithms=[AlgorithmDNSSEC.ECDSAP384SHA384]
         )
         with self.assertRaises(KSR_BUNDLE_KEYS_Violation) as exc:
             self.assertTrue(validate_request(request, policy))

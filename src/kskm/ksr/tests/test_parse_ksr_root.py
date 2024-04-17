@@ -1,6 +1,6 @@
 import os
 import unittest
-from dataclasses import replace
+from pathlib import Path
 
 import kskm.ksr.verify_bundles
 import kskm.ksr.verify_policy
@@ -11,11 +11,11 @@ from kskm.ksr import load_ksr, request_from_xml
 class TestParseRealKSRs(unittest.TestCase):
     def setUp(self) -> None:
         """Prepare test instance"""
-        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
+        self.data_dir = Path(os.path.dirname(__file__), "data")
 
     def test_parse_ksr_root_2009_q4_2(self) -> None:
         """Test parsing ksr-root-2009-q4-2.xml"""
-        fn = os.path.join(self.data_dir, "ksr-root-2009-q4-2.xml")
+        fn = self.data_dir.joinpath("ksr-root-2009-q4-2.xml")
         with open(fn) as fd:
             xml = fd.read()
         ksr = request_from_xml(xml)
@@ -41,7 +41,7 @@ class TestParseRealKSRs(unittest.TestCase):
 
     def test_parse_ksr_root_2010_q1_0(self) -> None:
         """Test parsing ksr-root-2010-q1-0.xml"""
-        fn = os.path.join(self.data_dir, "ksr-root-2010-q1-0.xml")
+        fn = self.data_dir.joinpath("ksr-root-2010-q1-0.xml")
         with open(fn) as fd:
             xml = fd.read()
         ksr = request_from_xml(xml)
@@ -70,7 +70,7 @@ class TestParseRealKSRs(unittest.TestCase):
 
     def test_parse_ksr_root_2010_q2_0(self) -> None:
         """Test parsing ksr-root-2010-q2-0.xml"""
-        fn = os.path.join(self.data_dir, "ksr-root-2010-q2-0.xml")
+        fn = self.data_dir.joinpath("ksr-root-2010-q2-0.xml")
         policy = RequestPolicy(
             rsa_exponent_match_zsk_policy=False,
             rsa_approved_exponents=[3, 65537],
@@ -105,7 +105,7 @@ class TestParseRealKSRs(unittest.TestCase):
 
     def test_parse_ksr_root_2010_q2_0_verify_fails(self) -> None:
         """Test parsing ksr-root-2010-q2-0.xml"""
-        fn = os.path.join(self.data_dir, "ksr-root-2010-q2-0.xml")
+        fn = self.data_dir.joinpath("ksr-root-2010-q2-0.xml")
         # This policy actually works for this file
         policy = RequestPolicy(
             rsa_exponent_match_zsk_policy=False,
@@ -120,26 +120,24 @@ class TestParseRealKSRs(unittest.TestCase):
         with self.assertRaises(kskm.ksr.verify_bundles.KSR_BUNDLE_KEYS_Violation):
             load_ksr(
                 fn,
-                replace(policy, rsa_exponent_match_zsk_policy=True),
+                policy.replace(rsa_exponent_match_zsk_policy=True),
                 raise_original=True,
             )
 
         with self.assertRaises(kskm.ksr.verify_policy.KSR_POLICY_ALG_Violation):
             load_ksr(
-                fn, replace(policy, rsa_approved_key_sizes=[2048]), raise_original=True
+                fn, policy.replace(rsa_approved_key_sizes=[2048]), raise_original=True
             )
 
         with self.assertRaises(kskm.ksr.verify_policy.KSR_POLICY_SIG_OVERLAP_Violation):
-            load_ksr(
-                fn, replace(policy, check_bundle_overlap=True), raise_original=True
-            )
+            load_ksr(fn, policy.replace(check_bundle_overlap=True), raise_original=True)
 
         with self.assertRaises(
             kskm.ksr.verify_policy.KSR_POLICY_SIG_VALIDITY_Violation
         ):
             load_ksr(
                 fn,
-                replace(policy, signature_validity_match_zsk_policy=True),
+                policy.replace(signature_validity_match_zsk_policy=True),
                 raise_original=True,
             )
 
@@ -166,7 +164,7 @@ class TestParseRealKSRs(unittest.TestCase):
             signature_validity_match_zsk_policy=_signature_validity_match_zsk_policy,
             signature_horizon_days=_signature_horizon,
         )
-        fn = os.path.join(self.data_dir, "ksr-root-2016-q3-0.xml")
+        fn = self.data_dir.joinpath("ksr-root-2016-q3-0.xml")
         ksr = load_ksr(fn, policy)
         self.assertEqual("2dc3b3f3-2db2-4074-a5c9-535dcfc04f63", ksr.id)
 
@@ -178,6 +176,6 @@ class TestParseRealKSRs(unittest.TestCase):
         policy = RequestPolicy(
             signature_check_expire_horizon=_signature_check_expire_horizon,
         )
-        fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
+        fn = self.data_dir.joinpath("ksr-root-2018-q1-0-d_to_e.xml")
         ksr = load_ksr(fn, policy)
         self.assertEqual("4fe9bb10-6f6b-4503-8575-7824e2d66925", ksr.id)

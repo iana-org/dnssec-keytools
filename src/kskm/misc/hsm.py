@@ -7,7 +7,6 @@ import logging
 import os
 import re
 from collections.abc import Iterator, Mapping, MutableMapping
-from copy import copy
 from dataclasses import dataclass, field
 from enum import Enum
 from getpass import getpass
@@ -18,6 +17,7 @@ import PyKCS11
 import PyKCS11.LowLevel
 from PyKCS11.LowLevel import CKF_RW_SESSION, CKU_SO, CKU_USER
 
+from kskm.common.config import KSKMConfig
 from kskm.common.data import AlgorithmDNSSEC
 from kskm.common.ecdsa_utils import ECCurve, KSKM_PublicKey_ECDSA
 from kskm.common.public_key import KSKM_PublicKey
@@ -460,8 +460,8 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) ->
 KSKM_P11 = NewType("KSKM_P11", list[KSKM_P11Module])
 
 
-def init_pkcs11_modules_from_dict(
-    config: Mapping[str, Any],
+def init_pkcs11_modules(
+    config: KSKMConfig,
     name: str | None = None,
     so_login: bool = False,
     rw_session: bool = False,
@@ -474,10 +474,10 @@ def init_pkcs11_modules_from_dict(
     :return: A list of PyKCS11 library instances.
     """
     modules: list[KSKM_P11Module] = []
-    for label, _kwargs in config.items():
+    for label, hsm in config.hsm.items():
         if name and label != name:
             continue
-        kwargs = copy(_kwargs)  # don't modify caller's data
+        kwargs = hsm.model_dump()
         if so_login:
             kwargs["so_login"] = True
         if rw_session:

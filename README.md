@@ -16,7 +16,7 @@ This tool depends on the following software:
 - [cryptography](https://cryptography.io/) (for DNSSEC validation of KSRs)
 - [PyYAML](https://pyyaml.org/) (to load configuration files)
 - [SWIG](http://www.swig.org/) (for pykcs11)
-- [Voluptuous](https://github.com/alecthomas/voluptuous)
+- [Pydantic](https://pydantic.dev/)
 
 For the KSR submission webserver (wksr), the following extras are required:
 

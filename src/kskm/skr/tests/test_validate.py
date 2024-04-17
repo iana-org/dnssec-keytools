@@ -2,6 +2,7 @@ import base64
 import os
 import unittest
 from dataclasses import replace
+from pathlib import Path
 
 from kskm.common.config_misc import ResponsePolicy
 from kskm.skr import load_skr
@@ -11,12 +12,12 @@ from kskm.skr.validate import InvalidSignatureViolation, validate_response
 class Test_Validate_SKR(unittest.TestCase):
     def setUp(self) -> None:
         """Prepare test instance"""
-        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
-        self.policy_fn = os.path.join(self.data_dir, "response_policy.yaml")
+        self.data_dir = Path(os.path.dirname(__file__), "data")
+        self.policy_fn = self.data_dir.joinpath("response_policy.yaml")
 
     def test_validate_skr_with_invalid_signature(self) -> None:
         """Test manipulating SKR signature"""
-        fn = os.path.join(self.data_dir, "skr-root-2018-q1-0-d_to_e.xml")
+        fn = self.data_dir.joinpath("skr-root-2018-q1-0-d_to_e.xml")
         policy = ResponsePolicy()
         skr = load_skr(fn, policy)
 
@@ -36,11 +37,11 @@ class Test_Validate_SKR(unittest.TestCase):
             validate_response(skr, policy)
 
         # Test that the invalid SKR is accepted with signature validations turned off
-        validate_response(skr, replace(policy, validate_signatures=False))
+        validate_response(skr, policy.replace(validate_signatures=False))
 
     def test_load_skr_with_policy_violation(self) -> None:
         """Test loading an SKR failing the supplied policy"""
-        fn = os.path.join(self.data_dir, "skr-root-2018-q1-0-d_to_e.xml")
+        fn = self.data_dir.joinpath("skr-root-2018-q1-0-d_to_e.xml")
         policy = ResponsePolicy(num_bundles=99)
         with self.assertRaises(RuntimeError):
             load_skr(fn, policy)

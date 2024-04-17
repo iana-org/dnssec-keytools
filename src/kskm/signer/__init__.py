@@ -2,7 +2,7 @@
 
 import logging
 from collections.abc import Iterable
-from dataclasses import replace
+from pathlib import Path
 
 from kskm.common.config import KSKMConfig
 from kskm.common.config_misc import KSKPolicy, Schema
@@ -38,7 +38,7 @@ def create_skr(
 
 
 def output_skr_xml(
-    skr: Response, output_filename: str | None, log_contents: bool = False
+    skr: Response, output_filename: Path | None, log_contents: bool = False
 ) -> None:
     """Return SKR as XML."""
     xml = skr_to_xml(skr)
@@ -72,4 +72,7 @@ def _ksk_signature_policy(
                 algorithms.add(alg)
             else:
                 raise NotImplementedError("Only RSA is implemented at this time")
-    return replace(ksk_policy.signature_policy, algorithms=algorithms)
+    _signature_policy = ksk_policy.signature_policy.model_copy(
+        update={"algorithms": algorithms}
+    )
+    return _signature_policy

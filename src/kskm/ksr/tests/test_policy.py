@@ -1,6 +1,8 @@
 import os
 import unittest
 
+from pydantic import ValidationError
+
 from kskm.common.config import get_config
 from kskm.common.config_misc import RequestPolicy
 
@@ -19,10 +21,10 @@ class TestRequestPolicy(unittest.TestCase):
     def test_unknown_data(self) -> None:
         """Test creating a policy from unknown data"""
         data = {"UNKNOWN": "just testing"}
-        with self.assertRaises(TypeError):
-            RequestPolicy.from_dict(data)
+        with self.assertRaises(ValidationError):
+            RequestPolicy.model_validate(data)
 
     def test_defaults(self) -> None:
         """Test creating a policy with the default values"""
-        p = RequestPolicy.from_dict({})
+        p = RequestPolicy.model_validate({})
         self.assertTrue(p.validate_signatures)
