@@ -83,7 +83,7 @@ def _get_timedelta(policy: dict[str, Any], name: str) -> timedelta:
 
 
 def duration_to_timedelta(duration: str | None) -> timedelta:
-    """Parse strings such as P14D or PT1H5M (ISO8601 durations) into timedeltas."""
+    """Parse strings such as P14D or PT1H5M (ISO8601 durations) into time deltas."""
     if not duration:
         return timedelta()
     if not duration.startswith("P"):

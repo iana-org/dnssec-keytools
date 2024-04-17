@@ -6,9 +6,17 @@ from abc import ABC
 from collections.abc import Mapping
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, NewType, Self, TypeVar
+from typing import Annotated, Any, NewType, Self, TypeVar
 
-from pydantic import BaseModel, ConfigDict, Field, FilePath, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    FilePath,
+    PositiveInt,
+    StringConstraints,
+    field_validator,
+)
 
 from kskm.common.data import AlgorithmDNSSEC, SignaturePolicy
 from kskm.common.parse_utils import duration_to_timedelta
@@ -33,14 +41,19 @@ class Policy(FrozenBaseModel, ABC):
         return self.model_validate(_data)
 
 
+DomainNameString = Annotated[str, StringConstraints(pattern=r"^[\w\.]+$")]
+IntegerRSASize = Annotated[int, Field(ge=1, le=65535)]
+IntegerDNSTTL = Annotated[int, Field(ge=0)]
+
+
 class RequestPolicy(Policy):
     """Configuration knobs for validating KSRs."""
 
     # Verify KSR header parameters
-    acceptable_domains: list[str] = Field(default_factory=lambda: ["."])
+    acceptable_domains: list[DomainNameString] = Field(default_factory=lambda: ["."])
 
     # Verify KSR bundles
-    num_bundles: int = 9
+    num_bundles: PositiveInt = 9
     validate_signatures: bool = True
     keys_match_zsk_policy: bool = True
     rsa_exponent_match_zsk_policy: bool = True
@@ -65,19 +78,19 @@ class RequestPolicy(Policy):
     approved_algorithms: list[str] = Field(
         default_factory=lambda: [AlgorithmDNSSEC.RSASHA256.name]
     )
-    rsa_approved_exponents: list[int] = Field(default_factory=lambda: [65537])
-    rsa_approved_key_sizes: list[int] = Field(default_factory=lambda: [2048])
+    rsa_approved_exponents: list[PositiveInt] = Field(default_factory=lambda: [65537])
+    rsa_approved_key_sizes: list[IntegerRSASize] = Field(default_factory=lambda: [2048])
     signature_validity_match_zsk_policy: bool = True
     check_keys_match_ksk_operator_policy: bool = True
-    num_keys_per_bundle: list[int] = Field(
+    num_keys_per_bundle: list[PositiveInt] = Field(
         default_factory=lambda: [2, 1, 1, 1, 1, 1, 1, 1, 2]
     )
-    num_different_keys_in_all_bundles: int = 3
-    dns_ttl: int = (
+    num_different_keys_in_all_bundles: PositiveInt = 3
+    dns_ttl: IntegerDNSTTL = (
         0  # if this is 0, the config value ksk_policy.ttl will be used instead
     )
     signature_check_expire_horizon: bool = True
-    signature_horizon_days: int = 180
+    signature_horizon_days: PositiveInt = 180
     check_bundle_intervals: bool = True
 
     # Verify KSR/SKR chaining
@@ -91,11 +104,11 @@ class RequestPolicy(Policy):
 class ResponsePolicy(Policy):
     """Validation parameters for SKRs."""
 
-    num_bundles: int = 9
+    num_bundles: PositiveInt = 9
     validate_signatures: bool = True
 
 
-SigningKey = NewType("SigningKey", str)
+KeyName = Annotated[str, StringConstraints(pattern=r"^[\w_]+$")]
 
 SchemaName = NewType("SchemaName", str)
 
@@ -103,9 +116,9 @@ SchemaName = NewType("SchemaName", str)
 class SchemaAction(FrozenBaseModel):
     """Actions to take for a specific bundle."""
 
-    publish: list[SigningKey]
-    sign: list[SigningKey]
-    revoke: list[SigningKey] = []
+    publish: list[KeyName]
+    sign: list[KeyName]
+    revoke: list[KeyName] = []
 
     @field_validator("*", mode="before")
     @classmethod
@@ -134,8 +147,8 @@ class KSKPolicy(BaseModel):
     """
 
     signature_policy: SignaturePolicy = SignaturePolicy()
-    ttl: int = 172800
-    signers_name: str = "."
+    ttl: IntegerDNSTTL = 172800
+    signers_name: DomainNameString = "."
 
 
 class KSKKey(BaseModel):
@@ -146,14 +159,14 @@ class KSKKey(BaseModel):
     """
 
     description: str
-    label: str
-    key_tag: int | None
+    label: KeyName
+    key_tag: int | None = Field(default=None, ge=1, le=65535)
     algorithm: AlgorithmDNSSEC
     valid_from: datetime
     valid_until: datetime | None = None
-    rsa_size: int | None = None
-    rsa_exponent: int | None = None
-    ds_sha256: str | None = None
+    rsa_size: IntegerRSASize | None = None
+    rsa_exponent: PositiveInt | None = None
+    ds_sha256: str | None = Field(default=None, pattern=r"^[0-9a-fA-F]+$")
 
     @field_validator("algorithm", mode="before")
     @classmethod

@@ -1,31 +1,9 @@
 """Config validation schema."""
 
-# from collections.abc import Callable
-# from datetime import timedelta
 from pathlib import Path
 from typing import Annotated
 
 from pydantic import BaseModel, EmailStr, Field, FilePath
-
-# from voluptuous import All, Any, Email, IsFile, Match, Range, Required, Schema
-# from voluptuous.validators import DOMAIN_REGEX
-
-# from kskm.common.parse_utils import duration_to_timedelta
-
-
-# def iso8601_duration() -> Callable[[str | None], timedelta]:
-#     """Validation ISO 8601 durations."""
-#     return lambda v: duration_to_timedelta(v)
-
-
-# HSM_SCHEMA = Schema(
-#     {
-#         Required("module"): Schema(Any(IsFile(), Match(r"^\$\w+"))),
-#         "pin": Schema(Any(str, int)),
-#         "so_pin": Schema(Any(str, int)),
-#         "env": dict,
-#     }
-# )
 
 # KEY_NAME = Match(r"[\w_]+")
 # KEY_LABEL = Match(r"[\w_]+")
@@ -35,22 +13,6 @@ from pydantic import BaseModel, EmailStr, Field, FilePath
 # HOST_NAME = Match(DOMAIN_REGEX)
 # DOMAIN_NAME = Any(".", Match(r"\w+"), Match(DOMAIN_REGEX))
 # TTL = All(int, Range(min=0))
-
-# KEY_SCHEMA = Schema(
-#     {
-#         "label": KEY_LABEL,
-#         "description": str,
-#         "key_tag": All(int, Range(min=0, max=65535)),
-#         "algorithm": Any(*[x.name for x in AlgorithmDNSSEC]),
-#         "rsa_size": RSA_SIZE,
-#         "rsa_exponent": RSA_EXPONENT,
-#         "valid_from": datetime,
-#         "valid_until": datetime,
-#         "ds_sha256": HEX_DIGEST,
-#     }
-# )
-
-# REQUEST_POLICY_SCHEMA = Schema({})
 
 # REQUEST_POLICY_SCHEMA = REQUEST_POLICY_SCHEMA.extend(
 #     {
@@ -188,7 +150,7 @@ class WKSR_TLS(BaseModel):
     )  # TODO: could be a colon-separated string too before
     require_client_cert: bool
     client_whitelist: list[
-        Annotated[str, Field(pattern=r"[0-9a-fA-F]+", default_factory=list)]
+        Annotated[str, Field(pattern=r"^[0-9a-fA-F]+$", default_factory=list)]
     ]
 
 

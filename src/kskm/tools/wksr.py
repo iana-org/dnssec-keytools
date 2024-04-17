@@ -56,13 +56,7 @@ def main() -> None:
     with open(args.config) as fp:
         _config = yaml.load(fp.read(), Loader=yaml.SafeLoader)
 
-    # try:
-    #     voluptuous.humanize.validate_with_humanized_errors(_config, WKSR_CONFIG_SCHEMA)
-    # except voluptuous.error.Error as exc:
-    #     logging.critical(str(exc))
-    #     sys.exit(-1)
-
-    config = WKSRConfig(**_config)
+    config = WKSRConfig.model_validate(_config)
     if not config.templates:
         config.templates = WKSR_Templates.model_validate(DEFAULT_TEMPLATES_CONFIG)
 
