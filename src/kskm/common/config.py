@@ -190,7 +190,26 @@ class KSKMConfig(FrozenBaseModel):
     @classmethod
     def from_dict(cls: type[KSKMConfig], config: dict[str, Any]) -> KSKMConfig:
         config = cls._transform_config(config)
-        return cls.model_validate(config)
+        loaded = cls.model_validate(config)
+
+        if loaded.request_policy.signature_horizon_days < 1:
+            # The model permits this value to be negative since a bunch of tests depend on that,
+            # but when loading the configuration from a dict we enforce it to be positive.
+            raise ConfigurationError(
+                "signature_horizon_days must be a positive integer"
+            )
+
+        if loaded.request_policy.num_bundles < 1:
+            # The model permits this value to be zero since a bunch of tests depend on that
+            raise ConfigurationError("num_bundles must be a positive integer")
+
+        if loaded.request_policy.num_different_keys_in_all_bundles < 1:
+            # The model permits this value to be zero since a bunch of tests depend on that
+            raise ConfigurationError(
+                "num_different_keys_in_all_bundles must be a positive integer"
+            )
+
+        return loaded
 
     @classmethod
     def _transform_config(cls, config: Mapping[str, Any]) -> dict[str, Any]:

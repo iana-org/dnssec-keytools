@@ -53,7 +53,7 @@ class RequestPolicy(Policy):
     acceptable_domains: list[DomainNameString] = Field(default_factory=lambda: ["."])
 
     # Verify KSR bundles
-    num_bundles: PositiveInt = 9
+    num_bundles: int = 9
     validate_signatures: bool = True
     keys_match_zsk_policy: bool = True
     rsa_exponent_match_zsk_policy: bool = True
@@ -85,12 +85,14 @@ class RequestPolicy(Policy):
     num_keys_per_bundle: list[PositiveInt] = Field(
         default_factory=lambda: [2, 1, 1, 1, 1, 1, 1, 1, 2]
     )
-    num_different_keys_in_all_bundles: PositiveInt = 3
+    num_different_keys_in_all_bundles: int = 3
     dns_ttl: IntegerDNSTTL = (
         0  # if this is 0, the config value ksk_policy.ttl will be used instead
     )
     signature_check_expire_horizon: bool = True
-    signature_horizon_days: PositiveInt = 180
+    signature_horizon_days: int = (
+        180  # can be negative in tests, but will be enforced positive on config load
+    )
     check_bundle_intervals: bool = True
 
     # Verify KSR/SKR chaining
