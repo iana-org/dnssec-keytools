@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import Annotated, Any, NewType, Self, TypeVar
 
 from pydantic import (
-    BaseModel,
     Field,
     FilePath,
     PositiveInt,
@@ -135,7 +134,7 @@ class Schema(FrozenBaseModel):
     actions: Mapping[int, SchemaAction]
 
 
-class KSKPolicy(BaseModel):
+class KSKPolicy(FrozenBaseModel):
     """
     Signing policy for the KSK operator.
 
@@ -150,7 +149,7 @@ class KSKPolicy(BaseModel):
     signers_name: DomainNameString = "."
 
 
-class KSKKey(BaseModel):
+class KSKKey(FrozenBaseModel):
     """
     A key that can be used in schemas.
 
@@ -178,7 +177,7 @@ class KSKKey(BaseModel):
             raise ValueError("invalid algorithm") from err
 
 
-class KSKMFilenames(BaseModel):
+class KSKMFilenames(FrozenBaseModel):
     """
     Filenames for various files.
 
