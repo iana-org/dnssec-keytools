@@ -206,7 +206,7 @@ class WKSR_Templates(BaseModel):
 
 
 class WKSR_Notify(BaseModel):
-    from_: EmailStr
+    from_: EmailStr = Field(alias="from")
     to: EmailStr
     subject: str
     smtp_server: str
