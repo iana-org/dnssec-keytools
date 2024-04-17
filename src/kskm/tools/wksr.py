@@ -6,7 +6,7 @@ import logging
 import yaml
 from werkzeug.serving import run_simple
 
-from kskm.common.config_schema import WKSR_Templates, WKSRConfig
+from kskm.common.config_wksr import WKSR_Config, WKSR_Templates
 from kskm.version import __verbose_version__
 from kskm.wksr.peercert import PeerCertWSGIRequestHandler
 from kskm.wksr.server import (
@@ -56,7 +56,7 @@ def main() -> None:
     with open(args.config) as fp:
         _config = yaml.load(fp.read(), Loader=yaml.SafeLoader)
 
-    config = WKSRConfig.model_validate(_config)
+    config = WKSR_Config.model_validate(_config)
     if not config.templates:
         config.templates = WKSR_Templates.model_validate(DEFAULT_TEMPLATES_CONFIG)
 

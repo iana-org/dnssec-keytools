@@ -19,7 +19,7 @@ from werkzeug.datastructures import FileStorage
 from werkzeug.exceptions import BadRequest, Forbidden, RequestEntityTooLarge
 
 from kskm.common.config import get_config
-from kskm.common.config_schema import WKSR_TLS, WKSRConfig
+from kskm.common.config_wksr import WKSR_TLS, WKSR_Config
 from kskm.common.validate import PolicyViolation
 from kskm.ksr import load_ksr
 from kskm.signer.policy import check_skr_and_ksr
@@ -34,7 +34,7 @@ DEFAULT_TEMPLATES_CONFIG = {
     "email": "email.txt",
 }
 
-wksr_config: WKSRConfig | None = None
+wksr_config: WKSR_Config | None = None
 
 
 logger = logging.getLogger(__name__)
@@ -224,7 +224,7 @@ def generate_ssl_context(config: WKSR_TLS) -> ssl.SSLContext:
     return ssl_context
 
 
-def generate_app(config: WKSRConfig) -> Flask:
+def generate_app(config: WKSR_Config) -> Flask:
     """Generate app."""
     global wksr_config
 

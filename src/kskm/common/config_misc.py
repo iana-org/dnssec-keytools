@@ -8,18 +8,18 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Annotated, Any, NewType, Self, TypeVar
 
-from pydantic import (
-    Field,
-    FilePath,
-    PositiveInt,
-    StringConstraints,
-    field_validator,
-)
+from pydantic import Field, FilePath, PositiveInt, StringConstraints, field_validator
 
 from kskm.common.data import AlgorithmDNSSEC, FrozenBaseModel, SignaturePolicy
 from kskm.common.parse_utils import duration_to_timedelta
 
 __author__ = "ft"
+
+
+DomainNameString = Annotated[str, StringConstraints(pattern=r"^[\w\.]+$")]
+IntegerRSASize = Annotated[int, Field(ge=1, le=65535)]
+IntegerDNSTTL = Annotated[int, Field(ge=0)]
+HexDigestString = Annotated[str, StringConstraints(pattern=r"^[0-9a-fA-F]+$")]
 
 
 PolicyType = TypeVar("PolicyType", bound="Policy")
@@ -33,11 +33,6 @@ class Policy(FrozenBaseModel, ABC):
         _data = self.model_dump()
         _data.update(kwargs)
         return self.model_validate(_data)
-
-
-DomainNameString = Annotated[str, StringConstraints(pattern=r"^[\w\.]+$")]
-IntegerRSASize = Annotated[int, Field(ge=1, le=65535)]
-IntegerDNSTTL = Annotated[int, Field(ge=0)]
 
 
 class RequestPolicy(Policy):
@@ -164,7 +159,7 @@ class KSKKey(FrozenBaseModel):
     valid_until: datetime | None = None
     rsa_size: IntegerRSASize | None = None
     rsa_exponent: PositiveInt | None = None
-    ds_sha256: str | None = Field(default=None, pattern=r"^[0-9a-fA-F]+$")
+    ds_sha256: HexDigestString | None = None
 
     @field_validator("algorithm", mode="before")
     @classmethod
