@@ -17,7 +17,7 @@ from pydantic import (
     field_validator,
 )
 
-from kskm.common.data import AlgorithmDNSSEC, SignaturePolicy, FrozenBaseModel
+from kskm.common.data import AlgorithmDNSSEC, FrozenBaseModel, SignaturePolicy
 from kskm.common.parse_utils import duration_to_timedelta
 
 __author__ = "ft"
@@ -174,8 +174,8 @@ class KSKKey(BaseModel):
             return v
         try:
             return AlgorithmDNSSEC[v]
-        except KeyError:
-            raise ValueError("invalid algorithm")
+        except KeyError as err:
+            raise ValueError("invalid algorithm") from err
 
 
 class KSKMFilenames(BaseModel):

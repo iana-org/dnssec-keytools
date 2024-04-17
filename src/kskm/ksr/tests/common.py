@@ -1,5 +1,4 @@
 import unittest
-from typing import Any
 
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY

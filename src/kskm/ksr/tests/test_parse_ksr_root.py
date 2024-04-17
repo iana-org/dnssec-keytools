@@ -1,6 +1,5 @@
 import os
 import unittest
-from dataclasses import replace
 from pathlib import Path
 
 import kskm.ksr.verify_bundles

@@ -2,7 +2,6 @@
 
 import logging
 from collections.abc import Iterable
-from dataclasses import replace
 from pathlib import Path
 
 from kskm.common.config import KSKMConfig

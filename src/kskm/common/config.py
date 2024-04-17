@@ -162,7 +162,7 @@ class KSKMConfig(FrozenBaseModel):
 
     def update(self, data: Mapping[str, Any]) -> KSKMConfig:
         """Update configuration on the fly. Usable in tests."""
-        data = self._transform_config((data))
+        data = self._transform_config(data)
         logger.warning(f"Updating configuration (sections {data.keys()})")
         _config = self.model_dump()
         _config.update(data)
@@ -231,11 +231,14 @@ class KSKMConfig(FrozenBaseModel):
             # move keys to ksk_keys
             _config["ksk_keys"] = _config.pop("keys")
 
-        if "request_policy" in _config and "ksk_policy" in config:
-            if "dns_ttl" in _config["request_policy"]:
-                if int(_config["request_policy"]["dns_ttl"]) == 0:
-                    # Replace with the value configured to be used when signing the bundles
-                    _config["request_policy"]["dns_ttl"] = _config["ksk_policy"]["ttl"]
+        if (
+            "ksk_policy" in _config
+            and "request_policy" in _config
+            and "dns_ttl" in _config["request_policy"]
+            and int(_config["request_policy"]["dns_ttl"]) == 0
+        ):
+            # Replace with the value configured to be used when signing the bundles
+            _config["request_policy"]["dns_ttl"] = _config["ksk_policy"]["ttl"]
 
         return _config
 

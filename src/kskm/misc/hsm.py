@@ -7,7 +7,6 @@ import logging
 import os
 import re
 from collections.abc import Iterator, Mapping, MutableMapping
-from copy import copy
 from dataclasses import dataclass, field
 from enum import Enum
 from getpass import getpass

@@ -22,8 +22,6 @@ from datetime import datetime
 
 from PyKCS11 import PyKCS11Error
 
-import kskm
-import kskm.misc
 from kskm.common.config import ConfigurationError, KSKMConfig, get_config
 from kskm.common.config_misc import KSKKey
 from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY
