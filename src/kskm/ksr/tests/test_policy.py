@@ -16,7 +16,7 @@ class TestRequestPolicy(unittest.TestCase):
         """Test loading the request policy from file"""
         fn = os.path.join(self.data_dir, "request_policy.yaml")
         config = get_config(fn)
-        self.assertTrue(config.get_request_policy.validate_signatures)
+        self.assertTrue(config.request_policy.validate_signatures)
 
     def test_unknown_data(self) -> None:
         """Test creating a policy from unknown data"""

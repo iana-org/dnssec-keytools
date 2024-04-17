@@ -43,8 +43,6 @@ class KSKMConfig(FrozenBaseModel):
     """
     HSM configuration.
 
-    Returns a plain dict with the configuration for now.
-
     Example:
     -------
         hsm:
@@ -92,6 +90,18 @@ class KSKMConfig(FrozenBaseModel):
             ttl: 172800
     """
     ksk_policy: KSKPolicy = KSKPolicy()
+
+    """
+    Policy for validating a request (KSR).
+
+    Example:
+    -------
+        request_policy:
+            acceptable_domains:
+            - "."
+            num_bundles: 9
+            ...
+    """
     request_policy: RequestPolicy = RequestPolicy()
     response_policy: ResponsePolicy = ResponsePolicy()
 
@@ -134,27 +144,6 @@ class KSKMConfig(FrozenBaseModel):
     even if there is a single key name in the list.
     """
     schemas: Mapping[SchemaName, Mapping[int, SchemaAction]] = Field(default_factory=dict)
-
-    @property
-    def get_request_policy(self) -> RequestPolicy:
-        """
-        Policy for validating a request (KSR).
-
-        Example:
-        -------
-            request_policy:
-              acceptable_domains:
-                - "."
-              num_bundles: 9
-              ...
-        """
-        # TODO: Implement this when parsing the policy instead of when using it
-        if self.request_policy.dns_ttl == 0:
-            # Replace with the value configured to be used when signing the bundles
-            _data = self.request_policy.model_dump()
-            _data["dns_ttl"] = self.ksk_policy.ttl
-            return RequestPolicy(**_data)
-        return self.request_policy
 
     def get_schema(self, name: str) -> Schema:
         """
@@ -214,6 +203,12 @@ class KSKMConfig(FrozenBaseModel):
         if "keys" in _config:
             # move keys to ksk_keys
             _config["ksk_keys"] = _config.pop("keys")
+
+        if "request_policy" in _config and "ksk_policy" in config:
+            if "dns_ttl" in _config["request_policy"]:
+                if int(_config["request_policy"]["dns_ttl"]) == 0:
+                    # Replace with the value configured to be used when signing the bundles
+                    _config["request_policy"]["dns_ttl"] = _config["ksk_policy"]["ttl"]
 
         return _config
 

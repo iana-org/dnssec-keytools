@@ -737,7 +737,7 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
             self._p11_to_dnskey(
                 self.zsk_key_label,
                 AlgorithmDNSSEC.RSASHA256,
-                ttl=self.config.get_request_policy.dns_ttl,
+                ttl=self.config.request_policy.dns_ttl,
             )
         }
         first_ksr = self._make_request(

@@ -217,7 +217,7 @@ def ksrsigner(
         logger.error("No KSR filename specified")
         return False
     request = kskm.ksr.load_ksr(
-        _ksr_fn, config.get_request_policy, log_contents=args.log_ksr_contents
+        _ksr_fn, config.request_policy, log_contents=args.log_ksr_contents
     )
     logger.info("Request:")
     for x in format_bundles_for_humans(request.bundles):
@@ -238,7 +238,7 @@ def ksrsigner(
     # Perform some checks that need both KSR, SKR and PKCS#11 modules
     #
     if skr is not None:
-        check_skr_and_ksr(request, skr, config.get_request_policy, p11modules)
+        check_skr_and_ksr(request, skr, config.request_policy, p11modules)
     else:
         logger.warning(
             "KSR-CHAIN: Previous SKR *NOT* loaded - daisy chain not validated"
@@ -267,7 +267,7 @@ def ksrsigner(
     #
     new_skr = create_skr(request, schema, p11modules, config)
     if skr:
-        check_last_skr_and_new_skr(skr, new_skr, config.get_request_policy)
+        check_last_skr_and_new_skr(skr, new_skr, config.request_policy)
 
     logger.info("Generated SKR:")
     for x in format_bundles_for_humans(new_skr.bundles):
