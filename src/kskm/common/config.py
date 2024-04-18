@@ -54,7 +54,7 @@ class KSKMConfig(FrozenBaseModel):
             module: /path/to/softhsm/libsofthsm2.so
             pin: 123456
             env:
-                SOFTHSM2_CONF: /path/to/softhsm.conf
+              SOFTHSM2_CONF: /path/to/softhsm.conf
     """
     hsm: Mapping[str, KSKMHSM] = Field(default_factory=dict)
 

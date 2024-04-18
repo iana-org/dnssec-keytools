@@ -133,7 +133,7 @@ class SchemaAction(FrozenBaseModel):
 
     @field_validator("*", mode="before")
     @classmethod
-    def turn_into_string(cls, v: str | list[Any]) -> list[Any]:
+    def turn_into_list(cls, v: str | list[Any]) -> list[Any]:
         if isinstance(v, str):
             # Turn single strings into a list with one element
             return [v]
