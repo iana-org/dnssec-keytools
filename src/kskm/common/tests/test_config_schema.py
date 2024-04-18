@@ -72,7 +72,7 @@ class TestConfigSchema(unittest.TestCase):
         config["templates"]["result"] = file_placeholder
         config["templates"]["email"] = file_placeholder
 
-        _loaded = WKSR_Config.model_validate(config)
+        _loaded = WKSR_Config.from_dict(config)
         os.unlink(file_placeholder)
 
         assert _loaded.notify is not None and _loaded.notify.subject == "Hello"
@@ -81,7 +81,7 @@ class TestConfigSchema(unittest.TestCase):
         """Test wksr example config"""
         config = {"xyzzy": False}
         with pytest.raises(ValidationError):
-            WKSR_Config.model_validate(config)
+            WKSR_Config.from_dict(config)
 
 
 if __name__ == "__main__":

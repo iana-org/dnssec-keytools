@@ -33,7 +33,7 @@ def validate_request(request: Request, policy: RequestPolicy) -> bool:
     to screw up.
     """
     logger.info("Validating KSR using request policy:")
-    for k, v in sorted(policy.model_dump().items()):
+    for k, v in sorted(policy.to_dict().items()):
         logger.info(f"  {k}: {v}")
     verify_header(request, policy, logger)
     verify_bundles(request, policy, logger)

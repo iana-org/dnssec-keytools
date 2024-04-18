@@ -56,9 +56,9 @@ def main() -> None:
     with open(args.config) as fp:
         _config = yaml.load(fp.read(), Loader=yaml.SafeLoader)
 
-    config = WKSR_Config.model_validate(_config)
+    config = WKSR_Config.from_dict(_config)
     if not config.templates:
-        config.templates = WKSR_Templates.model_validate(DEFAULT_TEMPLATES_CONFIG)
+        config.templates = WKSR_Templates.from_dict(DEFAULT_TEMPLATES_CONFIG)
 
     ssl_context = generate_ssl_context(config.tls)
     app = generate_app(config)

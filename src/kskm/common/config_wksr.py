@@ -1,7 +1,7 @@
 """Config validation schema."""
 
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any, Mapping, Self
 
 from pydantic import BaseModel, EmailStr, Field, FilePath
 
@@ -34,6 +34,11 @@ class WKSR_Templates(BaseModel):
     result: FilePath
     email: FilePath
 
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> Self:
+        """Instantiate templates from a dict."""
+        return cls.model_validate(data)
+
 
 class WKSR_Notify(BaseModel):
     from_: EmailStr = Field(alias="from")
@@ -47,3 +52,8 @@ class WKSR_Config(BaseModel):
     ksr: WKSR_KSR
     templates: WKSR_Templates
     notify: WKSR_Notify | None = None
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> Self:
+        """Instantiate configuration from a dict."""
+        return cls.model_validate(data)

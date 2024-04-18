@@ -23,9 +23,9 @@ class TestRequestPolicy(unittest.TestCase):
         """Test creating a policy from unknown data"""
         data = {"UNKNOWN": "just testing"}
         with self.assertRaises(ValidationError):
-            RequestPolicy.model_validate(data)
+            RequestPolicy.from_dict(data)
 
     def test_defaults(self) -> None:
         """Test creating a policy with the default values"""
-        p = RequestPolicy.model_validate({})
+        p = RequestPolicy.from_dict({})
         self.assertTrue(p.validate_signatures)

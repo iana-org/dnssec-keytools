@@ -189,7 +189,13 @@ class KSKMConfig(FrozenBaseModel):
         return KSKMConfig.from_dict(config)
 
     @classmethod
-    def from_dict(cls: type[KSKMConfig], config: dict[str, Any]) -> KSKMConfig:
+    def from_dict(cls: type[KSKMConfig], config: Mapping[str, Any]) -> KSKMConfig:
+        """
+        Load configuration from a dict.
+
+        We apply some extra validation here that can't be done in the model since tests need more leeway
+        than we allow configuration loaded from dicts.
+        """
         config = cls._transform_config(config)
         loaded = cls.model_validate(config)
 

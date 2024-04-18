@@ -31,14 +31,12 @@ class Policy(FrozenBaseModel, ABC):
 
     def replace(self, **kwargs: Any) -> Self:
         """Return a new instance with the provided attributes updated. Used in tests."""
-        _data = self.model_dump()
-        _data.update(kwargs)
-        return self.model_validate(_data)
+        return self.model_copy(update=kwargs)
 
     @classmethod
-    def from_dict(cls: type[PolicyType], data: dict[str, Any]) -> PolicyType:
-        """Instantiate ResponsePolicy from a dict of values."""
-        _data = deepcopy(data)  # don't mess with caller's data
+    def from_dict(cls, data: Mapping[str, Any]) -> Self:
+        """Instantiate the policy from a dict of values."""
+        _data = deepcopy(dict(data))  # don't mess with caller's data
         # Convert durations provided as strings into datetime.timedelta instances
         for this_td in [
             "min_bundle_interval",
@@ -48,7 +46,11 @@ class Policy(FrozenBaseModel, ABC):
         ]:
             if this_td in _data:
                 _data[this_td] = duration_to_timedelta(data[this_td])
-        return cls(**_data)
+        return cls.model_validate(_data)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert the policy to a dictionary."""
+        return self.model_dump()
 
 
 class RequestPolicy(Policy):
