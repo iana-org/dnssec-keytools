@@ -50,7 +50,7 @@ class KSKMConfig(FrozenBaseModel):
     Example:
     -------
         hsm:
-            softhsm:
+          softhsm:
             module: /path/to/softhsm/libsofthsm2.so
             pin: 123456
             env:
@@ -64,7 +64,7 @@ class KSKMConfig(FrozenBaseModel):
     Example:
     -------
         keys:
-            ksk_current:
+          ksk_current:
             description: Root DNSSEC KSK 2010
             label: Kjqmt7v
             key_tag: 19036
@@ -85,13 +85,13 @@ class KSKMConfig(FrozenBaseModel):
     Example:
     -------
         ksk_policy:
-            publish_safety: PT0S
-            retire_safety: P28D
-            max_signature_validity: P21D
-            min_signature_validity: P21D
-            max_validity_overlap: P16D
-            min_validity_overlap: P9D
-            ttl: 172800
+          publish_safety: PT0S
+          retire_safety: P28D
+          max_signature_validity: P21D
+          min_signature_validity: P21D
+          max_validity_overlap: P16D
+          min_validity_overlap: P9D
+          ttl: 172800
     """
     ksk_policy: KSKPolicy = KSKPolicy()
 
@@ -101,10 +101,10 @@ class KSKMConfig(FrozenBaseModel):
     Example:
     -------
         request_policy:
-            acceptable_domains:
-            - "."
-            num_bundles: 9
-            ...
+          acceptable_domains:
+          - "."
+          num_bundles: 9
+          ...
     """
     request_policy: RequestPolicy = RequestPolicy()
     response_policy: ResponsePolicy = ResponsePolicy()
@@ -115,10 +115,10 @@ class KSKMConfig(FrozenBaseModel):
     Example:
     -------
         filenames:
-            previous_skr: prev-skr.xml
-            input_ksr: ksr.xml
-            output_skr: skr.xml
-            output_trustanchor: root-anchors.xml
+          previous_skr: prev-skr.xml
+          input_ksr: ksr.xml
+          output_skr: skr.xml
+          output_trustanchor: root-anchors.xml
     """
     filenames: KSKMFilenames = KSKMFilenames()
 
@@ -126,22 +126,22 @@ class KSKMConfig(FrozenBaseModel):
     Example:
     -------
         schemas:
-            test:
+          test:
             1:
-                publish:
-                - ksk_current
-                - ksk_next
-                sign: ksk_next
+              publish:
+              - ksk_current
+              - ksk_next
+              sign: ksk_next
             2:
-                publish: ksk_next
-                revoke: ksk_current
-                sign:
-                - ksk_current
-                - ksk_next
+            publish: ksk_next
+            revoke: ksk_current
+            sign:
+            - ksk_current
+            - ksk_next
             ...
             9:
-                publish: ksk_next
-                sign: ksk_next
+              publish: ksk_next
+              sign: ksk_next
 
     Note that 'revoke' is optional. Entries may be single key names, or
     list of key names. In the resulting Schema, it is always a list of key names,
