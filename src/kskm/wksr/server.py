@@ -19,6 +19,7 @@ from werkzeug.datastructures import FileStorage
 from werkzeug.exceptions import BadRequest, Forbidden, RequestEntityTooLarge
 
 from kskm.common.config import get_config
+from kskm.common.config_wksr import WKSR_TLS, WKSR_Config
 from kskm.common.validate import PolicyViolation
 from kskm.ksr import load_ksr
 from kskm.signer.policy import check_skr_and_ksr
@@ -27,19 +28,13 @@ from kskm.skr.data import Response
 
 from .peercert import PeerCertWSGIRequestHandler
 
-DEFAULT_CIPHERS = ["ECDHE-RSA-AES256-GCM-SHA384", "ECDHE-RSA-AES256-SHA384"]
-DEFAULT_CONTENT_TYPE = "application/xml"
 DEFAULT_TEMPLATES_CONFIG = {
     "upload": "upload.html",
     "result": "result.html",
     "email": "email.txt",
 }
-DEFAULT_MAX_SIZE = 1024 * 1024
 
-client_whitelist: set[str] = set()
-ksr_config = None
-notify_config: dict[str, str] = {}
-template_config: dict[str, str] = {}
+wksr_config: WKSR_Config | None = None
 
 
 logger = logging.getLogger(__name__)
@@ -47,14 +42,17 @@ logger = logging.getLogger(__name__)
 
 def authz() -> None:
     """Check TLS client whitelist."""
+    if wksr_config is None:
+        raise RuntimeError("Missing configuration")
+
     digest = PeerCertWSGIRequestHandler.client_digest()
     if digest is None:
-        logger.warning("Allowed client=%s digest=%s", request.remote_addr, digest)
+        logger.warning(f"Allowed client={request.remote_addr} digest={digest}")
         return
-    if digest not in client_whitelist:
-        logger.warning("Denied client=%s digest=%s", request.remote_addr, digest)
+    if digest not in wksr_config.tls.client_whitelist:
+        logger.warning(f"Denied client={request.remote_addr} digest={digest}")
         raise Forbidden
-    logger.info("Allowed client=%s digest=%s", request.remote_addr, digest)
+    logger.info(f"Allowed client={request.remote_addr} digest={digest}")
 
 
 def index() -> str:
@@ -67,8 +65,13 @@ def index() -> str:
 
 def upload() -> str:
     """Handle manual file upload."""
+    if wksr_config is None:
+        raise RuntimeError("Missing configuration")
+
     if request.method == "GET":
-        return str(render_template(template_config["upload"], action=request.base_url))
+        return str(
+            render_template(str(wksr_config.templates.upload), action=request.base_url)
+        )
 
     if "ksr" not in request.files:
         raise BadRequest
@@ -103,16 +106,16 @@ def upload() -> str:
 
     notify(env)
 
-    return str(render_template(template_config["result"], **env))
+    return str(render_template(str(wksr_config.templates.result), **env))
 
 
 def validate_ksr(filename: Path) -> dict[str, str]:
     """Validate incoming KSR and optionally check previous SKR."""
-    global ksr_config
+    ksr_config_filename = None
 
-    if ksr_config:
-        ksr_config_filename = ksr_config.get("ksrsigner_configfile")
-        logger.info("Using ksrsigner configuration %s", ksr_config_filename)
+    if wksr_config and wksr_config.ksr and wksr_config.ksr.ksrsigner_configfile:
+        ksr_config_filename = str(wksr_config.ksr.ksrsigner_configfile)
+        logger.info(f"Using ksrsigner configuration {ksr_config_filename}")
     else:
         logger.warning("Using default ksrsigner configuration")
         ksr_config_filename = None
@@ -121,8 +124,8 @@ def validate_ksr(filename: Path) -> dict[str, str]:
     config = get_config(ksr_config_filename)
     logger.debug("ksrsigner configuration loaded")
 
-    result = {}
-    previous_skr_filename = config.get_filename("previous_skr")
+    result: dict[str, str] = {}
+    previous_skr_filename = config.filenames.previous_skr
     previous_skr: Response | None
 
     try:
@@ -152,30 +155,32 @@ def validate_ksr(filename: Path) -> dict[str, str]:
 
 def notify(env: dict[str, Any]) -> None:
     """Send notification about incoming KSR."""
-    if "smtp_server" not in notify_config:
+    if wksr_config is None:
+        raise RuntimeError("Missing configuration")
+    if not wksr_config.notify or not wksr_config.notify.smtp_server:
         return
     msg = EmailMessage()
-    body = render_template(template_config["email"], **env)
+    body = render_template(str(wksr_config.templates.email), **env)
     msg.set_content(body)
-    msg["Subject"] = notify_config["subject"]
-    msg["From"] = notify_config["from"]
-    msg["To"] = notify_config["to"]
-    smtp = smtplib.SMTP(notify_config["smtp_server"])
+    msg["Subject"] = wksr_config.notify.subject
+    msg["From"] = wksr_config.notify.from_
+    msg["To"] = wksr_config.notify.to
+    smtp = smtplib.SMTP(wksr_config.notify.smtp_server)
     smtp.send_message(msg)
     smtp.quit()
 
 
 def save_ksr(upload_file: FileStorage) -> tuple[Path, str]:
     """Process incoming KSR."""
-    if ksr_config is None:
+    if wksr_config is None:
         raise RuntimeError("Missing configuration")
     # check content type
-    if upload_file.content_type != ksr_config.get("content_type", DEFAULT_CONTENT_TYPE):
+    if upload_file.content_type != wksr_config.ksr.content_type:
         raise BadRequest
 
     # calculate file size
     filesize = len(upload_file.stream.read())
-    if filesize > ksr_config.get("max_size", DEFAULT_MAX_SIZE):
+    if filesize > wksr_config.ksr.max_size:
         raise RequestEntityTooLarge
     upload_file.stream.seek(0)
 
@@ -185,11 +190,12 @@ def save_ksr(upload_file: FileStorage) -> tuple[Path, str]:
     filehash = digest.hexdigest()
     upload_file.stream.seek(0)
 
-    filename_prefix = Path(ksr_config.get("prefix", "upload_"))
     filename_washed = re.sub(r"[^a-zA-Z0-9_]+", "_", str(upload_file.filename))
     filename_suffix = datetime.now(UTC).strftime("_%Y%m%d_%H%M%S_%f")
 
-    filename = filename_prefix.joinpath(filename_washed + filename_suffix + ".xml")
+    filename = wksr_config.ksr.prefix.joinpath(
+        filename_washed + filename_suffix + ".xml"
+    )
 
     with open(filename, "wb") as ksr_file:
         ksr_file.write(upload_file.stream.read())
@@ -199,46 +205,33 @@ def save_ksr(upload_file: FileStorage) -> tuple[Path, str]:
     return filename, filehash
 
 
-def generate_ssl_context(config: dict[str, Any] | None = None) -> ssl.SSLContext:
+def generate_ssl_context(config: WKSR_TLS) -> ssl.SSLContext:
     """Generate SSL context for app."""
-    if config is None:
-        config = {}
     ssl_context = ssl.create_default_context(
-        purpose=ssl.Purpose.CLIENT_AUTH, cafile=config.get("ca_cert")
+        purpose=ssl.Purpose.CLIENT_AUTH, cafile=config.ca_cert
     )
     ssl_context.options |= ssl.OP_NO_TLSv1
     ssl_context.options |= ssl.OP_NO_TLSv1_1
 
-    if "ciphers" in config:
-        if isinstance(config["ciphers"], list):
-            ciphers = ":".join(config["ciphers"])
-        else:
-            ciphers = config["ciphers"]
-    else:
-        ciphers = ":".join(DEFAULT_CIPHERS)
-    ssl_context.set_ciphers(ciphers)
+    ssl_context.set_ciphers(":".join(config.ciphers))
 
-    if config.get("require_client_cert", True):
+    if config.require_client_cert:
         ssl_context.verify_mode = ssl.CERT_REQUIRED
     else:
         ssl_context.verify_mode = ssl.CERT_OPTIONAL
-    ssl_context.load_cert_chain(certfile=config["cert"], keyfile=config["key"])
+    ssl_context.load_cert_chain(certfile=config.cert, keyfile=config.key)
 
     return ssl_context
 
 
-def generate_app(config: dict[str, Any]) -> Flask:
+def generate_app(config: WKSR_Config) -> Flask:
     """Generate app."""
-    global ksr_config, notify_config, template_config
+    global wksr_config
 
-    tls_config = config["tls"]
-    ksr_config = config.get("ksr", {})
-    notify_config = config.get("notify", {})
-    template_config = config.get("templates", DEFAULT_TEMPLATES_CONFIG)
+    wksr_config = config
 
-    for client in tls_config.get("client_whitelist", []):
-        client_whitelist.add(client)
-        logger.info("Accepting TLS client SHA-256 fingerprint: %s", client)
+    for client in config.tls.client_whitelist:
+        logger.info(f"Accepting TLS client SHA-256 fingerprint: {client}")
 
     app = Flask(__name__)
 

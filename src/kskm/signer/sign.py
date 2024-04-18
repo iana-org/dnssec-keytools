@@ -7,9 +7,9 @@ from collections.abc import Iterable
 
 from cryptography.exceptions import InvalidSignature
 
-from kskm.common.config import ConfigurationError, KSKMConfig
+from kskm.common.config import ConfigurationError, KSKKeysType, KSKMConfig
 from kskm.common.config_ksk import validate_dnskey_matches_ksk
-from kskm.common.config_misc import KSKKeysType, KSKPolicy, Schema
+from kskm.common.config_misc import KSKPolicy, Schema
 from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY, Key, Signature, TypeDNSSEC
 from kskm.common.dnssec import calculate_key_tag
 from kskm.common.signature import dndepth, make_raw_rrsig

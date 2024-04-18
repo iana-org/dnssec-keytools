@@ -2,6 +2,8 @@ import os
 import unittest
 from pathlib import Path
 
+from pydantic import ValidationError
+
 from kskm.common.config import get_config
 from kskm.common.config_misc import RequestPolicy
 
@@ -20,7 +22,7 @@ class TestRequestPolicy(unittest.TestCase):
     def test_unknown_data(self) -> None:
         """Test creating a policy from unknown data"""
         data = {"UNKNOWN": "just testing"}
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValidationError):
             RequestPolicy.from_dict(data)
 
     def test_defaults(self) -> None:

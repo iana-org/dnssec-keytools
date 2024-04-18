@@ -8,10 +8,16 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Self, TypeVar
 
+from pydantic import BaseModel, ConfigDict, Field
+
 # Type definitions to refer to the ABC types declared below
 
 BundleType = TypeVar("BundleType", bound="Bundle")
 AlgorithmPolicyType = TypeVar("AlgorithmPolicyType", bound="AlgorithmPolicy")
+
+
+class FrozenBaseModel(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
 
 
 class AlgorithmDNSSEC(Enum):
@@ -91,21 +97,20 @@ class AlgorithmPolicyDSA(AlgorithmPolicy):
     """Algorithm Policy for DSA signatures."""
 
 
-@dataclass(frozen=True)
-class SignaturePolicy:
+class SignaturePolicy(FrozenBaseModel):
     """DNSSEC Signature Policy."""
+
+    publish_safety: timedelta = Field(default=timedelta())
+    retire_safety: timedelta = Field(default=timedelta())
+    max_signature_validity: timedelta = Field(default=timedelta())
+    min_signature_validity: timedelta = Field(default=timedelta())
+    max_validity_overlap: timedelta = Field(default=timedelta())
+    min_validity_overlap: timedelta = Field(default=timedelta())
+    algorithms: set[AlgorithmPolicy] = Field(default_factory=set)
 
     def replace(self, **kwargs: Any) -> Self:
         """Return a new instance with the provided attributes updated. Used in tests."""
-        return dc_replace(self, **kwargs)
-
-    publish_safety: timedelta
-    retire_safety: timedelta
-    max_signature_validity: timedelta
-    min_signature_validity: timedelta
-    max_validity_overlap: timedelta
-    min_validity_overlap: timedelta
-    algorithms: set[AlgorithmPolicy]
+        return self.model_copy(update=kwargs)
 
 
 @dataclass(frozen=True)

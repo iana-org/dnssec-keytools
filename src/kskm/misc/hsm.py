@@ -7,7 +7,6 @@ import logging
 import os
 import re
 from collections.abc import Iterator, Mapping, MutableMapping
-from copy import copy
 from dataclasses import dataclass, field
 from dataclasses import replace as dc_replace
 from enum import Enum
@@ -20,6 +19,8 @@ import PyKCS11
 import PyKCS11.LowLevel
 from PyKCS11.LowLevel import CKF_RW_SESSION, CKU_SO, CKU_USER
 
+from kskm.common.config import KSKMConfig
+from kskm.common.config_misc import KSKMHSM
 from kskm.common.data import AlgorithmDNSSEC
 from kskm.common.ecdsa_utils import ECCurve, KSKM_PublicKey_ECDSA
 from kskm.common.public_key import KSKM_PublicKey
@@ -92,13 +93,10 @@ class KSKM_P11Module:
 
     def __init__(
         self,
-        module: str,
-        label: str | None = None,
-        pin: str | None = None,
-        so_pin: str | None = None,
-        so_login: bool = False,
-        rw_session: bool = False,
-        env: dict[str, str] | None = None,
+        label: str,
+        hsm: KSKMHSM,
+        so_login: bool,
+        rw_session: bool,
     ):
         """
         Load and initialise a PKCS#11 module.
@@ -106,28 +104,25 @@ class KSKM_P11Module:
         :param so_login: Log in as SO or USER
         :param rw_session: Request a R/W session or not
         """
-        if module.startswith("$"):
-            self.module = os.environ.get(module.lstrip("$"))
+        if isinstance(hsm.module, str) and hsm.module.startswith("$"):
+            self.module = os.environ.get(hsm.module.lstrip("$"))
         else:
-            self.module = module
+            self.module = hsm.module
 
         # Parameters affecting login to slots
         self._so_login = so_login
         self._rw_session = rw_session
 
-        if label is None:
-            self.label = module
-        else:
-            self.label = label
+        self.label = label
 
         logger.info(f"Initializing PKCS#11 module {self.label} using {self.module}")
 
         # configure environment
-        old_env = {}
-        if env:
-            for key in env:
+        old_env: dict[str, Any] = {}
+        if hsm.env:
+            for key in hsm.env:
                 old_env[key] = os.environ.get(key)
-            os.environ.update(env)
+            os.environ.update(hsm.env)
 
         # load module
         self._lib = PyKCS11.PyKCS11Lib()
@@ -135,7 +130,7 @@ class KSKM_P11Module:
         self._lib.lib.C_Initialize()
 
         # reset environment
-        if env:
+        if hsm.env:
             for key, val in old_env.items():
                 if val is None:
                     del os.environ[key]
@@ -144,18 +139,18 @@ class KSKM_P11Module:
 
         # set PIN
         self.pin = None
-        if pin is None:
+        if hsm.pin is None:
             if not so_login:
                 self.pin = getpass(f"Enter USER PIN for PKCS#11 module {self.label}: ")
         else:
-            self.pin = str(pin)
+            self.pin = str(hsm.pin)
 
         self.so_pin = None
-        if so_pin is None:
+        if hsm.so_pin is None:
             if so_login:
                 self.so_pin = getpass(f"Enter SO PIN for PKCS#11 module {self.label}: ")
         else:
-            self.so_pin = str(pin)
+            self.so_pin = str(hsm.pin)
 
         # Mapping from slot number to session
         self._sessions: dict[int, Any] = {}
@@ -466,8 +461,8 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) ->
 KSKM_P11 = NewType("KSKM_P11", list[KSKM_P11Module])
 
 
-def init_pkcs11_modules_from_dict(
-    config: Mapping[str, Any],
+def init_pkcs11_modules(
+    config: KSKMConfig,
     name: str | None = None,
     so_login: bool = False,
     rw_session: bool = False,
@@ -480,15 +475,12 @@ def init_pkcs11_modules_from_dict(
     :return: A list of PyKCS11 library instances.
     """
     modules: list[KSKM_P11Module] = []
-    for label, _kwargs in config.items():
+    for label, hsm in config.hsm.items():
         if name and label != name:
             continue
-        kwargs = copy(_kwargs)  # don't modify caller's data
-        if so_login:
-            kwargs["so_login"] = True
-        if rw_session:
-            kwargs["rw_session"] = rw_session
-        modules.append(KSKM_P11Module(label=label, **kwargs))
+        modules.append(
+            KSKM_P11Module(label, hsm, so_login=so_login, rw_session=rw_session)
+        )
 
     if name and not modules:
         raise RuntimeError(f"No HSM with that name ({name}) found in the configuration")

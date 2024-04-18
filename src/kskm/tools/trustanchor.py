@@ -19,13 +19,12 @@ from argparse import Namespace as ArgsType
 from pathlib import Path
 from typing import Any
 
-import kskm
 from kskm.common.config import KSKMConfig, get_config
 from kskm.common.data import FlagsDNSKEY
 from kskm.common.dnssec import public_key_to_dnssec_key
 from kskm.common.integrity import checksum_bytes2str
 from kskm.common.logging import get_logger
-from kskm.misc.hsm import get_p11_key
+from kskm.misc.hsm import get_p11_key, init_pkcs11_modules
 from kskm.ta import TrustAnchor
 from kskm.ta.data import KeyDigest
 from kskm.ta.keydigest import create_trustanchor_keydigest
@@ -98,7 +97,7 @@ def parse_args(defaults: dict[str, Any]) -> ArgsType:
 def _trustanchor_filename(args: ArgsType | None, config: KSKMConfig) -> Path | None:
     if args and args.trustanchor:
         return Path(args.trustanchor)
-    return config.get_filename("output_trustanchor")
+    return config.filenames.output_trustanchor
 
 
 def output_trustanchor_xml(
@@ -137,7 +136,7 @@ def trustanchor(
     #
     # Initialise PKCS#11 modules (HSMs)
     #
-    p11modules = kskm.misc.hsm.init_pkcs11_modules_from_dict(config.hsm, name=args.hsm)
+    p11modules = init_pkcs11_modules(config, name=args.hsm)
 
     key_digests: set[KeyDigest] = set()
 

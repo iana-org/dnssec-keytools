@@ -24,7 +24,7 @@ from kskm.common.parse_utils import parse_datetime, signature_policy_from_dict
 from kskm.common.signature import validate_signatures
 from kskm.ksr import Request, request_from_xml
 from kskm.ksr.data import RequestBundle
-from kskm.misc.hsm import get_p11_key, init_pkcs11_modules_from_dict
+from kskm.misc.hsm import get_p11_key, init_pkcs11_modules
 from kskm.signer import create_skr, sign_bundles
 from kskm.signer.key import KeyUsagePolicy_Violation
 from kskm.signer.policy import check_skr_and_ksr
@@ -77,7 +77,7 @@ def _get_test_config() -> KSKMConfig:
 class SignWithSoftHSM_Baseclass:
     @pytest.fixture()
     def p11modules_fixture(self) -> Generator[None, Any, None]:
-        self.p11modules = init_pkcs11_modules_from_dict(self.config.hsm)
+        self.p11modules = init_pkcs11_modules(self.config)
         # when the fixture yields, the actual test method runs
         yield
 

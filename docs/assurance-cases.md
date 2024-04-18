@@ -18,7 +18,7 @@ The claims in turn depends upon a number of fundamental assumptions on the envir
 - **[A3]** The configured policy and default values provided in 'common/config\_misc.py' have been reviewed as being suitable for its intended purpose.
 - **[A4]** The HSM and the provided PKCS#11 library is trusted and the HSM holds the correct components of the current KSK.
 - **[A5]** The values in data.py (AlgorithmDNSSEC, TypeDNSSEC and FlagsDNSKEY) correctly reflects the current RFCs.
-- **[A6]** The libraries 'cryptography', 'pyYAML', 'PyKCS11' and 'voluptuous' are trusted for the provided functions.
+- **[A6]** The libraries 'cryptography', 'pyYAML', 'PyKCS11' and 'pydantic' are trusted for the provided functions.
 
 
 # Root Claim (1)
