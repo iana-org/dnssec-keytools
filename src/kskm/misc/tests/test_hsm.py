@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from unittest import TestCase
 
 from kskm.misc import hsm
@@ -7,8 +8,8 @@ from kskm.misc import hsm
 class Test_load_hsmconfig(TestCase):
     def setUp(self) -> None:
         """Prepare test instance"""
-        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
-        self.config_fn = os.path.join(self.data_dir, "test.hsmconfig")
+        self.data_dir = Path(os.path.dirname(__file__), "data")
+        self.config_fn = self.data_dir.joinpath("test.hsmconfig")
 
     def test_load_hsmconfig(self) -> None:
         """Test loading a properly formatted hsm config file"""

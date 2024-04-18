@@ -6,6 +6,7 @@ import logging
 from collections.abc import Mapping
 from dataclasses import replace
 from io import BufferedReader, StringIO
+from pathlib import Path
 from typing import Any, cast
 
 import voluptuous.error
@@ -128,7 +129,7 @@ class KSKMConfig:
         assert self._ksk_keys is not None  # help type checker
         return self._ksk_keys
 
-    def get_filename(self, which: str) -> str | None:
+    def get_filename(self, which: str) -> Path | None:
         """
         Get a filename from the configuration.
 
@@ -144,7 +145,7 @@ class KSKMConfig:
         if "filenames" in self._data:
             _this = self._data["filenames"].get(which)
             if isinstance(_this, str):
-                return _this
+                return Path(_this)
         return None
 
     @property
@@ -262,7 +263,7 @@ class KSKMConfig:
         return cls(config)
 
 
-def get_config(filename: str | None) -> KSKMConfig:
+def get_config(filename: Path | None) -> KSKMConfig:
     """Top-level function to load configuration, or return a default ConfigType instance."""
     if not filename:
         # Avoid having Optional[ConfigType] everywhere by always having a config, even if it is empty

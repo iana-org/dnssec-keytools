@@ -16,6 +16,8 @@ import os
 import sys
 import uuid
 from argparse import Namespace as ArgsType
+from pathlib import Path
+from typing import Any
 
 import kskm
 from kskm.common.config import KSKMConfig, get_config
@@ -25,6 +27,7 @@ from kskm.common.integrity import checksum_bytes2str
 from kskm.common.logging import get_logger
 from kskm.misc.hsm import get_p11_key
 from kskm.ta import TrustAnchor
+from kskm.ta.data import KeyDigest
 from kskm.ta.keydigest import create_trustanchor_keydigest
 from kskm.version import __verbose_version__
 
@@ -34,7 +37,7 @@ _DEFAULTS = {
 }
 
 
-def parse_args(defaults: dict) -> ArgsType:
+def parse_args(defaults: dict[str, Any]) -> ArgsType:
     """
     Parse command line arguments.
 
@@ -92,14 +95,14 @@ def parse_args(defaults: dict) -> ArgsType:
     return args
 
 
-def _trustanchor_filename(args: ArgsType | None, config: KSKMConfig) -> str | None:
+def _trustanchor_filename(args: ArgsType | None, config: KSKMConfig) -> Path | None:
     if args and args.trustanchor:
-        return str(args.trustanchor)
+        return Path(args.trustanchor)
     return config.get_filename("output_trustanchor")
 
 
 def output_trustanchor_xml(
-    ta: TrustAnchor, output_filename: str | None, logger: logging.Logger
+    ta: TrustAnchor, output_filename: Path | None, logger: logging.Logger
 ) -> None:
     """Return trust anchor as XML."""
     xml = ta.to_xml_doc()
@@ -136,7 +139,7 @@ def trustanchor(
     #
     p11modules = kskm.misc.hsm.init_pkcs11_modules_from_dict(config.hsm, name=args.hsm)
 
-    keydigests = set()
+    key_digests: set[KeyDigest] = set()
 
     for _name, ksk in config.ksk_keys.items():
         p11key = get_p11_key(ksk.label, p11modules, public=True)
@@ -153,13 +156,13 @@ def trustanchor(
             ttl=config.ksk_policy.ttl,
         )
         this = create_trustanchor_keydigest(ksk, _key)
-        keydigests.add(this)
+        key_digests.add(this)
 
     ta = TrustAnchor(
         id=args.id or str(uuid.uuid4()),
         source="http://data.iana.org/root-anchors/root-anchors.xml",
         zone=".",
-        keydigests=keydigests,
+        keydigests=key_digests,
     )
 
     output_trustanchor_xml(ta, _trustanchor_filename(args, config), logger)
