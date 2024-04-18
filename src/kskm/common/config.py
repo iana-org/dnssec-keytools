@@ -133,12 +133,12 @@ class KSKMConfig(FrozenBaseModel):
               - ksk_next
               sign: ksk_next
             2:
-            publish: ksk_next
-            revoke: ksk_current
-            sign:
-            - ksk_current
-            - ksk_next
-            ...
+              publish: ksk_next
+              revoke: ksk_current
+              sign:
+              - ksk_current
+              - ksk_next
+              ...
             9:
               publish: ksk_next
               sign: ksk_next
