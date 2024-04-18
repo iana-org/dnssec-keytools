@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Mapping
 from io import BufferedReader, StringIO
+from pathlib import Path
 from typing import Any, NewType
 
 import yaml
@@ -243,7 +244,7 @@ class KSKMConfig(FrozenBaseModel):
         return _config
 
 
-def get_config(filename: str | None) -> KSKMConfig:
+def get_config(filename: Path | None) -> KSKMConfig:
     """Top-level function to load configuration, or return a default ConfigType instance."""
     if not filename:
         # Avoid having Optional[ConfigType] everywhere by always having a config, even if it is empty

@@ -3,9 +3,10 @@
 from abc import ABC
 from base64 import b64decode
 from dataclasses import dataclass, field
+from dataclasses import replace as dc_replace
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import TypeVar
+from typing import Any, Self, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -107,6 +108,10 @@ class SignaturePolicy(FrozenBaseModel):
     min_validity_overlap: timedelta = Field(default=timedelta())
     algorithms: set[AlgorithmPolicy] = Field(default_factory=set)
 
+    def replace(self, **kwargs: Any) -> Self:
+        """Return a new instance with the provided attributes updated. Used in tests."""
+        return self.model_copy(update=kwargs)
+
 
 @dataclass(frozen=True)
 class Signer:
@@ -130,6 +135,10 @@ class Signature:
     key_tag: int
     signers_name: str
     signature_data: bytes = field(repr=False)
+
+    def replace(self, **kwargs: Any) -> Self:
+        """Return a new instance with the provided attributes updated. Used in tests."""
+        return dc_replace(self, **kwargs)
 
 
 @dataclass(frozen=True)
@@ -173,6 +182,10 @@ class Key:
             return
         raise ValueError(f"Unsupported DNSSEC key flags combination {self.flags}")
 
+    def replace(self, **kwargs: Any) -> Self:
+        """Return a new instance with the provided attributes updated. Used in tests."""
+        return dc_replace(self, **kwargs)
+
 
 @dataclass(frozen=True)
 class Bundle(ABC):
@@ -183,3 +196,7 @@ class Bundle(ABC):
     expiration: datetime
     keys: set[Key]
     signatures: set[Signature]
+
+    def replace(self, **kwargs: Any) -> Self:
+        """Return a new instance with the provided attributes updated."""
+        return dc_replace(self, **kwargs)

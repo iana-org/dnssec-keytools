@@ -72,7 +72,4 @@ def _ksk_signature_policy(
                 algorithms.add(alg)
             else:
                 raise NotImplementedError("Only RSA is implemented at this time")
-    _signature_policy = ksk_policy.signature_policy.model_copy(
-        update={"algorithms": algorithms}
-    )
-    return _signature_policy
+    return ksk_policy.signature_policy.replace(algorithms=algorithms)

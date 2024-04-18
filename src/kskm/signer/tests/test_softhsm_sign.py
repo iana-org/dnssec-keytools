@@ -9,7 +9,7 @@ import datetime
 import io
 import os
 import unittest
-from dataclasses import replace
+from pathlib import Path
 from typing import Any, Generator
 from unittest.mock import patch
 
@@ -365,7 +365,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
             | FlagsDNSKEY.SEP.value
             | FlagsDNSKEY.REVOKE.value,
         )
-        revoked_EC2 = replace(revoked_EC2, ttl=self.config.ksk_policy.ttl)
+        revoked_EC2 = revoked_EC2.replace(ttl=self.config.ksk_policy.ttl)
         assert revoked_EC2 in bundle_keys
 
 
@@ -646,13 +646,13 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
         self.config = self.config.update(yaml.safe_load(io.StringIO(_SCHEMAS)))
 
         # Initialise KSR and last SKR data structures
-        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
+        self.data_dir = Path(os.path.dirname(__file__), "data")
 
-        with open(os.path.join(self.data_dir, "ksr-root-2017-q2-0.xml")) as fd:
+        with open(self.data_dir.joinpath("ksr-root-2017-q2-0.xml")) as fd:
             self.ksr_xml = fd.read()
             self.ksr = request_from_xml(self.ksr_xml)
 
-        with open(os.path.join(self.data_dir, "skr-root-2017-q1-0.xml")) as fd:
+        with open(self.data_dir.joinpath("skr-root-2017-q1-0.xml")) as fd:
             self.last_skr_xml = fd.read()
             self.last_skr = response_from_xml(self.last_skr_xml)
 
@@ -698,9 +698,9 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
         _updated_keys = {
             x for x in last_bundle.keys if x.key_tag != 14796
         }  # remove one of the ZSKs
-        last_bundle = replace(last_bundle, keys=_updated_keys)
+        last_bundle = last_bundle.replace(keys=_updated_keys)
         bundles = last_skr.bundles[:-1] + [last_bundle]
-        last_skr = replace(last_skr, bundles=bundles)
+        last_skr = last_skr.replace(bundles=bundles)
         policy = self.policy.replace(
             check_bundle_overlap=False,
             check_chain_overlap=False,
@@ -716,11 +716,11 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
     def test_last_bundle_without_signatures(self) -> None:
         """Test KSR-CHAIN-KEYS with real KSR/SKR, but no signatures in last_skr last bundle."""
         last_skr = response_from_xml(self.last_skr_xml)
-        last_bundle = replace(
-            last_skr.bundles[-1], signatures=set()
+        last_bundle = last_skr.bundles[-1].replace(
+            signatures=set()
         )  # remove all signatures
         bundles = last_skr.bundles[:-1] + [last_bundle]
-        last_skr = replace(self.last_skr, bundles=bundles)
+        last_skr = self.last_skr.replace(bundles=bundles)
         policy = self.policy.replace(
             check_bundle_overlap=False, check_chain_overlap=False
         )

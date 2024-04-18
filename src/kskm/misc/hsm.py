@@ -8,10 +8,12 @@ import os
 import re
 from collections.abc import Iterator, Mapping, MutableMapping
 from dataclasses import dataclass, field
+from dataclasses import replace as dc_replace
 from enum import Enum
 from getpass import getpass
 from hashlib import sha1, sha256, sha384, sha512
-from typing import Any, NewType
+from pathlib import Path
+from typing import Any, NewType, Self
 
 import PyKCS11
 import PyKCS11.LowLevel
@@ -79,6 +81,10 @@ class KSKM_P11Key:
         if self.public_key:
             ret += " " + str(self.public_key)
         return ret
+
+    def replace(self, **kwargs: Any) -> Self:
+        """Return a new instance with the provided attributes updated. Used in tests."""
+        return dc_replace(self, **kwargs)
 
 
 class KSKM_P11Module:
@@ -491,7 +497,7 @@ def init_pkcs11_modules(
 
 
 def load_hsmconfig(
-    filename: str,
+    filename: Path,
     defaults: MutableMapping[str, Any] | None = None,
     max_lines: int = 100,
 ) -> dict[str, Any]:
@@ -518,7 +524,7 @@ def load_hsmconfig(
 
 def parse_hsmconfig(
     config: Iterator[str],
-    src: str,
+    src: Path,
     defaults: MutableMapping[str, Any],
     max_lines: int = 100,
 ) -> dict[str, Any]:

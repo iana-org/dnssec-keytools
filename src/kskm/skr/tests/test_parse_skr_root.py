@@ -9,7 +9,7 @@ from kskm.skr import load_skr, response_from_xml
 class TestParseRealSKRs(unittest.TestCase):
     def setUp(self) -> None:
         """Prepare test instance"""
-        self.data_dir = Path(os.path.dirname(__file__)).joinpath("data")
+        self.data_dir = Path(os.path.dirname(__file__), "data")
         self.policy_fn = self.data_dir.joinpath("response_policy.yaml")
 
     def test_parse_skr_root_2018_q1_0_d_to_e(self) -> None:

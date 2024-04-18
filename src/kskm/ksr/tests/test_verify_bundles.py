@@ -1,7 +1,6 @@
 import base64
 import os
 import unittest
-from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
 
@@ -49,7 +48,7 @@ class Test_Validate_KSR_bundles(unittest.TestCase):
         sig_data = base64.b64decode(sig.signature_data)
         sig_data = sig_data[:-1] + b"\x00" if sig_data[-1] else b"\x01"
         # put everything back into the ksr
-        sig = replace(sig, signature_data=base64.b64encode(sig_data))
+        sig = sig.replace(signature_data=base64.b64encode(sig_data))
         first_bundle.signatures.add(sig)
         ksr.bundles[0] = first_bundle
 
@@ -77,10 +76,10 @@ class Test_Validate_KSR_bundles(unittest.TestCase):
         second_key = ksr_bundles[0].keys.pop()
         # Now switch the keys while keeping the key identifier. This should trigger
         # checks that verify that keys presented in multiple bundles stay invariant.
-        new_first_key = replace(first_key, key_identifier=second_key.key_identifier)
-        new_second_key = replace(second_key, key_identifier=first_key.key_identifier)
-        ksr_bundles[0] = replace(ksr_bundles[0], keys={new_first_key, new_second_key})
-        ksr = replace(ksr, bundles=ksr_bundles)
+        new_first_key = first_key.replace(key_identifier=second_key.key_identifier)
+        new_second_key = second_key.replace(key_identifier=first_key.key_identifier)
+        ksr_bundles[0] = ksr_bundles[0].replace(keys={new_first_key, new_second_key})
+        ksr = ksr.replace(bundles=ksr_bundles)
 
         # Now try and verify the KSR again and ensure it fails signature validation
         with self.assertRaises(KSR_BUNDLE_KEYS_Violation):

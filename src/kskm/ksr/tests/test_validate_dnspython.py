@@ -7,6 +7,7 @@ to track down a bug with RDATA sorting. Thanks!
 
 import logging
 import os
+from pathlib import Path
 from unittest import TestCase
 
 import dns
@@ -25,7 +26,7 @@ logger = logging.getLogger(__name__)
 class TestDnsPythonValidate_signatures(TestCase):
     def setUp(self) -> None:
         """Prepare test instance"""
-        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
+        self.data_dir = Path(os.path.dirname(__file__), "data")
 
     def test_keysize_change_dnspython(self) -> None:
         """Test file where ZSK changed from RSA1024 to RSA2048 using dnspython"""
@@ -34,8 +35,8 @@ class TestDnsPythonValidate_signatures(TestCase):
         )
 
     def _test_file(self, fn: str, filter_ids: str | None = None) -> None:
-        fn = os.path.join(self.data_dir, fn)
-        with open(fn) as fd:
+        full_fn = self.data_dir.joinpath(fn)
+        with open(full_fn) as fd:
             xml = fd.read()
         ksr = request_from_xml(xml)
         for bundle in ksr.bundles:

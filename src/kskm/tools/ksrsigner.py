@@ -17,6 +17,7 @@ from typing import Any
 import kskm.common
 import kskm.ksr
 import kskm.misc
+import kskm.misc.hsm
 import kskm.skr
 from kskm.common.config import ConfigurationError, KSKMConfig, get_config
 from kskm.common.display import format_bundles_for_humans

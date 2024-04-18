@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from abc import ABC
 from collections.abc import Mapping
+from copy import deepcopy
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Annotated, Any, NewType, Self, TypeVar
@@ -33,6 +34,21 @@ class Policy(FrozenBaseModel, ABC):
         _data = self.model_dump()
         _data.update(kwargs)
         return self.model_validate(_data)
+
+    @classmethod
+    def from_dict(cls: type[PolicyType], data: dict[str, Any]) -> PolicyType:
+        """Instantiate ResponsePolicy from a dict of values."""
+        _data = deepcopy(data)  # don't mess with caller's data
+        # Convert durations provided as strings into datetime.timedelta instances
+        for this_td in [
+            "min_bundle_interval",
+            "max_bundle_interval",
+            "min_cycle_inception_length",
+            "max_cycle_inception_length",
+        ]:
+            if this_td in _data:
+                _data[this_td] = duration_to_timedelta(data[this_td])
+        return cls(**_data)
 
 
 class RequestPolicy(Policy):

@@ -1,7 +1,6 @@
 import base64
 import os
 import unittest
-from dataclasses import replace
 from pathlib import Path
 
 from kskm.common.config_misc import ResponsePolicy
@@ -28,7 +27,7 @@ class Test_Validate_SKR(unittest.TestCase):
         sig_data = base64.b64decode(sig.signature_data)
         sig_data = sig_data[:-1] + b"\x00" if sig_data[-1] else b"\x01"
         # put everything back into the skr
-        sig = replace(sig, signature_data=base64.b64encode(sig_data))
+        sig = sig.replace(signature_data=base64.b64encode(sig_data))
         first_bundle.signatures.add(sig)
         skr.bundles[0] = first_bundle
 

@@ -41,7 +41,7 @@ class TestConfigSchema(unittest.TestCase):
     def test_loading_from_file(self) -> None:
         _, config_fn = mkstemp()
         _, file_placeholder = mkstemp()
-        with open(os.path.join(CONFIG_DIR, "ksrsigner.yaml")) as input_file:
+        with open(CONFIG_DIR.joinpath("ksrsigner.yaml")) as input_file:
             config = yaml.safe_load(input_file)
         config["hsm"]["softhsm"]["module"] = file_placeholder
         config["hsm"]["aep"]["module"] = file_placeholder
@@ -50,19 +50,19 @@ class TestConfigSchema(unittest.TestCase):
         config["filenames"]["output_skr"] = file_placeholder
         with open(config_fn, "w") as fd:
             yaml.dump(config, fd)
-        parsed_config = get_config(config_fn)
+        parsed_config = get_config(Path(config_fn))
         os.unlink(file_placeholder)
         os.unlink(config_fn)
         self.assertEqual(parsed_config.filenames.input_ksr, Path(file_placeholder))
 
     def test_loading_from_file_error_handling(self) -> None:
         with pytest.raises(ValidationError, match="Path does not point to a file"):
-            get_config(os.path.join(CONFIG_DIR, "ksrsigner.yaml"))
+            get_config(CONFIG_DIR.joinpath("ksrsigner.yaml"))
 
     def test_wksr_example_config(self) -> None:
         """Test wksr example config"""
         _, file_placeholder = mkstemp()
-        with open(os.path.join(CONFIG_DIR, "wksr.yaml")) as input_file:
+        with open(CONFIG_DIR.joinpath("wksr.yaml")) as input_file:
             config = yaml.safe_load(input_file)
         config["tls"]["cert"] = file_placeholder
         config["tls"]["key"] = file_placeholder

@@ -1,5 +1,6 @@
 import os
 import unittest
+from pathlib import Path
 
 from pydantic import ValidationError
 
@@ -10,11 +11,11 @@ from kskm.common.config_misc import RequestPolicy
 class TestRequestPolicy(unittest.TestCase):
     def setUp(self) -> None:
         """Prepare test instance"""
-        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
+        self.data_dir = Path(os.path.dirname(__file__), "data")
 
     def test_load_request_policy(self) -> None:
         """Test loading the request policy from file"""
-        fn = os.path.join(self.data_dir, "request_policy.yaml")
+        fn = self.data_dir.joinpath("request_policy.yaml")
         config = get_config(fn)
         self.assertTrue(config.request_policy.validate_signatures)
 
