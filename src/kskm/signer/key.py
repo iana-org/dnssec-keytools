@@ -1,7 +1,7 @@
 """PKCS#11 key interface."""
 
 import logging
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 
 from kskm.common.config_misc import KSKKey, KSKPolicy
 from kskm.common.data import FlagsDNSKEY, Key
@@ -66,7 +66,7 @@ def load_pkcs11_key(
         )
         _found_pub = get_p11_key(ksk.label, p11modules, public=True)
         if _found_pub:
-            _found = replace(_found, public_key=_found_pub.public_key)
+            _found = _found.replace(public_key=_found_pub.public_key)
 
     if not _found.public_key:
         logger.error(

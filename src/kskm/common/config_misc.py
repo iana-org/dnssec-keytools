@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import dataclasses
 from abc import ABC
 from collections.abc import Iterable, Mapping
 from copy import deepcopy
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Any, NewType, TypeVar
+from typing import Any, NewType, Self, TypeVar
 
 from kskm.common.data import AlgorithmDNSSEC, SignaturePolicy
 from kskm.common.parse_utils import duration_to_timedelta, parse_datetime
@@ -25,6 +26,10 @@ class Policy(ABC):
 
     # avoid upsetting type checker in from_dict below when arguments are passed to cls() without any attributes
     _dataclass_placeholder: bool | None = None
+
+    def replace(self, **kwargs: Any) -> Self:
+        """Return a new instance with the provided attributes updated. Used in tests."""
+        return dataclasses.replace(self, **kwargs)
 
     @classmethod
     def from_dict(cls: type[PolicyType], data: dict[str, Any]) -> PolicyType:

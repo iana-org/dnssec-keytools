@@ -1,8 +1,10 @@
 """KSR (Request) data classes."""
 
+import dataclasses
 from abc import ABC
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any, Self
 
 from kskm.common.data import Bundle, SignaturePolicy, Signer
 
@@ -22,6 +24,10 @@ class KSR(ABC):
     serial: int
     domain: str
     timestamp: datetime | None
+
+    def replace(self, **kwargs: Any) -> Self:
+        """Return a new instance with the provided attributes updated. Used in tests."""
+        return dataclasses.replace(self, **kwargs)
 
 
 @dataclass(frozen=True)

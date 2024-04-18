@@ -2,7 +2,6 @@ import datetime
 import logging
 import os
 import unittest
-from dataclasses import replace
 from pathlib import Path
 
 from kskm.common.config_misc import RequestPolicy
@@ -53,7 +52,7 @@ class Test_KSR_SKR_policy(unittest.TestCase):
             check_last_skr_and_new_skr(self.skr1, self.skr3, self.policy)
 
         # test turning off the check
-        _policy = replace(self.policy, check_keys_publish_safety=False)
+        _policy = self.policy.replace(check_keys_publish_safety=False)
         check_last_skr_and_new_skr(self.skr1, self.skr3, _policy)
 
     def test_last_skr_and_new_skr_wrong_order(self) -> None:
@@ -69,16 +68,16 @@ class Test_KSR_SKR_policy(unittest.TestCase):
         # verify check passes with unmodified skr1
         check_last_skr_and_new_skr(skr1, self.skr2, self.policy)
 
-        last_bundle = replace(skr1.bundles[-1], keys=set())
+        last_bundle = skr1.bundles[-1].replace(keys=set())
         bundles = skr1.bundles
         bundles[-1] = last_bundle
-        skr1 = replace(skr1, bundles=bundles)
+        skr1 = skr1.replace(bundles=bundles)
 
         with self.assertRaises(KSR_POLICY_SAFETY_Violation):
             check_last_skr_and_new_skr(skr1, self.skr2, self.policy)
 
         # verify check can be disabled using configuration
-        _policy = replace(self.policy, check_keys_publish_safety=False)
+        _policy = self.policy.replace(check_keys_publish_safety=False)
         check_last_skr_and_new_skr(skr1, self.skr2, _policy)
 
     def test_key_missing_from_new_skr_last_bundle(self) -> None:
@@ -89,10 +88,10 @@ class Test_KSR_SKR_policy(unittest.TestCase):
         # verify check passes with unmodified skr2
         check_last_skr_and_new_skr(self.skr1, skr2, self.policy)
 
-        last_bundle = replace(skr2.bundles[-1], keys=set())
+        last_bundle = skr2.bundles[-1].replace(keys=set())
         bundles = skr2.bundles
         bundles[-1] = last_bundle
-        skr2 = replace(skr2, bundles=bundles)
+        skr2 = skr2.replace(bundles=bundles)
 
         with self.assertRaises(KSR_POLICY_SAFETY_Violation) as exc:
             check_last_skr_and_new_skr(self.skr1, skr2, self.policy)
@@ -105,7 +104,7 @@ class Test_KSR_SKR_policy(unittest.TestCase):
         )
 
         # verify check can be disabled using configuration
-        _policy = replace(self.policy, check_keys_retire_safety=False)
+        _policy = self.policy.replace(check_keys_retire_safety=False)
         check_last_skr_and_new_skr(self.skr1, skr2, _policy)
 
     def test_key_removed_prematurely(self) -> None:
@@ -116,10 +115,10 @@ class Test_KSR_SKR_policy(unittest.TestCase):
         # verify check passes with unmodified skr2
         check_last_skr_and_new_skr(self.skr1, skr2, self.policy)
 
-        first_bundle = replace(skr2.bundles[0], keys=set())
+        first_bundle = skr2.bundles[0].replace(keys=set())
         bundles = skr2.bundles
         bundles[0] = first_bundle
-        skr2 = replace(skr2, bundles=bundles)
+        skr2 = skr2.replace(bundles=bundles)
 
         with self.assertRaises(KSR_POLICY_SAFETY_Violation) as exc:
             check_last_skr_and_new_skr(self.skr1, skr2, self.policy)
@@ -141,15 +140,15 @@ class Test_LastSKR_unique_ids(Test_KSR_SKR_policy):
 
     def test_ksr_and_last_skr_duplicate_id(self) -> None:
         """Test that duplicate request/response IDs are detected"""
-        new_ksr = replace(self.ksr, id=self.skr1.id)
+        new_ksr = self.ksr.replace(id=self.skr1.id)
         with self.assertRaises(KSR_ID_Violation):
             check_skr_and_ksr(new_ksr, self.skr1, self.policy, p11modules=None)
 
     def test_repeated_bundle_id(self) -> None:
         """Test that repeated bundle IDs are detected"""
         ksr_bundles = self.ksr.bundles
-        ksr_bundles[1] = replace(ksr_bundles[1], id=self.skr1.bundles[-1].id)
-        new_ksr = replace(self.ksr, bundles=ksr_bundles)
+        ksr_bundles[1] = ksr_bundles[1].replace(id=self.skr1.bundles[-1].id)
+        new_ksr = self.ksr.replace(bundles=ksr_bundles)
         with self.assertRaises(KSR_BUNDLE_UNIQUE_Violation):
             check_skr_and_ksr(new_ksr, self.skr1, self.policy, p11modules=None)
 
@@ -160,8 +159,8 @@ class Test_Chain(Test_KSR_SKR_policy):
         ksr_bundles = self.ksr.bundles
         last_expire = self.skr1.bundles[-1].expiration
         new_inception = last_expire + datetime.timedelta(days=1)
-        ksr_bundles[0] = replace(ksr_bundles[0], inception=new_inception)
-        new_ksr = replace(self.ksr, bundles=ksr_bundles)
+        ksr_bundles[0] = ksr_bundles[0].replace(inception=new_inception)
+        new_ksr = self.ksr.replace(bundles=ksr_bundles)
         with self.assertRaises(KSR_CHAIN_OVERLAP_Violation):
             check_skr_and_ksr(new_ksr, self.skr1, self.policy, p11modules=None)
 
@@ -171,8 +170,8 @@ class Test_Chain(Test_KSR_SKR_policy):
         last_expire = self.skr1.bundles[-1].expiration
         # first, set inception to the smallest value permitted by the KSR policy (this should work)
         new_inception = last_expire - self.ksr.zsk_policy.min_validity_overlap
-        ksr_bundles[0] = replace(ksr_bundles[0], inception=new_inception)
-        new_ksr = replace(self.ksr, bundles=ksr_bundles)
+        ksr_bundles[0] = ksr_bundles[0].replace(inception=new_inception)
+        new_ksr = self.ksr.replace(bundles=ksr_bundles)
         check_skr_and_ksr(new_ksr, self.skr1, self.policy, p11modules=None)
 
         # next, move inception back one more second
@@ -181,8 +180,8 @@ class Test_Chain(Test_KSR_SKR_policy):
             - self.ksr.zsk_policy.min_validity_overlap
             + datetime.timedelta(seconds=1)
         )
-        ksr_bundles[0] = replace(ksr_bundles[0], inception=new_inception)
-        new_ksr = replace(self.ksr, bundles=ksr_bundles)
+        ksr_bundles[0] = ksr_bundles[0].replace(inception=new_inception)
+        new_ksr = self.ksr.replace(bundles=ksr_bundles)
 
         with self.assertRaises(KSR_CHAIN_OVERLAP_Violation):
             check_skr_and_ksr(new_ksr, self.skr1, self.policy, p11modules=None)
@@ -193,8 +192,8 @@ class Test_Chain(Test_KSR_SKR_policy):
         last_inception = self.skr1.bundles[-1].inception
         # first, set inception to the largest value permitted by the KSR policy (this should work)
         new_inception = last_inception + self.ksr.zsk_policy.max_validity_overlap
-        ksr_bundles[0] = replace(ksr_bundles[0], inception=new_inception)
-        new_ksr = replace(self.ksr, bundles=ksr_bundles)
+        ksr_bundles[0] = ksr_bundles[0].replace(inception=new_inception)
+        new_ksr = self.ksr.replace(bundles=ksr_bundles)
         check_skr_and_ksr(new_ksr, self.skr1, self.policy, p11modules=None)
 
         # next, move inception back one more second
@@ -203,8 +202,8 @@ class Test_Chain(Test_KSR_SKR_policy):
             + self.ksr.zsk_policy.min_validity_overlap
             - datetime.timedelta(seconds=1)
         )
-        ksr_bundles[0] = replace(ksr_bundles[0], inception=new_inception)
-        new_ksr = replace(self.ksr, bundles=ksr_bundles)
+        ksr_bundles[0] = ksr_bundles[0].replace(inception=new_inception)
+        new_ksr = self.ksr.replace(bundles=ksr_bundles)
 
         with self.assertRaises(KSR_CHAIN_OVERLAP_Violation):
             check_skr_and_ksr(new_ksr, self.skr1, self.policy, p11modules=None)

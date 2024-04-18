@@ -3,9 +3,10 @@
 from abc import ABC
 from base64 import b64decode
 from dataclasses import dataclass, field
+from dataclasses import replace as dc_replace
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import TypeVar
+from typing import Any, Self, TypeVar
 
 # Type definitions to refer to the ABC types declared below
 
@@ -94,6 +95,10 @@ class AlgorithmPolicyDSA(AlgorithmPolicy):
 class SignaturePolicy:
     """DNSSEC Signature Policy."""
 
+    def replace(self, **kwargs: Any) -> Self:
+        """Return a new instance with the provided attributes updated. Used in tests."""
+        return dc_replace(self, **kwargs)
+
     publish_safety: timedelta
     retire_safety: timedelta
     max_signature_validity: timedelta
@@ -125,6 +130,10 @@ class Signature:
     key_tag: int
     signers_name: str
     signature_data: bytes = field(repr=False)
+
+    def replace(self, **kwargs: Any) -> Self:
+        """Return a new instance with the provided attributes updated. Used in tests."""
+        return dc_replace(self, **kwargs)
 
 
 @dataclass(frozen=True)
@@ -168,6 +177,10 @@ class Key:
             return
         raise ValueError(f"Unsupported DNSSEC key flags combination {self.flags}")
 
+    def replace(self, **kwargs: Any) -> Self:
+        """Return a new instance with the provided attributes updated. Used in tests."""
+        return dc_replace(self, **kwargs)
+
 
 @dataclass(frozen=True)
 class Bundle(ABC):
@@ -178,3 +191,7 @@ class Bundle(ABC):
     expiration: datetime
     keys: set[Key]
     signatures: set[Signature]
+
+    def replace(self, **kwargs: Any) -> Self:
+        """Return a new instance with the provided attributes updated."""
+        return dc_replace(self, **kwargs)
