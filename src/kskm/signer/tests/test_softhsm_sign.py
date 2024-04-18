@@ -10,6 +10,7 @@ import io
 import os
 import unittest
 from dataclasses import replace
+from pathlib import Path
 from typing import Any, Generator
 from unittest.mock import patch
 
@@ -646,13 +647,13 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
         self.config.update(yaml.safe_load(io.StringIO(_SCHEMAS)))
 
         # Initialise KSR and last SKR data structures
-        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
+        self.data_dir = Path(os.path.dirname(__file__), "data")
 
-        with open(os.path.join(self.data_dir, "ksr-root-2017-q2-0.xml")) as fd:
+        with open(self.data_dir.joinpath("ksr-root-2017-q2-0.xml")) as fd:
             self.ksr_xml = fd.read()
             self.ksr = request_from_xml(self.ksr_xml)
 
-        with open(os.path.join(self.data_dir, "skr-root-2017-q1-0.xml")) as fd:
+        with open(self.data_dir.joinpath("skr-root-2017-q1-0.xml")) as fd:
             self.last_skr_xml = fd.read()
             self.last_skr = response_from_xml(self.last_skr_xml)
 

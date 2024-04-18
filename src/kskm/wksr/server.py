@@ -10,6 +10,7 @@ import smtplib
 import ssl
 from datetime import UTC, datetime
 from email.message import EmailMessage
+from pathlib import Path
 from typing import Any
 
 import jinja2
@@ -105,7 +106,7 @@ def upload() -> str:
     return str(render_template(template_config["result"], **env))
 
 
-def validate_ksr(filename: str) -> dict[str, Any]:
+def validate_ksr(filename: Path) -> dict[str, str]:
     """Validate incoming KSR and optionally check previous SKR."""
     global ksr_config
 
@@ -164,7 +165,7 @@ def notify(env: dict[str, Any]) -> None:
     smtp.quit()
 
 
-def save_ksr(upload_file: FileStorage) -> tuple[str, str]:
+def save_ksr(upload_file: FileStorage) -> tuple[Path, str]:
     """Process incoming KSR."""
     if ksr_config is None:
         raise RuntimeError("Missing configuration")
@@ -184,11 +185,13 @@ def save_ksr(upload_file: FileStorage) -> tuple[str, str]:
     filehash = digest.hexdigest()
     upload_file.stream.seek(0)
 
-    filename_prefix = ksr_config.get("prefix", "upload_")
+    filename_prefix = Path(ksr_config.get("prefix", "upload_"))
     filename_washed = re.sub(r"[^a-zA-Z0-9_]+", "_", str(upload_file.filename))
-    filename_suffix = datetime.utcnow().strftime("_%Y%m%d_%H%M%S_%f")
+    filename_suffix = datetime.now(UTC).strftime("_%Y%m%d_%H%M%S_%f")
 
-    filename = filename_prefix + filename_washed + filename_suffix + ".xml"
+    filename = filename_prefix.joinpath(
+        filename_washed + filename_suffix + ".xml"
+    )
 
     with open(filename, "wb") as ksr_file:
         ksr_file.write(upload_file.stream.read())

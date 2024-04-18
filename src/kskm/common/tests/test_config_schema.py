@@ -2,6 +2,7 @@
 
 import os
 import unittest
+from pathlib import Path
 from tempfile import mkstemp
 
 import voluptuous.error
@@ -11,14 +12,14 @@ import yaml
 from kskm.common.config import ConfigurationError, get_config
 from kskm.common.config_schema import KSRSIGNER_CONFIG_SCHEMA, WKSR_CONFIG_SCHEMA
 
-CONFIG_DIR = os.path.join(os.path.dirname(__file__), "../../../../config")
+CONFIG_DIR = Path(os.path.dirname(__file__), "../../../../config")
 
 
 class TestConfigSchema(unittest.TestCase):
     def test_ksrsigner_example_config(self) -> None:
         """Test ksrsigner example config"""
         _, file_placeholder = mkstemp()
-        with open(os.path.join(CONFIG_DIR, "ksrsigner.yaml")) as input_file:
+        with open(CONFIG_DIR.joinpath("ksrsigner.yaml")) as input_file:
             config = yaml.safe_load(input_file)
         config["hsm"]["softhsm"]["module"] = file_placeholder
         config["hsm"]["aep"]["module"] = file_placeholder
@@ -41,7 +42,7 @@ class TestConfigSchema(unittest.TestCase):
     def test_loading_from_file(self) -> None:
         _, config_fn = mkstemp()
         _, file_placeholder = mkstemp()
-        with open(os.path.join(CONFIG_DIR, "ksrsigner.yaml")) as input_file:
+        with open(CONFIG_DIR.joinpath("ksrsigner.yaml")) as input_file:
             config = yaml.safe_load(input_file)
         config["hsm"]["softhsm"]["module"] = file_placeholder
         config["hsm"]["aep"]["module"] = file_placeholder
@@ -50,21 +51,23 @@ class TestConfigSchema(unittest.TestCase):
         config["filenames"]["output_skr"] = file_placeholder
         with open(config_fn, "w") as fd:
             yaml.dump(config, fd)
-        parsed_config = get_config(config_fn)
-        self.assertEqual(parsed_config.get_filename("input_ksr"), file_placeholder)
+        parsed_config = get_config(Path(config_fn))
         self.assertIsNone(parsed_config.get_filename("no_such_file"))
         os.unlink(file_placeholder)
         os.unlink(config_fn)
+        self.assertEqual(
+            parsed_config.get_filename("input_ksr"), Path(file_placeholder)
+        )
 
     def test_loading_from_file_error_handling(self) -> None:
         with self.assertRaises(ConfigurationError) as exc:
-            get_config(os.path.join(CONFIG_DIR, "ksrsigner.yaml"))
+            get_config(CONFIG_DIR.joinpath("ksrsigner.yaml"))
         self.assertIn("Not a file for dictionary value", str(exc.exception))
 
     def test_wksr_example_config(self) -> None:
         """Test wksr example config"""
         _, file_placeholder = mkstemp()
-        with open(os.path.join(CONFIG_DIR, "wksr.yaml")) as input_file:
+        with open(CONFIG_DIR.joinpath("wksr.yaml")) as input_file:
             config = yaml.safe_load(input_file)
         config["tls"]["cert"] = file_placeholder
         config["tls"]["key"] = file_placeholder

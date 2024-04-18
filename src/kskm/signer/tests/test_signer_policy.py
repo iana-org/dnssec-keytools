@@ -3,6 +3,7 @@ import logging
 import os
 import unittest
 from dataclasses import replace
+from pathlib import Path
 
 from kskm.common.config_misc import RequestPolicy
 from kskm.ksr import request_from_xml
@@ -22,21 +23,21 @@ logger = logging.getLogger(__name__)
 class Test_KSR_SKR_policy(unittest.TestCase):
     def setUp(self) -> None:
         # Initialise KSR and last SKR data structures
-        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
+        self.data_dir = Path(os.path.dirname(__file__), "data")
 
-        with open(os.path.join(self.data_dir, "ksr-root-2017-q2-0.xml")) as fd:
+        with open(self.data_dir.joinpath("ksr-root-2017-q2-0.xml")) as fd:
             self.ksr_xml = fd.read()
             self.ksr = request_from_xml(self.ksr_xml)
 
-        with open(os.path.join(self.data_dir, "skr-root-2017-q1-0.xml")) as fd:
+        with open(self.data_dir.joinpath("skr-root-2017-q1-0.xml")) as fd:
             self.skr_xml1 = fd.read()
             self.skr1 = response_from_xml(self.skr_xml1)
 
-        with open(os.path.join(self.data_dir, "skr-root-2017-q2-0.xml")) as fd:
+        with open(self.data_dir.joinpath("skr-root-2017-q2-0.xml")) as fd:
             self.skr_xml2 = fd.read()
             self.skr2 = response_from_xml(self.skr_xml2)
 
-        with open(os.path.join(self.data_dir, "skr-root-2017-q3-0-c_to_d.xml")) as fd:
+        with open(self.data_dir.joinpath("skr-root-2017-q3-0-c_to_d.xml")) as fd:
             self.skr_xml3 = fd.read()
             self.skr3 = response_from_xml(self.skr_xml3)
 

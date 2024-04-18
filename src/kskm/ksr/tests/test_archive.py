@@ -1,7 +1,7 @@
-import glob
 import os
 import unittest
 from dataclasses import replace
+from pathlib import Path
 
 from cryptography.exceptions import InvalidSignature
 
@@ -10,17 +10,18 @@ from kskm.common.signature import validate_signatures
 from kskm.ksr import load_ksr, request_from_xml
 
 
-def archive_dir(extra: str | None = None) -> str | None:
+def archive_dir(extra: str | None = None) -> Path | None:
     """
     Return path to KSR archives, if found using environment variable KSKM_KSR_ARCHIVE_PATH.
 
     If None is returned, the tests in this module will be skipped.
     """
-    _archive_dir = os.environ.get("KSKM_KSR_ARCHIVE_PATH")
-    if _archive_dir is not None:
+    _env_dir = os.environ.get("KSKM_KSR_ARCHIVE_PATH")
+    if _env_dir is not None:
+        _archive_dir = Path(_env_dir)
         if extra:
-            _archive_dir = os.path.join(_archive_dir, extra)
-        if os.path.isdir(_archive_dir):
+            _archive_dir = Path(_archive_dir, extra)
+        if _archive_dir.is_dir():
             return _archive_dir
     return None
 
@@ -28,7 +29,7 @@ def archive_dir(extra: str | None = None) -> str | None:
 class TestParseRealKSRs(unittest.TestCase):
     def setUp(self) -> None:
         """Prepare test instance"""
-        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
+        self.data_dir = Path(os.path.dirname(__file__), "data")
 
     @unittest.skipUnless(archive_dir("ksr"), "KSKM_KSR_ARCHIVE_PATH not set or invalid")
     def test_parse_all_ksrs_in_archive(self) -> None:
@@ -66,7 +67,7 @@ class TestParseRealKSRs(unittest.TestCase):
         assert (
             _dir is not None
         )  # for typing, test would be skipped if archive_dir() returned None
-        for fn in sorted(glob.glob(_dir + "/*")):
+        for fn in sorted(_dir.glob("/*")):
             assert isinstance(fn, str)
             # print('Loading file {}'.format(fn))
             _policy = policy
@@ -104,7 +105,7 @@ class TestParseRealKSRs(unittest.TestCase):
             _dir is not None
         )  # for typing, test would be skipped if archive_dir() returned None
         res = True
-        for fn in sorted(glob.glob(_dir + "/*")):
+        for fn in sorted(_dir.glob("/*")):
             assert isinstance(fn, str)
             try:
                 self._test_file(fn)
@@ -113,8 +114,8 @@ class TestParseRealKSRs(unittest.TestCase):
         if not res:
             self.fail()
 
-    def _test_file(self, fn: str, filter_ids: list[str] | None = None) -> None:
-        fn = os.path.join(self.data_dir, fn)
+    def _test_file(self, fn: Path, filter_ids: list[str] | None = None) -> None:
+        fn = self.data_dir.joinpath(fn)
         with open(fn) as fd:
             xml = fd.read()
         ksr = request_from_xml(xml)

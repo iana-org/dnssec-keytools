@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from getpass import getpass
 from hashlib import sha1, sha256, sha384, sha512
+from pathlib import Path
 from typing import Any, NewType
 
 import PyKCS11
@@ -491,7 +492,7 @@ def init_pkcs11_modules_from_dict(
 
 
 def load_hsmconfig(
-    filename: str,
+    filename: Path,
     defaults: MutableMapping[str, Any] | None = None,
     max_lines: int = 100,
 ) -> dict[str, Any]:
@@ -518,7 +519,7 @@ def load_hsmconfig(
 
 def parse_hsmconfig(
     config: Iterator[str],
-    src: str,
+    src: Path,
     defaults: MutableMapping[str, Any],
     max_lines: int = 100,
 ) -> dict[str, Any]:

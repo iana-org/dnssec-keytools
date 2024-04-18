@@ -2,6 +2,7 @@ import datetime
 import os
 import unittest
 from dataclasses import replace
+from pathlib import Path
 
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import AlgorithmDNSSEC
@@ -26,12 +27,12 @@ from kskm.ksr.verify_policy import (
 class Test_Validate_KSR_policy(unittest.TestCase):
     def setUp(self) -> None:
         """Prepare test instance"""
-        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
-        self.policy_fn = os.path.join(self.data_dir, "response_policy.yaml")
+        self.data_dir = Path(os.path.dirname(__file__), "data")
+        self.policy_fn = self.data_dir.joinpath("response_policy.yaml")
 
     def test_load_ksr_with_signatures_in_the_past(self) -> None:
         """Test loading a KSR requesting signatures that has expired already"""
-        fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
+        fn = self.data_dir.joinpath("ksr-root-2018-q1-0-d_to_e.xml")
         policy = RequestPolicy(
             signature_horizon_days=180, rsa_approved_exponents=[3, 65537]
         )
@@ -40,7 +41,7 @@ class Test_Validate_KSR_policy(unittest.TestCase):
 
     def test_load_ksr_with_signatures_in_the_past2(self) -> None:
         """Test loading a KSR requesting signatures that has expired already, but allowing it"""
-        fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
+        fn = self.data_dir.joinpath("ksr-root-2018-q1-0-d_to_e.xml")
         policy = RequestPolicy(
             signature_horizon_days=-1, rsa_approved_exponents=[3, 65537]
         )
@@ -48,7 +49,7 @@ class Test_Validate_KSR_policy(unittest.TestCase):
 
     def test_load_ksr_with_signatures_in_the_past3(self) -> None:
         """Test loading a KSR requesting signatures just outside of policy"""
-        fn = os.path.join(self.data_dir, "ksr-root-2018-q1-0-d_to_e.xml")
+        fn = self.data_dir.joinpath("ksr-root-2018-q1-0-d_to_e.xml")
         # first load the KSR, allowing the old signatures
         policy = RequestPolicy(
             signature_horizon_days=-1, rsa_approved_exponents=[3, 65537]
