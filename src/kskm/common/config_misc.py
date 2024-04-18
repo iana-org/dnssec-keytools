@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
+import dataclasses
 from abc import ABC
 from collections.abc import Iterable, Mapping
 from copy import deepcopy
 from dataclasses import dataclass, field
-from dataclasses import replace as dc_replace
 from datetime import datetime, timedelta, timezone
 from typing import Any, NewType, Self, TypeVar
 
@@ -29,7 +29,7 @@ class Policy(ABC):
 
     def replace(self, **kwargs: Any) -> Self:
         """Return a new instance with the provided attributes updated. Used in tests."""
-        return dc_replace(self, **kwargs)
+        return dataclasses.replace(self, **kwargs)
 
     @classmethod
     def from_dict(cls: type[PolicyType], data: dict[str, Any]) -> PolicyType:

@@ -1,8 +1,8 @@
 """KSR (Request) data classes."""
 
+import dataclasses
 from abc import ABC
 from dataclasses import dataclass
-from dataclasses import replace as dc_replace
 from datetime import datetime
 from typing import Any, Self
 
@@ -27,7 +27,7 @@ class KSR(ABC):
 
     def replace(self, **kwargs: Any) -> Self:
         """Return a new instance with the provided attributes updated. Used in tests."""
-        return dc_replace(self, **kwargs)
+        return dataclasses.replace(self, **kwargs)
 
 
 @dataclass(frozen=True)
