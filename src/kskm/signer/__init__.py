@@ -2,7 +2,6 @@
 
 import logging
 from collections.abc import Iterable
-from dataclasses import replace
 from pathlib import Path
 
 from kskm.common.config import KSKMConfig
@@ -73,4 +72,4 @@ def _ksk_signature_policy(
                 algorithms.add(alg)
             else:
                 raise NotImplementedError("Only RSA is implemented at this time")
-    return replace(ksk_policy.signature_policy, algorithms=algorithms)
+    return ksk_policy.signature_policy.replace(algorithms=algorithms)

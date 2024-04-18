@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Mapping
+from copy import copy
 from dataclasses import replace
 from io import BufferedReader, StringIO
 from pathlib import Path
@@ -234,18 +235,22 @@ class KSKMConfig:
             _actions[num] = _this
         return Schema(name=name, actions=_actions)
 
-    def update(self, data: Mapping[str, Any]) -> None:
+    def update(self, data: Mapping[str, Any]) -> KSKMConfig:
         """Update configuration on the fly. Usable in tests."""
         logger.warning(f"Updating configuration (sections {data.keys()})")
-        self._data.update(data)
+        _data = copy(self._data)
+        _data.update(data)
+        return self.from_dict(_data)
 
-    def merge_update(self, data: Mapping[str, Any]) -> None:
+    def merge_update(self, data: Mapping[str, Any]) -> KSKMConfig:
         """Merge-update configuration on the fly. Usable in tests."""
         logger.warning(f"Merging configuration (sections {data.keys()})")
+        _data = copy(self._data)
         for k, v in data.items():
             logger.debug(f"Updating config section {k} with {v}")
-            self._data[k].update(v)
+            _data[k].update(v)
             logger.debug(f"Config now: {self._data[k]}")
+        return self.from_dict(_data)
 
     @classmethod
     def from_yaml(
@@ -260,6 +265,11 @@ class KSKMConfig:
             logger.info("Configuration validated")
         except voluptuous.error.Error as exc:
             raise ConfigurationError(str(exc)) from exc
+        return cls(config)
+
+    @classmethod
+    def from_dict(cls: type[KSKMConfig], config: dict[str, Any]) -> KSKMConfig:
+        """Create a config object from a dict."""
         return cls(config)
 
 

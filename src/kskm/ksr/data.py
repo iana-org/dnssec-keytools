@@ -2,7 +2,9 @@
 
 from abc import ABC
 from dataclasses import dataclass
+from dataclasses import replace as dc_replace
 from datetime import datetime
+from typing import Any, Self
 
 from kskm.common.data import Bundle, SignaturePolicy, Signer
 
@@ -22,6 +24,10 @@ class KSR(ABC):
     serial: int
     domain: str
     timestamp: datetime | None
+
+    def replace(self, **kwargs: Any) -> Self:
+        """Return a new instance with the provided attributes updated. Used in tests."""
+        return dc_replace(self, **kwargs)
 
 
 @dataclass(frozen=True)

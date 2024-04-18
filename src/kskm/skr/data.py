@@ -2,7 +2,9 @@
 
 from abc import ABC
 from dataclasses import dataclass
+from dataclasses import replace as dc_replace
 from datetime import datetime
+from typing import Any, Self
 
 from kskm.common.data import Bundle, SignaturePolicy
 
@@ -31,3 +33,7 @@ class Response(SKR):
     # 'bundles' is supposed to be a Set, but a set cannot contain other sets
     # (TypeError: unhashable type: 'set')
     bundles: list[ResponseBundle]
+
+    def replace(self, **kwargs: Any) -> Self:
+        """Return a new instance with the provided attributes updated."""
+        return dc_replace(self, **kwargs)

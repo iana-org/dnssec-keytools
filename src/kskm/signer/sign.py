@@ -4,7 +4,6 @@ import base64
 import hashlib
 import logging
 from collections.abc import Iterable
-from dataclasses import replace
 
 from cryptography.exceptions import InvalidSignature
 
@@ -70,7 +69,7 @@ def sign_bundles(
                     )
                     if _key.key_identifier is not None:
                         _hush_key_ttl_warnings[_key.key_identifier] = True
-                _key = replace(_key, ttl=ksk_policy.ttl)
+                _key = _key.replace(ttl=ksk_policy.ttl)
             _new_keys.add(_key)
         #
         # Add all the 'publish' keys (KSK operator keys) to the keys already in the bundle (ZSK operator keys)
@@ -85,10 +84,10 @@ def sign_bundles(
         for this_key in _fetch_keys(
             this_schema.revoke, _bundle, p11modules, ksk_policy, config.ksk_keys, True
         ):
-            revoked_key = replace(
-                this_key.dns, flags=this_key.dns.flags | FlagsDNSKEY.REVOKE.value
+            revoked_key = this_key.dns.replace(
+                flags=this_key.dns.flags | FlagsDNSKEY.REVOKE.value
             )
-            revoked_key = replace(revoked_key, key_tag=calculate_key_tag(revoked_key))
+            revoked_key = revoked_key.replace(key_tag=calculate_key_tag(revoked_key))
             _new_keys.add(revoked_key)
         #
         # All the signing keys sign the complete DNSKEY RRSET, so first add them to the bundles keys
@@ -99,7 +98,7 @@ def sign_bundles(
         for this_key in signing_keys:
             _new_keys.add(this_key.dns)
 
-        updated_bundle = replace(_bundle, keys=_new_keys)
+        updated_bundle = _bundle.replace(keys=_new_keys)
 
         #
         # Using the 'signing' keys for this bundle in the schema, sign all the keys in the bundle
@@ -205,7 +204,7 @@ def _sign_keys(
             f"Invalid KSK signature encountered in bundle {bundle.id}"
         ) from exc
 
-    sig = replace(sig, signature_data=base64.b64encode(signature_data))
+    sig = sig.replace(signature_data=base64.b64encode(signature_data))
     return sig
 
 

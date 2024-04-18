@@ -9,11 +9,12 @@ import re
 from collections.abc import Iterator, Mapping, MutableMapping
 from copy import copy
 from dataclasses import dataclass, field
+from dataclasses import replace as dc_replace
 from enum import Enum
 from getpass import getpass
 from hashlib import sha1, sha256, sha384, sha512
 from pathlib import Path
-from typing import Any, NewType
+from typing import Any, NewType, Self
 
 import PyKCS11
 import PyKCS11.LowLevel
@@ -80,6 +81,10 @@ class KSKM_P11Key:
         if self.public_key:
             ret += " " + str(self.public_key)
         return ret
+
+    def replace(self, **kwargs: Any) -> Self:
+        """Return a new instance with the provided attributes updated. Used in tests."""
+        return dc_replace(self, **kwargs)
 
 
 class KSKM_P11Module:

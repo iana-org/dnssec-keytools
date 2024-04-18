@@ -189,9 +189,7 @@ def save_ksr(upload_file: FileStorage) -> tuple[Path, str]:
     filename_washed = re.sub(r"[^a-zA-Z0-9_]+", "_", str(upload_file.filename))
     filename_suffix = datetime.now(UTC).strftime("_%Y%m%d_%H%M%S_%f")
 
-    filename = filename_prefix.joinpath(
-        filename_washed + filename_suffix + ".xml"
-    )
+    filename = filename_prefix.joinpath(filename_washed + filename_suffix + ".xml")
 
     with open(filename, "wb") as ksr_file:
         ksr_file.write(upload_file.stream.read())

@@ -9,7 +9,6 @@ import datetime
 import io
 import os
 import unittest
-from dataclasses import replace
 from pathlib import Path
 from typing import Any, Generator
 from unittest.mock import patch
@@ -220,7 +219,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
         """
-        self.config.merge_update(yaml.safe_load(io.StringIO(_EC_CONF)))
+        self.config = self.config.merge_update(yaml.safe_load(io.StringIO(_EC_CONF)))
         self.schema = self.config.get_schema("test")
 
         # CKA_LABEL for one of the keys loaded into SoftHSM using testing/Makefile
@@ -300,7 +299,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
             8: {publish: ksk_EC3, sign: ksk_EC2}
             9: {publish: ksk_EC3, sign: ksk_EC2}
         """
-        self.config.update(yaml.safe_load(io.StringIO(_PUBLISH_SCHEMA)))
+        self.config = self.config.update(yaml.safe_load(io.StringIO(_PUBLISH_SCHEMA)))
         self.schema = self.config.get_schema("test")
         zsk_keys = {
             self._p11_to_dnskey("EC1", AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK)
@@ -337,7 +336,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
             8: {revoke: ksk_EC2, publish: [], sign: ksk_EC3}
             9: {revoke: ksk_EC2, publish: [], sign: ksk_EC3}
         """
-        self.config.update(yaml.safe_load(io.StringIO(_REVOKE_SCHEMA)))
+        self.config = self.config.update(yaml.safe_load(io.StringIO(_REVOKE_SCHEMA)))
         self.schema = self.config.get_schema("test")
         zsk_keys = {
             self._p11_to_dnskey("EC1", AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK)
@@ -366,7 +365,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
             | FlagsDNSKEY.SEP.value
             | FlagsDNSKEY.REVOKE.value,
         )
-        revoked_EC2 = replace(revoked_EC2, ttl=self.config.ksk_policy.ttl)
+        revoked_EC2 = revoked_EC2.replace(ttl=self.config.ksk_policy.ttl)
         assert revoked_EC2 in bundle_keys
 
 
@@ -387,7 +386,7 @@ class Test_SignWithSoftHSM_DualAlgorithm(SignWithSoftHSM_Baseclass):
             8: {publish: [], sign: [ksk_EC2, ksk_RSA2]}
             9: {publish: [], sign: [ksk_EC2, ksk_RSA2]}
         """
-        self.config.update(yaml.safe_load(io.StringIO(_SCHEMAS)))
+        self.config = self.config.update(yaml.safe_load(io.StringIO(_SCHEMAS)))
 
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_single_zsk_dual_ksk(self) -> None:
@@ -448,7 +447,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
         """
-        self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
+        self.config = self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
         zsk_keys = {
             self._p11_to_dnskey("EC1", AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK)
         }
@@ -495,7 +494,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
         """
-        self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
+        self.config = self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
         zsk_keys = {
             self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)
         }
@@ -528,7 +527,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
         """
-        self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
+        self.config = self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
         zsk_keys = {
             self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)
         }
@@ -556,7 +555,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
         """
-        self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
+        self.config = self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
         zsk_keys = {
             self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)
         }
@@ -584,7 +583,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
         """
-        self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
+        self.config = self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
         zsk_keys = {
             self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)
         }
@@ -610,7 +609,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
         """
-        self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
+        self.config = self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
         zsk_keys = {
             self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)
         }
@@ -644,7 +643,7 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
             8: {publish: [], sign: [ksk_RSA2]}
             9: {publish: [], sign: [ksk_RSA2]}
         """
-        self.config.update(yaml.safe_load(io.StringIO(_SCHEMAS)))
+        self.config = self.config.update(yaml.safe_load(io.StringIO(_SCHEMAS)))
 
         # Initialise KSR and last SKR data structures
         self.data_dir = Path(os.path.dirname(__file__), "data")
@@ -670,8 +669,7 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_check_chain_config(self) -> None:
         """Test KSR-CHAIN-KEYS configuration."""
-        policy = replace(
-            self.policy,
+        policy = self.policy.replace(
             check_chain_keys=False,
             check_bundle_overlap=False,
             check_chain_overlap=False,
@@ -700,11 +698,10 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
         _updated_keys = {
             x for x in last_bundle.keys if x.key_tag != 14796
         }  # remove one of the ZSKs
-        last_bundle = replace(last_bundle, keys=_updated_keys)
+        last_bundle = last_bundle.replace(keys=_updated_keys)
         bundles = last_skr.bundles[:-1] + [last_bundle]
-        last_skr = replace(last_skr, bundles=bundles)
-        policy = replace(
-            self.policy,
+        last_skr = last_skr.replace(bundles=bundles)
+        policy = self.policy.replace(
             check_bundle_overlap=False,
             check_chain_overlap=False,
             check_chain_keys_in_hsm=False,
@@ -719,13 +716,13 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
     def test_last_bundle_without_signatures(self) -> None:
         """Test KSR-CHAIN-KEYS with real KSR/SKR, but no signatures in last_skr last bundle."""
         last_skr = response_from_xml(self.last_skr_xml)
-        last_bundle = replace(
-            last_skr.bundles[-1], signatures=set()
+        last_bundle = last_skr.bundles[-1].replace(
+            signatures=set()
         )  # remove all signatures
         bundles = last_skr.bundles[:-1] + [last_bundle]
-        last_skr = replace(self.last_skr, bundles=bundles)
-        policy = replace(
-            self.policy, check_bundle_overlap=False, check_chain_overlap=False
+        last_skr = self.last_skr.replace(bundles=bundles)
+        policy = self.policy.replace(
+            check_bundle_overlap=False, check_chain_overlap=False
         )
         with pytest.raises(
             KSR_CHAIN_KEYS_Violation,

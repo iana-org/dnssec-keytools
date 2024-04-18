@@ -1,6 +1,5 @@
 import os
 import unittest
-from dataclasses import replace
 from pathlib import Path
 
 from cryptography.exceptions import InvalidSignature
@@ -77,20 +76,18 @@ class TestParseRealKSRs(unittest.TestCase):
                 # Exception: Failed validating KSR request in file ksr-root-2016-q3-fallback-1.xml
                 #            Unacceptable number of key sets in request 489e60ed-421f-40ff-a80e-ee0a87e0886a,
                 #            (2 keys instead of 3)
-                _policy = replace(
-                    policy,
+                _policy = policy.replace(
                     num_keys_per_bundle=[2, 1, 1, 1, 1, 1, 1, 1, 1],
                     num_different_keys_in_all_bundles=2,
                 )
             elif fn.endswith("ksr-root-2016-q4-0.xml"):
                 # Exception: Failed validating KSR request in file ksr-root-2016-q4-0.xml:
                 #            Bundle #2/730b49eb-3dc1-4468-adea-6db09c58a6a3 has 2 keys, not 1
-                _policy = replace(
-                    policy, num_keys_per_bundle=[2, 2, 2, 1, 1, 1, 1, 1, 2]
+                _policy = policy.replace(
+                    num_keys_per_bundle=[2, 2, 2, 1, 1, 1, 1, 1, 2]
                 )
             elif fn.endswith("ksr-root-2016-q4-fallback-1.xml"):
-                _policy = replace(
-                    policy,
+                _policy = policy.replace(
                     num_keys_per_bundle=[1, 1, 1, 1, 1, 1, 1, 1, 2],
                     num_different_keys_in_all_bundles=2,
                 )
