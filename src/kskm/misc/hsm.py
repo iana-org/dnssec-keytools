@@ -7,8 +7,7 @@ import logging
 import os
 import re
 from collections.abc import Iterator, Mapping, MutableMapping
-from dataclasses import dataclass, field
-from dataclasses import replace as dc_replace
+from dataclasses import field
 from enum import Enum
 from getpass import getpass
 from hashlib import sha1, sha256, sha384, sha512
@@ -17,11 +16,11 @@ from typing import Any, NewType, Self
 
 import PyKCS11
 import PyKCS11.LowLevel
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from kskm.common.config import KSKMConfig
 from kskm.common.config_misc import KSKMHSM
-from kskm.common.data import AlgorithmDNSSEC
+from kskm.common.data import AlgorithmDNSSEC, FrozenBaseModel
 from kskm.common.ecdsa_utils import ECCurve, KSKM_PublicKey_ECDSA
 from kskm.common.public_key import KSKM_PublicKey
 from kskm.common.rsa_utils import KSKM_PublicKey_RSA
@@ -33,7 +32,9 @@ logger = logging.getLogger(__name__)
 
 
 class PyKCS11WithTypes(BaseModel):
-    """Get all the constants we use with type information"""
+    """Get all the constants we use, with type information."""
+
+    model_config = ConfigDict(extra="ignore")
 
     CKM_RSA_X_509: int
     CKM_ECDSA: int
@@ -64,6 +65,7 @@ class PyKCS11WithTypes(BaseModel):
     def findObjects(
         self, session: PyKCS11.Session, template: list[tuple[Any, Any]]
     ) -> list[PyKCS11.LowLevel.CK_OBJECT_HANDLE]:
+        """ Helper function to get proper typing. """
         return session.findObjects(template)  # type: ignore[no-any-return]
 
     def getAttributeValue(
@@ -72,6 +74,7 @@ class PyKCS11WithTypes(BaseModel):
         obj: PyKCS11.LowLevel.CK_OBJECT_HANDLE,
         attrs: list[int],
     ) -> list[Any]:
+        """ Helper function to get proper typing. """
         return session.getAttributeValue(obj, attrs)  # type: ignore[no-any-return]
 
 
@@ -95,30 +98,29 @@ class KeyType(Enum):
     DES3 = _p11.CKK_DES3
 
 
-@dataclass
-class KeyInfo:
+class KeyInfo(FrozenBaseModel):
     """Inventory information about a key found in a slot."""
 
     key_class: KeyClass
     key_id: tuple[int]
     label: str
-    p11key: KSKM_P11Key | None = field(repr=False, default=None)
     pubkey: KSKM_PublicKey | None = field(repr=False, default=None)
 
 
-@dataclass
-class KSKM_P11Key:
+class KSKM_P11Key(BaseModel):
     """A reference to a key object loaded from a PKCS#11 module."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid", arbitrary_types_allowed=True)
 
     label: str  # for debugging
     key_type: KeyType
     key_class: KeyClass
     public_key: KSKM_PublicKey | None
     session: Any = field(repr=False)  # PyKCS11 opaque data
-    privkey_handle: list[PyKCS11.CK_OBJECT_HANDLE] | None = field(
+    privkey_handle: PyKCS11.LowLevel.CK_OBJECT_HANDLE | None = field(
         repr=False, default=None
     )  # PyKCS11 opaque data
-    pubkey_handle: list[PyKCS11.CK_OBJECT_HANDLE] | None = field(
+    pubkey_handle: list[PyKCS11.LowLevel.CK_OBJECT_HANDLE] | None = field(
         repr=False, default=None
     )  # PyKCS11 opaque data
 
@@ -131,7 +133,7 @@ class KSKM_P11Key:
 
     def replace(self, **kwargs: Any) -> Self:
         """Return a new instance with the provided attributes updated. Used in tests."""
-        return dc_replace(self, **kwargs)
+        return self.model_copy(update=kwargs)
 
 
 class KSKM_P11Module:
@@ -176,7 +178,7 @@ class KSKM_P11Module:
 
         # load module
         self._lib = PyKCS11.PyKCS11Lib()
-        self._lib.load(self.module)  # type: ignore
+        self._lib.load(str(self.module))  # type: ignore[unused-ignore]
         self._lib.lib.C_Initialize()
 
         # reset environment
@@ -215,7 +217,7 @@ class KSKM_P11Module:
         if self._slots:
             # Need to log in for the AEP keyper to show a serial number
             _ = self.sessions
-            _info = self._lib.getTokenInfo(self._slots[0])  # type: ignore
+            _info = self._lib.getTokenInfo(self._slots[0])  # type: ignore[unused-ignore]
             if _info:
                 info: Mapping[str, str] = _info.to_dict()
                 logger.info(f'HSM First slot:      {info.get("label")}')
@@ -232,7 +234,7 @@ class KSKM_P11Module:
     def close(self) -> None:
         """Close all sessions."""
         for slot in self._slots:
-            self._lib.closeAllSessions(slot)  # type: ignore
+            self._lib.closeAllSessions(slot)  # type: ignore[unused-ignore]
         self._sessions = {}
 
     @property
@@ -254,9 +256,9 @@ class KSKM_P11Module:
                     _user_type = _p11.CKU_SO if self._so_login else _p11.CKU_USER
                     _pin = self.so_pin if self._so_login else self.pin
                     _rw = _p11.CKF_RW_SESSION if self._rw_session else 0
-                    _session = self._lib.openSession(_slot, flags=_rw)  # type: ignore
+                    _session = self._lib.openSession(_slot, flags=_rw)  # type: ignore[unused-ignore]
                     if _pin is not None and len(_pin) > 0:
-                        _session.login(_pin, user_type=_user_type)  # type: ignore
+                        _session.login(_pin, user_type=_user_type)  # type: ignore[unused-ignore]
                         logger.debug(
                             f"Login to module {self.label} slot {_slot} successful"
                         )
@@ -292,21 +294,22 @@ class KSKM_P11Module:
                         f"More than one ({len(res)}) keys with label {repr(label)} found in slot {_slot}"
                     )
                 # logger.debug(f'Found key with label {label!r} in slot {_slot}')
+                this = res[0]
                 _pubkey = None
-                _pubkey_handle = None
+                _pubkey_handle: list[PyKCS11.LowLevel.CK_OBJECT_HANDLE] | None = None
                 if key_class != KeyClass.SECRET:
-                    _pubkey = self._p11_object_to_public_key(_session, res[0])
+                    _pubkey = self._p11_object_to_public_key(_session, this)
                     _pubkey_handle = res
-                _cka_type = _p11.getAttributeValue(
-                    _session, res[0], [_p11.CKA_KEY_TYPE]
-                )[0]
+                _cka_type = _p11.getAttributeValue(_session, this, [_p11.CKA_KEY_TYPE])[
+                    0
+                ]
                 key = KSKM_P11Key(
                     label=label,
                     key_type=KeyType(_cka_type),
                     key_class=key_class,
                     public_key=_pubkey,
                     session=_session,
-                    privkey_handle=res if key_class != KeyClass.PUBLIC else None,
+                    privkey_handle=this if key_class != KeyClass.PUBLIC else None,
                     pubkey_handle=_pubkey_handle,
                 )
                 return key
@@ -316,20 +319,24 @@ class KSKM_P11Module:
         )
         return None
 
-    def find_key_by_id(self, key_id: tuple[int], session: Any) -> list[KSKM_P11Key]:
+    def find_key_by_id(
+        self, key_id: tuple[int], session: PyKCS11.Session
+    ) -> list[KSKM_P11Key]:
         """Query the PKCS#11 module for a key with CKA_ID matching 'key_id'."""
         template = [(_p11.CKA_ID, key_id)]
         res: list[KSKM_P11Key] = []
-        objs = session.findObjects(template)
+        objs = _p11.findObjects(session, template)
         for this in objs:
-            key_class, label = session.getAttributeValue(
-                this, [_p11.CKA_CLASS, _p11.CKA_LABEL]
+            key_class, label = _p11.getAttributeValue(
+                session, this, [_p11.CKA_CLASS, _p11.CKA_LABEL]
             )
             if key_class in [
                 _p11.CKO_PRIVATE_KEY,
                 _p11.CKO_PUBLIC_KEY,
             ]:
-                _cka_type = session.getAttributeValue(this, [_p11.CKA_KEY_TYPE])[0]
+                _cka_type = _p11.getAttributeValue(session, this, [_p11.CKA_KEY_TYPE])[
+                    0
+                ]
                 key = KSKM_P11Key(
                     label=label,
                     key_type=KeyType(_cka_type),
@@ -338,7 +345,7 @@ class KSKM_P11Module:
                     privkey_handle=(
                         this if key_class == _p11.CKO_PRIVATE_KEY else None
                     ),
-                    pubkey_handle=(this if key_class == _p11.CKO_PUBLIC_KEY else None),
+                    pubkey_handle=([this] if key_class == _p11.CKO_PUBLIC_KEY else None),
                     session=session,
                 )
                 res += [key]
@@ -349,7 +356,7 @@ class KSKM_P11Module:
         res: list[KeyInfo] = []
 
         for this in _p11.findObjects(session, []):
-            cls, label, _key_id = _p11.getAttributeValue(
+            cls, label, key_id = _p11.getAttributeValue(
                 session,
                 this,
                 [
@@ -358,12 +365,6 @@ class KSKM_P11Module:
                     _p11.CKA_ID,
                 ],
             )
-            assert isinstance(cls, int)
-            assert isinstance(label, str)
-            assert isinstance(_key_id, tuple)
-            assert _key_id.count == 1  # CKA_ID is represented as a tuple like (7,)
-            assert isinstance(_key_id[0], int)
-            key_id: int = _key_id[0]
             logger.debug(f"Found key of class {cls}, label {label} and id {key_id}")
 
             if cls == _p11.CKO_SECRET_KEY:
@@ -375,7 +376,6 @@ class KSKM_P11Module:
                         key_class=KeyClass.PUBLIC,
                         label=label,
                         key_id=key_id,
-                        p11key=this,
                         pubkey=pub,
                     )
                 ]
@@ -385,25 +385,26 @@ class KSKM_P11Module:
                         key_class=KeyClass.PRIVATE,
                         label=label,
                         key_id=key_id,
-                        p11key=this,
                     )
                 ]
 
         return res
 
     @staticmethod
-    def _p11_object_to_public_key(session: Any, data: Any) -> KSKM_PublicKey | None:
+    def _p11_object_to_public_key(
+        session: PyKCS11.Session, data: Any
+    ) -> KSKM_PublicKey | None:
         """Create an RSAPublicKeyData object from PKCS#11 findObject return data."""
-        _cka_type = session.getAttributeValue(data, [_p11.CKA_KEY_TYPE])[0]
+        _cka_type = _p11.getAttributeValue(session, data, [_p11.CKA_KEY_TYPE])[0]
         if _cka_type == _p11.CKK_RSA:
-            _modulus = session.getAttributeValue(data, [_p11.CKA_MODULUS])
-            _exp = session.getAttributeValue(data, [_p11.CKA_PUBLIC_EXPONENT])
+            _modulus = _p11.getAttributeValue(session, data, [_p11.CKA_MODULUS])
+            _exp = _p11.getAttributeValue(session, data, [_p11.CKA_PUBLIC_EXPONENT])
             rsa_e = int.from_bytes(bytes(_exp[0]), byteorder="big")
             rsa_n = bytes(_modulus[0])
             return KSKM_PublicKey_RSA(bits=len(rsa_n) * 8, exponent=rsa_e, n=rsa_n)
         if _cka_type == _p11.CKK_EC:
             # DER-encoding of ANSI X9.62 ECPoint value ''Q''.
-            _cka_ec_point = session.getAttributeValue(data, [_p11.CKA_EC_POINT])
+            _cka_ec_point = _p11.getAttributeValue(session, data, [_p11.CKA_EC_POINT])
             if not _cka_ec_point[0]:
                 return None
             ec_point = bytes(_cka_ec_point[0])
@@ -413,7 +414,9 @@ class KSKM_P11Module:
             if ec_point.startswith(_prefix):
                 ec_point = ec_point[2:]
             logger.debug("EC_POINT: %s", binascii.hexlify(ec_point))
-            ec_params = bytes(session.getAttributeValue(data, [_p11.CKA_EC_PARAMS])[0])
+            ec_params = bytes(
+                _p11.getAttributeValue(session, data, [_p11.CKA_EC_PARAMS])[0]
+            )
             # The CKA_EC_PARAMS is an ASN.1 encoded OID. To not drag in an ASN.1 dependency,
             # we keep this lookup table of OIDs to algorithms.
             _ec_oid_to_curve = {
@@ -437,7 +440,7 @@ class KSKM_P11Module:
                     f"Unexpected ECDSA key length {_ec_len} for curve {crv}"
                 )
             return KSKM_PublicKey_ECDSA(bits=_ec_len, q=ec_point, curve=crv)
-        raise NotImplementedError(f"Unknown CKA_TYPE: {PyKCS11.CKK[_cka_type]}")  # type: ignore
+        raise NotImplementedError(f"Unknown CKA_TYPE: {_cka_type}")
 
 
 def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) -> bytes:
@@ -495,9 +498,7 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) ->
 
     if not key.privkey_handle:
         raise RuntimeError(f"No private key supplied in {key}")
-    sig = key.session.sign(
-        key.privkey_handle[0], data, PyKCS11.Mechanism(mechanism, None)
-    )
+    sig = key.session.sign(key.privkey_handle, data, PyKCS11.Mechanism(mechanism, None))
     return bytes(sig)
 
 
