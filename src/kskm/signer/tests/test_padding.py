@@ -15,7 +15,9 @@ class Test_Sign_Formatting(unittest.TestCase):
             label="RSA key",
             key_type=KeyType.RSA,
             key_class=KeyClass.PRIVATE,
-            public_key=KSKM_PublicKey_RSA(bits=3, exponent=3, n=b"test"),  # signatures get longer with larger keys
+            public_key=KSKM_PublicKey_RSA(
+                bits=3, exponent=3, n=b"test"
+            ),  # signatures get longer with larger keys
         )
 
         self.ecdsa_key = KSKM_P11Key(
@@ -56,7 +58,7 @@ class Test_Sign_Formatting(unittest.TestCase):
             self.ecdsa_key, _data, AlgorithmDNSSEC.ECDSAP256SHA256
         )
         assert b64encode(_formatted) == (
-            b'n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg='
+            b"n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg="
         )
         assert _mechanism == _p11.CKM_ECDSA
 
@@ -67,6 +69,6 @@ class Test_Sign_Formatting(unittest.TestCase):
             self.ecdsa_key, _data, AlgorithmDNSSEC.ECDSAP384SHA384
         )
         assert b64encode(_formatted) == (
-            b'doQSMg97CqWBL85CjcRwazyuUOAqZMqhangiSb/o78S37xzLEmJV0ZYEff7fF6Cp'
+            b"doQSMg97CqWBL85CjcRwazyuUOAqZMqhangiSb/o78S37xzLEmJV0ZYEff7fF6Cp"
         )
         assert _mechanism == _p11.CKM_ECDSA
