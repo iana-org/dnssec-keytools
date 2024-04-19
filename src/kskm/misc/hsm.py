@@ -120,7 +120,7 @@ class KSKM_P11Key(BaseModel):
     privkey_handle: PyKCS11.LowLevel.CK_OBJECT_HANDLE | None = field(
         repr=False, default=None
     )  # PyKCS11 opaque data
-    pubkey_handle: list[PyKCS11.LowLevel.CK_OBJECT_HANDLE] | None = field(
+    pubkey_handle: PyKCS11.LowLevel.CK_OBJECT_HANDLE | None = field(
         repr=False, default=None
     )  # PyKCS11 opaque data
 
@@ -290,16 +290,16 @@ class KSKM_P11Module:
             res = _p11.findObjects(_session, template)
             if res:
                 if len(res) > 1:
-                    logger.warning(
+                    raise RuntimeError(
                         f"More than one ({len(res)}) keys with label {repr(label)} found in slot {_slot}"
                     )
                 # logger.debug(f'Found key with label {label!r} in slot {_slot}')
                 this = res[0]
                 _pubkey = None
-                _pubkey_handle: list[PyKCS11.LowLevel.CK_OBJECT_HANDLE] | None = None
+                _pubkey_handle: PyKCS11.LowLevel.CK_OBJECT_HANDLE | None = None
                 if key_class != KeyClass.SECRET:
                     _pubkey = self._p11_object_to_public_key(_session, this)
-                    _pubkey_handle = res
+                    _pubkey_handle = this
                 _cka_type = _p11.getAttributeValue(_session, this, [_p11.CKA_KEY_TYPE])[
                     0
                 ]
@@ -345,7 +345,7 @@ class KSKM_P11Module:
                     privkey_handle=(
                         this if key_class == _p11.CKO_PRIVATE_KEY else None
                     ),
-                    pubkey_handle=([this] if key_class == _p11.CKO_PUBLIC_KEY else None),
+                    pubkey_handle=(this if key_class == _p11.CKO_PUBLIC_KEY else None),
                     session=session,
                 )
                 res += [key]
