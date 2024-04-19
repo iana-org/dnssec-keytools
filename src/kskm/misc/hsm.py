@@ -444,15 +444,21 @@ class KSKM_P11Module:
 
 def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) -> bytes:
     """Sign some data using a PKCS#11 key."""
-    # Mechanism CKM_ECDSA is without hashing, so pre-hash data if using ECDSA
-    if algorithm == AlgorithmDNSSEC.ECDSAP256SHA256:
-        data = sha256(data).digest()
-    elif algorithm == AlgorithmDNSSEC.ECDSAP384SHA384:
-        data = sha384(data).digest()
+
+
+    data_to_sign, mechanism = _format_data_for_signing(key, data, algorithm)
 
     logger.debug(
-        f"Signing {len(data)} bytes with key {key}, algorithm {algorithm.name}"
+        f"Signing {len(data_to_sign)} bytes with key {key}, algorithm {algorithm.name}"
     )
+
+    if not key.privkey_handle:
+        raise RuntimeError(f"No private key supplied in {key}")
+    sig = key.session.sign(key.privkey_handle, data_to_sign, PyKCS11.Mechanism(mechanism, None))
+    return bytes(sig)
+
+
+def _format_data_for_signing(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) -> tuple[bytes, int]:
     # With SoftHSMv2, the following PKCS#11 mechanisms would be available,
     #
     #  {AlgorithmDNSSEC.RSASHA1: PyKCS11.LowLevel.CKM_SHA1_RSA_PKCS,
@@ -462,7 +468,7 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) ->
     #
     # but not with the AEP Keyper, so we implement RSA PKCS#1 1.5 padding ourselves here
     # and instead use the 'raw' RSA signing mechanism CKM_RSA_X_509.
-    _mechanisms: Mapping[AlgorithmDNSSEC, Any] = {
+    _mechanisms: Mapping[AlgorithmDNSSEC, int] = {
         AlgorithmDNSSEC.RSASHA1: _p11.CKM_RSA_X_509,
         AlgorithmDNSSEC.RSASHA256: _p11.CKM_RSA_X_509,
         AlgorithmDNSSEC.RSASHA512: _p11.CKM_RSA_X_509,
@@ -471,34 +477,42 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) ->
     }
 
     mechanism = _mechanisms.get(algorithm)
-    if mechanism is None:
-        raise RuntimeError(f"Can't PKCS#11 sign data with algorithm {algorithm.name}")
 
-    if mechanism == _p11.CKM_RSA_X_509:
-        # Pad according to RFC3447  9.2 EMSA-PKCS1-v1_5
-        if algorithm == AlgorithmDNSSEC.RSASHA1:
-            digest = sha1(data).digest()
-            oid = b"\x30\x21\x30\x09\x06\x05\x2b\x0e\x03\x02\x1a\x05\x00\x04\x14"
-        elif algorithm == AlgorithmDNSSEC.RSASHA256:
-            digest = sha256(data).digest()
-            oid = b"\x30\x31\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x01\x05\x00\x04\x20"
-        elif algorithm == AlgorithmDNSSEC.RSASHA512:
-            digest = sha512(data).digest()
-            oid = b"\x30\x51\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x03\x05\x00\x04\x40"
-        else:
-            raise RuntimeError(f"Don't know how to pad algorithm {algorithm}")
-        if not isinstance(key.public_key, KSKM_PublicKey_RSA):
-            raise ValueError(f"Can't RSA sign with non-RSA key {key}")
-        oid_digest = oid + digest
-        sig_len = key.public_key.bits // 8
-        pad_len = sig_len - len(oid_digest) - 3
-        pad = b"\xff" * pad_len
-        data = bytes([0x0, 0x1]) + pad + b"\x00" + oid_digest
+    match mechanism:
+        case None:
+            raise RuntimeError(f"Can't PKCS#11 sign data with algorithm {algorithm.name}")
+        case _p11.CKM_RSA_X_509:
+            if not isinstance(key.public_key, KSKM_PublicKey_RSA):
+                raise ValueError(f"Can't RSA sign with non-RSA key {key}")
 
-    if not key.privkey_handle:
-        raise RuntimeError(f"No private key supplied in {key}")
-    sig = key.session.sign(key.privkey_handle, data, PyKCS11.Mechanism(mechanism, None))
-    return bytes(sig)
+            # Pad according to RFC3447  9.2 EMSA-PKCS1-v1_5
+            if algorithm == AlgorithmDNSSEC.RSASHA1:
+                digest = sha1(data).digest()
+                oid = b"\x30\x21\x30\x09\x06\x05\x2b\x0e\x03\x02\x1a\x05\x00\x04\x14"
+            elif algorithm == AlgorithmDNSSEC.RSASHA256:
+                digest = sha256(data).digest()
+                oid = b"\x30\x31\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x01\x05\x00\x04\x20"
+            elif algorithm == AlgorithmDNSSEC.RSASHA512:
+                digest = sha512(data).digest()
+                oid = b"\x30\x51\x30\x0d\x06\x09\x60\x86\x48\x01\x65\x03\x04\x02\x03\x05\x00\x04\x40"
+            else:
+                raise RuntimeError(f"Don't know how to pad algorithm {algorithm}")
+
+            oid_digest = oid + digest
+            sig_len = key.public_key.bits // 8
+            pad_len = sig_len - len(oid_digest) - 3
+            pad = b"\xff" * pad_len
+            data = bytes([0x0, 0x1]) + pad + b"\x00" + oid_digest
+        case _p11.CKM_ECDSA:
+            # Mechanism CKM_ECDSA is without hashing, so pre-hash data if using ECDSA
+            if algorithm == AlgorithmDNSSEC.ECDSAP256SHA256:
+                data = sha256(data).digest()
+            elif algorithm == AlgorithmDNSSEC.ECDSAP384SHA384:
+                data = sha384(data).digest()
+        case _:
+            raise RuntimeError(f"Unknown mechanism {mechanism}")
+
+    return data, mechanism
 
 
 KSKM_P11 = NewType("KSKM_P11", list[KSKM_P11Module])
