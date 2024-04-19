@@ -132,8 +132,8 @@ class TestValidate_signatures(TestCase):
             validate_signatures(bundle)
 
     def _load_bundle_from_file(self, fn: str, bundle_id: str) -> RequestBundle | None:
-        fn = self.data_dir.joinpath(fn)
-        with open(fn) as fd:
+        _fn = self.data_dir.joinpath(fn)
+        with open(_fn) as fd:
             xml = fd.read()
         ksr = request_from_xml(xml)
         for bundle in ksr.bundles:
@@ -142,8 +142,8 @@ class TestValidate_signatures(TestCase):
         return None
 
     def _test_file(self, fn: str, filter_ids: list[str] | None = None) -> None:
-        fn = self.data_dir.joinpath(fn)
-        with open(fn) as fd:
+        _fn = self.data_dir.joinpath(fn)
+        with open(_fn) as fd:
             xml = fd.read()
         ksr = request_from_xml(xml)
         for bundle in ksr.bundles:
