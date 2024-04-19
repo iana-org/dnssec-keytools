@@ -14,8 +14,7 @@ class TestBundle_to_hashdigest(TestCase):
 
     def test_bundle_to_hashdigest(self) -> None:
         """Test hash computation of a single well-known bundle"""
-        fn = "ksr-root-2009-q4-2.xml"
-        fn = self.data_dir.joinpath(fn)
+        fn = self.data_dir.joinpath("ksr-root-2009-q4-2.xml")
         with open(fn) as fd:
             xml = fd.read()
         ksr = request_from_xml(xml)

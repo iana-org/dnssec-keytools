@@ -1,7 +1,5 @@
 """Sub-parts of KSKMConfig (in config.py)."""
 
-from __future__ import annotations
-
 from abc import ABC
 from collections.abc import Mapping
 from copy import deepcopy
