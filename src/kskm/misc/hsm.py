@@ -154,8 +154,7 @@ class KSKM_P11Module:
         """
         self.module: Path | str
         if isinstance(hsm.module, str) and hsm.module.startswith("$"):
-            _module = os.environ.get(hsm.module.lstrip("$"))
-            if not _module:
+            if not (_module := os.environ.get(hsm.module.lstrip("$"))):
                 raise RuntimeError(f"Environment variable {hsm.module} not set")
             self.module = Path(_module)
         else:
