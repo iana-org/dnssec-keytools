@@ -150,7 +150,7 @@ class KSKM_P11Module:
             if so_login:
                 self.so_pin = getpass(f"Enter SO PIN for PKCS#11 module {self.label}: ")
         else:
-            self.so_pin = str(hsm.pin)
+            self.so_pin = str(hsm.so_pin)
 
         # Mapping from slot number to session
         self._sessions: dict[int, Any] = {}
