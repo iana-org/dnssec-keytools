@@ -72,3 +72,13 @@ class Test_Sign_Formatting(unittest.TestCase):
             b"doQSMg97CqWBL85CjcRwazyuUOAqZMqhangiSb/o78S37xzLEmJV0ZYEff7fF6Cp"
         )
         assert _mechanism == _p11.CKM_ECDSA
+
+    def test_rsa_hash_on_hsm(self) -> None:
+        """Test formatting of data for signing after hashing on the HSM."""
+        _data = b"test"
+        _rsa_key = self.rsa_key.replace(hash_using_hsm=True)
+        _formatted, _mechanism = _format_data_for_signing(
+            _rsa_key, _data, AlgorithmDNSSEC.RSASHA256
+        )
+        assert _formatted == _data
+        assert _mechanism == _p11.CKM_SHA256_RSA_PKCS

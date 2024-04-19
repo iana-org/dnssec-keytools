@@ -37,6 +37,9 @@ class PyKCS11WithTypes(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     CKM_RSA_X_509: int
+    CKM_SHA1_RSA_PKCS: int
+    CKM_SHA256_RSA_PKCS: int
+    CKM_SHA512_RSA_PKCS: int
     CKM_ECDSA: int
 
     CKO_PUBLIC_KEY: int
@@ -115,8 +118,9 @@ class KSKM_P11Key(BaseModel):
     label: str  # for debugging
     key_type: KeyType
     key_class: KeyClass
+    hash_using_hsm: bool | None = None
     public_key: KSKM_PublicKey | None
-    session: Any = field(repr=False)  # PyKCS11 opaque data
+    session: Any = field(default=None, repr=False)  # PyKCS11 opaque data
     privkey_handle: PyKCS11.LowLevel.CK_OBJECT_HANDLE | None = field(
         repr=False, default=None
     )  # PyKCS11 opaque data
@@ -277,7 +281,9 @@ class KSKM_P11Module:
 
         return self._sessions
 
-    def find_key_by_label(self, label: str, key_class: KeyClass) -> KSKM_P11Key | None:
+    def find_key_by_label(
+        self, label: str, key_class: KeyClass, hash_using_hsm: bool | None = None
+    ) -> KSKM_P11Key | None:
         """Query the PKCS#11 module for a key with CKA_LABEL matching 'label'."""
         _slots: list[int] = []
         for _slot, _session in self.sessions.items():
@@ -306,6 +312,7 @@ class KSKM_P11Module:
                     label=label,
                     key_type=KeyType(_cka_type),
                     key_class=key_class,
+                    hash_using_hsm=hash_using_hsm,
                     public_key=_pubkey,
                     session=_session,
                     privkey_handle=this if key_class != KeyClass.PUBLIC else None,
@@ -445,7 +452,6 @@ class KSKM_P11Module:
 def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) -> bytes:
     """Sign some data using a PKCS#11 key."""
 
-
     data_to_sign, mechanism = _format_data_for_signing(key, data, algorithm)
 
     logger.debug(
@@ -458,17 +464,18 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) ->
     return bytes(sig)
 
 
-def _format_data_for_signing(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) -> tuple[bytes, int]:
-    # With SoftHSMv2, the following PKCS#11 mechanisms would be available,
+def _format_data_for_signing(
+    key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC
+) -> tuple[bytes, int]:
+    # With SoftHSMv2/Luna, the following PKCS#11 mechanisms are available,
     #
-    #  {AlgorithmDNSSEC.RSASHA1: PyKCS11.LowLevel.CKM_SHA1_RSA_PKCS,
-    #   AlgorithmDNSSEC.RSASHA256: PyKCS11.LowLevel.CKM_SHA256_RSA_PKCS,
-    #   AlgorithmDNSSEC.RSASHA512: PyKCS11.LowLevel.CKM_SHA512_RSA_PKCS,
-    #  }
+    #  CKM_SHA1_RSA_PKCS,
+    #  CKM_SHA256_RSA_PKCS,
+    #  CKM_SHA512_RSA_PKCS,
     #
-    # but not with the AEP Keyper, so we implement RSA PKCS#1 1.5 padding ourselves here
-    # and instead use the 'raw' RSA signing mechanism CKM_RSA_X_509.
-    _mechanisms: Mapping[AlgorithmDNSSEC, int] = {
+    # but not with the AEP Keyper, so we implement RSA PKCS#1 1.5 padding ourselves here and instead
+    # use the 'raw' RSA signing mechanism CKM_RSA_X_509, unless the key is configured with `hash_using_hsm`.
+    _mechanisms: dict[AlgorithmDNSSEC, int] = {
         AlgorithmDNSSEC.RSASHA1: _p11.CKM_RSA_X_509,
         AlgorithmDNSSEC.RSASHA256: _p11.CKM_RSA_X_509,
         AlgorithmDNSSEC.RSASHA512: _p11.CKM_RSA_X_509,
@@ -476,12 +483,28 @@ def _format_data_for_signing(key: KSKM_P11Key, data: bytes, algorithm: Algorithm
         AlgorithmDNSSEC.ECDSAP384SHA384: _p11.CKM_ECDSA,
     }
 
+    if key.hash_using_hsm:
+        _mechanisms.update(
+            {
+                AlgorithmDNSSEC.RSASHA1: _p11.CKM_SHA1_RSA_PKCS,
+                AlgorithmDNSSEC.RSASHA256: _p11.CKM_SHA256_RSA_PKCS,
+                AlgorithmDNSSEC.RSASHA512: _p11.CKM_SHA512_RSA_PKCS,
+            }
+        )
+
     mechanism = _mechanisms.get(algorithm)
 
     match mechanism:
-        case None:
-            raise RuntimeError(f"Can't PKCS#11 sign data with algorithm {algorithm.name}")
+        case (
+            _p11.CKM_SHA1_RSA_PKCS
+            | _p11.CKM_SHA256_RSA_PKCS
+            | _p11.CKM_SHA512_RSA_PKCS
+        ):
+            # These mechanisms hash the data on the HSM
+            pass
         case _p11.CKM_RSA_X_509:
+            # The X.509 (raw) RSA mechanism does not hash the data on the HSM, so we need to hash it first.
+
             if not isinstance(key.public_key, KSKM_PublicKey_RSA):
                 raise ValueError(f"Can't RSA sign with non-RSA key {key}")
 
@@ -510,7 +533,9 @@ def _format_data_for_signing(key: KSKM_P11Key, data: bytes, algorithm: Algorithm
             elif algorithm == AlgorithmDNSSEC.ECDSAP384SHA384:
                 data = sha384(data).digest()
         case _:
-            raise RuntimeError(f"Unknown mechanism {mechanism}")
+            raise RuntimeError(
+                f"Can't PKCS#11 sign data with algorithm {algorithm.name}"
+            )
 
     return data, mechanism
 
@@ -624,7 +649,9 @@ def parse_hsmconfig(
     return res
 
 
-def get_p11_key(label: str, p11modules: KSKM_P11, public: bool) -> KSKM_P11Key | None:
+def get_p11_key(
+    label: str, p11modules: KSKM_P11, public: bool, hash_using_hsm: bool | None = None
+) -> KSKM_P11Key | None:
     """
     Look for a key with CKA_LABEL matching 'label'.
 
@@ -639,7 +666,9 @@ def get_p11_key(label: str, p11modules: KSKM_P11, public: bool) -> KSKM_P11Key |
     """
     key_class = KeyClass.PUBLIC if public else KeyClass.PRIVATE
     for module in p11modules:
-        p11key = module.find_key_by_label(label, key_class)
+        p11key = module.find_key_by_label(
+            label, key_class, hash_using_hsm=hash_using_hsm
+        )
         if p11key is not None:
             return p11key
     return None
