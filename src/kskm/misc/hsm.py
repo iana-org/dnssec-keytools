@@ -145,6 +145,7 @@ class KSKM_P11Module:
         else:
             self.pin = str(hsm.pin)
 
+        # set SO PIN
         self.so_pin = None
         if hsm.so_pin is None:
             if so_login:
