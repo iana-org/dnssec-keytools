@@ -35,21 +35,23 @@ class Test_load_hsmconfig(TestCase):
     def test_parse_hsmconfig_no_separator(self) -> None:
         """Test parsing line without separator (=)"""
         with self.assertRaises(ValueError):
-            hsm.parse_hsmconfig(iter(["foo"]), "test data", {"HOME": "/test"})
+            hsm.parse_hsmconfig(iter(["foo"]), Path("test data"), {"HOME": "/test"})
 
     def test_parse_hsmconfig_invalid_variable_value(self) -> None:
         """Test parsing line with value resolving to another value"""
         with self.assertRaises(ValueError):
-            hsm.parse_hsmconfig(iter(["foo=$TEST"]), "test data", {"TEST": "$TEST"})
+            hsm.parse_hsmconfig(
+                iter(["foo=$TEST"]), Path("test data"), {"TEST": "$TEST"}
+            )
 
     def test_parse_hsmconfig_unknown_variable_value(self) -> None:
         """Test parsing line with unknown variable"""
         with self.assertRaises(RuntimeError):
-            hsm.parse_hsmconfig(iter(["foo=$TEST"]), "test data", {})
+            hsm.parse_hsmconfig(iter(["foo=$TEST"]), Path("test data"), {})
 
     def test_parse_hsmconfig_too_long(self) -> None:
         """Test parsing line with too many lines of config"""
         with self.assertRaises(RuntimeError):
             hsm.parse_hsmconfig(
-                iter(["foo=TEST", "bar=yes"]), "test data", {}, max_lines=1
+                iter(["foo=TEST", "bar=yes"]), Path("test data"), {}, max_lines=1
             )

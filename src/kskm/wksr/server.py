@@ -114,7 +114,7 @@ def validate_ksr(filename: Path) -> dict[str, str]:
     ksr_config_filename = None
 
     if wksr_config and wksr_config.ksr and wksr_config.ksr.ksrsigner_configfile:
-        ksr_config_filename = str(wksr_config.ksr.ksrsigner_configfile)
+        ksr_config_filename = wksr_config.ksr.ksrsigner_configfile
         logger.info(f"Using ksrsigner configuration {ksr_config_filename}")
     else:
         logger.warning("Using default ksrsigner configuration")
