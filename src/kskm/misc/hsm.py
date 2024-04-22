@@ -61,6 +61,8 @@ class PyKCS11WithTypes(BaseModel):
     CKK_RSA: P11_CKK_Constant
 
     CKM_ECDSA: P11_CKM_Constant
+    CKM_ECDSA_SHA256: P11_CKM_Constant
+    CKM_ECDSA_SHA384: P11_CKM_Constant
     CKM_RSA_X_509: P11_CKM_Constant
     CKM_SHA1_RSA_PKCS: P11_CKM_Constant
     CKM_SHA256_RSA_PKCS: P11_CKM_Constant
@@ -486,36 +488,29 @@ class DataToSign(BaseModel):
 def _format_data_for_signing(
     key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC
 ) -> DataToSign:
-    # With SoftHSMv2/Luna, the following PKCS#11 mechanisms are available,
-    #
-    #  CKM_SHA1_RSA_PKCS,
-    #  CKM_SHA256_RSA_PKCS,
-    #  CKM_SHA512_RSA_PKCS,
-    #
-    # but not with the AEP Keyper, so we implement RSA PKCS#1 1.5 padding ourselves here and instead
-    # use the 'raw' RSA signing mechanism CKM_RSA_X_509, unless the key is configured with `hash_using_hsm`.
-    _mechanisms: dict[AlgorithmDNSSEC, P11_CKM_Constant] = {
-        AlgorithmDNSSEC.RSASHA1: _p11.CKM_RSA_X_509,
-        AlgorithmDNSSEC.RSASHA256: _p11.CKM_RSA_X_509,
-        AlgorithmDNSSEC.RSASHA512: _p11.CKM_RSA_X_509,
-        AlgorithmDNSSEC.ECDSAP256SHA256: _p11.CKM_ECDSA,
-        AlgorithmDNSSEC.ECDSAP384SHA384: _p11.CKM_ECDSA,
-    }
-
     if key.hash_using_hsm:
-        _mechanisms.update(
-            {
-                AlgorithmDNSSEC.RSASHA1: _p11.CKM_SHA1_RSA_PKCS,
-                AlgorithmDNSSEC.RSASHA256: _p11.CKM_SHA256_RSA_PKCS,
-                AlgorithmDNSSEC.RSASHA512: _p11.CKM_SHA512_RSA_PKCS,
-            }
-        )
-
-    mechanism = _mechanisms.get(algorithm)
+        mechanism: P11_CKM_Constant | None = {
+            AlgorithmDNSSEC.RSASHA1: _p11.CKM_SHA1_RSA_PKCS,
+            AlgorithmDNSSEC.RSASHA256: _p11.CKM_SHA256_RSA_PKCS,
+            AlgorithmDNSSEC.RSASHA512: _p11.CKM_SHA512_RSA_PKCS,
+            AlgorithmDNSSEC.ECDSAP256SHA256: _p11.CKM_ECDSA_SHA256,
+            AlgorithmDNSSEC.ECDSAP384SHA384: _p11.CKM_ECDSA_SHA384,
+        }.get(algorithm)
+    else:
+        # The AEP Keyper doesn't support hashing on the HSM, so we implement RSA PKCS#1 1.5 padding ourselves here
+        mechanism: P11_CKM_Constant | None = {
+            AlgorithmDNSSEC.RSASHA1: _p11.CKM_RSA_X_509,
+            AlgorithmDNSSEC.RSASHA256: _p11.CKM_RSA_X_509,
+            AlgorithmDNSSEC.RSASHA512: _p11.CKM_RSA_X_509,
+            AlgorithmDNSSEC.ECDSAP256SHA256: _p11.CKM_ECDSA,
+            AlgorithmDNSSEC.ECDSAP384SHA384: _p11.CKM_ECDSA,
+        }.get(algorithm)
 
     match mechanism:
         case (
-            _p11.CKM_SHA1_RSA_PKCS
+            _p11.CKM_ECDSA_SHA256
+            | _p11.CKM_ECDSA_SHA384
+            | _p11.CKM_SHA1_RSA_PKCS
             | _p11.CKM_SHA256_RSA_PKCS
             | _p11.CKM_SHA512_RSA_PKCS
         ):
