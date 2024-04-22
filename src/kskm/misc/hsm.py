@@ -464,8 +464,9 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) ->
 
     _sign_data = _format_data_for_signing(key, data, algorithm)
 
-    logger.debug(
-        f"Signing {len(_sign_data.data)} bytes with key {key}, algorithm {algorithm.name}"
+    logger.info(
+        f"Signing {len(_sign_data.data)} bytes with key {key}, algorithm {algorithm.name}, " +
+        f"mechanism {_sign_data.mechanism_name}, hash using hsm={_sign_data.hash_using_hsm}"
     )
 
     if not key.privkey_handle:
@@ -483,13 +484,17 @@ class DataToSign(BaseModel):
 
     data: bytes
     mechanism: P11_CKM_Constant
+    hash_using_hsm: bool
+    mechanism_name: str
 
 
 def _format_data_for_signing(
     key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC
 ) -> DataToSign:
+    mechanism: P11_CKM_Constant | None
+
     if key.hash_using_hsm:
-        mechanism: P11_CKM_Constant | None = {
+        mechanism = {
             AlgorithmDNSSEC.RSASHA1: _p11.CKM_SHA1_RSA_PKCS,
             AlgorithmDNSSEC.RSASHA256: _p11.CKM_SHA256_RSA_PKCS,
             AlgorithmDNSSEC.RSASHA512: _p11.CKM_SHA512_RSA_PKCS,
@@ -498,7 +503,7 @@ def _format_data_for_signing(
         }.get(algorithm)
     else:
         # The AEP Keyper doesn't support hashing on the HSM, so we implement RSA PKCS#1 1.5 padding ourselves here
-        mechanism: P11_CKM_Constant | None = {
+        mechanism = {
             AlgorithmDNSSEC.RSASHA1: _p11.CKM_RSA_X_509,
             AlgorithmDNSSEC.RSASHA256: _p11.CKM_RSA_X_509,
             AlgorithmDNSSEC.RSASHA512: _p11.CKM_RSA_X_509,
@@ -551,7 +556,13 @@ def _format_data_for_signing(
                 f"Can't PKCS#11 sign data with algorithm {algorithm.name}"
             )
 
-    return DataToSign(data=data, mechanism=mechanism)
+    _mechanism_name = str(PyKCS11.CKM[mechanism])  # type: ignore
+    return DataToSign(
+        data=data,
+        mechanism=mechanism,
+        hash_using_hsm=bool(key.hash_using_hsm),
+        mechanism_name=_mechanism_name,
+    )
 
 
 KSKM_P11 = NewType("KSKM_P11", list[KSKM_P11Module])

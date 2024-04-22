@@ -74,6 +74,7 @@ class KSKMConfig(FrozenBaseModel):
             valid_from: 2010-07-15T00:00:00+00:00
             valid_until: 2019-01-11T00:00:00+00:00
             ds_sha256: 49AAC11D7B6F6446702E54A1607371607A1A41855200FD2CE1CDDE32F24E8FB5
+            hash_using_hsm: false
     """
     ksk_keys: KSKKeysType = Field(default_factory=dict)
 

@@ -38,6 +38,7 @@ class Test_Sign_Formatting(unittest.TestCase):
             == b"AAEAMDEwDQYJYIZIAWUDBAIBBQAEIJ+G0IGITH1lmi/qoMVa0BWjv08bKwuCLNFdbBWw8AoI"
         )
         assert _sign_data.mechanism == _p11.CKM_RSA_X_509
+        assert _sign_data.hash_using_hsm is False
 
     def test_raw_rsa_sha512(self) -> None:
         """Test formatting of raw RSA data for signing (SHA512)."""
@@ -50,6 +51,8 @@ class Test_Sign_Formatting(unittest.TestCase):
             + b"+KDh1fhPiLyIf9Z7FDcywwTMX6mtjm9X9QAoqP8="
         )
         assert _sign_data.mechanism == _p11.CKM_RSA_X_509
+        assert _sign_data.hash_using_hsm is False
+        assert _sign_data.mechanism_name == "CKM_RSA_X_509"
 
     def test_raw_ecdsa_sha256(self) -> None:
         """Test formatting of raw ECDSA data for signing (SHA256)."""
@@ -61,6 +64,8 @@ class Test_Sign_Formatting(unittest.TestCase):
             b"n4bQgYhMfWWaL+qgxVrQFaO/TxsrC4Is0V1sFbDwCgg="
         )
         assert _sign_data.mechanism == _p11.CKM_ECDSA
+        assert _sign_data.hash_using_hsm is False
+        assert _sign_data.mechanism_name == "CKM_ECDSA"
 
     def test_raw_ecdsa_sha384(self) -> None:
         """Test formatting of raw ECDSA data for signing (SHA384)."""
@@ -72,6 +77,8 @@ class Test_Sign_Formatting(unittest.TestCase):
             b"doQSMg97CqWBL85CjcRwazyuUOAqZMqhangiSb/o78S37xzLEmJV0ZYEff7fF6Cp"
         )
         assert _sign_data.mechanism == _p11.CKM_ECDSA
+        assert _sign_data.hash_using_hsm is False
+        assert _sign_data.mechanism_name == "CKM_ECDSA"
 
     def test_rsa_hash_on_hsm(self) -> None:
         """Test formatting of data for signing after hashing on the HSM."""
@@ -82,3 +89,17 @@ class Test_Sign_Formatting(unittest.TestCase):
         )
         assert _sign_data.data == _data
         assert _sign_data.mechanism == _p11.CKM_SHA256_RSA_PKCS
+        assert _sign_data.hash_using_hsm is True
+        assert _sign_data.mechanism_name == "CKM_SHA256_RSA_PKCS"
+
+    def test_ecdsa_hash_on_hsm(self) -> None:
+        """Test formatting of data for signing after hashing on the HSM."""
+        _data = b"test"
+        _ecdsa_key = self.ecdsa_key.replace(hash_using_hsm=True)
+        _sign_data = _format_data_for_signing(
+            _ecdsa_key, _data, AlgorithmDNSSEC.ECDSAP256SHA256
+        )
+        assert _sign_data.data == _data
+        assert _sign_data.mechanism == _p11.CKM_ECDSA_SHA256
+        assert _sign_data.hash_using_hsm is True
+        assert _sign_data.mechanism_name == "CKM_ECDSA_SHA256"
