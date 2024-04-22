@@ -494,7 +494,7 @@ def _format_data_for_signing(
     #
     # but not with the AEP Keyper, so we implement RSA PKCS#1 1.5 padding ourselves here and instead
     # use the 'raw' RSA signing mechanism CKM_RSA_X_509, unless the key is configured with `hash_using_hsm`.
-    _mechanisms: dict[AlgorithmDNSSEC, int] = {
+    _mechanisms: dict[AlgorithmDNSSEC, P11_CKM_Constant] = {
         AlgorithmDNSSEC.RSASHA1: _p11.CKM_RSA_X_509,
         AlgorithmDNSSEC.RSASHA256: _p11.CKM_RSA_X_509,
         AlgorithmDNSSEC.RSASHA512: _p11.CKM_RSA_X_509,
