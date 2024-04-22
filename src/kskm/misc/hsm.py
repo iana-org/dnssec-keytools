@@ -30,7 +30,13 @@ __author__ = "ft"
 
 logger = logging.getLogger(__name__)
 
-P11Constant = NewType("P11Constant", int)
+
+P11_CKA_Constant = NewType("P11_CKA_Constant", int)
+P11_CKF_Constant = NewType("P11_CKF_Constant", int)
+P11_CKK_Constant = NewType("P11_CKK_Constant", int)
+P11_CKM_Constant = NewType("P11_CKM_Constant", int)
+P11_CKO_Constant = NewType("P11_CKO_Constant", int)
+P11_CKU_Constant = NewType("P11_CKU_Constant", int)
 
 
 class PyKCS11WithTypes(BaseModel):
@@ -38,34 +44,34 @@ class PyKCS11WithTypes(BaseModel):
 
     model_config = ConfigDict(extra="ignore")
 
-    CKM_RSA_X_509: P11Constant
-    CKM_SHA1_RSA_PKCS: P11Constant
-    CKM_SHA256_RSA_PKCS: P11Constant
-    CKM_SHA512_RSA_PKCS: P11Constant
-    CKM_ECDSA: P11Constant
+    CKA_CLASS: P11_CKA_Constant
+    CKA_EC_PARAMS: P11_CKA_Constant
+    CKA_EC_POINT: P11_CKA_Constant
+    CKA_ID: P11_CKA_Constant
+    CKA_KEY_TYPE: P11_CKA_Constant
+    CKA_LABEL: P11_CKA_Constant
+    CKA_MODULUS: P11_CKA_Constant
+    CKA_PUBLIC_EXPONENT: P11_CKA_Constant
 
-    CKO_PUBLIC_KEY: P11Constant
-    CKO_PRIVATE_KEY: P11Constant
-    CKO_SECRET_KEY: P11Constant
+    CKF_RW_SESSION: P11_CKF_Constant
 
-    CKK_RSA: P11Constant
-    CKK_EC: P11Constant
-    CKK_AES: P11Constant
-    CKK_DES3: P11Constant
+    CKK_AES: P11_CKK_Constant
+    CKK_DES3: P11_CKK_Constant
+    CKK_EC: P11_CKK_Constant
+    CKK_RSA: P11_CKK_Constant
 
-    CKA_ID: P11Constant
-    CKA_LABEL: P11Constant
-    CKA_CLASS: P11Constant
-    CKA_KEY_TYPE: P11Constant
-    CKA_MODULUS: P11Constant
-    CKA_PUBLIC_EXPONENT: P11Constant
-    CKA_EC_PARAMS: P11Constant
-    CKA_EC_POINT: P11Constant
+    CKM_ECDSA: P11_CKM_Constant
+    CKM_RSA_X_509: P11_CKM_Constant
+    CKM_SHA1_RSA_PKCS: P11_CKM_Constant
+    CKM_SHA256_RSA_PKCS: P11_CKM_Constant
+    CKM_SHA512_RSA_PKCS: P11_CKM_Constant
 
-    CKU_SO: P11Constant
-    CKU_USER: P11Constant
+    CKO_PRIVATE_KEY: P11_CKO_Constant
+    CKO_PUBLIC_KEY: P11_CKO_Constant
+    CKO_SECRET_KEY: P11_CKO_Constant
 
-    CKF_RW_SESSION: P11Constant
+    CKU_SO: P11_CKU_Constant
+    CKU_USER: P11_CKU_Constant
 
     def findObjects(
         self, session: PyKCS11.Session, template: list[tuple[Any, Any]]
@@ -474,7 +480,7 @@ class DataToSign(BaseModel):
     """Hold the data to sign, formatted to suit the mechanism used."""
 
     data: bytes
-    mechanism: P11Constant
+    mechanism: P11_CKM_Constant
 
 
 def _format_data_for_signing(
