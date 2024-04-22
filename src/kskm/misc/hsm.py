@@ -1,7 +1,5 @@
 """Hardware Security Module interface functions."""
 
-from __future__ import annotations
-
 import binascii
 import logging
 import os

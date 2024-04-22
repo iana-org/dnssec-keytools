@@ -1,12 +1,10 @@
 """Load and parse configuration."""
 
-from __future__ import annotations
-
 import logging
 from collections.abc import Mapping
 from io import BufferedReader, StringIO
 from pathlib import Path
-from typing import Any, NewType
+from typing import Any, NewType, Self
 
 import yaml
 from pydantic import Field
@@ -161,7 +159,7 @@ class KSKMConfig(FrozenBaseModel):
         _name = SchemaName(name)
         return Schema(name=_name, actions=self.schemas[_name])
 
-    def update(self, data: Mapping[str, Any]) -> KSKMConfig:
+    def update(self, data: Mapping[str, Any]) -> Self:
         """Update configuration on the fly. Usable in tests."""
         data = self._transform_config(data)
         logger.warning(f"Updating configuration (sections {data.keys()})")
@@ -169,7 +167,7 @@ class KSKMConfig(FrozenBaseModel):
         _config.update(data)
         return self.from_dict(_config)
 
-    def merge_update(self, data: Mapping[str, Any]) -> KSKMConfig:
+    def merge_update(self, data: Mapping[str, Any]) -> Self:
         """Merge-update configuration on the fly. Usable in tests."""
         data = self._transform_config(data)
         logger.warning(f"Merging configuration (sections {data.keys()})")
@@ -182,14 +180,14 @@ class KSKMConfig(FrozenBaseModel):
 
     @classmethod
     def from_yaml(
-        cls: type[KSKMConfig], stream: BufferedReader | StringIO
-    ) -> KSKMConfig:
+        cls, stream: BufferedReader | StringIO
+    ) -> Self:
         """Load configuration from a YAML stream."""
         config = yaml.safe_load(stream)
-        return KSKMConfig.from_dict(config)
+        return cls.from_dict(config)
 
     @classmethod
-    def from_dict(cls: type[KSKMConfig], config: Mapping[str, Any]) -> KSKMConfig:
+    def from_dict(cls, config: Mapping[str, Any]) -> Self:
         """
         Load configuration from a dict.
 
