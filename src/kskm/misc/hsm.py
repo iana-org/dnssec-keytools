@@ -30,40 +30,42 @@ __author__ = "ft"
 
 logger = logging.getLogger(__name__)
 
+P11Constant = NewType("P11Constant", int)
+
 
 class PyKCS11WithTypes(BaseModel):
     """Get all the constants we use, with type information."""
 
     model_config = ConfigDict(extra="ignore")
 
-    CKM_RSA_X_509: int
-    CKM_SHA1_RSA_PKCS: int
-    CKM_SHA256_RSA_PKCS: int
-    CKM_SHA512_RSA_PKCS: int
-    CKM_ECDSA: int
+    CKM_RSA_X_509: P11Constant
+    CKM_SHA1_RSA_PKCS: P11Constant
+    CKM_SHA256_RSA_PKCS: P11Constant
+    CKM_SHA512_RSA_PKCS: P11Constant
+    CKM_ECDSA: P11Constant
 
-    CKO_PUBLIC_KEY: int
-    CKO_PRIVATE_KEY: int
-    CKO_SECRET_KEY: int
+    CKO_PUBLIC_KEY: P11Constant
+    CKO_PRIVATE_KEY: P11Constant
+    CKO_SECRET_KEY: P11Constant
 
-    CKK_RSA: int
-    CKK_EC: int
-    CKK_AES: int
-    CKK_DES3: int
+    CKK_RSA: P11Constant
+    CKK_EC: P11Constant
+    CKK_AES: P11Constant
+    CKK_DES3: P11Constant
 
-    CKA_ID: int
-    CKA_LABEL: int
-    CKA_CLASS: int
-    CKA_KEY_TYPE: int
-    CKA_MODULUS: int
-    CKA_PUBLIC_EXPONENT: int
-    CKA_EC_PARAMS: int
-    CKA_EC_POINT: int
+    CKA_ID: P11Constant
+    CKA_LABEL: P11Constant
+    CKA_CLASS: P11Constant
+    CKA_KEY_TYPE: P11Constant
+    CKA_MODULUS: P11Constant
+    CKA_PUBLIC_EXPONENT: P11Constant
+    CKA_EC_PARAMS: P11Constant
+    CKA_EC_POINT: P11Constant
 
-    CKU_SO: int
-    CKU_USER: int
+    CKU_SO: P11Constant
+    CKU_USER: P11Constant
 
-    CKF_RW_SESSION: int
+    CKF_RW_SESSION: P11Constant
 
     def findObjects(
         self, session: PyKCS11.Session, template: list[tuple[Any, Any]]
@@ -452,21 +454,32 @@ class KSKM_P11Module:
 def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) -> bytes:
     """Sign some data using a PKCS#11 key."""
 
-    data_to_sign, mechanism = _format_data_for_signing(key, data, algorithm)
+    _sign_data = _format_data_for_signing(key, data, algorithm)
 
     logger.debug(
-        f"Signing {len(data_to_sign)} bytes with key {key}, algorithm {algorithm.name}"
+        f"Signing {len(_sign_data.data)} bytes with key {key}, algorithm {algorithm.name}"
     )
 
     if not key.privkey_handle:
         raise RuntimeError(f"No private key supplied in {key}")
-    sig = key.session.sign(key.privkey_handle, data_to_sign, PyKCS11.Mechanism(mechanism, None))
+    sig = key.session.sign(
+        key.privkey_handle,
+        _sign_data.data,
+        PyKCS11.Mechanism(_sign_data.mechanism, None),
+    )
     return bytes(sig)
+
+
+class DataToSign(BaseModel):
+    """Hold the data to sign, formatted to suit the mechanism used."""
+
+    data: bytes
+    mechanism: P11Constant
 
 
 def _format_data_for_signing(
     key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC
-) -> tuple[bytes, int]:
+) -> DataToSign:
     # With SoftHSMv2/Luna, the following PKCS#11 mechanisms are available,
     #
     #  CKM_SHA1_RSA_PKCS,
@@ -537,7 +550,7 @@ def _format_data_for_signing(
                 f"Can't PKCS#11 sign data with algorithm {algorithm.name}"
             )
 
-    return data, mechanism
+    return DataToSign(data=data, mechanism=mechanism)
 
 
 KSKM_P11 = NewType("KSKM_P11", list[KSKM_P11Module])
