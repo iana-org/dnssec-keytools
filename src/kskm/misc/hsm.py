@@ -63,7 +63,7 @@ class PyKCS11WithTypes(BaseModel):
     def findObjects(
         self, session: PyKCS11.Session, template: list[tuple[Any, Any]]
     ) -> list[PyKCS11.LowLevel.CK_OBJECT_HANDLE]:
-        """ Helper function to get proper typing. """
+        """Helper function to get proper typing."""
         return session.findObjects(template)  # type: ignore[no-any-return]
 
     def getAttributeValue(
@@ -72,7 +72,7 @@ class PyKCS11WithTypes(BaseModel):
         obj: PyKCS11.LowLevel.CK_OBJECT_HANDLE,
         attrs: list[int],
     ) -> list[Any]:
-        """ Helper function to get proper typing. """
+        """Helper function to get proper typing."""
         return session.getAttributeValue(obj, attrs)  # type: ignore[no-any-return]
 
 

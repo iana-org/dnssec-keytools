@@ -179,9 +179,7 @@ class KSKMConfig(FrozenBaseModel):
         return self.from_dict(_config)
 
     @classmethod
-    def from_yaml(
-        cls, stream: BufferedReader | StringIO
-    ) -> Self:
+    def from_yaml(cls, stream: BufferedReader | StringIO) -> Self:
         """Load configuration from a YAML stream."""
         config = yaml.safe_load(stream)
         return cls.from_dict(config)
