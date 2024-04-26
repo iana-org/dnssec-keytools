@@ -1,5 +1,6 @@
 """Key inventory functions."""
 
+from binascii import hexlify
 import logging
 
 from kskm.common.config import KSKMConfig
@@ -100,15 +101,12 @@ def _format_keys(
     return res
 
 
-def _id_to_str(key_id: tuple[int]) -> str:
+def _id_to_str(key_id: bytes | None) -> str:
     """
-    Get string from CKA_ID.
+    Format CKA_ID as string.
 
-    CKA_ID is tricky - quite often it is a hex number, like 0x0 but it can also be
-    the CKA_LABEL as a tuple of integers.
-
-    :return: A string suitable for printing (prefixed with 'id=' and suffixed with ' '), or an empty string.
+    :return: A string suitable for printing (prefixed with 'id=0x' and suffixed with ' '), or an empty string.
     """
     if key_id:
-        return f"id={key_id} "
+        return f"id=0x{hexlify(key_id).decode()} "
     return ""
