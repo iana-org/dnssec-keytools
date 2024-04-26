@@ -27,7 +27,7 @@ test: softhsm $(BUILDINFO)
 	env $(TEST_ENV) poetry run python -m pytest $(PYTEST_OPTS) $(SOURCE)
 
 container:
-	docker build --tag wksr .
+	docker compose build
 
 coverage: softhsm $(BUILDINFO)
 	env $(TEST_ENV) poetry run coverage run -m pytest $(PYTEST_OPTS) $(SOURCE)
