@@ -1,7 +1,5 @@
 """Hardware Security Module interface functions."""
 
-from __future__ import annotations
-
 import binascii
 import logging
 import os
@@ -691,9 +689,8 @@ def get_p11_key(
     """
     key_class = KeyClass.PUBLIC if public else KeyClass.PRIVATE
     for module in p11modules:
-        p11key = module.find_key_by_label(
-            label, key_class, hash_using_hsm=hash_using_hsm
-        )
-        if p11key is not None:
+        if p11key := module.find_key_by_label(label, key_class, hash_using_hsm=hash_using_hsm):
+            logger.debug(f"Key with label {label!r} found in module {module}")
             return p11key
+    logger.debug(f"Key with label {label!r} not found in any module")
     return None
