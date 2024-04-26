@@ -623,7 +623,8 @@ def get_p11_key(label: str, p11modules: KSKM_P11, public: bool) -> KSKM_P11Key |
     """
     key_class = KeyClass.PUBLIC if public else KeyClass.PRIVATE
     for module in p11modules:
-        p11key = module.find_key_by_label(label, key_class)
-        if p11key is not None:
+        if p11key := module.find_key_by_label(label, key_class):
+            logger.debug(f"Key with label {label!r} found in module {module}")
             return p11key
+    logger.debug(f"Key with label {label!r} not found in any module")
     return None
