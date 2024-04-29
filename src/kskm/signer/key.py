@@ -55,7 +55,9 @@ def load_pkcs11_key(
             f"Key {ksk.label} is not valid at the time of bundle {bundle.id} expiration"
         )
 
-    _found = get_p11_key(ksk.label, p11modules, public=public)
+    _found = get_p11_key(
+        ksk.label, p11modules, public=public, hash_using_hsm=ksk.hash_using_hsm
+    )
     if not _found:
         return None
 
@@ -64,7 +66,9 @@ def load_pkcs11_key(
         logger.debug(
             f"Got no complimentary public key for label {ksk.label}, searching again"
         )
-        _found_pub = get_p11_key(ksk.label, p11modules, public=True)
+        _found_pub = get_p11_key(
+            ksk.label, p11modules, public=True, hash_using_hsm=ksk.hash_using_hsm
+        )
         if _found_pub:
             _found = _found.replace(public_key=_found_pub.public_key)
 

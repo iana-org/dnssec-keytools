@@ -176,6 +176,7 @@ class KSKKey(FrozenBaseModel):
     rsa_size: IntegerRSASize | None = None
     rsa_exponent: PositiveInt | None = None
     ds_sha256: HexDigestString | None = None
+    hash_using_hsm: bool | None = None
 
     @field_validator("algorithm", mode="before")
     @classmethod
