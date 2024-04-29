@@ -113,7 +113,7 @@ class KeyInfo(FrozenBaseModel):
     """Inventory information about a key found in a slot."""
 
     key_class: KeyClass
-    key_id: tuple[int]
+    key_id: bytes | None = None
     label: str
     pubkey: KSKM_PublicKey | None = field(repr=False, default=None)
 
@@ -336,7 +336,10 @@ class KSKM_P11Module:
     def find_key_by_id(
         self, key_id: tuple[int], session: PyKCS11.Session
     ) -> list[KSKM_P11Key]:
-        """Query the PKCS#11 module for a key with CKA_ID matching 'key_id'."""
+        """Query the PKCS#11 module for a key with CKA_ID matching 'key_id'.
+
+        NOTE: This function is currently UNUSED, as not all KSK keys have a CKA_ID set.
+        """
         template = [(_p11.CKA_ID, key_id)]
         res: list[KSKM_P11Key] = []
         objs = _p11.findObjects(session, template)
@@ -370,7 +373,7 @@ class KSKM_P11Module:
         res: list[KeyInfo] = []
 
         for this in _p11.findObjects(session, []):
-            cls, label, key_id = _p11.getAttributeValue(
+            cls, label, _key_id = _p11.getAttributeValue(
                 session,
                 this,
                 [
@@ -379,7 +382,9 @@ class KSKM_P11Module:
                     _p11.CKA_ID,
                 ],
             )
-            logger.debug(f"Found key of class {cls}, label {label} and id {key_id}")
+            logger.debug(f"Found key of class {cls}, label {label} and id {_key_id}")
+
+            key_id = None if _key_id == () else bytes(_key_id)
 
             if cls == _p11.CKO_SECRET_KEY:
                 res += [KeyInfo(key_class=KeyClass.SECRET, label=label, key_id=key_id)]

@@ -10,3 +10,4 @@
 - Import version using importlib.metadata
 - Use Pydantic instead of voluptuous for data validation.
 - Add ksk key config option `hash_using_hsm` to perform hashing on the HSM.
+- Improve container (docker) build
