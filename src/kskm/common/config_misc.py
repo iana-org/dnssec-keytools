@@ -204,6 +204,6 @@ class KSKMFilenames(FrozenBaseModel):
 
 class KSKMHSM(FrozenBaseModel):
     module: FilePath | str
-    pin: str | int
+    pin: str | int | None = None
     so_pin: str | int | None = None
     env: Mapping[str, Any] = Field(default_factory=dict)

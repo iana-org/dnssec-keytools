@@ -208,12 +208,13 @@ class KSKM_P11Module:
         else:
             self.pin = str(hsm.pin)
 
+        # set SO PIN
         self.so_pin = None
         if hsm.so_pin is None:
             if so_login:
                 self.so_pin = getpass(f"Enter SO PIN for PKCS#11 module {self.label}: ")
         else:
-            self.so_pin = str(hsm.pin)
+            self.so_pin = str(hsm.so_pin)
 
         # Mapping from slot number to session
         self._sessions: dict[int, Any] = {}
@@ -268,7 +269,7 @@ class KSKM_P11Module:
                     _pin = self.so_pin if self._so_login else self.pin
                     _rw = _p11.CKF_RW_SESSION if self._rw_session else 0
                     _session = self._lib.openSession(_slot, flags=_rw)  # type: ignore[unused-ignore]
-                    if _pin is not None and len(_pin) > 0:
+                    if _pin is not None:
                         _session.login(_pin, user_type=_user_type)  # type: ignore[unused-ignore]
                         logger.debug(
                             f"Login to module {self.label} slot {_slot} successful"
