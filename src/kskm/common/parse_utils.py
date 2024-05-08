@@ -141,7 +141,9 @@ def parse_datetime(date: str) -> datetime:
     return dt.replace(tzinfo=timezone.utc)
 
 
-def keys_from_dict(keys: dict[str, Any] | list[dict[str, Any]]) -> set[Key]:
+def keys_from_dict(
+    keys: dict[str, dict[str, str]] | list[dict[str, dict[str, str]]],
+) -> set[Key]:
     """
     Parse Bundle keys.
 
@@ -158,10 +160,10 @@ def keys_from_dict(keys: dict[str, Any] | list[dict[str, Any]]) -> set[Key]:
     return _keys_from_list(keys)
 
 
-def _keys_from_list(keys: list[dict[str, Any]]) -> set[Key]:
+def _keys_from_list(keys: list[dict[str, dict[str, str]]]) -> set[Key]:
     return {
         Key(
-            key_identifier=key["attrs"].get("keyIdentifier"),
+            key_identifier=key["attrs"]["keyIdentifier"],
             key_tag=int(key["attrs"]["keyTag"]),
             ttl=int(key["value"]["TTL"]),
             flags=int(key["value"]["Flags"]),

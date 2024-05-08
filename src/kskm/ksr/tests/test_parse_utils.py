@@ -85,7 +85,7 @@ class Test_keys_from_list(TestCase):
                     "Flags": "256",
                     "Protocol": "3",
                     "PublicKey": "A...",
-                    "TTL": 1978,
+                    "TTL": "1978",
                 },
             }
         ]
@@ -134,11 +134,11 @@ class Test_keys_from_list(TestCase):
     def test_ecdsa_key(self) -> None:
         """Test loading an ECDSA key"""
         public_key = r"BGuqYyOGr0p/uKXm0MmP4Cuiml/a8FCPRDLerVyBS4jHmJlKTJmYk/nCbOp936DSh5SMu6+2WYJUI6K5AYfXbTE="
-        data = [
+        data: list[dict[str, dict[str, str]]] = [
             {
                 "attrs": {"keyIdentifier": "EC1", "keyTag": "0"},
                 "value": {
-                    "Algorithm": AlgorithmDNSSEC.ECDSAP256SHA256.value,
+                    "Algorithm": str(AlgorithmDNSSEC.ECDSAP256SHA256.value),
                     "Flags": "256",
                     "Protocol": "3",
                     "PublicKey": public_key,
@@ -161,7 +161,7 @@ class Test_keys_from_list(TestCase):
         self.assertEqual(out, expected)
 
         # now change the algorithm and verify that the discrepancy between curve point size and algorithm is detected
-        data[0]["value"]["Algorithm"] = AlgorithmDNSSEC.ECDSAP384SHA384.value
+        data[0]["value"]["Algorithm"] = str(AlgorithmDNSSEC.ECDSAP384SHA384.value)
         with self.assertRaises(ValueError) as exc:
             keys_from_dict(data)
         self.assertEqual(
