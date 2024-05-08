@@ -389,7 +389,7 @@ class Test_ECDSA_Bundles(Test_Validate_KSR_ECDSA):
         xml = self._make_request(request_policy=request_policy)
         request = request_from_xml(xml)
         policy = self.policy.replace(
-            approved_algorithms=[AlgorithmDNSSEC.ECDSAP384SHA384]
+            approved_algorithms=[AlgorithmDNSSEC.ECDSAP384SHA384.name]
         )
         with self.assertRaises(KSR_BUNDLE_KEYS_Violation) as exc:
             self.assertTrue(validate_request(request, policy))

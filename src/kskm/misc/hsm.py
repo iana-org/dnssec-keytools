@@ -560,7 +560,7 @@ def _format_data_for_signing(
                 f"Can't PKCS#11 sign data with algorithm {algorithm.name}"
             )
 
-    _mechanism_name = str(PyKCS11.CKM[mechanism])  # type: ignore
+    _mechanism_name = str(PyKCS11.CKM[mechanism])
     return DataToSign(
         data=data,
         mechanism=mechanism,

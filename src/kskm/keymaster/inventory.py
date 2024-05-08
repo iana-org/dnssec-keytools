@@ -1,7 +1,7 @@
 """Key inventory functions."""
 
-from binascii import hexlify
 import logging
+from binascii import hexlify
 
 from kskm.common.config import KSKMConfig
 from kskm.common.config_ksk import validate_dnskey_matches_ksk
@@ -25,7 +25,7 @@ def key_inventory(p11modules: KSKM_P11, config: KSKMConfig) -> list[str]:
             for this in module.get_key_inventory(session):
                 if this.key_class not in keys:
                     keys[this.key_class] = {}
-                label_and_id = f"{this.label}+{this.key_id}"
+                label_and_id = f"{this.label}+{this.key_id!r}"
                 if label_and_id in keys[this.key_class]:
                     logger.error(
                         f"Key with class {this.key_class} and label+id {label_and_id} already seen in slot"
