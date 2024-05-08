@@ -108,7 +108,7 @@ def keygen(
     # create_trustanchor_keydigest wants an KSKKey, but it is not used in the digest calculation
     _temp_ksk = KSKKey(
         description="Newly generated key",
-        label=_now.isoformat(),
+        label=f"temp_{_key.key_tag}",
         key_tag=_key.key_tag,
         algorithm=_key.algorithm,
         valid_from=_now,
