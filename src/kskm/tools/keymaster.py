@@ -18,7 +18,7 @@ import binascii
 import logging
 import os
 import sys
-from datetime import datetime
+from datetime import UTC, datetime
 
 from PyKCS11 import PyKCS11Error
 
@@ -104,11 +104,11 @@ def keygen(
             )
             raise RuntimeError("Key tag collision detected")
 
-    _now = datetime.utcnow()
+    _now = datetime.now(UTC)
     # create_trustanchor_keydigest wants an KSKKey, but it is not used in the digest calculation
     _temp_ksk = KSKKey(
         description="Newly generated key",
-        label=_now.isoformat(),
+        label=f"temp_{_key.key_tag}",
         key_tag=_key.key_tag,
         algorithm=_key.algorithm,
         valid_from=_now,

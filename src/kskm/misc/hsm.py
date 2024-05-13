@@ -469,8 +469,8 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) ->
     _sign_data = _format_data_for_signing(key, data, algorithm)
 
     logger.info(
-        f"Signing {len(_sign_data.data)} bytes with key {key}, algorithm {algorithm.name}, " +
-        f"mechanism {_sign_data.mechanism_name}, hash using hsm={_sign_data.hash_using_hsm}"
+        f"Signing {len(_sign_data.data)} bytes with key {key}, algorithm {algorithm.name}, "
+        + f"mechanism {_sign_data.mechanism_name}, hash using hsm={_sign_data.hash_using_hsm}"
     )
 
     if not key.privkey_handle:
@@ -560,7 +560,7 @@ def _format_data_for_signing(
                 f"Can't PKCS#11 sign data with algorithm {algorithm.name}"
             )
 
-    _mechanism_name = str(PyKCS11.CKM[mechanism])  # type: ignore
+    _mechanism_name = str(PyKCS11.CKM[mechanism])
     return DataToSign(
         data=data,
         mechanism=mechanism,
@@ -695,7 +695,9 @@ def get_p11_key(
     """
     key_class = KeyClass.PUBLIC if public else KeyClass.PRIVATE
     for module in p11modules:
-        if p11key := module.find_key_by_label(label, key_class, hash_using_hsm=hash_using_hsm):
+        if p11key := module.find_key_by_label(
+            label, key_class, hash_using_hsm=hash_using_hsm
+        ):
             logger.debug(f"Key with label {label!r} found in module {module}")
             return p11key
     logger.debug(f"Key with label {label!r} not found in any module")

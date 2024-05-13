@@ -3,6 +3,7 @@
 from typing import Any
 
 import OpenSSL
+import OpenSSL.crypto
 import werkzeug.serving
 from flask import request
 
@@ -58,7 +59,7 @@ class PeerCertWSGIRequestHandler(werkzeug.serving.WSGIRequestHandler):
 
     @classmethod
     def client_digest(cls) -> str | None:
-        """Find client certficate digest."""
+        """Find client certificate digest."""
         peercert = request.environ.get("peercert")
         if peercert is None:
             return None

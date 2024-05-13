@@ -17,7 +17,7 @@ AlgorithmPolicyType = TypeVar("AlgorithmPolicyType", bound="AlgorithmPolicy")
 
 
 class FrozenBaseModel(BaseModel):
-    model_config = ConfigDict(frozen=True, extra="forbid")
+    model_config = ConfigDict(frozen=True, extra="forbid", validate_assignment=True)
 
 
 class AlgorithmDNSSEC(Enum):

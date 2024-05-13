@@ -1,5 +1,5 @@
 """
-Testcode using a separate implementation of DNSSEC signature validation (dnspython).
+Test code using a separate implementation of DNSSEC signature validation (dnspython).
 
 dnspython was used to validate the implementation of signature validation, and also
 to track down a bug with RDATA sorting. Thanks!
@@ -13,6 +13,8 @@ from unittest import TestCase
 import dns
 import dns.dnssec
 import dns.name
+import dns.node
+import dns.rdataset
 import dns.rrset
 from dns.exception import ValidationFailure
 
@@ -103,21 +105,22 @@ def dnspython_validate_key_sig(keys: set[Key], sig: Signature) -> bool:
     dnskey_rr = dns.rrset.from_text(
         sig.signers_name, sig.original_ttl, "IN", "DNSKEY", *text_rdata
     )
-    _keys: dict[dns.name.Name, dns.rrset.RRset] = {
-        _domainname: dnskey_rr,
+    dnskey_rdata = dns.rdataset.from_text("IN", "DNSKEY", sig.original_ttl, *text_rdata)
+    _keys: dict[dns.name.Name, dns.node.Node | dns.rdataset.Rdataset] = {
+        _domainname: dnskey_rdata,
     }
 
-    _sigstr = "DNSKEY {alg} {label} {origttl} {sig_exp} {sig_inc} {keytag} {name} {data}".format(
+    _sig_str = "DNSKEY {alg} {label} {orig_ttl} {sig_exp} {sig_inc} {keytag} {name} {data}".format(
         alg=sig.algorithm.value,
         label=sig.labels,
-        origttl=sig.original_ttl,
+        orig_ttl=sig.original_ttl,
         sig_exp=sig.signature_expiration.strftime("%Y%m%d%H%M%S"),
         sig_inc=sig.signature_inception.strftime("%Y%m%d%H%M%S"),
         keytag=sig.key_tag,
         name=sig.signers_name,
         data=sig.signature_data.decode("ascii"),
     )
-    rrsig = dns.rrset.from_text(sig.signers_name, sig.ttl, "IN", "RRSIG", _sigstr)
+    rrsig = dns.rrset.from_text(sig.signers_name, sig.ttl, "IN", "RRSIG", _sig_str)
 
     when = sig.signature_inception.timestamp()
     try:

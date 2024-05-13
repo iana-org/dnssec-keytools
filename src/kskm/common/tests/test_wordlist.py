@@ -22,7 +22,9 @@ class Test_PGP_Wordlist(unittest.TestCase):
         """Test PGP Wordlist."""
         for test in TESTS:
             m = hashlib.new("sha256")
-            m.update(test["message"])
+            _message = test["message"]
+            assert isinstance(_message, bytes)
+            m.update(_message)
             self.assertEqual(test["hexdigest"], m.hexdigest())
             self.assertEqual(" ".join(pgp_wordlist(m.digest())), test["words"])
 
