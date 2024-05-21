@@ -2,7 +2,7 @@ NEW_CERT=	openssl req -new -x509 -newkey rsa:2048 -nodes -days 30
 
 
 server: wksr.crt wksr.key ca.crt
-	env FLASK_ENV=development kskm-wksr --debug --port 8443
+	kskm-wksr --debug --port 8443
 
 certs: wksr.crt client.crt
 

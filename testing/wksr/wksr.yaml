@@ -8,7 +8,7 @@ tls:
     - ECDHE-RSA-AES256-GCM-SHA384
   require_client_cert: true
   client_whitelist:
-    - a1928d53e7d74c5921e0334b84b539ea8b64c28a10504cf624111e1e742250b4
+    - b75b44b63ce7d6cd793c74c24271a253060864f3beb8fb88674e40703dba9c65
 
 ksr:
   max_size: 65535

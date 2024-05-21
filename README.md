@@ -20,8 +20,7 @@ This tool depends on the following software:
 
 For the KSR submission webserver (wksr), the following extras are required:
 
-- [Flask](http://flask.pocoo.org/)
-- [pyOpenSSL](https://pyopenssl.org/)
+- [FastAPI](https://fastapi.tiangolo.com)
 
 ## Additional test dependencies
 
@@ -54,5 +53,5 @@ N.B. You will need to ensure that SWIG is installed, as pykcs11 depends on it.
 
 - The **Python XML library** (Expat) is not used for reading/writing XML data in order to limit the amount of code.
 - **DNS Python** is only used for testing as we do not need to parse or output DNS data. The required functions for signing are provided by PKCS#11 and the few functions needed for DNSSEC processing are reimplemented.
-- **Flask** is used as a webserver in _wksr_. ICANN uses Django for several projects, but since this project only requires a very small subset of Django functionality Flask has been considered a better fit. From an auditing perspective, Flask consists of ca 10k source code lines whereas Django consist of ca 240k source code lines.
+- **FastAPI** is used as a webserver in _wksr_. ICANN uses Django for several projects, but since this project only requires a very small subset of Django functionality FastAPI has been considered a better fit. 
 - **YAML** was chosen as the configuration file format for increased readability compared to **JSON**.

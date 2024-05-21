@@ -15,7 +15,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.11,<4"
-flask = {version = "^3.0.3", optional = true}
+fastapi = {version = "^0.111.0", optional = true}
 pyopenssl = {version = "^24.1.0", optional = true}
 pydantic = {extras = ["email"], version = "^2.7.0"}
 pyyaml = "^6.0.1"
@@ -33,7 +33,7 @@ ruff = "^0.3.5"
 pytest-ruff = "^0.3.1"
 
 [tool.poetry.extras]
-online = ["flask", "pyopenssl"]
+online = ["fastapi", "pyopenssl"]
 
 [tool.poetry.scripts]
 kskm-keymaster = "kskm.tools.keymaster:main"

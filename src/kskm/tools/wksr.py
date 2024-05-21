@@ -2,22 +2,30 @@
 
 import argparse
 import logging
+import ssl
 
+import uvicorn
 import yaml
-from werkzeug.serving import run_simple
+from uvicorn.protocols.http.httptools_impl import HttpToolsProtocol
 
-from kskm.common.config_wksr import WKSR_Config, WKSR_Templates
+from kskm.common.config_wksr import WKSR_Config
 from kskm.version import __verbose_version__
-from kskm.wksr.peercert import PeerCertWSGIRequestHandler
-from kskm.wksr.server import (
-    DEFAULT_TEMPLATES_CONFIG,
-    generate_app,
-    generate_ssl_context,
-)
+from kskm.wksr.server import WSKR
 
 DEFAULT_HOSTNAME = "127.0.0.1"
 DEFAULT_PORT = 8443
 DEFAULT_CONFIG = "wksr.yaml"
+
+
+old_on_url = HttpToolsProtocol.on_url
+
+
+def new_on_url(self, url):
+    old_on_url(self, url)
+    self.scope["transport"] = self.transport
+
+
+HttpToolsProtocol.on_url = new_on_url
 
 
 def main() -> None:
@@ -52,23 +60,30 @@ def main() -> None:
 
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
+        log_level = "debug"
+    else:
+        logging.basicConfig(level=logging.INFO)
+        log_level = "info"
 
     with open(args.config) as fp:
         _config = yaml.load(fp.read(), Loader=yaml.SafeLoader)
 
     config = WKSR_Config.from_dict(_config)
-    if not config.templates:
-        config.templates = WKSR_Templates.from_dict(DEFAULT_TEMPLATES_CONFIG)
 
-    ssl_context = generate_ssl_context(config.tls)
-    app = generate_app(config)
+    ssl_cert_reqs = (
+        ssl.CERT_REQUIRED if config.tls.require_client_cert else ssl.CERT_OPTIONAL
+    )
 
-    run_simple(
-        hostname=args.hostname,
+    uvicorn.run(
+        app=WSKR(config),
+        host=args.hostname,
         port=args.port,
-        ssl_context=ssl_context,
-        application=app,
-        request_handler=PeerCertWSGIRequestHandler,
+        log_level=log_level,
+        ssl_ciphers=":".join(config.tls.ciphers),
+        ssl_certfile=config.tls.cert,
+        ssl_keyfile=config.tls.key,
+        ssl_ca_certs=config.tls.ca_cert,
+        ssl_cert_reqs=ssl_cert_reqs,
     )
 
 
