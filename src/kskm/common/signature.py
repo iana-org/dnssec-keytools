@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 def validate_signatures(bundle: Bundle) -> bool:
     """
-    Make sure the sets of signatures and keys in a bundle is consistent.
+    Make sure the sets of signatures and keys in a bundle are consistent.
 
     Will return True on successful validation, and raise an InvalidSignature exception otherwise.
     """

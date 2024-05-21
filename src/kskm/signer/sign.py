@@ -67,7 +67,7 @@ def sign_bundles(
                     logger.warning(
                         f"Overriding key {_key.key_identifier} TTL {_key.ttl} -> {ksk_policy.ttl}"
                     )
-                    if _key.key_identifier is not None:
+                    if _key.key_identifier:
                         _hush_key_ttl_warnings[_key.key_identifier] = True
                 _key = _key.replace(ttl=ksk_policy.ttl)
             _add_unique(_new_keys, _key)
@@ -107,11 +107,9 @@ def sign_bundles(
         for _sign_key in signing_keys:
             logger.debug(f"Signing {len(updated_bundle.keys)} bundle keys:")
             for _this in updated_bundle.keys:
-                logger.debug("  %s", _this)
+                logger.debug(f"  {_this}")
             logger.debug(
-                "Signing above %d bundle keys with sign_key %s",
-                len(updated_bundle.keys),
-                _sign_key,
+                f"Signing above {len(updated_bundle.keys)} bundle keys with sign_key {_sign_key}"
             )
             _sig = _sign_keys(updated_bundle, _sign_key, ksk_policy)
             if _sig:

@@ -194,7 +194,9 @@ class Test_SignWithSoftHSM_RSA(SignWithSoftHSM_Baseclass):
                     config=self.config,
                     ksk_policy=self.config.ksk_policy,
                 )
-            assert str(exc.value) == "Invalid KSK signature encountered in bundle test_1"
+            assert (
+                str(exc.value) == "Invalid KSK signature encountered in bundle test_1"
+            )
 
 
 @pytest.mark.usefixtures("p11modules_fixture")
@@ -409,8 +411,9 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
             key_ids = sorted([x.key_identifier for x in _bundle.keys])
             if _bundle_num == 9:
                 # The last bundle should be without the old KSK
-                assert key_ids == ["EC1",  # ZSK key in RequestBundle
-                                   "EC3",  # new KSK
+                assert key_ids == [
+                    "EC1",  # ZSK key in RequestBundle
+                    "EC3",  # new KSK
                 ]
             else:
                 assert key_ids == [
