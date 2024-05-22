@@ -17,15 +17,20 @@ DEFAULT_PORT = 8443
 DEFAULT_CONFIG = "wksr.yaml"
 
 
-old_on_url = HttpToolsProtocol.on_url
+def patch_request_scope_transport():
+    """
+    Patch transport for FastAPI.Request.scope
 
+    Required until the "ASGI TLS Extension" has been implemented
+    https://asgi.readthedocs.io/en/latest/specs/tls.html
+    """
+    old_on_url = HttpToolsProtocol.on_url
 
-def new_on_url(self, url):
-    old_on_url(self, url)
-    self.scope["transport"] = self.transport
+    def new_on_url(self, url):
+        old_on_url(self, url)
+        self.scope["transport"] = self.transport
 
-
-HttpToolsProtocol.on_url = new_on_url
+    HttpToolsProtocol.on_url = new_on_url
 
 
 def main() -> None:
@@ -73,6 +78,8 @@ def main() -> None:
     ssl_cert_reqs = (
         ssl.CERT_REQUIRED if config.tls.require_client_cert else ssl.CERT_OPTIONAL
     )
+
+    patch_request_scope_transport()
 
     uvicorn.run(
         app=WSKR(config),
