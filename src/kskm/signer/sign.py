@@ -67,17 +67,17 @@ def sign_bundles(
                     logger.warning(
                         f"Overriding key {_key.key_identifier} TTL {_key.ttl} -> {ksk_policy.ttl}"
                     )
-                    if _key.key_identifier is not None:
+                    if _key.key_identifier:
                         _hush_key_ttl_warnings[_key.key_identifier] = True
                 _key = _key.replace(ttl=ksk_policy.ttl)
-            _new_keys.add(_key)
+            _add_unique(_new_keys, _key)
         #
         # Add all the 'publish' keys (KSK operator keys) to the keys already in the bundle (ZSK operator keys)
         #
         for this_key in _fetch_keys(
             this_schema.publish, _bundle, p11modules, ksk_policy, config.ksk_keys, True
         ):
-            _new_keys.add(this_key.dns)
+            _add_unique(_new_keys, this_key.dns)
         #
         # Add all the 'revoke' keys (same as 'publish' but the key gets the revoke flag bit set)
         #
@@ -88,7 +88,7 @@ def sign_bundles(
                 flags=this_key.dns.flags | FlagsDNSKEY.REVOKE.value
             )
             revoked_key = revoked_key.replace(key_tag=calculate_key_tag(revoked_key))
-            _new_keys.add(revoked_key)
+            _add_unique(_new_keys, revoked_key)
         #
         # All the signing keys sign the complete DNSKEY RRSET, so first add them to the bundles keys
         #
@@ -96,7 +96,7 @@ def sign_bundles(
             this_schema.sign, _bundle, p11modules, ksk_policy, config.ksk_keys, False
         )
         for this_key in signing_keys:
-            _new_keys.add(this_key.dns)
+            _add_unique(_new_keys, this_key.dns)
 
         updated_bundle = _bundle.replace(keys=_new_keys)
 
@@ -107,11 +107,9 @@ def sign_bundles(
         for _sign_key in signing_keys:
             logger.debug(f"Signing {len(updated_bundle.keys)} bundle keys:")
             for _this in updated_bundle.keys:
-                logger.debug("  %s", _this)
+                logger.debug(f"  {_this}")
             logger.debug(
-                "Signing above %d bundle keys with sign_key %s",
-                len(updated_bundle.keys),
-                _sign_key,
+                f"Signing above {len(updated_bundle.keys)} bundle keys with sign_key {_sign_key}"
             )
             _sig = _sign_keys(updated_bundle, _sign_key, ksk_policy)
             if _sig:
@@ -140,6 +138,15 @@ def sign_bundles(
         res += [response_bundle]
 
     return res
+
+
+def _add_unique(keys: set[Key], key: Key) -> set[Key]:
+    """Add a key to a set, ensuring uniqueness."""
+    for _key in keys:
+        if _key.public_key == key.public_key:
+            return keys
+    keys.add(key)
+    return keys
 
 
 def _fetch_keys(

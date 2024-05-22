@@ -136,24 +136,28 @@ class SignWithSoftHSM_Baseclass:
         expiration: datetime.datetime | None = None,
         id_suffix: str = "",
         signers: set[Signer] | None = None,
+        num_bundles: int = 1,
     ) -> Request:
         if inception is None:
             inception = parse_datetime("2018-01-01T00:00:00+00:00")
         if expiration is None:
             expiration = parse_datetime("2018-01-22T00:00:00+00:00")
-        bundle = RequestBundle(
-            id="test" + id_suffix,
-            inception=inception,
-            expiration=expiration,
-            keys=zsk_keys,
-            signatures=set(),
-            signers=signers,
-        )
+        bundles: list[RequestBundle] = []
+        for i in range(num_bundles):
+            bundle = RequestBundle(
+                id=f"test{id_suffix}_{i + 1}",
+                inception=inception,
+                expiration=expiration,
+                keys=zsk_keys,
+                signatures=set(),
+                signers=signers,
+            )
+            bundles.append(bundle)
         request = Request(
             id="test-req-01" + id_suffix,
             serial=1,
             domain=".",
-            bundles=[bundle],
+            bundles=bundles,
             zsk_policy=self.request_zsk_policy,
             timestamp=None,
         )
@@ -190,7 +194,9 @@ class Test_SignWithSoftHSM_RSA(SignWithSoftHSM_Baseclass):
                     config=self.config,
                     ksk_policy=self.config.ksk_policy,
                 )
-            assert str(exc.value) == "Invalid KSK signature encountered in bundle test"
+            assert (
+                str(exc.value) == "Invalid KSK signature encountered in bundle test_1"
+            )
 
 
 @pytest.mark.usefixtures("p11modules_fixture")
@@ -367,6 +373,65 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
         )
         revoked_EC2 = revoked_EC2.replace(ttl=self.config.ksk_policy.ttl)
         assert revoked_EC2 in bundle_keys
+
+    @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
+    def test_revoke_schema(self) -> None:
+        """Test revoke schema as it is typically used."""
+        _REVOKE_SCHEMA = """---
+        schemas:
+          test:
+            1: {publish: [ksk_EC2, ksk_EC3], sign: ksk_EC3}
+            2: {revoke: ksk_EC2, publish: ksk_EC3, sign: [ksk_EC2, ksk_EC3]}
+            3: {revoke: ksk_EC2, publish: ksk_EC3, sign: [ksk_EC2, ksk_EC3]}
+            4: {revoke: ksk_EC2, publish: ksk_EC3, sign: [ksk_EC2, ksk_EC3]}
+            5: {revoke: ksk_EC2, publish: ksk_EC3, sign: [ksk_EC2, ksk_EC3]}
+            6: {revoke: ksk_EC2, publish: ksk_EC3, sign: [ksk_EC2, ksk_EC3]}
+            7: {revoke: ksk_EC2, publish: ksk_EC3, sign: [ksk_EC2, ksk_EC3]}
+            8: {revoke: ksk_EC2, publish: ksk_EC3, sign: [ksk_EC2, ksk_EC3]}
+            9: {publish: ksk_EC3, sign: ksk_EC3}
+        """
+        self.config = self.config.update(yaml.safe_load(io.StringIO(_REVOKE_SCHEMA)))
+        self.schema = self.config.get_schema("test")
+        zsk_keys = {
+            self._p11_to_dnskey("EC1", AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK)
+        }
+        request = self._make_request(zsk_keys=zsk_keys, num_bundles=9)
+        new_bundles = sign_bundles(
+            request=request,
+            schema=self.config.get_schema("test"),
+            p11modules=self.p11modules,
+            config=self.config,
+            ksk_policy=self.config.ksk_policy,
+        )
+        for _bundle_idx, _bundle in enumerate(new_bundles):
+            _bundle_num = _bundle_idx + 1
+
+            validate_signatures(_bundle)
+
+            key_ids = sorted([x.key_identifier for x in _bundle.keys])
+            if _bundle_num == 9:
+                # The last bundle should be without the old KSK
+                assert key_ids == [
+                    "EC1",  # ZSK key in RequestBundle
+                    "EC3",  # new KSK
+                ]
+            else:
+                assert key_ids == [
+                    "EC1",  # ZSK key in RequestBundle
+                    "EC2",  # ksk_test_key
+                    "EC3",  # ksk_prepublish_key
+                ], f"Wrong keys for bundle {_bundle_num}"
+
+            if _bundle_num > 1 and _bundle_num < 9:
+                revoked_EC2 = self._p11_to_dnskey(
+                    "EC2",
+                    AlgorithmDNSSEC.ECDSAP256SHA256,
+                    flags=FlagsDNSKEY.ZONE.value
+                    | FlagsDNSKEY.SEP.value
+                    | FlagsDNSKEY.REVOKE.value,
+                )
+                revoked_EC2 = revoked_EC2.replace(ttl=self.config.ksk_policy.ttl)
+                assert revoked_EC2 in _bundle.keys
 
 
 @pytest.mark.usefixtures("p11modules_fixture")
