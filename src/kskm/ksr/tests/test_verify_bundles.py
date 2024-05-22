@@ -335,7 +335,7 @@ class Test_Invalid_Requests(Test_Requests):
 
         self.assertRegex(
             str(exc.exception),
-            "Key Key.+key_identifier='RSA2'.+ was not used to sign the keys in bundle test-id",
+            "Key key_identifier='RSA2'.+ was not used to sign the keys in bundle test-id",
         )
 
 

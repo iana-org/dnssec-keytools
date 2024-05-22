@@ -2,7 +2,6 @@
 
 import base64
 import struct
-from dataclasses import replace
 
 from kskm.common.data import AlgorithmDNSSEC, Key
 from kskm.common.ecdsa_utils import (
@@ -76,4 +75,4 @@ def public_key_to_dnssec_key(
         public_key=pubkey,
     )
     key_tag = calculate_key_tag(_key)
-    return replace(_key, key_tag=key_tag)
+    return _key.replace(key_tag=key_tag)

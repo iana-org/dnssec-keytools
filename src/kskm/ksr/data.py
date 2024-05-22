@@ -1,23 +1,19 @@
 """KSR (Request) data classes."""
 
-import dataclasses
 from abc import ABC
-from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Self
 
-from kskm.common.data import Bundle, SignaturePolicy, Signer
+from kskm.common.data import Bundle, FrozenStrictBaseModel, SignaturePolicy, Signer
 
 
-@dataclass(frozen=True)
 class RequestBundle(Bundle):
     """Request Bundle."""
 
     signers: set[Signer] | None
 
 
-@dataclass(frozen=True)
-class KSR(ABC):
+class KSR(FrozenStrictBaseModel, ABC):
     """KSR Base Class."""
 
     id: str
@@ -27,10 +23,9 @@ class KSR(ABC):
 
     def replace(self, **kwargs: Any) -> Self:
         """Return a new instance with the provided attributes updated. Used in tests."""
-        return dataclasses.replace(self, **kwargs)
+        return self.model_copy(update=kwargs)
 
 
-@dataclass(frozen=True)
 class Request(KSR):
     """Key Signing Request."""
 

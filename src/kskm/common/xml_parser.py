@@ -11,19 +11,21 @@ NOT XML compliance. We just need to parse KSRs good enough.
 
 import logging
 import re
-from dataclasses import dataclass
 from typing import Any
+
+from pydantic import BaseModel, ConfigDict
 
 __author__ = "ft"
 
 _DEBUG_XML_PARSER = False
 
 
-@dataclass(frozen=False)
-class _XMLElement:
+class _XMLElement(BaseModel):
+    model_config = ConfigDict(frozen=False, extra="forbid", validate_assignment=True)
+
     name: str
     attrs: dict[str, str] | None
-    value: str | dict
+    value: str | dict[str, Any]
 
 
 logger = logging.getLogger(__name__)
@@ -80,12 +82,12 @@ def _parse_recursively(xml: str, recurse: int, res: dict) -> None:
         if _DEBUG_XML_PARSER:
             logger.debug(f"Start of element found: {xml[:20]!r}...")
         element, end_idx = parse_first_element(xml)
-        sub_res: dict = {}
         # the isinstance helps the type checker be sure that element.value is in fact a string
         if isinstance(element.value, str) and element.value and element.value[0] == "<":
             # value is one or more new elements, recurse
             if not recurse:
                 raise ValueError("XML maximum recursion depth exhausted")
+            sub_res: dict = {}
             _parse_recursively(element.value, recurse - 1, sub_res)
             element.value = sub_res
 

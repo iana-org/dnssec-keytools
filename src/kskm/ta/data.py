@@ -1,11 +1,10 @@
 """Trust Anchor Classes (representing TA per RFC 7958)."""
 
 from binascii import hexlify
-from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
 
-from kskm.common.data import AlgorithmDNSSEC
+from kskm.common.data import AlgorithmDNSSEC, FrozenStrictBaseModel
 
 
 class DigestDNSSEC(Enum):
@@ -15,8 +14,7 @@ class DigestDNSSEC(Enum):
     SHA256 = 2
 
 
-@dataclass(frozen=True)
-class KeyDigest:
+class KeyDigest(FrozenStrictBaseModel):
     """RFC 7958 Key Digest."""
 
     id: str
@@ -51,14 +49,13 @@ class KeyDigest:
         return xml
 
 
-@dataclass(frozen=True)
-class TrustAnchor:
+class TrustAnchor(FrozenStrictBaseModel):
     """RFC 7958 Trust Anchor."""
 
     id: str
     source: str
     zone: str
-    keydigests: set[KeyDigest]
+    key_digests: set[KeyDigest]
 
     def to_xml_doc(self) -> str:
         """Export trust anchor as XML document."""
@@ -70,7 +67,7 @@ class TrustAnchor:
         """Export trust anchor as XML sniplet."""
         xml = f'<TrustAnchor id="{self.id}" source="{self.source}">\n'
         xml += f"<Zone>{self.zone}</Zone>\n"
-        for ks in sorted(self.keydigests, key=lambda _ks: _ks.valid_from):
+        for ks in sorted(self.key_digests, key=lambda _ks: _ks.valid_from):
             xml += ks.to_xml()
         xml += "</TrustAnchor>"
         return xml

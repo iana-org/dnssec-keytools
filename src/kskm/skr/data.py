@@ -1,21 +1,17 @@
 """SKR (Response) data classes."""
 
-import dataclasses
 from abc import ABC
-from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Self
 
-from kskm.common.data import Bundle, SignaturePolicy
+from kskm.common.data import Bundle, FrozenStrictBaseModel, SignaturePolicy
 
 
-@dataclass(frozen=True)
 class ResponseBundle(Bundle):
     """Response Bundle."""
 
 
-@dataclass(frozen=True)
-class SKR(ABC):
+class SKR(FrozenStrictBaseModel, ABC):
     """Signed Key Response (SKR)."""
 
     id: str
@@ -23,8 +19,11 @@ class SKR(ABC):
     domain: str
     timestamp: datetime | None
 
+    def replace(self, **kwargs: Any) -> Self:
+        """Return a new instance with the provided attributes updated. Used in tests."""
+        return self.model_copy(update=kwargs)
 
-@dataclass(frozen=True)
+
 class Response(SKR):
     """SKR Response."""
 
@@ -33,7 +32,3 @@ class Response(SKR):
     # 'bundles' is supposed to be a Set, but a set cannot contain other sets
     # (TypeError: unhashable type: 'set')
     bundles: list[ResponseBundle]
-
-    def replace(self, **kwargs: Any) -> Self:
-        """Return a new instance with the provided attributes updated."""
-        return dataclasses.replace(self, **kwargs)

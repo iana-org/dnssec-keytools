@@ -4,10 +4,11 @@ Utility functions to parse elements of KSRs.
 The KSR XML files are parsed using the minimal parser in kskm.common.xml_parser,
 which returns a nested dict with all the data. The functions in this
 module know how to interpret parts of that dict and turn it into the
-dataclasses from kskm.ksr.data.
+data container classes from kskm.ksr.data.
 """
 
 import logging
+from typing import Any, Mapping
 
 from kskm.common.parse_utils import (
     keys_from_dict,
@@ -23,7 +24,9 @@ __author__ = "ft"
 logger = logging.getLogger(__name__)
 
 
-def requestbundles_from_list_of_dicts(bundles: list[dict]) -> list[RequestBundle]:
+def request_bundles_from_list_of_dicts(
+    bundles: list[Mapping[str, Any]],
+) -> list[RequestBundle]:
     """
     Parse a list of KSR request bundle dicts.
 
@@ -52,7 +55,7 @@ def requestbundles_from_list_of_dicts(bundles: list[dict]) -> list[RequestBundle
                     },
           }]
     """
-    res = []
+    res: list[RequestBundle] = []
     for bundle in bundles:
         id = bundle["attrs"].get("id")
         if not id:

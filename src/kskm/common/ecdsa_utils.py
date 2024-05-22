@@ -1,9 +1,10 @@
 """Various functions relating to the ECDSA algorithm."""
 
 import base64
-from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
+
+from pydantic import Field
 
 from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyECDSA
 from kskm.common.public_key import KSKM_PublicKey
@@ -24,11 +25,10 @@ ALGORITHM_TO_CURVE = {
 }
 
 
-@dataclass(frozen=True)
 class KSKM_PublicKey_ECDSA(KSKM_PublicKey):
     """A parsed DNSSEC ECDSA public key."""
 
-    q: bytes = field(repr=False)
+    q: bytes = Field(repr=False)
     curve: ECCurve
 
     def __str__(self) -> str:

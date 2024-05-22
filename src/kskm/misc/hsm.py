@@ -5,7 +5,6 @@ import logging
 import os
 import re
 from collections.abc import Iterator, Mapping, MutableMapping
-from dataclasses import field
 from enum import Enum
 from getpass import getpass
 from hashlib import sha1, sha256, sha384, sha512
@@ -14,7 +13,7 @@ from typing import Any, NewType, Self
 
 import PyKCS11
 import PyKCS11.LowLevel
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from kskm.common.config import KSKMConfig
 from kskm.common.config_misc import KSKMHSM
@@ -115,7 +114,7 @@ class KeyInfo(FrozenBaseModel):
     key_class: KeyClass
     key_id: bytes | None = None
     label: str
-    pubkey: KSKM_PublicKey | None = field(repr=False, default=None)
+    pubkey: KSKM_PublicKey | None = Field(repr=False, default=None)
 
 
 class KSKM_P11Key(BaseModel):
@@ -128,11 +127,11 @@ class KSKM_P11Key(BaseModel):
     key_class: KeyClass
     hash_using_hsm: bool | None = None
     public_key: KSKM_PublicKey | None
-    session: Any = field(default=None, repr=False)  # PyKCS11 opaque data
-    privkey_handle: PyKCS11.LowLevel.CK_OBJECT_HANDLE | None = field(
+    session: Any = Field(default=None, repr=False)  # PyKCS11 opaque data
+    privkey_handle: PyKCS11.LowLevel.CK_OBJECT_HANDLE | None = Field(
         repr=False, default=None
     )  # PyKCS11 opaque data
-    pubkey_handle: PyKCS11.LowLevel.CK_OBJECT_HANDLE | None = field(
+    pubkey_handle: PyKCS11.LowLevel.CK_OBJECT_HANDLE | None = Field(
         repr=False, default=None
     )  # PyKCS11 opaque data
 
