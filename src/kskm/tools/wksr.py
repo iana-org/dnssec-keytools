@@ -10,7 +10,7 @@ from uvicorn.protocols.http.httptools_impl import HttpToolsProtocol
 
 from kskm.common.config_wksr import WKSR_Config
 from kskm.version import __verbose_version__
-from kskm.wksr.server import WSKR
+from kskm.wksr.server import WKSR
 
 DEFAULT_HOSTNAME = "127.0.0.1"
 DEFAULT_PORT = 8443
@@ -82,7 +82,7 @@ def main() -> None:
     patch_request_scope_transport()
 
     uvicorn.run(
-        app=WSKR(config),
+        app=WKSR(config),
         host=args.hostname,
         port=args.port,
         log_level=log_level,

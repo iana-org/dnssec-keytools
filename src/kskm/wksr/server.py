@@ -73,7 +73,7 @@ async def upload_get(request: Request) -> str:
 async def upload_post(request: Request, ksr: UploadFile) -> str:
     """Handle manual file upload."""
 
-    (filename, filehash) = await request.app.save_ksr(ksr)
+    (filename, filehash) = await save_ksr(request.app, ksr)
 
     # setup log capture
     log_capture_string = io.StringIO()
@@ -81,7 +81,7 @@ async def upload_post(request: Request, ksr: UploadFile) -> str:
     log_handler.setLevel(logging.DEBUG)
     logging.getLogger().addHandler(log_handler)
 
-    result = request.app.validate_ksr(filename)
+    result = validate_ksr(request.app, filename)
 
     # save captured log
     logging.getLogger().removeHandler(log_handler)
@@ -99,14 +99,14 @@ async def upload_post(request: Request, ksr: UploadFile) -> str:
         "client_digest": request_peercert_digest(request),
     }
 
-    request.app.notify(env)
+    notify(request.app, env)
 
     return request.app.templates.TemplateResponse(
         request=request, name=str(request.app.config.templates.result), context=env
     )
 
 
-class WSKR(FastAPI):
+class WKSR(FastAPI):
     def __init__(
         self,
         config: WKSR_Config,
@@ -123,104 +123,105 @@ class WSKR(FastAPI):
         self.include_router(router)
         self.add_middleware(ClientCertificateWhitelist)
 
-    def validate_ksr(self, filename: Path) -> dict[str, str]:
-        """Validate incoming KSR and optionally check previous SKR."""
+
+def validate_ksr(app: WKSR, filename: Path) -> dict[str, str]:
+    """Validate incoming KSR and optionally check previous SKR."""
+    ksr_config_filename = None
+
+    if app.config.ksr and app.config.ksr.ksrsigner_configfile:
+        ksr_config_filename = app.config.ksr.ksrsigner_configfile
+        logger.info(f"Using ksrsigner configuration {ksr_config_filename}")
+    else:
+        logger.warning("Using default ksrsigner configuration")
         ksr_config_filename = None
 
-        if self.config.ksr and self.config.ksr.ksrsigner_configfile:
-            ksr_config_filename = self.config.ksr.ksrsigner_configfile
-            logger.info(f"Using ksrsigner configuration {ksr_config_filename}")
+    # If ksr_config_filename is None, get_config returns a default policy
+    config = get_config(ksr_config_filename)
+    logger.debug("ksrsigner configuration loaded")
+
+    result: dict[str, str] = {}
+    previous_skr_filename = config.filenames.previous_skr
+    previous_skr: Response | None
+
+    try:
+        if previous_skr_filename is not None:
+            previous_skr = load_skr(previous_skr_filename, config.response_policy)
+            logger.info("Previous SKR loaded: %s", previous_skr_filename)
         else:
-            logger.warning("Using default ksrsigner configuration")
-            ksr_config_filename = None
+            logger.warning("No previous SKR loaded")
+            previous_skr = None
 
-        # If ksr_config_filename is None, get_config returns a default policy
-        config = get_config(ksr_config_filename)
-        logger.debug("ksrsigner configuration loaded")
+        ksr = load_ksr(filename, config.request_policy, raise_original=True)
 
-        result: dict[str, str] = {}
-        previous_skr_filename = config.filenames.previous_skr
-        previous_skr: Response | None
+        if previous_skr is not None:
+            check_skr_and_ksr(ksr, previous_skr, config.request_policy, p11modules=None)
+            logger.info("Previous SKR checked: %s", previous_skr_filename)
+        else:
+            logger.warning("Previous SKR not checked")
 
-        try:
-            if previous_skr_filename is not None:
-                previous_skr = load_skr(previous_skr_filename, config.response_policy)
-                logger.info("Previous SKR loaded: %s", previous_skr_filename)
-            else:
-                logger.warning("No previous SKR loaded")
-                previous_skr = None
+        result["status"] = "OK"
+        result["message"] = f"KSR with id {ksr.id} loaded successfully"
+    except PolicyViolation as exc:
+        result["status"] = "ERROR"
+        result["message"] = str(exc)
 
-            ksr = load_ksr(filename, config.request_policy, raise_original=True)
+    return result
 
-            if previous_skr is not None:
-                check_skr_and_ksr(
-                    ksr, previous_skr, config.request_policy, p11modules=None
-                )
-                logger.info("Previous SKR checked: %s", previous_skr_filename)
-            else:
-                logger.warning("Previous SKR not checked")
 
-            result["status"] = "OK"
-            result["message"] = f"KSR with id {ksr.id} loaded successfully"
-        except PolicyViolation as exc:
-            result["status"] = "ERROR"
-            result["message"] = str(exc)
+def notify(app: WKSR, env: dict[str, Any]) -> None:
+    """Send notification about incoming KSR."""
 
-        return result
+    if not app.config.notify or not app.config.notify.smtp_server:
+        return
 
-    def notify(self, env: dict[str, Any]) -> None:
-        """Send notification about incoming KSR."""
+    template: jinja2.Template = app.templates.get_template(
+        str(app.config.templates.email)
+    )
+    body = template.render(**env)
 
-        if not self.config.notify or not self.config.notify.smtp_server:
-            return
+    msg = EmailMessage()
+    msg.set_content(body)
+    msg["Subject"] = app.config.notify.subject
+    msg["From"] = app.config.notify.from_
+    msg["To"] = app.config.notify.to
+    smtp = smtplib.SMTP(app.config.notify.smtp_server)
+    smtp.send_message(msg)
+    smtp.quit()
 
-        template: jinja2.Template = self.templates.get_template(
-            str(self.config.templates.email)
-        )
-        body = template.render(**env)
 
-        msg = EmailMessage()
-        msg.set_content(body)
-        msg["Subject"] = self.config.notify.subject
-        msg["From"] = self.config.notify.from_
-        msg["To"] = self.config.notify.to
-        smtp = smtplib.SMTP(self.config.notify.smtp_server)
-        smtp.send_message(msg)
-        smtp.quit()
+async def save_ksr(app: WKSR, upload_file: UploadFile) -> tuple[Path, str]:
+    """Process incoming KSR."""
 
-    async def save_ksr(self, upload_file: UploadFile) -> tuple[Path, str]:
-        """Process incoming KSR."""
+    # check content type
+    if upload_file.content_type != app.config.ksr.content_type:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
 
-        # check content type
-        if upload_file.content_type != self.config.ksr.content_type:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+    if upload_file.size is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
 
-        if upload_file.size is None:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+    # check file max size
+    if upload_file.size > app.config.ksr.max_size:
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
 
-        # check file max size
-        if upload_file.size > self.config.ksr.max_size:
-            raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+    contents = await upload_file.read()
 
-        contents = await upload_file.read()
+    # calculate file checksum
+    digest = hashlib.new("sha256")
+    digest.update(contents)
+    filehash = digest.hexdigest()
 
-        # calculate file checksum
-        digest = hashlib.new("sha256")
-        digest.update(contents)
-        filehash = digest.hexdigest()
+    filename_washed = re.sub(r"[^a-zA-Z0-9_]+", "_", str(upload_file.filename))
+    filename_suffix = datetime.now(UTC).strftime("_%Y%m%d_%H%M%S_%f")
 
-        filename_washed = re.sub(r"[^a-zA-Z0-9_]+", "_", str(upload_file.filename))
-        filename_suffix = datetime.now(UTC).strftime("_%Y%m%d_%H%M%S_%f")
+    filename = Path(
+        str(app.config.ksr.prefix) + filename_washed + filename_suffix + ".xml"
+    )
 
-        filename = Path(
-            str(self.config.ksr.prefix) + filename_washed + filename_suffix + ".xml"
-        )
+    with open(filename, "wb") as ksr_file:
+        ksr_file.write(contents)
 
-        with open(filename, "wb") as ksr_file:
-            ksr_file.write(contents)
+    logger.info(
+        "Saved filename=%s size=%d hash=%s", filename, upload_file.size, filehash
+    )
 
-        logger.info(
-            "Saved filename=%s size=%d hash=%s", filename, upload_file.size, filehash
-        )
-
-        return filename, filehash
+    return filename, filehash
