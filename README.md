@@ -28,7 +28,6 @@ For the KSR submission webserver (wksr), the following extras are required:
 For testing and independent DNSSEC validation of KSRs, the following modules are used:
 
 - [dnspython](http://www.dnspython.org/)
-- [pycryptodome](https://pycryptodome.readthedocs.io/)
 
 ### Debian Dependencies
 
