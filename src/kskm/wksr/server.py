@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 import jinja2
+import yaml
 from fastapi import APIRouter, FastAPI, HTTPException, Request, UploadFile, status
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -122,6 +123,12 @@ class WKSR(FastAPI):
 
         self.include_router(router)
         self.add_middleware(ClientCertificateWhitelist)
+
+    @classmethod
+    def from_file(cls, filename: str):
+        with open(filename) as fp:
+            _config = yaml.load(fp.read(), Loader=yaml.SafeLoader)
+        return cls(WKSR_Config.from_dict(_config))
 
 
 def validate_ksr(app: WKSR, filename: Path) -> dict[str, str]:
