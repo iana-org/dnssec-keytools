@@ -1,6 +1,6 @@
 Greetings,
 
-Remote Address: {{ request.remote_addr }}
+Remote Address: {{ remote_addr }}
 Certificate Subject: {{ client_subject }}
 Certificate Digest: {{ client_digest }}
 
