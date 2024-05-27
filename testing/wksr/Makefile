@@ -1,15 +1,18 @@
 NEW_CERT=	openssl req -new -x509 -newkey rsa:2048 -nodes -days 30
 
 
-server: wksr.crt wksr.key ca.crt
+server: wksr.crt wksr.key ca.crt ksr
 	kskm-wksr --debug --port 8443
 
 certs: wksr.crt client.crt
 
+ksr:
+	mkdir $@
+
 wksr.crt:
 	$(NEW_CERT) -keyout wksr.key -out wksr.crt -subj '/CN=wksr-server'
 
-wksr.key: wksr.key
+wksr.key: wksr.crt
 
 client.crt:
 	$(NEW_CERT) -keyout client.key -out client.crt -subj '/CN=wksr-client'

@@ -13,7 +13,7 @@ tls:
 ksr:
   max_size: 65535
   content_type: "application/xml"
-  prefix: ksr.
+  upload_path: ./ksr
 
 templates:
   upload: upload.html

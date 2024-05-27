@@ -220,8 +220,8 @@ async def save_ksr(app: WKSR, upload_file: UploadFile) -> tuple[Path, str]:
     filename_washed = re.sub(r"[^a-zA-Z0-9_]+", "_", str(upload_file.filename))
     filename_suffix = datetime.now(UTC).strftime("_%Y%m%d_%H%M%S_%f")
 
-    filename = Path(
-        str(app.config.ksr.prefix) + filename_washed + filename_suffix + ".xml"
+    filename = app.config.ksr.upload_path / Path(
+        filename_washed + filename_suffix + ".xml"
     )
 
     with open(filename, "wb") as ksr_file:
