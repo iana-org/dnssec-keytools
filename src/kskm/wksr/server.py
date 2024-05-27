@@ -217,7 +217,7 @@ async def save_ksr(app: WKSR, upload_file: UploadFile) -> tuple[Path, str]:
     digest.update(contents)
     filehash = digest.hexdigest()
 
-    filename_washed = re.sub(r"[^a-zA-Z0-9_]+", "_", str(upload_file.filename))
+    filename_washed = re.sub(r"[^a-zA-Z0-9_\-]+", "_", str(upload_file.filename))
     filename_suffix = datetime.now(UTC).strftime("_%Y%m%d_%H%M%S_%f")
 
     filename = app.config.ksr.upload_path / Path(
