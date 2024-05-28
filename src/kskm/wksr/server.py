@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 """KSR Receiver Web Server."""
 
 import hashlib
@@ -7,80 +5,76 @@ import io
 import logging
 import re
 import smtplib
-import ssl
 from datetime import UTC, datetime
 from email.message import EmailMessage
 from pathlib import Path
 from typing import Any
 
 import jinja2
-from flask import Flask, render_template, request
-from werkzeug.datastructures import FileStorage
-from werkzeug.exceptions import BadRequest, Forbidden, RequestEntityTooLarge
+import yaml
+from fastapi import APIRouter, FastAPI, HTTPException, Request, UploadFile, status
+from fastapi.templating import Jinja2Templates
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from kskm.common.config import get_config
-from kskm.common.config_wksr import WKSR_TLS, WKSR_Config
+from kskm.common.config_wksr import WKSR_Config
 from kskm.common.validate import PolicyViolation
 from kskm.ksr import load_ksr
 from kskm.signer.policy import check_skr_and_ksr
 from kskm.skr import load_skr
 from kskm.skr.data import Response
-
-from .peercert import PeerCertWSGIRequestHandler
-
-DEFAULT_TEMPLATES_CONFIG = {
-    "upload": "upload.html",
-    "result": "result.html",
-    "email": "email.txt",
-}
-
-wksr_config: WKSR_Config | None = None
-
+from kskm.wksr.peercert import (
+    request_peercert_client_subject,
+    request_peercert_digest,
+)
 
 logger = logging.getLogger(__name__)
 
-
-def authz() -> None:
-    """Check TLS client whitelist."""
-    if wksr_config is None:
-        raise RuntimeError("Missing configuration")
-
-    digest = PeerCertWSGIRequestHandler.client_digest()
-    if digest is None:
-        logger.warning(f"Allowed client={request.remote_addr} digest={digest}")
-        return
-    if digest not in wksr_config.tls.client_whitelist:
-        logger.warning(f"Denied client={request.remote_addr} digest={digest}")
-        raise Forbidden
-    logger.info(f"Allowed client={request.remote_addr} digest={digest}")
+router = APIRouter()
 
 
-def index() -> str:
+class ClientCertificateWhitelist(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next: callable):
+        """Check TLS client whitelist."""
+        digest = request_peercert_digest(request)
+        if digest is None:
+            logger.warning(f"Allowed client={request.remote_addr} digest={digest}")
+            return
+        if digest not in request.app.config.tls.client_whitelist:
+            logger.warning(f"Denied client={request.client.host} digest={digest}")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
+        logger.info(f"Allowed client={request.client.host} digest={digest}")
+
+        return await call_next(request)
+
+
+@router.get("/")
+async def index(request: Request) -> str:
     """Present homepage."""
-    if "peercert" in request.environ:
-        subject = str(request.environ["peercert"].get_subject().commonName)
-        return f"Hello world: {subject}"
-    return "Hello world: ANONYMOUS"
+
+    if client_name := request_peercert_client_subject(request):
+        return f"Hello world: {client_name}"
+    else:
+        return "Hello world: ANONYMOUS"
 
 
-def upload() -> str:
+@router.get("/upload")
+async def upload_get(request: Request) -> str:
     """Handle manual file upload."""
-    if wksr_config is None:
-        raise RuntimeError("Missing configuration")
+    return request.app.templates.TemplateResponse(
+        request=request,
+        name=str(request.app.config.templates.upload),
+        context={
+            "action": str(request.base_url),
+        },
+    )
 
-    if request.method == "GET":
-        return str(
-            render_template(str(wksr_config.templates.upload), action=request.base_url)
-        )
 
-    if "ksr" not in request.files:
-        raise BadRequest
+@router.post("/upload")
+async def upload_post(request: Request, ksr: UploadFile) -> str:
+    """Handle manual file upload."""
 
-    file = request.files["ksr"]
-    if file is None:
-        raise BadRequest
-
-    (filename, filehash) = save_ksr(file)
+    (filename, filehash) = await save_ksr(request.app, ksr)
 
     # setup log capture
     log_capture_string = io.StringIO()
@@ -88,7 +82,7 @@ def upload() -> str:
     log_handler.setLevel(logging.DEBUG)
     logging.getLogger().addHandler(log_handler)
 
-    result = validate_ksr(filename)
+    result = validate_ksr(request.app, filename)
 
     # save captured log
     logging.getLogger().removeHandler(log_handler)
@@ -97,24 +91,52 @@ def upload() -> str:
 
     env: dict[str, Any] = {
         "result": result,
-        "request": request,
+        "remote_addr": request.client.host if request.client else None,
         "filename": filename,
         "filehash": filehash,
         "timestamp": datetime.now(UTC),
         "log": log_buffer,
+        "client_subject": request_peercert_client_subject(request),
+        "client_digest": request_peercert_digest(request),
     }
 
-    notify(env)
+    notify(request.app, env)
 
-    return str(render_template(str(wksr_config.templates.result), **env))
+    return request.app.templates.TemplateResponse(
+        request=request, name=str(request.app.config.templates.result), context=env
+    )
 
 
-def validate_ksr(filename: Path) -> dict[str, str]:
+class WKSR(FastAPI):
+    def __init__(
+        self,
+        config: WKSR_Config,
+    ):
+        super().__init__()
+
+        self.config = config
+
+        for client in self.config.tls.client_whitelist:
+            logger.info(f"Accepting TLS client SHA-256 fingerprint: {client}")
+
+        self.templates = Jinja2Templates(directory=".")
+
+        self.include_router(router)
+        self.add_middleware(ClientCertificateWhitelist)
+
+    @classmethod
+    def from_file(cls, filename: str):
+        with open(filename) as fp:
+            _config = yaml.load(fp.read(), Loader=yaml.SafeLoader)
+        return cls(WKSR_Config.from_dict(_config))
+
+
+def validate_ksr(app: WKSR, filename: Path) -> dict[str, str]:
     """Validate incoming KSR and optionally check previous SKR."""
     ksr_config_filename = None
 
-    if wksr_config and wksr_config.ksr and wksr_config.ksr.ksrsigner_configfile:
-        ksr_config_filename = wksr_config.ksr.ksrsigner_configfile
+    if app.config.ksr and app.config.ksr.ksrsigner_configfile:
+        ksr_config_filename = app.config.ksr.ksrsigner_configfile
         logger.info(f"Using ksrsigner configuration {ksr_config_filename}")
     else:
         logger.warning("Using default ksrsigner configuration")
@@ -153,95 +175,60 @@ def validate_ksr(filename: Path) -> dict[str, str]:
     return result
 
 
-def notify(env: dict[str, Any]) -> None:
+def notify(app: WKSR, env: dict[str, Any]) -> None:
     """Send notification about incoming KSR."""
-    if wksr_config is None:
-        raise RuntimeError("Missing configuration")
-    if not wksr_config.notify or not wksr_config.notify.smtp_server:
+
+    if not app.config.notify or not app.config.notify.smtp_server:
         return
+
+    template: jinja2.Template = app.templates.get_template(
+        str(app.config.templates.email)
+    )
+    body = template.render(**env)
+
     msg = EmailMessage()
-    body = render_template(str(wksr_config.templates.email), **env)
     msg.set_content(body)
-    msg["Subject"] = wksr_config.notify.subject
-    msg["From"] = wksr_config.notify.from_
-    msg["To"] = wksr_config.notify.to
-    smtp = smtplib.SMTP(wksr_config.notify.smtp_server)
+    msg["Subject"] = app.config.notify.subject
+    msg["From"] = app.config.notify.from_
+    msg["To"] = app.config.notify.to
+    smtp = smtplib.SMTP(app.config.notify.smtp_server)
     smtp.send_message(msg)
     smtp.quit()
 
 
-def save_ksr(upload_file: FileStorage) -> tuple[Path, str]:
+async def save_ksr(app: WKSR, upload_file: UploadFile) -> tuple[Path, str]:
     """Process incoming KSR."""
-    if wksr_config is None:
-        raise RuntimeError("Missing configuration")
-    # check content type
-    if upload_file.content_type != wksr_config.ksr.content_type:
-        raise BadRequest
 
-    # calculate file size
-    filesize = len(upload_file.stream.read())
-    if filesize > wksr_config.ksr.max_size:
-        raise RequestEntityTooLarge
-    upload_file.stream.seek(0)
+    # check content type
+    if upload_file.content_type != app.config.ksr.content_type:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+
+    if upload_file.size is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+
+    # check file max size
+    if upload_file.size > app.config.ksr.max_size:
+        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+
+    contents = await upload_file.read()
 
     # calculate file checksum
     digest = hashlib.new("sha256")
-    digest.update(upload_file.stream.read())
+    digest.update(contents)
     filehash = digest.hexdigest()
-    upload_file.stream.seek(0)
 
-    filename_washed = re.sub(r"[^a-zA-Z0-9_]+", "_", str(upload_file.filename))
+    filename_washed = re.sub(r"[^a-zA-Z0-9_\-]+", "_", str(upload_file.filename))
     filename_suffix = datetime.now(UTC).strftime("_%Y%m%d_%H%M%S_%f")
 
-    filename = wksr_config.ksr.prefix.joinpath(
+    filename = app.config.ksr.upload_path / Path(
         filename_washed + filename_suffix + ".xml"
     )
 
     with open(filename, "wb") as ksr_file:
-        ksr_file.write(upload_file.stream.read())
+        ksr_file.write(contents)
 
-    logger.info("Saved filename=%s size=%d hash=%s", filename, filesize, filehash)
+    logger.info(
+        "Saved filename=%s size=%d hash=%s", filename, upload_file.size, filehash
+    )
 
     return filename, filehash
-
-
-def generate_ssl_context(config: WKSR_TLS) -> ssl.SSLContext:
-    """Generate SSL context for app."""
-    ssl_context = ssl.create_default_context(
-        purpose=ssl.Purpose.CLIENT_AUTH, cafile=config.ca_cert
-    )
-    ssl_context.options |= ssl.OP_NO_TLSv1
-    ssl_context.options |= ssl.OP_NO_TLSv1_1
-
-    ssl_context.set_ciphers(":".join(config.ciphers))
-
-    if config.require_client_cert:
-        ssl_context.verify_mode = ssl.CERT_REQUIRED
-    else:
-        ssl_context.verify_mode = ssl.CERT_OPTIONAL
-    ssl_context.load_cert_chain(certfile=config.cert, keyfile=config.key)
-
-    return ssl_context
-
-
-def generate_app(config: WKSR_Config) -> Flask:
-    """Generate app."""
-    global wksr_config
-
-    wksr_config = config
-
-    for client in config.tls.client_whitelist:
-        logger.info(f"Accepting TLS client SHA-256 fingerprint: {client}")
-
-    app = Flask(__name__)
-
-    app.jinja_loader = jinja2.FileSystemLoader(".")
-    app.jinja_env.globals["client_subject"] = PeerCertWSGIRequestHandler.client_subject
-    app.jinja_env.globals["client_digest"] = PeerCertWSGIRequestHandler.client_digest
-
-    app.before_request(authz)
-
-    app.add_url_rule("/", view_func=index, methods=["GET"])
-    app.add_url_rule("/upload", view_func=upload, methods=["GET", "POST"])
-
-    return app

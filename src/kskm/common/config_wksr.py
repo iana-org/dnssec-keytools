@@ -25,7 +25,7 @@ class WKSR_TLS(BaseModel):
 class WKSR_KSR(BaseModel):
     max_size: Annotated[int, Field(gt=0, default=1024 * 1024)]
     content_type: str = "application/xml"
-    prefix: Path = Path("upload_")
+    upload_path: Path = Path("upload")
     ksrsigner_configfile: FilePath | None = None
 
 

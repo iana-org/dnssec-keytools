@@ -11,3 +11,4 @@
 - Use Pydantic instead of voluptuous for data validation.
 - Add ksk key config option `hash_using_hsm` to perform hashing on the HSM.
 - Improve container (docker) build
+- Rename WKSR settings `prefix` to `upload_path` (path of uploaded KSR files)
