@@ -4,10 +4,12 @@ import base64
 from enum import Enum
 from typing import Any
 
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives.asymmetric.utils import encode_dss_signature
 from pydantic import Field
 
 from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyECDSA
-from kskm.common.public_key import KSKM_PublicKey
+from kskm.common.public_key import KSKM_PublicKey, algorithm_to_hash
 
 __author__ = "ft"
 
@@ -34,6 +36,38 @@ class KSKM_PublicKey_ECDSA(KSKM_PublicKey):
     def __str__(self) -> str:
         """Return key as string."""
         return f"alg=EC bits={self.bits} curve={self.curve.value}"
+
+    def to_cryptography_pubkey(self) -> ec.EllipticCurvePublicKey:
+        """Convert an KSKM_PublicKey_ECDSA into a 'cryptography' ec.EllipticCurvePublicKey."""
+        q = self.q
+        curve: object
+        if self.curve == ECCurve.P256:
+            curve = ec.SECP256R1()
+            if len(q) == (256 // 8) * 2:
+                # q is the bare x and y point, have to add a prefix of 0x04 (SEC 1: complete point (x,y))
+                q = b"\x04" + q
+        elif self.curve == ECCurve.P384:
+            curve = ec.SECP384R1()
+            if len(q) == (384 // 8) * 2:
+                # q is the bare x and y point, have to add a prefix of 0x04 (SEC 1: complete point (x,y))
+                q = b"\x04" + q
+        else:
+            raise RuntimeError(f"Don't know which curve to use for {self.curve.name}")
+        return ec.EllipticCurvePublicKey.from_encoded_point(curve, q)
+
+    def verify_signature(
+        self, signature: bytes, data: bytes, algorithm: AlgorithmDNSSEC
+    ) -> None:
+        """Verify a signature over 'data' using the 'cryptography' library."""
+        pubkey = self.to_cryptography_pubkey()
+        # OpenSSL (which is at the bottom of 'cryptography' expects ECDSA signatures to
+        # be in RFC3279 format (ASN.1 encoded).
+        _r, _s = signature[: len(signature) // 2], signature[len(signature) // 2 :]
+        r = int.from_bytes(_r, byteorder="big")
+        s = int.from_bytes(_s, byteorder="big")
+        signature = encode_dss_signature(r, s)
+        _ec_alg = ec.ECDSA(algorithm=algorithm_to_hash(algorithm))
+        pubkey.verify(signature, data, _ec_alg)
 
 
 def is_algorithm_ecdsa(alg: AlgorithmDNSSEC) -> bool:

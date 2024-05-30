@@ -5,10 +5,12 @@ import math
 import struct
 from typing import Any
 
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
 from pydantic import Field
 
 from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyRSA
-from kskm.common.public_key import KSKM_PublicKey
+from kskm.common.public_key import KSKM_PublicKey, algorithm_to_hash
 
 __author__ = "ft"
 
@@ -50,6 +52,19 @@ class KSKM_PublicKey_RSA(KSKM_PublicKey):
     def __str__(self) -> str:
         """Return KSK Public Key as string."""
         return f"alg=RSA bits={self.bits} exp={self.exponent}"
+
+    def to_cryptography_pubkey(self) -> rsa.RSAPublicKey:
+        """Return a 'cryptography' public key object."""
+        rsa_n = int.from_bytes(self.n, byteorder="big")
+        public = rsa.RSAPublicNumbers(self.exponent, rsa_n)
+        return public.public_key()
+
+    def verify_signature(
+        self, signature: bytes, data: bytes, algorithm: AlgorithmDNSSEC
+    ) -> None:
+        """Verify a signature over 'data' using the 'cryptography' library."""
+        pubkey = self.to_cryptography_pubkey()
+        pubkey.verify(signature, data, PKCS1v15(), algorithm_to_hash(algorithm))
 
 
 def decode_rsa_public_key(key: bytes) -> KSKM_PublicKey_RSA:
