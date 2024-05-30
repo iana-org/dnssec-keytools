@@ -93,7 +93,6 @@ class KSKM_PublicKey_RSA(KSKM_PublicKey):
         rsa_n = _bytes[_exponent_len:]
         return cls(bits=len(rsa_n) * 8, exponent=rsa_e, n=rsa_n)
 
-
     def encode_public_key(self, algorithm: AlgorithmDNSSEC) -> bytes:
         """
         Encode a public key (probably loaded from an HSM) into base64 encoded Key.public_key form.

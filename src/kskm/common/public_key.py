@@ -39,7 +39,8 @@ class KSKM_PublicKey(FrozenStrictBaseModel, ABC):
     def to_algorithm_policy(self, algorithm: AlgorithmDNSSEC) -> AlgorithmPolicy:
         """Return an algorithm policy instance for this key."""
         raise NotImplementedError(
-            "to_algorithm_policy() must be implemented by subclasses.")
+            "to_algorithm_policy() must be implemented by subclasses."
+        )
 
     @classmethod
     @abstractmethod
@@ -55,6 +56,7 @@ class KSKM_PublicKey(FrozenStrictBaseModel, ABC):
         raise NotImplementedError(
             "encode_public_key() must be implemented by subclasses."
         )
+
 
 def algorithm_to_hash(alg: AlgorithmDNSSEC) -> SHA256 | SHA384:
     if alg in [AlgorithmDNSSEC.RSASHA256, AlgorithmDNSSEC.ECDSAP256SHA256]:

@@ -2,9 +2,7 @@ import base64
 import unittest
 
 from kskm.common.data import AlgorithmDNSSEC
-from kskm.common.rsa_utils import (
-    KSKM_PublicKey_RSA,
-)
+from kskm.common.rsa_utils import KSKM_PublicKey_RSA
 
 
 class TestRsaUtils(unittest.TestCase):
@@ -31,7 +29,9 @@ class TestRsaUtils(unittest.TestCase):
         """Test decode with exponent length encoded in two bytes"""
         algorithm = AlgorithmDNSSEC.RSASHA256
         expected = KSKM_PublicKey_RSA(bits=32, exponent=65537, n=b"test")
-        decoded = KSKM_PublicKey_RSA.decode_public_key(base64.b64encode(b"\x03\x01\x00\x01test"), algorithm)
+        decoded = KSKM_PublicKey_RSA.decode_public_key(
+            base64.b64encode(b"\x03\x01\x00\x01test"), algorithm
+        )
         self.assertEqual(expected, decoded)
 
     def test_encode_decode_rsa_public_key_four_bytes_exponent(self) -> None:

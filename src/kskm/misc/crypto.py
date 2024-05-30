@@ -6,11 +6,7 @@ from typing import Self
 from pydantic import BaseModel
 
 from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicy, Key
-from kskm.common.ecdsa_utils import (
-    KSKM_PublicKey_ECDSA,
-    algorithm_to_curve,
-    is_algorithm_ecdsa,
-)
+from kskm.common.ecdsa_utils import KSKM_PublicKey_ECDSA, is_algorithm_ecdsa
 from kskm.common.public_key import KSKM_PublicKey
 from kskm.common.rsa_utils import KSKM_PublicKey_RSA, is_algorithm_rsa
 
@@ -28,12 +24,16 @@ class CryptoPubKey(BaseModel):
         if is_algorithm_rsa(key.algorithm):
             return cls(
                 algorithm=key.algorithm,
-                public_key=KSKM_PublicKey_RSA.decode_public_key(key.public_key, key.algorithm),
+                public_key=KSKM_PublicKey_RSA.decode_public_key(
+                    key.public_key, key.algorithm
+                ),
             )
         if is_algorithm_ecdsa(key.algorithm):
             return cls(
                 algorithm=key.algorithm,
-                public_key=KSKM_PublicKey_ECDSA.decode_public_key(key.public_key, key.algorithm),
+                public_key=KSKM_PublicKey_ECDSA.decode_public_key(
+                    key.public_key, key.algorithm
+                ),
             )
         raise RuntimeError(f"Can't make public key instance from {key}")
 

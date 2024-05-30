@@ -91,7 +91,6 @@ class KSKM_PublicKey_ECDSA(KSKM_PublicKey):
         return base64.b64encode(self.q)
 
 
-
 def is_algorithm_ecdsa(alg: AlgorithmDNSSEC) -> bool:
     """Check if `alg' is one of the ECDSA algorithms."""
     return alg in [
@@ -123,7 +122,6 @@ def parse_signature_policy_ecdsa(data: dict[str, Any]) -> AlgorithmPolicyECDSA:
         bits=int(attrs["size"]),
     )
     return ecdsa
-
 
 
 def ecdsa_public_key_without_prefix(
