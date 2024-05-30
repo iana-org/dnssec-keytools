@@ -6,7 +6,7 @@ from typing import Any, Self
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from cryptography.hazmat.primitives.hashes import SHA256, SHA384
 
-from kskm.common.data import AlgorithmDNSSEC, FrozenStrictBaseModel
+from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicy, FrozenStrictBaseModel
 
 __author__ = "ft"
 
@@ -34,6 +34,12 @@ class KSKM_PublicKey(FrozenStrictBaseModel, ABC):
         raise NotImplementedError(
             "verify_signature() must be implemented by subclasses."
         )
+
+    @abstractmethod
+    def to_algorithm_policy(self, algorithm: AlgorithmDNSSEC) -> AlgorithmPolicy:
+        """Return an algorithm policy instance for this key."""
+        raise NotImplementedError(
+            "to_algorithm_policy() must be implemented by subclasses.")
 
 
 def algorithm_to_hash(alg: AlgorithmDNSSEC) -> SHA256 | SHA384:

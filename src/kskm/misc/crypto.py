@@ -5,7 +5,7 @@ from typing import Self
 
 from pydantic import BaseModel
 
-from kskm.common.data import AlgorithmDNSSEC, Key
+from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicy, Key
 from kskm.common.ecdsa_utils import (
     algorithm_to_curve,
     decode_ecdsa_public_key,
@@ -41,3 +41,7 @@ class CryptoPubKey(BaseModel):
     def verify_signature(self, signature: bytes, data: bytes) -> None:
         """Verify a signature over 'data' using an 'cryptography' public key."""
         self.public_key.verify_signature(signature, data, self.algorithm)
+
+    def to_algorithm_policy(self) -> AlgorithmPolicy:
+        """Return an algorithm policy instance for this key."""
+        return self.public_key.to_algorithm_policy(self.algorithm)

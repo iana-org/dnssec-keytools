@@ -69,6 +69,13 @@ class KSKM_PublicKey_ECDSA(KSKM_PublicKey):
         _ec_alg = ec.ECDSA(algorithm=algorithm_to_hash(algorithm))
         pubkey.verify(signature, data, _ec_alg)
 
+    def to_algorithm_policy(self, algorithm: AlgorithmDNSSEC) -> AlgorithmPolicyECDSA:
+        """Return an algorithm policy instance for this key."""
+        if not is_algorithm_ecdsa(algorithm):
+            raise ValueError(f"Algorithm mismatch: Expected ECDSA, got {algorithm}")
+
+        raise RuntimeError("Creating ECDSA AlgorithmPolicy not implemented")
+
 
 def is_algorithm_ecdsa(alg: AlgorithmDNSSEC) -> bool:
     """Check if `alg' is one of the ECDSA algorithms."""

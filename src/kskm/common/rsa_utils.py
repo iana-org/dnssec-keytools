@@ -66,6 +66,17 @@ class KSKM_PublicKey_RSA(KSKM_PublicKey):
         pubkey = self.to_cryptography_pubkey()
         pubkey.verify(signature, data, PKCS1v15(), algorithm_to_hash(algorithm))
 
+    def to_algorithm_policy(self, algorithm: AlgorithmDNSSEC) -> AlgorithmPolicyRSA:
+        """Return an algorithm policy instance for this key."""
+        if not is_algorithm_rsa(algorithm):
+            raise ValueError(f"Algorithm mismatch: Expected RSA, got {algorithm}")
+
+        return AlgorithmPolicyRSA(
+            bits=self.bits,
+            exponent=self.exponent,
+            algorithm=AlgorithmDNSSEC.RSASHA256,
+        )
+
 
 def decode_rsa_public_key(key: bytes) -> KSKM_PublicKey_RSA:
     """Parse DNSSEC RSA public_key, as specified in RFC3110."""
