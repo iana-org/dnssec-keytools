@@ -3,7 +3,7 @@
 import base64
 import math
 import struct
-from typing import Any
+from typing import Any, Self
 
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
@@ -77,35 +77,35 @@ class KSKM_PublicKey_RSA(KSKM_PublicKey):
             algorithm=AlgorithmDNSSEC.RSASHA256,
         )
 
+    @classmethod
+    def decode_public_key(cls, key: bytes, algorithm: AlgorithmDNSSEC) -> Self:
+        """Parse DNSSEC RSA public_key, as specified in RFC3110."""
+        _bytes = base64.b64decode(key)
+        if _bytes[0] == 0:
+            # two bytes length of exponent follows
+            (_exponent_len,) = struct.unpack("!H", _bytes[1:3])
+            _bytes = _bytes[3:]
+        else:
+            (_exponent_len,) = struct.unpack("!B", _bytes[0:1])
+            _bytes = _bytes[1:]
 
-def decode_rsa_public_key(key: bytes) -> KSKM_PublicKey_RSA:
-    """Parse DNSSEC RSA public_key, as specified in RFC3110."""
-    _bytes = base64.b64decode(key)
-    if _bytes[0] == 0:
-        # two bytes length of exponent follows
-        (_exponent_len,) = struct.unpack("!H", _bytes[1:3])
-        _bytes = _bytes[3:]
-    else:
-        (_exponent_len,) = struct.unpack("!B", _bytes[0:1])
-        _bytes = _bytes[1:]
-
-    rsa_e = int.from_bytes(_bytes[:_exponent_len], byteorder="big")
-    rsa_n = _bytes[_exponent_len:]
-    return KSKM_PublicKey_RSA(bits=len(rsa_n) * 8, exponent=rsa_e, n=rsa_n)
+        rsa_e = int.from_bytes(_bytes[:_exponent_len], byteorder="big")
+        rsa_n = _bytes[_exponent_len:]
+        return cls(bits=len(rsa_n) * 8, exponent=rsa_e, n=rsa_n)
 
 
-def encode_rsa_public_key(key: KSKM_PublicKey_RSA) -> bytes:
-    """
-    Encode a public key (probably loaded from an HSM) into base64 encoded Key.public_key form.
+    def encode_public_key(self, algorithm: AlgorithmDNSSEC) -> bytes:
+        """
+        Encode a public key (probably loaded from an HSM) into base64 encoded Key.public_key form.
 
-    This is specified in RFC 3110, section 2.
-    """
-    _exp_len = math.ceil(int.bit_length(key.exponent) / 8)
-    exp = int.to_bytes(key.exponent, length=_exp_len, byteorder="big")
-    if _exp_len > 255:
-        # A value larger than 255 can't be represented using a single byte. Use long variant
-        # of encoding, which is a zero byte followed by the value in two bytes.
-        exp_header = b"\0" + struct.pack("!H", _exp_len)
-    else:
-        exp_header = struct.pack("!B", _exp_len)
-    return base64.b64encode(exp_header + exp + key.n)
+        This is specified in RFC 3110, section 2.
+        """
+        _exp_len = math.ceil(int.bit_length(self.exponent) / 8)
+        exp = int.to_bytes(self.exponent, length=_exp_len, byteorder="big")
+        if _exp_len > 255:
+            # A value larger than 255 can't be represented using a single byte. Use long variant
+            # of encoding, which is a zero byte followed by the value in two bytes.
+            exp_header = b"\0" + struct.pack("!H", _exp_len)
+        else:
+            exp_header = struct.pack("!B", _exp_len)
+        return base64.b64encode(exp_header + exp + self.n)

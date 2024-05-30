@@ -4,13 +4,7 @@ import base64
 import struct
 
 from kskm.common.data import AlgorithmDNSSEC, Key
-from kskm.common.ecdsa_utils import (
-    KSKM_PublicKey_ECDSA,
-    algorithm_to_curve,
-    encode_ecdsa_public_key,
-)
 from kskm.common.public_key import KSKM_PublicKey
-from kskm.common.rsa_utils import KSKM_PublicKey_RSA, encode_rsa_public_key
 
 __author__ = "ft"
 
@@ -54,17 +48,7 @@ def public_key_to_dnssec_key(
     flags: int,
 ) -> Key:
     """Make a Key instance from an KSKM_PublicKey, and some other values."""
-    if isinstance(key, KSKM_PublicKey_RSA):
-        pubkey = encode_rsa_public_key(key)
-    elif isinstance(key, KSKM_PublicKey_ECDSA):
-        if algorithm_to_curve(algorithm) != key.curve:
-            raise ValueError(
-                f"Can't make {algorithm} key out of public key "
-                f"{key_identifier} with curve {key.curve}"
-            )
-        pubkey = encode_ecdsa_public_key(key)
-    else:
-        raise RuntimeError(f"Unrecognised key {key}")
+    pubkey = key.encode_public_key(algorithm)
     _key = Key(
         algorithm=algorithm,
         flags=flags,

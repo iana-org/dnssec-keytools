@@ -2,7 +2,7 @@
 
 import base64
 from enum import Enum
-from typing import Any
+from typing import Any, Self
 
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.utils import encode_dss_signature
@@ -76,6 +76,21 @@ class KSKM_PublicKey_ECDSA(KSKM_PublicKey):
 
         raise RuntimeError("Creating ECDSA AlgorithmPolicy not implemented")
 
+    @classmethod
+    def decode_public_key(cls, key: bytes, algorithm: AlgorithmDNSSEC) -> Self:
+        """Parse bytes to the internal representation of an ECDSA key."""
+        q = base64.b64decode(key)
+        curve = algorithm_to_curve(algorithm)
+        return cls(curve=curve, bits=len(q) * 8, q=q)
+
+    def encode_public_key(self, algorithm: AlgorithmDNSSEC) -> bytes:
+        """Convert the internal representation for a public ECDSA key to bytes."""
+        curve = algorithm_to_curve(algorithm)
+        if curve != self.curve:
+            raise ValueError(f"Curve mismatch: Expected {curve}, got {self.curve}")
+        return base64.b64encode(self.q)
+
+
 
 def is_algorithm_ecdsa(alg: AlgorithmDNSSEC) -> bool:
     """Check if `alg' is one of the ECDSA algorithms."""
@@ -109,16 +124,6 @@ def parse_signature_policy_ecdsa(data: dict[str, Any]) -> AlgorithmPolicyECDSA:
     )
     return ecdsa
 
-
-def encode_ecdsa_public_key(key: KSKM_PublicKey_ECDSA) -> bytes:
-    """Convert the internal representation for a public ECDSA key to bytes."""
-    return base64.b64encode(key.q)
-
-
-def decode_ecdsa_public_key(key: bytes, curve: ECCurve) -> KSKM_PublicKey_ECDSA:
-    """Parse bytes to the internal representation of an ECDSA key."""
-    q = base64.b64decode(key)
-    return KSKM_PublicKey_ECDSA(curve=curve, bits=len(q) * 8, q=q)
 
 
 def ecdsa_public_key_without_prefix(

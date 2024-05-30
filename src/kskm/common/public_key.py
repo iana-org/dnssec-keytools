@@ -41,6 +41,20 @@ class KSKM_PublicKey(FrozenStrictBaseModel, ABC):
         raise NotImplementedError(
             "to_algorithm_policy() must be implemented by subclasses.")
 
+    @classmethod
+    @abstractmethod
+    def decode_public_key(cls, key: bytes, algorithm: AlgorithmDNSSEC) -> Self:
+        """Decode a public key from a base64 string."""
+        raise NotImplementedError(
+            "decode_public_key() must be implemented by subclasses."
+        )
+
+    @abstractmethod
+    def encode_public_key(self, algorithm: AlgorithmDNSSEC) -> bytes:
+        """Encode the public key to a base64 string."""
+        raise NotImplementedError(
+            "encode_public_key() must be implemented by subclasses."
+        )
 
 def algorithm_to_hash(alg: AlgorithmDNSSEC) -> SHA256 | SHA384:
     if alg in [AlgorithmDNSSEC.RSASHA256, AlgorithmDNSSEC.ECDSAP256SHA256]:
