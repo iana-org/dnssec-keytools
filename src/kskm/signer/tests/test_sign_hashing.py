@@ -16,15 +16,23 @@ class Test_Sign_Formatting(unittest.TestCase):
             key_type=KeyType.RSA,
             key_class=KeyClass.PRIVATE,
             public_key=KSKM_PublicKey_RSA(
-                bits=3, exponent=3, n=b"test"
-            ),  # signatures get longer with larger keys
+                bits=3,
+                exponent=3,
+                n=b"test",
+                algorithm=AlgorithmDNSSEC.RSASHA256,
+            ).encode_public_key(),  # signatures get longer with larger keys
         )
 
         self.ecdsa_key = KSKM_P11Key(
             label="EC key",
             key_type=KeyType.EC,
             key_class=KeyClass.PRIVATE,
-            public_key=KSKM_PublicKey_ECDSA(bits=256, q=b"test", curve=ECCurve.P256),
+            public_key=KSKM_PublicKey_ECDSA(
+                bits=256,
+                q=b"test",
+                curve=ECCurve.P256,
+                algorithm=AlgorithmDNSSEC.ECDSAP256SHA256,
+            ).encode_public_key(),
         )
 
     def test_raw_rsa_sha256(self) -> None:

@@ -6,7 +6,12 @@ from typing import Any, Self
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from cryptography.hazmat.primitives.hashes import SHA256, SHA384
 
-from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicy, FrozenStrictBaseModel
+from kskm.common.data import (
+    AlgorithmDNSSEC,
+    AlgorithmPolicy,
+    FrozenStrictBaseModel,
+    Key,
+)
 
 __author__ = "ft"
 
@@ -18,6 +23,22 @@ class KSKM_PublicKey(FrozenStrictBaseModel, ABC):
     """Base class for parsed public keys."""
 
     bits: int
+    algorithm: AlgorithmDNSSEC
+
+    @classmethod
+    def from_key(cls, key: Key) -> "KSKM_PublicKey":
+        return KSKM_PublicKey.from_bytes(key.public_key, key.algorithm)
+
+    @classmethod
+    def from_bytes(cls, public_key: bytes, algorithm: AlgorithmDNSSEC) -> "KSKM_PublicKey":
+        from kskm.common.ecdsa_utils import KSKM_PublicKey_ECDSA, is_algorithm_ecdsa
+        from kskm.common.rsa_utils import KSKM_PublicKey_RSA, is_algorithm_rsa
+
+        if is_algorithm_rsa(algorithm):
+            return KSKM_PublicKey_RSA.decode_public_key(public_key, algorithm)
+        if is_algorithm_ecdsa(algorithm):
+            return KSKM_PublicKey_ECDSA.decode_public_key(public_key, algorithm)
+        raise RuntimeError(f"Can't make public key instance from {public_key}")
 
     @abstractmethod
     def to_cryptography_pubkey(self) -> CryptographyPubKey:
@@ -27,16 +48,14 @@ class KSKM_PublicKey(FrozenStrictBaseModel, ABC):
         )
 
     @abstractmethod
-    def verify_signature(
-        self, signature: bytes, data: bytes, algorithm: AlgorithmDNSSEC
-    ) -> None:
+    def verify_signature(self, signature: bytes, data: bytes) -> None:
         """Verify a signature over 'data' using the 'cryptography' library."""
         raise NotImplementedError(
             "verify_signature() must be implemented by subclasses."
         )
 
     @abstractmethod
-    def to_algorithm_policy(self, algorithm: AlgorithmDNSSEC) -> AlgorithmPolicy:
+    def to_algorithm_policy(self) -> AlgorithmPolicy:
         """Return an algorithm policy instance for this key."""
         raise NotImplementedError(
             "to_algorithm_policy() must be implemented by subclasses."
@@ -51,7 +70,7 @@ class KSKM_PublicKey(FrozenStrictBaseModel, ABC):
         )
 
     @abstractmethod
-    def encode_public_key(self, algorithm: AlgorithmDNSSEC) -> bytes:
+    def encode_public_key(self) -> bytes:
         """Encode the public key to a base64 string."""
         raise NotImplementedError(
             "encode_public_key() must be implemented by subclasses."

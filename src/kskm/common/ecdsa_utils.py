@@ -6,7 +6,7 @@ from typing import Any, Self
 
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.utils import encode_dss_signature
-from pydantic import Field
+from pydantic import Field, ValidationInfo, field_validator
 
 from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyECDSA
 from kskm.common.public_key import KSKM_PublicKey, algorithm_to_hash
@@ -33,6 +33,20 @@ class KSKM_PublicKey_ECDSA(KSKM_PublicKey):
     q: bytes = Field(repr=False)
     curve: ECCurve
 
+    @field_validator("algorithm")
+    @classmethod
+    def _check_algorithm(cls, value: AlgorithmDNSSEC) -> AlgorithmDNSSEC:
+        if not is_algorithm_ecdsa(value):
+            raise ValueError(f"Algorithm mismatch: Expected ECDSA, got {value}")
+        return value
+
+    @field_validator("curve", mode="after")
+    @classmethod
+    def _check_curve(cls, v: ECCurve, info: ValidationInfo) -> ECCurve:
+        if v != algorithm_to_curve(info.data["algorithm"]):
+            raise ValueError(f"Curve mismatch: Expected {algorithm_to_curve(info.data['algorithm'])}, got {v}")
+        return v
+
     def __str__(self) -> str:
         """Return key as string."""
         return f"alg=EC bits={self.bits} curve={self.curve.value}"
@@ -55,9 +69,7 @@ class KSKM_PublicKey_ECDSA(KSKM_PublicKey):
             raise RuntimeError(f"Don't know which curve to use for {self.curve.name}")
         return ec.EllipticCurvePublicKey.from_encoded_point(curve, q)
 
-    def verify_signature(
-        self, signature: bytes, data: bytes, algorithm: AlgorithmDNSSEC
-    ) -> None:
+    def verify_signature(self, signature: bytes, data: bytes) -> None:
         """Verify a signature over 'data' using the 'cryptography' library."""
         pubkey = self.to_cryptography_pubkey()
         # OpenSSL (which is at the bottom of 'cryptography' expects ECDSA signatures to
@@ -66,14 +78,11 @@ class KSKM_PublicKey_ECDSA(KSKM_PublicKey):
         r = int.from_bytes(_r, byteorder="big")
         s = int.from_bytes(_s, byteorder="big")
         signature = encode_dss_signature(r, s)
-        _ec_alg = ec.ECDSA(algorithm=algorithm_to_hash(algorithm))
+        _ec_alg = ec.ECDSA(algorithm=algorithm_to_hash(self.algorithm))
         pubkey.verify(signature, data, _ec_alg)
 
-    def to_algorithm_policy(self, algorithm: AlgorithmDNSSEC) -> AlgorithmPolicyECDSA:
+    def to_algorithm_policy(self) -> AlgorithmPolicyECDSA:
         """Return an algorithm policy instance for this key."""
-        if not is_algorithm_ecdsa(algorithm):
-            raise ValueError(f"Algorithm mismatch: Expected ECDSA, got {algorithm}")
-
         raise RuntimeError("Creating ECDSA AlgorithmPolicy not implemented")
 
     @classmethod
@@ -81,13 +90,10 @@ class KSKM_PublicKey_ECDSA(KSKM_PublicKey):
         """Parse bytes to the internal representation of an ECDSA key."""
         q = base64.b64decode(key)
         curve = algorithm_to_curve(algorithm)
-        return cls(curve=curve, bits=len(q) * 8, q=q)
+        return cls(curve=curve, bits=len(q) * 8, q=q, algorithm=algorithm)
 
-    def encode_public_key(self, algorithm: AlgorithmDNSSEC) -> bytes:
+    def encode_public_key(self) -> bytes:
         """Convert the internal representation for a public ECDSA key to bytes."""
-        curve = algorithm_to_curve(algorithm)
-        if curve != self.curve:
-            raise ValueError(f"Curve mismatch: Expected {curve}, got {self.curve}")
         return base64.b64encode(self.q)
 
 

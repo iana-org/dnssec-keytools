@@ -7,7 +7,7 @@ from typing import Any, Self
 
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
-from pydantic import Field
+from pydantic import Field, field_validator
 
 from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyRSA
 from kskm.common.public_key import KSKM_PublicKey, algorithm_to_hash
@@ -49,6 +49,12 @@ class KSKM_PublicKey_RSA(KSKM_PublicKey):
     exponent: int
     n: bytes = Field(repr=False)
 
+    @field_validator("algorithm")
+    def _check_algorithm(cls, value: AlgorithmDNSSEC) -> AlgorithmDNSSEC:
+        if not is_algorithm_rsa(value):
+            raise ValueError(f"Algorithm mismatch: Expected RSA, got {value}")
+        return value
+
     def __str__(self) -> str:
         """Return KSK Public Key as string."""
         return f"alg=RSA bits={self.bits} exp={self.exponent}"
@@ -59,22 +65,17 @@ class KSKM_PublicKey_RSA(KSKM_PublicKey):
         public = rsa.RSAPublicNumbers(self.exponent, rsa_n)
         return public.public_key()
 
-    def verify_signature(
-        self, signature: bytes, data: bytes, algorithm: AlgorithmDNSSEC
-    ) -> None:
+    def verify_signature(self, signature: bytes, data: bytes) -> None:
         """Verify a signature over 'data' using the 'cryptography' library."""
         pubkey = self.to_cryptography_pubkey()
-        pubkey.verify(signature, data, PKCS1v15(), algorithm_to_hash(algorithm))
+        pubkey.verify(signature, data, PKCS1v15(), algorithm_to_hash(self.algorithm))
 
-    def to_algorithm_policy(self, algorithm: AlgorithmDNSSEC) -> AlgorithmPolicyRSA:
+    def to_algorithm_policy(self) -> AlgorithmPolicyRSA:
         """Return an algorithm policy instance for this key."""
-        if not is_algorithm_rsa(algorithm):
-            raise ValueError(f"Algorithm mismatch: Expected RSA, got {algorithm}")
-
         return AlgorithmPolicyRSA(
             bits=self.bits,
             exponent=self.exponent,
-            algorithm=AlgorithmDNSSEC.RSASHA256,
+            algorithm=self.algorithm,
         )
 
     @classmethod
@@ -91,9 +92,9 @@ class KSKM_PublicKey_RSA(KSKM_PublicKey):
 
         rsa_e = int.from_bytes(_bytes[:_exponent_len], byteorder="big")
         rsa_n = _bytes[_exponent_len:]
-        return cls(bits=len(rsa_n) * 8, exponent=rsa_e, n=rsa_n)
+        return cls(bits=len(rsa_n) * 8, exponent=rsa_e, n=rsa_n, algorithm=algorithm)
 
-    def encode_public_key(self, algorithm: AlgorithmDNSSEC) -> bytes:
+    def encode_public_key(self) -> bytes:
         """
         Encode a public key (probably loaded from an HSM) into base64 encoded Key.public_key form.
 

@@ -41,14 +41,13 @@ def calculate_key_tag(key: Key) -> int:
 
 
 def public_key_to_dnssec_key(
-    key: KSKM_PublicKey,
+    pubkey: bytes,
     key_identifier: str,
     algorithm: AlgorithmDNSSEC,
     ttl: int,
     flags: int,
 ) -> Key:
     """Make a Key instance from an KSKM_PublicKey, and some other values."""
-    pubkey = key.encode_public_key(algorithm)
     _key = Key(
         algorithm=algorithm,
         flags=flags,

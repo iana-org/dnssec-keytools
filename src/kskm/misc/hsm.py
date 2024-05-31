@@ -114,7 +114,7 @@ class KeyInfo(FrozenBaseModel):
     key_class: KeyClass
     key_id: bytes | None = None
     label: str
-    pubkey: KSKM_PublicKey | None = Field(repr=False, default=None)
+    pubkey: bytes | None = Field(repr=False, default=None)
 
 
 class KSKM_P11Key(BaseModel):
@@ -126,7 +126,7 @@ class KSKM_P11Key(BaseModel):
     key_type: KeyType
     key_class: KeyClass
     hash_using_hsm: bool | None = None
-    public_key: KSKM_PublicKey | None
+    public_key: bytes | None = Field(repr=False, default=None)
     session: Any = Field(default=None, repr=False)  # PyKCS11 opaque data
     privkey_handle: PyKCS11.LowLevel.CK_OBJECT_HANDLE | None = Field(
         repr=False, default=None
@@ -137,9 +137,9 @@ class KSKM_P11Key(BaseModel):
 
     def __str__(self) -> str:
         """Return string."""
-        ret = f"key_label={self.label}"
+        ret = f"key_label={self.label} {self.key_type.name}"
         if self.public_key:
-            ret += " " + str(self.public_key)
+            ret += f" public_key={len(self.public_key)} bytes"
         return ret
 
     def replace(self, **kwargs: Any) -> Self:
@@ -410,9 +410,7 @@ class KSKM_P11Module:
         return res
 
     @staticmethod
-    def _p11_object_to_public_key(
-        session: PyKCS11.Session, data: Any
-    ) -> KSKM_PublicKey | None:
+    def _p11_object_to_public_key(session: PyKCS11.Session, data: Any) -> bytes | None:
         """Create an RSAPublicKeyData object from PKCS#11 findObject return data."""
         _cka_type = _p11.getAttributeValue(session, data, [_p11.CKA_KEY_TYPE])[0]
         if _cka_type == _p11.CKK_RSA:
@@ -420,7 +418,14 @@ class KSKM_P11Module:
             _exp = _p11.getAttributeValue(session, data, [_p11.CKA_PUBLIC_EXPONENT])
             rsa_e = int.from_bytes(bytes(_exp[0]), byteorder="big")
             rsa_n = bytes(_modulus[0])
-            return KSKM_PublicKey_RSA(bits=len(rsa_n) * 8, exponent=rsa_e, n=rsa_n)
+            # Algorithm doesn't matter since we return the encoded public key, without the algorithm
+            pubkey = KSKM_PublicKey_RSA(
+                bits=len(rsa_n) * 8,
+                exponent=rsa_e,
+                n=rsa_n,
+                algorithm=AlgorithmDNSSEC.RSASHA256,
+            )
+            return pubkey.encode_public_key()
         if _cka_type == _p11.CKK_EC:
             # DER-encoding of ANSI X9.62 ECPoint value ''Q''.
             _cka_ec_point = _p11.getAttributeValue(session, data, [_p11.CKA_EC_POINT])
@@ -458,12 +463,28 @@ class KSKM_P11Module:
                 raise RuntimeError(
                     f"Unexpected ECDSA key length {_ec_len} for curve {crv}"
                 )
-            return KSKM_PublicKey_ECDSA(bits=_ec_len, q=ec_point, curve=crv)
+            # Algorithm doesn't matter since we return the encoded public key, without the algorithm
+            if crv == ECCurve.P256:
+                algorithm = AlgorithmDNSSEC.ECDSAP256SHA256
+            elif crv == ECCurve.P384:
+                algorithm = AlgorithmDNSSEC.ECDSAP384SHA384
+            else:
+                raise RuntimeError(f"Unknown curve {crv}")
+            pubkey = KSKM_PublicKey_ECDSA(
+                bits=_ec_len, q=ec_point, curve=crv, algorithm=algorithm
+            )
+            return pubkey.encode_public_key()
         raise NotImplementedError(f"Unknown CKA_TYPE: {_cka_type}")
 
 
 def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) -> bytes:
     """Sign some data using a PKCS#11 key."""
+
+    match key.key_type:
+        case KeyType.RSA | KeyType.EC:
+            pass
+        case KeyType.AES | KeyType.DES3:
+            raise ValueError(f"Can't sign with {key}")
 
     _sign_data = _format_data_for_signing(key, data, algorithm)
 
@@ -527,9 +548,6 @@ def _format_data_for_signing(
         case _p11.CKM_RSA_X_509:
             # The X.509 (raw) RSA mechanism does not hash the data on the HSM, so we need to hash it first.
 
-            if not isinstance(key.public_key, KSKM_PublicKey_RSA):
-                raise ValueError(f"Can't RSA sign with non-RSA key {key}")
-
             # Pad according to RFC3447  9.2 EMSA-PKCS1-v1_5
             if algorithm == AlgorithmDNSSEC.RSASHA1:
                 digest = sha1(data).digest()
@@ -544,7 +562,10 @@ def _format_data_for_signing(
                 raise RuntimeError(f"Don't know how to pad algorithm {algorithm}")
 
             oid_digest = oid + digest
-            sig_len = key.public_key.bits // 8
+            if not key.public_key:
+                raise RuntimeError(f"No public key supplied in {key}")
+            pubkey = KSKM_PublicKey_RSA.decode_public_key(key.public_key, algorithm=algorithm)
+            sig_len = pubkey.bits // 8
             pad_len = sig_len - len(oid_digest) - 3
             pad = b"\xff" * pad_len
             data = bytes([0x0, 0x1]) + pad + b"\x00" + oid_digest

@@ -9,8 +9,8 @@ from kskm.common.config_misc import KSKPolicy, Schema
 from kskm.common.data import AlgorithmPolicy, SignaturePolicy
 from kskm.common.display import log_file_contents
 from kskm.common.integrity import checksum_bytes2str
+from kskm.common.public_key import KSKM_PublicKey
 from kskm.ksr import Request
-from kskm.misc.crypto import CryptoPubKey
 from kskm.misc.hsm import KSKM_P11
 from kskm.signer.sign import sign_bundles
 from kskm.skr.data import Response, ResponseBundle
@@ -62,6 +62,6 @@ def _ksk_signature_policy(
     algorithms: set[AlgorithmPolicy] = set()
     for bundle in bundles:
         for key in bundle.keys:
-            pubkey = CryptoPubKey.from_key(key)
+            pubkey = KSKM_PublicKey.from_key(key)
             algorithms.add(pubkey.to_algorithm_policy())
     return ksk_policy.signature_policy.replace(algorithms=algorithms)

@@ -10,7 +10,7 @@ from cryptography.exceptions import InvalidSignature
 
 from kskm.common.data import Bundle, Key, Signature
 from kskm.common.dnssec import key_to_rdata
-from kskm.misc.crypto import CryptoPubKey
+from kskm.common.public_key import KSKM_PublicKey
 
 __author__ = "ft"
 
@@ -50,7 +50,7 @@ def validate_signatures(bundle: Bundle) -> bool:
                 f"No key with key_identifier {sig.key_identifier} in bundle {bundle.id}"
             )
         key = _keys[sig.key_identifier]
-        pubkey = CryptoPubKey.from_key(key)
+        pubkey = KSKM_PublicKey.from_key(key)
         _sig_decoded = base64.b64decode(sig.signature_data)
 
         rrsig_raw = make_raw_rrsig(sig, bundle.keys)
@@ -65,7 +65,7 @@ def validate_signatures(bundle: Bundle) -> bool:
             )
             logger.debug(f"RRSIG: {binascii.hexlify(rrsig_raw)} ")
             logger.debug(f"DIGEST: {sha256(rrsig_raw).hexdigest()}")
-            logger.debug(f"Public key: {pubkey.public_key}")
+            logger.debug(f"Public key: {pubkey}")
             raise
     return True
 

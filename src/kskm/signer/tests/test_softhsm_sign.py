@@ -21,6 +21,7 @@ from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY, Key, Signer
 from kskm.common.dnssec import public_key_to_dnssec_key
 from kskm.common.parse_utils import parse_datetime, signature_policy_from_dict
+from kskm.common.public_key import KSKM_PublicKey
 from kskm.common.signature import validate_signatures
 from kskm.ksr import Request, request_from_xml
 from kskm.ksr.data import RequestBundle
@@ -121,7 +122,7 @@ class SignWithSoftHSM_Baseclass:
         if not p11_key or not p11_key.public_key:
             pytest.fail("Key not found")
         zsk_key = public_key_to_dnssec_key(
-            key=p11_key.public_key,
+            pubkey=p11_key.public_key,
             key_identifier=key_name,
             algorithm=algorithm,
             flags=flags,
