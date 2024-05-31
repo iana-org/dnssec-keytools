@@ -18,7 +18,9 @@ class TestRsaUtils(unittest.TestCase):
     def test_encode_decode_rsa_public_key_long(self) -> None:
         """Test encode-decode with exponent requiring long length encoding"""
         algorithm = AlgorithmDNSSEC.RSASHA256
-        key = KSKM_PublicKey_RSA(bits=32, exponent=16**2000, n=b"test", algorithm=algorithm)
+        key = KSKM_PublicKey_RSA(
+            bits=32, exponent=16**2000, n=b"test", algorithm=algorithm
+        )
         encoded = key.encode_public_key()
         decoded = KSKM_PublicKey_RSA.decode_public_key(key=encoded, algorithm=algorithm)
         self.assertEqual(key, decoded)
@@ -28,7 +30,9 @@ class TestRsaUtils(unittest.TestCase):
     def test_decode_rsa_public_key_two_bytes_exponent(self) -> None:
         """Test decode with exponent length encoded in two bytes"""
         algorithm = AlgorithmDNSSEC.RSASHA256
-        expected = KSKM_PublicKey_RSA(bits=32, exponent=65537, n=b"test", algorithm=algorithm)
+        expected = KSKM_PublicKey_RSA(
+            bits=32, exponent=65537, n=b"test", algorithm=algorithm
+        )
         decoded = KSKM_PublicKey_RSA.decode_public_key(
             base64.b64encode(b"\x03\x01\x00\x01test"), algorithm
         )
@@ -37,7 +41,9 @@ class TestRsaUtils(unittest.TestCase):
     def test_encode_decode_rsa_public_key_four_bytes_exponent(self) -> None:
         """Test encode-decode with four bytes exponent"""
         algorithm = AlgorithmDNSSEC.RSASHA256
-        key = KSKM_PublicKey_RSA(bits=32, exponent=0xAABBCCDD, n=b"test", algorithm=algorithm)
+        key = KSKM_PublicKey_RSA(
+            bits=32, exponent=0xAABBCCDD, n=b"test", algorithm=algorithm
+        )
         encoded = key.encode_public_key()
         decoded = KSKM_PublicKey_RSA.decode_public_key(key=encoded, algorithm=algorithm)
         self.assertEqual(key, decoded)

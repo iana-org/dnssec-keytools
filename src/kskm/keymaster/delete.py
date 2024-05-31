@@ -32,13 +32,13 @@ def key_delete(label: str, p11modules: KSKM_P11, force: bool = False) -> bool:
     session = get_session(p11modules, logger)
     if existing_key.public_key and existing_key.pubkey_handle:
         _destroy_object(session, existing_key.pubkey_handle)
-        logger.debug(f"Public key C_DestroyObject executed")
+        logger.debug("Public key C_DestroyObject executed")
 
     # Handles seem to get invalidated when calling destroyObject, so do another search for a private key
     existing_key = get_p11_key(label, p11modules, public=False)
     if existing_key and existing_key.privkey_handle:
         _destroy_object(session, existing_key.privkey_handle)
-        logger.debug(f"Private key C_DestroyObject executed")
+        logger.debug("Private key C_DestroyObject executed")
         return True
     return False
 

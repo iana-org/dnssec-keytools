@@ -21,7 +21,6 @@ from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY, Key, Signer
 from kskm.common.dnssec import public_key_to_dnssec_key
 from kskm.common.parse_utils import parse_datetime, signature_policy_from_dict
-from kskm.common.public_key import KSKM_PublicKey
 from kskm.common.signature import validate_signatures
 from kskm.ksr import Request, request_from_xml
 from kskm.ksr.data import RequestBundle

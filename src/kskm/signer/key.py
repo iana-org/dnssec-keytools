@@ -5,11 +5,11 @@ import logging
 from kskm.common.config_misc import KSKKey, KSKPolicy
 from kskm.common.data import FlagsDNSKEY, FrozenStrictBaseModel, Key
 from kskm.common.dnssec import public_key_to_dnssec_key
-from kskm.common.ecdsa_utils import KSKM_PublicKey_ECDSA, is_algorithm_ecdsa
+from kskm.common.ecdsa_utils import is_algorithm_ecdsa
 from kskm.common.rsa_utils import KSKM_PublicKey_RSA, is_algorithm_rsa
 from kskm.common.validate import PolicyViolation
 from kskm.ksr.data import RequestBundle
-from kskm.misc.hsm import KSKM_P11, KSKM_P11Key, KeyType, get_p11_key
+from kskm.misc.hsm import KSKM_P11, KeyType, KSKM_P11Key, get_p11_key
 
 __author__ = "ft"
 
@@ -82,7 +82,9 @@ def load_pkcs11_key(
                 raise ValueError(
                     f"PKCS#11 key {_found.label} is an RSA key, expected {ksk.algorithm.name}"
                 )
-            pubkey = KSKM_PublicKey_RSA.decode_public_key(_found.public_key, ksk.algorithm)
+            pubkey = KSKM_PublicKey_RSA.decode_public_key(
+                _found.public_key, ksk.algorithm
+            )
             if pubkey.bits != ksk.rsa_size:
                 raise ValueError(
                     f"PKCS#11 key {_found.label} is RSA-{pubkey.bits} - expected {ksk.rsa_size}"

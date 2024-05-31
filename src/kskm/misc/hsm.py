@@ -19,7 +19,6 @@ from kskm.common.config import KSKMConfig
 from kskm.common.config_misc import KSKMHSM
 from kskm.common.data import AlgorithmDNSSEC, FrozenBaseModel
 from kskm.common.ecdsa_utils import ECCurve, KSKM_PublicKey_ECDSA
-from kskm.common.public_key import KSKM_PublicKey
 from kskm.common.rsa_utils import KSKM_PublicKey_RSA
 
 __author__ = "ft"
@@ -564,7 +563,9 @@ def _format_data_for_signing(
             oid_digest = oid + digest
             if not key.public_key:
                 raise RuntimeError(f"No public key supplied in {key}")
-            pubkey = KSKM_PublicKey_RSA.decode_public_key(key.public_key, algorithm=algorithm)
+            pubkey = KSKM_PublicKey_RSA.decode_public_key(
+                key.public_key, algorithm=algorithm
+            )
             sig_len = pubkey.bits // 8
             pad_len = sig_len - len(oid_digest) - 3
             pad = b"\xff" * pad_len

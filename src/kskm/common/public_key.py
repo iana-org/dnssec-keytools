@@ -30,7 +30,9 @@ class KSKM_PublicKey(FrozenStrictBaseModel, ABC):
         return KSKM_PublicKey.from_bytes(key.public_key, key.algorithm)
 
     @classmethod
-    def from_bytes(cls, public_key: bytes, algorithm: AlgorithmDNSSEC) -> "KSKM_PublicKey":
+    def from_bytes(
+        cls, public_key: bytes, algorithm: AlgorithmDNSSEC
+    ) -> "KSKM_PublicKey":
         from kskm.common.ecdsa_utils import KSKM_PublicKey_ECDSA, is_algorithm_ecdsa
         from kskm.common.rsa_utils import KSKM_PublicKey_RSA, is_algorithm_rsa
 

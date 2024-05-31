@@ -4,7 +4,6 @@ import base64
 import struct
 
 from kskm.common.data import AlgorithmDNSSEC, Key
-from kskm.common.public_key import KSKM_PublicKey
 
 __author__ = "ft"
 
