@@ -24,6 +24,14 @@ class FrozenBaseModel(BaseModel, ABC):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
+    def replace(self, **kwargs: Any) -> Self:
+        """
+        Return a new instance with the provided attributes updated.
+
+        NOTE: Pydantic won't perform any validation on the updated attributes, unfortunately.
+        """
+        return self.model_copy(update=kwargs)
+
 
 class FrozenStrictBaseModel(BaseModel, ABC):
     """
@@ -33,6 +41,14 @@ class FrozenStrictBaseModel(BaseModel, ABC):
     """
 
     model_config = ConfigDict(frozen=True, extra="forbid", strict=True)
+
+    def replace(self, **kwargs: Any) -> Self:
+        """
+        Return a new instance with the provided attributes updated.
+
+        NOTE: Pydantic won't perform any validation on the updated attributes, unfortunately.
+        """
+        return self.model_copy(update=kwargs)
 
 
 class AlgorithmDNSSEC(Enum):
@@ -119,10 +135,6 @@ class SignaturePolicy(FrozenStrictBaseModel):
     min_validity_overlap: timedelta = Field(default=timedelta())
     algorithms: set[AlgorithmPolicy] = Field(default_factory=set)
 
-    def replace(self, **kwargs: Any) -> Self:
-        """Return a new instance with the provided attributes updated. Used in tests."""
-        return self.model_copy(update=kwargs)
-
 
 class Signer(FrozenStrictBaseModel):
     """RRSIG Signer parameters."""
@@ -152,10 +164,6 @@ class Signature(FrozenStrictBaseModel):
     key_tag: int
     signers_name: str
     signature_data: bytes = Field(repr=False)
-
-    def replace(self, **kwargs: Any) -> Self:
-        """Return a new instance with the provided attributes updated. Used in tests."""
-        return self.model_copy(update=kwargs)
 
 
 class Key(FrozenStrictBaseModel):
@@ -206,10 +214,6 @@ class Key(FrozenStrictBaseModel):
             return flags
         raise ValueError(f"Unsupported DNSSEC key flags combination {flags}")
 
-    def replace(self, **kwargs: Any) -> Self:
-        """Return a new instance with the provided attributes updated. Used in tests."""
-        return self.model_copy(update=kwargs)
-
 
 class Bundle(FrozenStrictBaseModel, ABC):
     """Request Bundle base class."""
@@ -219,7 +223,3 @@ class Bundle(FrozenStrictBaseModel, ABC):
     expiration: datetime
     keys: set[Key]
     signatures: set[Signature]
-
-    def replace(self, **kwargs: Any) -> Self:
-        """Return a new instance with the provided attributes updated."""
-        return self.model_copy(update=kwargs)

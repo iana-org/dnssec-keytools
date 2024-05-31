@@ -12,7 +12,3 @@ class KSKM_PublicKey(FrozenStrictBaseModel, ABC):
     """Base class for parsed public keys."""
 
     bits: int
-
-    def replace(self, **kwargs: Any) -> Self:
-        """Return a new instance with the provided attributes updated."""
-        return self.model_copy(update=kwargs)

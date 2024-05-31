@@ -19,10 +19,6 @@ class SKR(FrozenStrictBaseModel, ABC):
     domain: str
     timestamp: datetime | None
 
-    def replace(self, **kwargs: Any) -> Self:
-        """Return a new instance with the provided attributes updated. Used in tests."""
-        return self.model_copy(update=kwargs)
-
 
 class Response(SKR):
     """SKR Response."""
