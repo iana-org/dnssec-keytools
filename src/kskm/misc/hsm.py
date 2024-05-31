@@ -419,13 +419,13 @@ class KSKM_P11Module:
             rsa_e = int.from_bytes(bytes(_exp[0]), byteorder="big")
             rsa_n = bytes(_modulus[0])
             # Algorithm doesn't matter since we return the encoded public key, without the algorithm
-            pubkey = KSKM_PublicKey_RSA(
+            _pubkey_rsa = KSKM_PublicKey_RSA(
                 bits=len(rsa_n) * 8,
                 exponent=rsa_e,
                 n=rsa_n,
                 algorithm=AlgorithmDNSSEC.RSASHA256,
             )
-            return pubkey.encode_public_key()
+            return _pubkey_rsa.encode_public_key()
         if _cka_type == _p11.CKK_EC:
             # DER-encoding of ANSI X9.62 ECPoint value ''Q''.
             _cka_ec_point = _p11.getAttributeValue(session, data, [_p11.CKA_EC_POINT])
@@ -470,10 +470,10 @@ class KSKM_P11Module:
                 algorithm = AlgorithmDNSSEC.ECDSAP384SHA384
             else:
                 raise RuntimeError(f"Unknown curve {crv}")
-            pubkey = KSKM_PublicKey_ECDSA(
+            _pubkey_ecdsa = KSKM_PublicKey_ECDSA(
                 bits=_ec_len, q=ec_point, curve=crv, algorithm=algorithm
             )
-            return pubkey.encode_public_key()
+            return _pubkey_ecdsa.encode_public_key()
         raise NotImplementedError(f"Unknown CKA_TYPE: {_cka_type}")
 
 

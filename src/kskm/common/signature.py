@@ -63,7 +63,7 @@ def validate_signatures(bundle: Bundle) -> bool:
             logger.error(
                 f"Key {key.key_tag}/{key.key_identifier} in bundle {bundle.id} FAILED validation"
             )
-            logger.debug(f"RRSIG: {binascii.hexlify(rrsig_raw)} ")
+            logger.debug(f"RRSIG: {binascii.hexlify(rrsig_raw).decode()} ")
             logger.debug(f"DIGEST: {sha256(rrsig_raw).hexdigest()}")
             logger.debug(f"Public key: {pubkey}")
             raise

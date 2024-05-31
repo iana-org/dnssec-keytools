@@ -38,7 +38,7 @@ class KSKM_PublicKey(FrozenStrictBaseModel, ABC):
             return KSKM_PublicKey_RSA.decode_public_key(public_key, algorithm)
         if is_algorithm_ecdsa(algorithm):
             return KSKM_PublicKey_ECDSA.decode_public_key(public_key, algorithm)
-        raise RuntimeError(f"Can't make public key instance from {public_key}")
+        raise RuntimeError(f"Can't make public key instance for algorithm {algorithm}")
 
     @abstractmethod
     def to_cryptography_pubkey(self) -> CryptographyPubKey:
