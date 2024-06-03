@@ -3,8 +3,9 @@
 import base64
 import math
 import struct
-from dataclasses import dataclass, field
 from typing import Any
+
+from pydantic import Field
 
 from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyRSA
 from kskm.common.public_key import KSKM_PublicKey
@@ -40,12 +41,11 @@ def parse_signature_policy_rsa(data: dict[str, Any]) -> AlgorithmPolicyRSA:
     return rsa
 
 
-@dataclass(frozen=True)
 class KSKM_PublicKey_RSA(KSKM_PublicKey):
     """A parsed DNSSEC RSA public key."""
 
     exponent: int
-    n: bytes = field(repr=False)
+    n: bytes = Field(repr=False)
 
     def __str__(self) -> str:
         """Return KSK Public Key as string."""

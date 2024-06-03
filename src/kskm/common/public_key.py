@@ -1,13 +1,13 @@
 """A module to hold the shared base class for KSKM public keys."""
 
 from abc import ABC
-from dataclasses import dataclass
+
+from kskm.common.data import FrozenStrictBaseModel
 
 __author__ = "ft"
 
 
-@dataclass(frozen=True)
-class KSKM_PublicKey(ABC):
+class KSKM_PublicKey(FrozenStrictBaseModel, ABC):
     """Base class for parsed public keys."""
 
     bits: int

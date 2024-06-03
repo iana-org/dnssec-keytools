@@ -60,6 +60,13 @@ def signers_from_list(signers: list[dict[str, Any]]) -> set[Signer] | None:
 def _parse_signature_algorithms(
     algorithms: dict[str, Any] | list[dict[str, Any]],
 ) -> set[AlgorithmPolicy]:
+    """
+    Parse data such as:
+
+        [{'attrs': {'algorithm': '8'}, 'value': {'RSA': {...}}}, {...}]
+
+    into a set of AlgorithmPolicy instances.
+    """
     _algs = algorithms if isinstance(algorithms, list) else [algorithms]
     res: set[AlgorithmPolicy] = set()
     for this in _algs:

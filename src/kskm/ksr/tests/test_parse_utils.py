@@ -164,9 +164,9 @@ class Test_keys_from_list(TestCase):
         data[0]["value"]["Algorithm"] = str(AlgorithmDNSSEC.ECDSAP384SHA384.value)
         with self.assertRaises(ValueError) as exc:
             keys_from_dict(data)
-        self.assertEqual(
-            "Unexpected ECDSA key length 256 for algorithm AlgorithmDNSSEC.ECDSAP384SHA384",
+        self.assertRegex(
             str(exc.exception),
+            ".+Value error, Unexpected ECDSA key length 256 for algorithm AlgorithmDNSSEC.ECDSAP384SHA384.+",
         )
 
 

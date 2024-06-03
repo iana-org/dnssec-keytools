@@ -22,6 +22,7 @@ from kskm.common.config_misc import (
 )
 from kskm.common.data import FrozenBaseModel
 from kskm.common.integrity import checksum_bytes2str
+from kskm.common.parse_utils import duration_to_timedelta
 
 __author__ = "ft"
 
@@ -228,7 +229,9 @@ class KSKMConfig(FrozenBaseModel):
                 if _move in _old_ksk_policy:
                     _new_ksk_policy[_move] = _old_ksk_policy.pop(_move)
             # put everything else in "signature_policy"
-            _new_ksk_policy["signature_policy"] = _old_ksk_policy
+            _new_ksk_policy["signature_policy"] = {
+                k: duration_to_timedelta(v) for k, v in _old_ksk_policy.items()
+            }
             _config["ksk_policy"] = _new_ksk_policy
 
         if "keys" in _config:

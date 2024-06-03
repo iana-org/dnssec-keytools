@@ -2,13 +2,11 @@
 
 from abc import ABC
 from base64 import b64decode
-from dataclasses import dataclass, field
-from dataclasses import replace as dc_replace
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Self, TypeVar
+from typing import TYPE_CHECKING, Any, Self, TypeVar
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
 # Type definitions to refer to the ABC types declared below
 
@@ -16,8 +14,41 @@ BundleType = TypeVar("BundleType", bound="Bundle")
 AlgorithmPolicyType = TypeVar("AlgorithmPolicyType", bound="AlgorithmPolicy")
 
 
-class FrozenBaseModel(BaseModel):
-    model_config = ConfigDict(frozen=True, extra="forbid", validate_assignment=True)
+class FrozenBaseModel(BaseModel, ABC):
+    """
+    A frozen abstract base class for Pydantic models.
+
+    This variant allows coercion of data - used when loading configuration objects to e.g.
+    get time deltas loaded transparently from strings.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    def replace(self, **kwargs: Any) -> Self:
+        """
+        Return a new instance with the provided attributes updated.
+
+        NOTE: Pydantic won't perform any validation on the updated attributes, unfortunately.
+        """
+        return self.model_copy(update=kwargs)
+
+
+class FrozenStrictBaseModel(BaseModel, ABC):
+    """
+    A frozen *strict* abstract base class for Pydantic models.
+
+    This variant does NOT allow coercion of data - used when loading KSRs/SKRs.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid", strict=True)
+
+    def replace(self, **kwargs: Any) -> Self:
+        """
+        Return a new instance with the provided attributes updated.
+
+        NOTE: Pydantic won't perform any validation on the updated attributes, unfortunately.
+        """
+        return self.model_copy(update=kwargs)
 
 
 class AlgorithmDNSSEC(Enum):
@@ -72,32 +103,28 @@ class FlagsDNSKEY(Enum):
     ZONE = 0x0100
 
 
-@dataclass(frozen=True)
-class AlgorithmPolicy:
+class AlgorithmPolicy(FrozenStrictBaseModel):
     """Algorithm Policy."""
 
     bits: int
     algorithm: AlgorithmDNSSEC
 
 
-@dataclass(frozen=True)
 class AlgorithmPolicyRSA(AlgorithmPolicy):
     """Algorithm Policy for RSA signatures."""
 
     exponent: int
 
 
-@dataclass(frozen=True)
 class AlgorithmPolicyECDSA(AlgorithmPolicy):
     """Algorithm Policy for ECDSA signatures."""
 
 
-@dataclass(frozen=True)
 class AlgorithmPolicyDSA(AlgorithmPolicy):
     """Algorithm Policy for DSA signatures."""
 
 
-class SignaturePolicy(FrozenBaseModel):
+class SignaturePolicy(FrozenStrictBaseModel):
     """DNSSEC Signature Policy."""
 
     publish_safety: timedelta = Field(default=timedelta())
@@ -108,21 +135,23 @@ class SignaturePolicy(FrozenBaseModel):
     min_validity_overlap: timedelta = Field(default=timedelta())
     algorithms: set[AlgorithmPolicy] = Field(default_factory=set)
 
-    def replace(self, **kwargs: Any) -> Self:
-        """Return a new instance with the provided attributes updated. Used in tests."""
-        return self.model_copy(update=kwargs)
 
-
-@dataclass(frozen=True)
-class Signer:
+class Signer(FrozenStrictBaseModel):
     """RRSIG Signer parameters."""
+
+    if TYPE_CHECKING:
+        # A frozen BaseModel will get a __hash__ function, but Pylance currently misses this
+        def __hash__(self) -> int: ...
 
     key_identifier: str | None
 
 
-@dataclass(frozen=True)
-class Signature:
+class Signature(FrozenStrictBaseModel):
     """RRSIG parameters."""
+
+    if TYPE_CHECKING:
+        # A frozen BaseModel will get a __hash__ function, but Pylance currently misses this
+        def __hash__(self) -> int: ...
 
     key_identifier: str
     ttl: int
@@ -134,16 +163,15 @@ class Signature:
     signature_inception: datetime
     key_tag: int
     signers_name: str
-    signature_data: bytes = field(repr=False)
-
-    def replace(self, **kwargs: Any) -> Self:
-        """Return a new instance with the provided attributes updated. Used in tests."""
-        return dc_replace(self, **kwargs)
+    signature_data: bytes = Field(repr=False)
 
 
-@dataclass(frozen=True)
-class Key:
+class Key(FrozenStrictBaseModel):
     """DNSKEY parameters."""
+
+    if TYPE_CHECKING:
+        # A frozen BaseModel will get a __hash__ function, but Pylance currently misses this
+        def __hash__(self) -> int: ...
 
     key_identifier: str
     key_tag: int
@@ -151,10 +179,11 @@ class Key:
     flags: int
     protocol: int
     algorithm: AlgorithmDNSSEC
-    public_key: bytes = field(repr=False)
+    public_key: bytes = Field(repr=False)
 
-    def __post_init__(self) -> None:
-        """Check for valid DNSKEY flags."""
+    @field_validator("public_key", mode="after")
+    @classmethod
+    def ecdsa_public_key_size(cls, v: bytes, info: ValidationInfo) -> bytes:
         # have to import these locally to avoid circular imports  # noqa
         from kskm.common.ecdsa_utils import (
             ecdsa_public_key_without_prefix,
@@ -163,32 +192,30 @@ class Key:
             is_algorithm_ecdsa,
         )
 
-        if is_algorithm_ecdsa(self.algorithm):
-            _pubkey = ecdsa_public_key_without_prefix(
-                b64decode(self.public_key), self.algorithm
-            )
+        _algorithm = info.data["algorithm"]
+        if is_algorithm_ecdsa(_algorithm):
+            _pubkey = ecdsa_public_key_without_prefix(b64decode(v), _algorithm)
             _size = get_ecdsa_pubkey_size(_pubkey)
-            if _size != expected_ecdsa_key_size(self.algorithm):
+            if _size != expected_ecdsa_key_size(_algorithm):
                 raise ValueError(
-                    f"Unexpected ECDSA key length {_size} for algorithm {self.algorithm}"
+                    f"Unexpected ECDSA key length {_size} for algorithm {_algorithm}"
                 )
+        return v
 
+    @field_validator("flags", mode="after")
+    @classmethod
+    def validate_flags(cls, flags: int, info: ValidationInfo) -> int:
         if (
-            self.flags == FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value
-            or self.flags
+            flags == FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value
+            or flags
             == FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value | FlagsDNSKEY.REVOKE.value
-            or self.flags == FlagsDNSKEY.ZONE.value
+            or flags == FlagsDNSKEY.ZONE.value
         ):
-            return
-        raise ValueError(f"Unsupported DNSSEC key flags combination {self.flags}")
-
-    def replace(self, **kwargs: Any) -> Self:
-        """Return a new instance with the provided attributes updated. Used in tests."""
-        return dc_replace(self, **kwargs)
+            return flags
+        raise ValueError(f"Unsupported DNSSEC key flags combination {flags}")
 
 
-@dataclass(frozen=True)
-class Bundle(ABC):
+class Bundle(FrozenStrictBaseModel, ABC):
     """Request Bundle base class."""
 
     id: str
@@ -196,7 +223,3 @@ class Bundle(ABC):
     expiration: datetime
     keys: set[Key]
     signatures: set[Signature]
-
-    def replace(self, **kwargs: Any) -> Self:
-        """Return a new instance with the provided attributes updated."""
-        return dc_replace(self, **kwargs)

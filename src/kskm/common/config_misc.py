@@ -27,10 +27,6 @@ PolicyType = TypeVar("PolicyType", bound="Policy")
 class Policy(FrozenBaseModel, ABC):
     """Base class for RequestPolicy and ResponsePolicy."""
 
-    def replace(self, **kwargs: Any) -> Self:
-        """Return a new instance with the provided attributes updated. Used in tests."""
-        return self.model_copy(update=kwargs)
-
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> Self:
         """Instantiate the policy from a dict of values."""

@@ -161,7 +161,7 @@ def trustanchor(
         id=args.id or str(uuid.uuid4()),
         source="http://data.iana.org/root-anchors/root-anchors.xml",
         zone=".",
-        keydigests=key_digests,
+        key_digests=key_digests,
     )
 
     output_trustanchor_xml(ta, _trustanchor_filename(args, config), logger)

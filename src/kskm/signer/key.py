@@ -1,10 +1,9 @@
 """PKCS#11 key interface."""
 
 import logging
-from dataclasses import dataclass
 
 from kskm.common.config_misc import KSKKey, KSKPolicy
-from kskm.common.data import FlagsDNSKEY, Key
+from kskm.common.data import FlagsDNSKEY, FrozenStrictBaseModel, Key
 from kskm.common.dnssec import public_key_to_dnssec_key
 from kskm.common.ecdsa_utils import KSKM_PublicKey_ECDSA, is_algorithm_ecdsa
 from kskm.common.rsa_utils import KSKM_PublicKey_RSA, is_algorithm_rsa
@@ -22,8 +21,7 @@ class KeyUsagePolicy_Violation(PolicyViolation):
     """Exception raised when a key can't be used because of policy."""
 
 
-@dataclass()
-class CompositeKey:
+class CompositeKey(FrozenStrictBaseModel):
     """Hold a key loaded from PKCS#11, and also converted to 'Key' format."""
 
     p11: KSKM_P11Key
