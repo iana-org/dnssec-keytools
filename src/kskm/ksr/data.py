@@ -2,7 +2,6 @@
 
 from abc import ABC
 from datetime import datetime
-from typing import Any, Self
 
 from kskm.common.data import Bundle, FrozenStrictBaseModel, SignaturePolicy, Signer
 

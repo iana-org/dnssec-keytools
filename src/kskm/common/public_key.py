@@ -1,7 +1,6 @@
 """A module to hold the shared base class for KSKM public keys."""
 
 from abc import ABC
-from typing import Any, Self
 
 from kskm.common.data import FrozenStrictBaseModel
 
