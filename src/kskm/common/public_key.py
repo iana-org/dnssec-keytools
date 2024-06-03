@@ -1,7 +1,7 @@
 """A module to hold the shared base class for KSKM public keys."""
 
 from abc import ABC, abstractmethod
-from typing import Any, Self
+from typing import Self
 
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from cryptography.hazmat.primitives.hashes import SHA256, SHA384
