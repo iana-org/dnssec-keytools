@@ -25,8 +25,7 @@
 
 ### Details of usage
 
-Places where execution differs for different algorithms
-can mostly be found by searching for use of the `is_algorithm_*` functions.
+Places where execution differs for different algorithms can mostly be found by searching for use of the `is_algorithm_*` functions.
 
 
 #### Parsing
@@ -37,8 +36,7 @@ The class `Key` represents a DNSSEC key. When instantiating, some validation is 
 
 `src/kskm/common/parse_utils.py`:
 
-The function `_parse_signature_algorithms()` that parses
-`SignatureAlgorithm` XML stanzas based on their `algorithm` value is found here.
+The function `_parse_signature_algorithms()` that parses `SignatureAlgorithm` XML stanzas based on their `algorithm` value is found here.
 
 `src/kskm/ksr/verify_bundles.py`:
 
@@ -57,18 +55,15 @@ The abstract base class `KSKM_PublicKey` resides here. This is where all verifyi
 
 `src/kskm/common/dsa_utils.py`:
 
-We support parsing DSA signature policies since they can be found
-in the historic archive of old KSRs. DSA is not supported besides this.
+We support parsing DSA signature policies since they can be found in the historic archive of old KSRs. DSA is not supported besides this.
 
 `src/kskm/common/ecdsa_utils.py`:
 
-Implementation of ECDSA functionality. Most notably the
-`KSKM_PublicKey_ECDSA` subclass of `KSKM_PublicKey`.
+Implementation of ECDSA functionality. Most notably the `KSKM_PublicKey_ECDSA` subclass of `KSKM_PublicKey`.
 
 `src/kskm/common/rsa_utils.py`:
 
-Implementation of RSA functionality. Most notably the
-`KSKM_PublicKey_RSA` subclass of `KSKM_PublicKey`.
+Implementation of RSA functionality. Most notably the `KSKM_PublicKey_RSA` subclass of `KSKM_PublicKey`.
 
 
 #### Private key operations
