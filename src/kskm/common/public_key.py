@@ -45,38 +45,28 @@ class KSKM_PublicKey(FrozenStrictBaseModel, ABC):
     @abstractmethod
     def to_cryptography_pubkey(self) -> CryptographyPubKey:
         """Return a 'cryptography' public key object."""
-        raise NotImplementedError(
-            "to_cryptography_pubkey() must be implemented by subclasses."
-        )
+        pass
 
     @abstractmethod
     def verify_signature(self, signature: bytes, data: bytes) -> None:
         """Verify a signature over 'data' using the 'cryptography' library."""
-        raise NotImplementedError(
-            "verify_signature() must be implemented by subclasses."
-        )
+        pass
 
     @abstractmethod
     def to_algorithm_policy(self) -> AlgorithmPolicy:
         """Return an algorithm policy instance for this key."""
-        raise NotImplementedError(
-            "to_algorithm_policy() must be implemented by subclasses."
-        )
+        pass
 
     @classmethod
     @abstractmethod
     def decode_public_key(cls, key: bytes, algorithm: AlgorithmDNSSEC) -> Self:
         """Decode a public key from a base64 string."""
-        raise NotImplementedError(
-            "decode_public_key() must be implemented by subclasses."
-        )
+        pass
 
     @abstractmethod
     def encode_public_key(self) -> bytes:
         """Encode the public key to a base64 string."""
-        raise NotImplementedError(
-            "encode_public_key() must be implemented by subclasses."
-        )
+        pass
 
 
 def algorithm_to_hash(alg: AlgorithmDNSSEC) -> SHA256 | SHA384:
