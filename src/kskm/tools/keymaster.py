@@ -18,6 +18,7 @@ import binascii
 import logging
 import os
 import sys
+from base64 import b64encode
 from datetime import UTC, datetime
 
 from PyKCS11 import PyKCS11Error
@@ -124,6 +125,11 @@ def keygen(
         f">> {' '.join(pgp_wordlist(_ds.digest))}"
     )
 
+    logger.info(
+        f"DNSKEY record for generated key:\n"
+        f"{_domain} IN DNSKEY {_key.flags} {_key.protocol} {_key.algorithm.value} "
+        f"{b64encode(p11key.public_key).decode()}"
+    )
     return True
 
 
