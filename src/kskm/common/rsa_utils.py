@@ -3,14 +3,15 @@
 import base64
 import math
 import struct
-from typing import Any, Self
+from typing import Any, Final, Self
 
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
+from cryptography.hazmat.primitives.hashes import SHA256, SHA512
 from pydantic import Field, field_validator
 
 from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyRSA
-from kskm.common.public_key import KSKM_PublicKey, algorithm_to_hash
+from kskm.common.public_key import KSKM_PublicKey
 
 __author__ = "ft"
 
@@ -49,6 +50,11 @@ class KSKM_PublicKey_RSA(KSKM_PublicKey):
     exponent: int
     n: bytes = Field(repr=False)
 
+    algorithm_to_hash: Final[dict[AlgorithmDNSSEC, SHA256 | SHA512]] = {
+        AlgorithmDNSSEC.RSASHA256: SHA256(),
+        AlgorithmDNSSEC.RSASHA512: SHA512(),
+    }
+
     @field_validator("algorithm")
     def _check_algorithm(cls, value: AlgorithmDNSSEC) -> AlgorithmDNSSEC:
         if not is_algorithm_rsa(value):
@@ -68,7 +74,9 @@ class KSKM_PublicKey_RSA(KSKM_PublicKey):
     def verify_signature(self, signature: bytes, data: bytes) -> None:
         """Verify a signature over 'data' using the 'cryptography' library."""
         pubkey = self.to_cryptography_pubkey()
-        pubkey.verify(signature, data, PKCS1v15(), algorithm_to_hash(self.algorithm))
+        pubkey.verify(
+            signature, data, PKCS1v15(), self.algorithm_to_hash[self.algorithm]
+        )
 
     def to_algorithm_policy(self) -> AlgorithmPolicyRSA:
         """Return an algorithm policy instance for this key."""

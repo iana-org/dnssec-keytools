@@ -4,7 +4,6 @@ from abc import ABC, abstractmethod
 from typing import Self
 
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
-from cryptography.hazmat.primitives.hashes import SHA256, SHA384
 
 from kskm.common.data import (
     AlgorithmDNSSEC,
@@ -67,11 +66,3 @@ class KSKM_PublicKey(FrozenStrictBaseModel, ABC):
     def encode_public_key(self) -> bytes:
         """Encode the public key to a base64 string."""
         pass
-
-
-def algorithm_to_hash(alg: AlgorithmDNSSEC) -> SHA256 | SHA384:
-    if alg in [AlgorithmDNSSEC.RSASHA256, AlgorithmDNSSEC.ECDSAP256SHA256]:
-        return SHA256()
-    if alg in [AlgorithmDNSSEC.ECDSAP384SHA384]:
-        return SHA384()
-    raise ValueError(f"Hashing for algorithm {alg} not supported")

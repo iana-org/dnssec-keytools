@@ -2,14 +2,15 @@
 
 import base64
 from enum import Enum
-from typing import Any, Self
+from typing import Any, Final, Self
 
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.utils import encode_dss_signature
+from cryptography.hazmat.primitives.hashes import SHA256, SHA384
 from pydantic import Field, ValidationInfo, field_validator
 
 from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyECDSA
-from kskm.common.public_key import KSKM_PublicKey, algorithm_to_hash
+from kskm.common.public_key import KSKM_PublicKey
 
 __author__ = "ft"
 
@@ -21,17 +22,21 @@ class ECCurve(Enum):
     P384 = "secp384r1"
 
 
-ALGORITHM_TO_CURVE = {
-    AlgorithmDNSSEC.ECDSAP256SHA256: ECCurve.P256,
-    AlgorithmDNSSEC.ECDSAP384SHA384: ECCurve.P384,
-}
-
-
 class KSKM_PublicKey_ECDSA(KSKM_PublicKey):
     """A parsed DNSSEC ECDSA public key."""
 
     q: bytes = Field(repr=False)
     curve: ECCurve
+
+    algorithm_to_hash: Final[dict[AlgorithmDNSSEC, SHA256 | SHA384]] = {
+        AlgorithmDNSSEC.ECDSAP256SHA256: SHA256(),
+        AlgorithmDNSSEC.ECDSAP384SHA384: SHA384(),
+    }
+
+    algorithm_to_curve: Final[dict[AlgorithmDNSSEC, ECCurve]] = {
+        AlgorithmDNSSEC.ECDSAP256SHA256: ECCurve.P256,
+        AlgorithmDNSSEC.ECDSAP384SHA384: ECCurve.P384,
+    }
 
     @field_validator("algorithm")
     @classmethod
@@ -80,7 +85,7 @@ class KSKM_PublicKey_ECDSA(KSKM_PublicKey):
         r = int.from_bytes(_r, byteorder="big")
         s = int.from_bytes(_s, byteorder="big")
         signature = encode_dss_signature(r, s)
-        _ec_alg = ec.ECDSA(algorithm=algorithm_to_hash(self.algorithm))
+        _ec_alg = ec.ECDSA(algorithm=self.algorithm_to_hash[self.algorithm])
         pubkey.verify(signature, data, _ec_alg)
 
     def to_algorithm_policy(self) -> AlgorithmPolicyECDSA:
@@ -109,8 +114,8 @@ def is_algorithm_ecdsa(alg: AlgorithmDNSSEC) -> bool:
 
 def algorithm_to_curve(alg: AlgorithmDNSSEC) -> ECCurve:
     """Return EC Curve of ECDSA key."""
-    if alg in ALGORITHM_TO_CURVE:
-        return ALGORITHM_TO_CURVE[alg]
+    if alg in KSKM_PublicKey_ECDSA.algorithm_to_curve:
+        return KSKM_PublicKey_ECDSA.algorithm_to_curve[alg]
     raise ValueError("Unsupported algorithm")
 
 
