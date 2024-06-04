@@ -107,7 +107,7 @@ def load_pkcs11_key(
             return None
 
     _key = public_key_to_dnssec_key(
-        pubkey=_found.public_key,
+        public_key=_found.public_key,
         key_identifier=ksk.label,
         algorithm=ksk.algorithm,
         flags=FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value,

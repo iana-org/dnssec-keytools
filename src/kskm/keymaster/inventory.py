@@ -61,7 +61,7 @@ def _format_keys(
             for _name, ksk in config.ksk_keys.items():
                 if ksk.label == this.label:
                     dnskey = public_key_to_dnssec_key(
-                        pubkey=this.pubkey,
+                        public_key=this.pubkey,
                         key_identifier=this.label,
                         algorithm=ksk.algorithm,
                         flags=FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value,

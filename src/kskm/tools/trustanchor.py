@@ -148,7 +148,7 @@ def trustanchor(
             )
             continue
         _key = public_key_to_dnssec_key(
-            pubkey=p11key.public_key,
+            public_key=p11key.public_key,
             key_identifier=ksk.label,
             algorithm=ksk.algorithm,
             flags=FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value,

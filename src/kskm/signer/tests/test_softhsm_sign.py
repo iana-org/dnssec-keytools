@@ -121,7 +121,7 @@ class SignWithSoftHSM_Baseclass:
         if not p11_key or not p11_key.public_key:
             pytest.fail("Key not found")
         zsk_key = public_key_to_dnssec_key(
-            pubkey=p11_key.public_key,
+            public_key=p11_key.public_key,
             key_identifier=key_name,
             algorithm=algorithm,
             flags=flags,
