@@ -3,11 +3,29 @@
 import logging
 from binascii import hexlify
 
+from pydantic import BaseModel
+
 from kskm.common.config import KSKMConfig
 from kskm.common.config_ksk import validate_dnskey_matches_ksk
-from kskm.common.data import FlagsDNSKEY
+from kskm.common.data import FlagsDNSKEY, Key
 from kskm.common.dnssec import public_key_to_dnssec_key
 from kskm.misc.hsm import KSKM_P11, KeyClass, KeyInfo
+from kskm.ta.data import KeyDigest
+from kskm.ta.keydigest import create_trustanchor_keydigest
+
+from base64 import b64encode
+from datetime import UTC, datetime
+
+from pydantic import BaseModel
+
+from kskm.common.config import KSKMConfig
+from kskm.common.config_misc import KSKKey
+from kskm.common.data import FlagsDNSKEY, Key
+from kskm.common.dnssec import public_key_to_dnssec_key
+
+from kskm.ta.data import KeyDigest
+from kskm.ta.keydigest import create_trustanchor_keydigest
+from kskm.version import __verbose_version__
 
 __author__ = "ft"
 
@@ -15,7 +33,7 @@ __author__ = "ft"
 logger = logging.getLogger(__name__)
 
 
-def key_inventory(p11modules: KSKM_P11, config: KSKMConfig) -> list[str]:
+def key_inventory(p11modules: KSKM_P11, config: KSKMConfig, dns_records: bool) -> list[str]:
     """Return key inventory."""
     res: list[str] = []
     for module in p11modules:
@@ -33,7 +51,7 @@ def key_inventory(p11modules: KSKM_P11, config: KSKMConfig) -> list[str]:
                     continue
                 keys[this.key_class][label_and_id] = this
 
-            formatted = _format_keys(keys, config)
+            formatted = _format_keys(keys, config, dns_records)
 
             if formatted:
                 res += [f"  Slot {slot}:"]
@@ -42,7 +60,7 @@ def key_inventory(p11modules: KSKM_P11, config: KSKMConfig) -> list[str]:
 
 
 def _format_keys(
-    data: dict[KeyClass, dict[str, KeyInfo]], config: KSKMConfig
+    data: dict[KeyClass, dict[str, KeyInfo]], config: KSKMConfig, dns_records: bool
 ) -> list[str]:
     """Format keys for inventory."""
     res: list[str] = []
@@ -57,6 +75,7 @@ def _format_keys(
                 raise RuntimeError("Invalid public key")
 
             ksk_info = "Matching KSK not found in configuration"
+            dns = None
             # Look for the key in the config
             for _name, ksk in config.ksk_keys.items():
                 if ksk.label == this.label:
@@ -82,10 +101,16 @@ def _format_keys(
                         f"algorithm={ksk.algorithm.name}"
                     )
 
+                    dns = key_to_dns_records(dnskey)
+
             if label_and_id in data[KeyClass.PRIVATE]:
                 pairs += [
-                    f"      {this.label:7s} {_id_to_str(this.key_id)}{str(this.pubkey)} -- {ksk_info}"
+                    f"      {this.label:7s} {_id_to_str(this.key_id)}{this.pubkey.decode()} -- {ksk_info}"
                 ]
+
+                if dns_records and dns:
+                    pairs += [f"              {dns.ds_rr}"]
+                    pairs += [f"              {dns.dnskey_rr}"]
                 del data[KeyClass.PRIVATE][label_and_id]
             del data[KeyClass.PUBLIC][label_and_id]
     if pairs:
@@ -110,3 +135,38 @@ def _id_to_str(key_id: bytes | None) -> str:
     if key_id:
         return f"id=0x{hexlify(key_id).decode()} "
     return ""
+
+class DNSRecords(BaseModel):
+    """DNS records for a key"""
+
+    ds_rr: str
+    dnskey_rr: str
+    ds: KeyDigest
+
+    def __str__(self) -> str:
+        return f"{self.ds_rr}\n{self.dnskey_rr}"
+
+def key_to_dns_records(key: Key) -> DNSRecords:
+    """ Format DNS records (DS, DNSKEY) for a Key instance """
+
+    _now = datetime.now(UTC)
+    # create_trustanchor_keydigest wants an KSKKey, but it is not used in the digest calculation
+    _temp_ksk = KSKKey(
+        description="Newly generated key",
+        label=f"temp_{key.key_tag}",
+        key_tag=key.key_tag,
+        algorithm=key.algorithm,
+        valid_from=_now,
+        valid_until=_now,
+    )
+    _domain = "."
+    _ds = create_trustanchor_keydigest(_temp_ksk, key, domain=_domain)
+    digest = hexlify(_ds.digest).decode("UTF-8").upper()
+    _digest_type = "2"  # create_trustanchor_keydigest always does SHA256
+    ds_str = f"{_domain} IN DS {key.key_tag} {key.algorithm.value} {_digest_type} {digest}"
+
+    dnskey_str = (f"{_domain} IN DNSKEY {key.flags} {key.protocol} {key.algorithm.value} "
+        f"{b64encode(key.public_key).decode()}"
+    )
+
+    return DNSRecords(ds_rr=ds_str, dnskey_rr=dnskey_str, ds=_ds)
