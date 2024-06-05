@@ -15,7 +15,6 @@ from kskm.common.data import (
     Signer,
     TypeDNSSEC,
 )
-from kskm.common.dsa_utils import is_algorithm_dsa, parse_signature_policy_dsa
 from kskm.common.ecdsa_utils import is_algorithm_ecdsa, parse_signature_policy_ecdsa
 from kskm.common.rsa_utils import is_algorithm_rsa, parse_signature_policy_rsa
 
@@ -73,8 +72,6 @@ def _parse_signature_algorithms(
         attr_alg = AlgorithmDNSSEC(int(this["attrs"]["algorithm"]))
         if is_algorithm_rsa(attr_alg):
             res.add(parse_signature_policy_rsa(this))
-        elif is_algorithm_dsa(attr_alg):
-            res.add(parse_signature_policy_dsa(this))
         elif is_algorithm_ecdsa(attr_alg):
             res.add(parse_signature_policy_ecdsa(this))
         else:

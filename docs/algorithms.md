@@ -6,7 +6,6 @@
 | --------- | ------- | ------- | -------------- |
 | RSA       | ✅      | ✅      | ✅             |
 | ECDSA     | ✅ (*)  | ✅      | ✅             |
-| DSA       | ✅      | ❌      | ❌             |
 
 (*) When verifying `KSR-POLICY-ALG`, ECDSA is only allowed if the configuration option `enable_unsupported_ecdsa` is enabled.
 
@@ -52,10 +51,6 @@ The checks `KSR-POLICY-ALG` verify the KSK operators expressed policies, and tha
 `src/kskm/common/public_key.py`:
 
 The abstract base class `KSKM_PublicKey` resides here. This is where all verifying of signatures is performed. Signing is always done using PKCS#11, and is handled by special classes.
-
-`src/kskm/common/dsa_utils.py`:
-
-We support parsing DSA signature policies since they can be found in the historic archive of old KSRs. DSA is not supported besides this.
 
 `src/kskm/common/ecdsa_utils.py`:
 
