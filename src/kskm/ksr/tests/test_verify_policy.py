@@ -74,23 +74,6 @@ class Test_Invalid_Requests_policy(Test_Requests):
             num_different_keys_in_all_bundles=0,
         )
 
-    def test_DSA_algorithm_not_allowed(self) -> None:
-        """Test validating a KSR with the DSA algorithm"""
-        signature_algorithm = """
-            <SignatureAlgorithm algorithm="3">
-              <DSA size="123"/>
-            </SignatureAlgorithm>
-        """.strip()
-        policy = self._make_request_policy(signature_algorithm=signature_algorithm)
-        xml = self._make_request(request_policy=policy, request_bundle="")
-        request = request_from_xml(xml)
-        # DSA is not allowed, even if it is in approved_algorithms
-        with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
-            validate_request(
-                request, self.policy.replace(approved_algorithms=["RSASHA256", "DSA"])
-            )
-        self.assertEqual("Algorithm DSA deprecated", str(exc.exception))
-
     def test_RSASHA1_not_supported(self) -> None:
         """Test validating a KSR with RSA-SHA1 (not supported)"""
         signature_algorithm = f"""

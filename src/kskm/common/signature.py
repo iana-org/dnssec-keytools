@@ -6,15 +6,11 @@ import logging
 import struct
 from hashlib import sha256
 
+from cryptography.exceptions import InvalidSignature
+
 from kskm.common.data import Bundle, Key, Signature
 from kskm.common.dnssec import key_to_rdata
-from kskm.common.ecdsa_utils import (
-    algorithm_to_curve,
-    decode_ecdsa_public_key,
-    is_algorithm_ecdsa,
-)
-from kskm.common.rsa_utils import decode_rsa_public_key, is_algorithm_rsa
-from kskm.misc.crypto import InvalidSignature, key_to_crypto_pubkey, verify_signature
+from kskm.common.public_key import KSKM_PublicKey
 
 __author__ = "ft"
 
@@ -54,32 +50,22 @@ def validate_signatures(bundle: Bundle) -> bool:
                 f"No key with key_identifier {sig.key_identifier} in bundle {bundle.id}"
             )
         key = _keys[sig.key_identifier]
-        pubkey = key_to_crypto_pubkey(key)
+        pubkey = KSKM_PublicKey.from_key(key)
         _sig_decoded = base64.b64decode(sig.signature_data)
 
         rrsig_raw = make_raw_rrsig(sig, bundle.keys)
 
         try:
-            verify_signature(pubkey, _sig_decoded, rrsig_raw, key.algorithm)
+            pubkey.verify_signature(_sig_decoded, rrsig_raw)
             _key_list = list(_keys.keys())
             logger.debug(f"Signature {sig.key_identifier} validates key(s) {_key_list}")
         except InvalidSignature:
             logger.error(
-                "Key %s/%s in bundle %s FAILED validation",
-                key.key_tag,
-                key.key_identifier,
-                bundle.id,
+                f"Key {key.key_tag}/{key.key_identifier} in bundle {bundle.id} FAILED validation"
             )
-            logger.debug("RRSIG:  %s", binascii.hexlify(rrsig_raw))
-            logger.debug("DIGEST: %s", sha256(rrsig_raw).hexdigest())
-            if is_algorithm_rsa(key.algorithm):
-                _rsa_pk = decode_rsa_public_key(key.public_key)
-                logger.debug(f"Public key: {_rsa_pk}")
-            elif is_algorithm_ecdsa(key.algorithm):
-                _ecdsa_pk = decode_ecdsa_public_key(
-                    key.public_key, algorithm_to_curve(key.algorithm)
-                )
-                logger.debug(f"Public key: {_ecdsa_pk}")
+            logger.debug(f"RRSIG: {binascii.hexlify(rrsig_raw).decode()} ")
+            logger.debug(f"DIGEST: {sha256(rrsig_raw).hexdigest()}")
+            logger.debug(f"Public key: {pubkey}")
             raise
     return True
 

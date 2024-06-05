@@ -73,7 +73,7 @@ def keygen(
     # Calculate the DNSSEC key tag of the new key and look for a collision in the configuration
     key_tags: list[int] = []
     _key = public_key_to_dnssec_key(
-        key=p11key.public_key,
+        public_key=p11key.public_key,
         key_identifier=p11key.label,
         algorithm=AlgorithmDNSSEC[args.key_alg],
         flags=FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value,
@@ -85,7 +85,7 @@ def keygen(
     )
     key_tags += [_key.key_tag]
     _revoked_key = public_key_to_dnssec_key(
-        key=p11key.public_key,
+        public_key=p11key.public_key,
         key_identifier=p11key.label,
         algorithm=AlgorithmDNSSEC[args.key_alg],
         flags=FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value | FlagsDNSKEY.REVOKE.value,

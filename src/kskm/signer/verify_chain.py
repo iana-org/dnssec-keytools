@@ -131,13 +131,13 @@ def check_last_skr_key_present(
     count = 0
     for sig in last_bundle.signatures:
         p11key = get_p11_key(sig.key_identifier, p11modules, public=True)
-        if not p11key:
+        if not p11key or not p11key.public_key:
             raise KSR_CHAIN_KEYS_Violation(
                 f"Key {sig.key_identifier} not found in the HSM(s) "
                 f"(bundle {last_bundle.id})"
             )
         hsmkey = public_key_to_dnssec_key(
-            key=p11key.public_key,  # type: ignore
+            public_key=p11key.public_key,
             key_identifier=sig.key_identifier,
             algorithm=sig.algorithm,
             flags=FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value,

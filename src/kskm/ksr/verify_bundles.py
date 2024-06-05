@@ -20,11 +20,7 @@ from kskm.common.ecdsa_utils import (
     get_ecdsa_pubkey_size,
     is_algorithm_ecdsa,
 )
-from kskm.common.rsa_utils import (
-    KSKM_PublicKey_RSA,
-    decode_rsa_public_key,
-    is_algorithm_rsa,
-)
+from kskm.common.rsa_utils import KSKM_PublicKey_RSA, is_algorithm_rsa
 from kskm.common.signature import validate_signatures
 from kskm.common.validate import PolicyViolation
 from kskm.ksr import Request
@@ -128,7 +124,9 @@ def check_keys_match_zsk_policy(
 
             # This is a new key - perform more checks on it
             if is_algorithm_rsa(key.algorithm):
-                pubkey = decode_rsa_public_key(key.public_key)
+                pubkey = KSKM_PublicKey_RSA.decode_public_key(
+                    key=key.public_key, algorithm=key.algorithm
+                )
 
                 _matching_alg = _find_matching_zsk_policy_rsa_alg(
                     request, key, pubkey, ignore_exponent=False

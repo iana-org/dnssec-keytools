@@ -136,7 +136,7 @@ class TestXMLParser(unittest.TestCase):
             parse(xml)
         self.assertEqual(str(cm.exception), "XML parser got lost at: 'fail'")
 
-    def test_too_much_recursuin(self) -> None:
+    def test_too_much_recursion(self) -> None:
         """Test parsing of XML with too many nested levels"""
         xml = """
         <a><b><c><d><e><ft>testing</ft></e></d></c></b></a>

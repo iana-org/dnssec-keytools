@@ -6,10 +6,10 @@ from pathlib import Path
 
 from kskm.common.config import KSKMConfig
 from kskm.common.config_misc import KSKPolicy, Schema
-from kskm.common.data import AlgorithmPolicy, AlgorithmPolicyRSA, SignaturePolicy
+from kskm.common.data import AlgorithmPolicy, SignaturePolicy
 from kskm.common.display import log_file_contents
 from kskm.common.integrity import checksum_bytes2str
-from kskm.common.rsa_utils import decode_rsa_public_key, is_algorithm_rsa
+from kskm.common.public_key import KSKM_PublicKey
 from kskm.ksr import Request
 from kskm.misc.hsm import KSKM_P11
 from kskm.signer.sign import sign_bundles
@@ -62,14 +62,6 @@ def _ksk_signature_policy(
     algorithms: set[AlgorithmPolicy] = set()
     for bundle in bundles:
         for key in bundle.keys:
-            if is_algorithm_rsa(key.algorithm):
-                _pub = decode_rsa_public_key(key.public_key)
-                alg = AlgorithmPolicyRSA(
-                    exponent=_pub.exponent,
-                    bits=_pub.bits,
-                    algorithm=key.algorithm,
-                )
-                algorithms.add(alg)
-            else:
-                raise NotImplementedError("Only RSA is implemented at this time")
+            pubkey = KSKM_PublicKey.from_key(key)
+            algorithms.add(pubkey.to_algorithm_policy())
     return ksk_policy.signature_policy.replace(algorithms=algorithms)

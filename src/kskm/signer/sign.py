@@ -12,10 +12,10 @@ from kskm.common.config_ksk import validate_dnskey_matches_ksk
 from kskm.common.config_misc import KSKPolicy, Schema
 from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY, Key, Signature, TypeDNSSEC
 from kskm.common.dnssec import calculate_key_tag
+from kskm.common.public_key import KSKM_PublicKey
 from kskm.common.signature import dndepth, make_raw_rrsig
 from kskm.ksr import Request
 from kskm.ksr.data import RequestBundle
-from kskm.misc.crypto import pubkey_to_crypto_pubkey, verify_signature
 from kskm.misc.hsm import KSKM_P11, KSKM_P11Key, sign_using_p11
 from kskm.signer.key import CompositeKey, load_pkcs11_key
 from kskm.skr.data import ResponseBundle
@@ -219,9 +219,11 @@ def _verify_using_crypto(
     p11_key: KSKM_P11Key, rrsig_raw: bytes, signature: bytes, algorithm: AlgorithmDNSSEC
 ) -> None:
     """Double-check signatures created using HSM with a standard software cryptographic library."""
-    pubkey = pubkey_to_crypto_pubkey(p11_key.public_key)
+    if p11_key.public_key is None:
+        raise RuntimeError(f"Can't verify signature without public key ({p11_key})")
     try:
-        verify_signature(pubkey, signature, rrsig_raw, algorithm)
+        pubkey = KSKM_PublicKey.from_bytes(p11_key.public_key, algorithm)
+        pubkey.verify_signature(signature, rrsig_raw)
         logger.debug("Signature validated with software")
     except InvalidSignature:
         logger.error("Failed validating the signature created by the HSM")
