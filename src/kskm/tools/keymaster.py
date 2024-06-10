@@ -28,7 +28,7 @@ from kskm.common.logging import get_logger
 from kskm.common.rsa_utils import is_algorithm_rsa
 from kskm.common.wordlist import pgp_wordlist
 from kskm.keymaster.delete import key_delete
-from kskm.keymaster.inventory import key_to_dns_records, key_inventory
+from kskm.keymaster.inventory import DNSRecords, key_inventory
 from kskm.keymaster.keygen import generate_ec_key, generate_rsa_key
 from kskm.misc.hsm import KSKM_P11, KeyType, init_pkcs11_modules
 from kskm.version import __verbose_version__
@@ -100,16 +100,14 @@ def keygen(
             )
             raise RuntimeError("Key tag collision detected")
 
-    dns = key_to_dns_records(_key)
+    dns = DNSRecords.from_key(_key)
+    _formatted = "\n".join(dns.format(indent=4, max_length=100))
 
-    logger.info(
-        f"DNS records for generated key:\n"
-        f"{dns}\n"
-        "\n"
-        f">> {' '.join(pgp_wordlist(dns.ds.digest))}"
-    )
+    logger.info(f"DNS records for generated key:\n" f"{_formatted}\n")
+    logger.info(f"DS digest as PGP words:\n>> {' '.join(pgp_wordlist(dns.ds.digest))}")
 
     return True
+
 
 def keydel(
     args: argparse.Namespace,
@@ -183,7 +181,6 @@ def main() -> bool:
         default=False,
         help="Print DNS records for keys found",
     )
-
 
     parser_keygen = subparsers.add_parser("keygen")
     parser_keygen.set_defaults(func=keygen)

@@ -2,30 +2,18 @@
 
 import logging
 from binascii import hexlify
+from datetime import UTC, datetime
+from typing import Generator, Self
 
-from pydantic import BaseModel
 
 from kskm.common.config import KSKMConfig
 from kskm.common.config_ksk import validate_dnskey_matches_ksk
-from kskm.common.data import FlagsDNSKEY, Key
+from kskm.common.config_misc import KSKKey
+from kskm.common.data import FlagsDNSKEY, FrozenStrictBaseModel, Key
 from kskm.common.dnssec import public_key_to_dnssec_key
 from kskm.misc.hsm import KSKM_P11, KeyClass, KeyInfo
 from kskm.ta.data import KeyDigest
 from kskm.ta.keydigest import create_trustanchor_keydigest
-
-from base64 import b64encode
-from datetime import UTC, datetime
-
-from pydantic import BaseModel
-
-from kskm.common.config import KSKMConfig
-from kskm.common.config_misc import KSKKey
-from kskm.common.data import FlagsDNSKEY, Key
-from kskm.common.dnssec import public_key_to_dnssec_key
-
-from kskm.ta.data import KeyDigest
-from kskm.ta.keydigest import create_trustanchor_keydigest
-from kskm.version import __verbose_version__
 
 __author__ = "ft"
 
@@ -33,7 +21,9 @@ __author__ = "ft"
 logger = logging.getLogger(__name__)
 
 
-def key_inventory(p11modules: KSKM_P11, config: KSKMConfig, dns_records: bool) -> list[str]:
+def key_inventory(
+    p11modules: KSKM_P11, config: KSKMConfig, dns_records: bool
+) -> list[str]:
     """Return key inventory."""
     res: list[str] = []
     for module in p11modules:
@@ -87,6 +77,8 @@ def _format_keys(
                         ttl=0,
                     )
 
+                    dns = DNSRecords.from_key(dnskey)
+
                     # Check that key found in HSM matches the configuration
                     try:
                         validate_dnskey_matches_ksk(ksk, dnskey)
@@ -101,16 +93,22 @@ def _format_keys(
                         f"algorithm={ksk.algorithm.name}"
                     )
 
-                    dns = key_to_dns_records(dnskey)
-
             if label_and_id in data[KeyClass.PRIVATE]:
-                pairs += [
-                    f"      {this.label:7s} {_id_to_str(this.key_id)}{this.pubkey.decode()} -- {ksk_info}"
-                ]
+                pairs += [f"      {this.label:7s} -- {ksk_info}"]
 
                 if dns_records and dns:
-                    pairs += [f"              {dns.ds_rr}"]
-                    pairs += [f"              {dns.dnskey_rr}"]
+                    pairs += [f"                 {_id_to_str(this.key_id)}"]
+                    pairs += dns.format(indent=17, max_length=100)
+                else:
+                    _public_key = "\n".join(
+                        _chunks(
+                            f"public_key={this.pubkey.decode()}", indent=17, length=80
+                        )
+                    )
+                    pairs += [
+                        f"                 {_id_to_str(this.key_id)}\n" + _public_key
+                    ]
+
                 del data[KeyClass.PRIVATE][label_and_id]
             del data[KeyClass.PUBLIC][label_and_id]
     if pairs:
@@ -136,37 +134,56 @@ def _id_to_str(key_id: bytes | None) -> str:
         return f"id=0x{hexlify(key_id).decode()} "
     return ""
 
-class DNSRecords(BaseModel):
+
+def _chunks(data: str, indent: int, length: int) -> Generator[str, None, None]:
+    """Chop a string (data) into chunks with indentation and a max length"""
+    for i in range(0, len(data), length):
+        yield " " * indent + data[i : length + i]
+
+
+class DNSRecords(FrozenStrictBaseModel):
     """DNS records for a key"""
 
-    ds_rr: str
-    dnskey_rr: str
+    key: Key
     ds: KeyDigest
+    domain: str
 
-    def __str__(self) -> str:
-        return f"{self.ds_rr}\n{self.dnskey_rr}"
+    def format(self, indent: int, max_length: int) -> list[str]:
+        """Return a formatted DS and a DNSKEY record."""
+        _pad = " " * indent
 
-def key_to_dns_records(key: Key) -> DNSRecords:
-    """ Format DNS records (DS, DNSKEY) for a Key instance """
+        digest = hexlify(self.ds.digest).decode("UTF-8").upper()
+        _digest_type = "2"  # create_trustanchor_keydigest always does SHA256
 
-    _now = datetime.now(UTC)
-    # create_trustanchor_keydigest wants an KSKKey, but it is not used in the digest calculation
-    _temp_ksk = KSKKey(
-        description="Newly generated key",
-        label=f"temp_{key.key_tag}",
-        key_tag=key.key_tag,
-        algorithm=key.algorithm,
-        valid_from=_now,
-        valid_until=_now,
-    )
-    _domain = "."
-    _ds = create_trustanchor_keydigest(_temp_ksk, key, domain=_domain)
-    digest = hexlify(_ds.digest).decode("UTF-8").upper()
-    _digest_type = "2"  # create_trustanchor_keydigest always does SHA256
-    ds_str = f"{_domain} IN DS {key.key_tag} {key.algorithm.value} {_digest_type} {digest}"
+        ds_str = f"{_pad}{self.domain} IN DS {self.key.key_tag} {self.key.algorithm.value} {_digest_type} {digest}"
 
-    dnskey_str = (f"{_domain} IN DNSKEY {key.flags} {key.protocol} {key.algorithm.value} "
-        f"{b64encode(key.public_key).decode()}"
-    )
+        public_key = "\n".join(
+            _chunks(self.key.public_key.decode(), indent + 4, max_length - indent - 4)
+        )
+        dnskey_str = (
+            f"{_pad}{self.domain} IN DNSKEY {self.key.flags} {self.key.protocol} {self.key.algorithm.value} (\n"
+            f"{public_key}\n"
+            f"{_pad})"
+        )
 
-    return DNSRecords(ds_rr=ds_str, dnskey_rr=dnskey_str, ds=_ds)
+        return [ds_str, dnskey_str]
+
+    @classmethod
+    def from_key(cls, key: Key) -> Self:
+        _now = datetime.now(UTC)
+        # create_trustanchor_keydigest wants an KSKKey, but it is not used in the digest calculation
+        _temp_ksk = KSKKey(
+            description="Newly generated key",
+            label=f"temp_{key.key_tag}",
+            key_tag=key.key_tag,
+            algorithm=key.algorithm,
+            valid_from=_now,
+            valid_until=_now,
+        )
+        _domain = "."
+        _ds = create_trustanchor_keydigest(_temp_ksk, key, domain=_domain)
+        return cls(
+            key=key,
+            ds=_ds,
+            domain=_domain,
+        )
