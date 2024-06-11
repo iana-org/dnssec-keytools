@@ -34,7 +34,7 @@ coverage: softhsm $(BUILDINFO)
 	poetry run coverage html
 
 reformat:
-	poetry run isort $(SOURCE)
+	poetry run ruff check --select I --fix $(SOURCE)
 	poetry run ruff format $(SOURCE)
 
 lint:

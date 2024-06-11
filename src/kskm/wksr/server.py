@@ -23,10 +23,7 @@ from kskm.ksr import load_ksr
 from kskm.signer.policy import check_skr_and_ksr
 from kskm.skr import load_skr
 from kskm.skr.data import Response
-from kskm.wksr.peercert import (
-    request_peercert_client_subject,
-    request_peercert_digest,
-)
+from kskm.wksr.peercert import request_peercert_client_subject, request_peercert_digest
 
 logger = logging.getLogger(__name__)
 
