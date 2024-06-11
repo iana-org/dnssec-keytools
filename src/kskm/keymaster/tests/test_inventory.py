@@ -43,11 +43,12 @@ class Test_Key_Inventory(unittest.TestCase):
 
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_inventory(self) -> None:
-        res = key_inventory(self.p11modules, self.config)
-        # key inventory is expected to be at least 10 (15) lines when loaded with
-        # the test keys from testing/softhsm/Makefile.
-        self.assertGreater(len(res), 10)
-        output_str = "\n".join(res)
-        # check for two well known key labels
-        self.assertIn("RSA1", output_str)
-        self.assertIn("EC1", output_str)
+        for dns_records in [True, False]:
+            res = key_inventory(self.p11modules, self.config, dns_records=dns_records)
+            # key inventory is expected to be at least 10 (15) lines when loaded with
+            # the test keys from testing/softhsm/Makefile.
+            self.assertGreater(len(res), 10)
+            output_str = "\n".join(res)
+            # check for two well known key labels
+            self.assertIn("RSA1", output_str)
+            self.assertIn("EC1", output_str)
