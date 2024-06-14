@@ -33,11 +33,11 @@ For testing and independent DNSSEC validation of KSRs, the following modules are
     apt-get install python3 python3-dev python3-venv swig
 
 
-## Setup
+## Development Setup
 
-To create a virtual environment for testing, use `make venv`.
+To create a virtual environment for testing with poetry, use `make depend` or use a [VS Code](https://code.visualstudio.com/) devcontainer.
 
-N.B. You will need to ensure that SWIG is installed, as pykcs11 depends on it.
+N.B. You will need to ensure that SWIG and SoftHSM are installed, as pykcs11 and tests depends on them.
 
 
 ## Code Documentation
@@ -52,5 +52,5 @@ N.B. You will need to ensure that SWIG is installed, as pykcs11 depends on it.
 
 - The **Python XML library** (Expat) is not used for reading/writing XML data in order to limit the amount of code.
 - **DNS Python** is only used for testing as we do not need to parse or output DNS data. The required functions for signing are provided by PKCS#11 and the few functions needed for DNSSEC processing are reimplemented.
-- **FastAPI** is used as a webserver in _wksr_. ICANN uses Django for several projects, but since this project only requires a very small subset of Django functionality FastAPI has been considered a better fit. 
+- **FastAPI** is used as a webserver in _wksr_. ICANN uses Django for several projects, but since this project only requires a very small subset of Django functionality FastAPI has been considered a better fit.
 - **YAML** was chosen as the configuration file format for increased readability compared to **JSON**.
