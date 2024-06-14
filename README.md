@@ -54,3 +54,18 @@ N.B. You will need to ensure that SWIG and SoftHSM are installed, as pykcs11 and
 - **DNS Python** is only used for testing as we do not need to parse or output DNS data. The required functions for signing are provided by PKCS#11 and the few functions needed for DNSSEC processing are reimplemented.
 - **FastAPI** is used as a webserver in _wksr_. ICANN uses Django for several projects, but since this project only requires a very small subset of Django functionality FastAPI has been considered a better fit.
 - **YAML** was chosen as the configuration file format for increased readability compared to **JSON**.
+
+## Containers
+
+The `make container` target will create containers for both the core tools as as well the webserver (wksr).
+
+### Running
+
+Example of how to run a tool with the Luna HSM using the `kskm` container:
+
+    docker run --rm -it \
+        --mount readonly,type=bind,source=/etc/Chrystoki.conf,target=/etc/Chrystoki.conf \
+        --mount readonly,type=bind,source=/usr/safenet/lunaclient,target=/usr/safenet/lunaclient \
+        --device=/dev/g70 \
+        kskm:latest \
+        /usr/safenet/lunaclient/bin/cmu list
