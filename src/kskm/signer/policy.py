@@ -4,6 +4,7 @@ import logging
 
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.display import fmt_timedelta, format_bundles_for_humans
+from kskm.common.parse_utils import is_revoked_key
 from kskm.ksr import Request
 from kskm.ksr.verify_bundles import KSR_BUNDLE_UNIQUE_Violation
 from kskm.ksr.verify_header import KSR_ID_Violation
@@ -189,11 +190,20 @@ def check_retire_safety(
     # (this is to support the assumption made above that all the signing keys are present in the last bundle)
     _curr_idx = 1
     for _curr in new_skr.bundles:
+        # make a list of all revoked keys, as signatures over revocations are exempt from this check
+        _revoked_keys = [x.key_identifier for x in _curr.keys if is_revoked_key(x)]
+
         # Take a simplified approach and just verify that all signing keys of a bundle is
         # present in all the following bundles in this SKR
         for _check_idx in range(_curr_idx, len(new_skr.bundles)):
             bundle = new_skr.bundles[_check_idx]
             for sig in _curr.signatures:
+                if sig.key_identifier in _revoked_keys:
+                    # Signatures over revocations are exempt from this check. Technically they only
+                    # need to appear once for the key to be considered revoked, so the requirement
+                    # of regular signatures to be present for a certain amount of time does not apply.
+                    continue
+
                 _match = [
                     x for x in bundle.keys if x.key_identifier == sig.key_identifier
                 ]
