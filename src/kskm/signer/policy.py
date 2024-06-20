@@ -200,8 +200,8 @@ def check_retire_safety(
             for sig in _curr.signatures:
                 if sig.key_identifier in _revoked_keys:
                     # Signatures over revocations are exempt from this check. Technically they only
-                    # need to appear once for the key to be dead, so the requirement of regular signatures
-                    # to be present for a certain amount of time does not apply.
+                    # need to appear once for the key to be considered revoked, so the requirement
+                    # of regular signatures to be present for a certain amount of time does not apply.
                     continue
 
                 _match = [
