@@ -216,8 +216,16 @@ def _sign_keys(
                 f"Key {_key.key_identifier} has TTL {_key.ttl} != {ksk_policy.ttl}"
             )
 
+    # To get the right key tag for revoked keys, we need to locate the signing key in the set of
+    # updated keys and use that key tag in the signature below.
+    _dns_key = updated_keys.get(signing_key.dns.key_identifier)
+    if not _dns_key:
+        raise CreateSignatureError(
+            f"Could not find signing key {signing_key.dns.key_identifier} in bundle {bundle.id}"
+        )
+
     sig = Signature(
-        key_tag=signing_key.dns.key_tag,
+        key_tag=_dns_key.key_tag,
         key_identifier=signing_key.dns.key_identifier,
         signature_expiration=bundle.expiration,
         signature_inception=bundle.inception,
