@@ -6,6 +6,7 @@ import logging
 from collections.abc import Iterable
 
 from cryptography.exceptions import InvalidSignature
+from pydantic import BaseModel
 
 from kskm.common.config import ConfigurationError, KSKKeysType, KSKMConfig
 from kskm.common.config_ksk import validate_dnskey_matches_ksk
@@ -48,7 +49,6 @@ def sign_bundles(
     DNSKEY RR set using the KSK key stored in a PKCS#11 module (HSM).
     """
     res: list[ResponseBundle] = []
-    _hush_key_ttl_warnings: dict[str, bool] = {}
     for bundle_num, _bundle in enumerate(request.bundles, 1):
         this_schema = schema.actions[bundle_num]
 
@@ -57,27 +57,15 @@ def sign_bundles(
                 f"Bundle {_bundle.id} has signers specified - those will be ignored"
             )
 
-        # All DNSKEY RRs in a set *has* to have the same TTL. Ensure all keys have the TTL
-        # configured by the KSK operator. A warning is logged for any discrepancies found,
-        # because an earlier policy check (KSR-POLICY-KEYS) should have found this unless disabled.
-        _new_keys: set[Key] = set()
-        for _key in _bundle.keys:
-            if _key.ttl != ksk_policy.ttl:
-                if _key.key_identifier not in _hush_key_ttl_warnings:
-                    logger.warning(
-                        f"Overriding key {_key.key_identifier} TTL {_key.ttl} -> {ksk_policy.ttl}"
-                    )
-                    if _key.key_identifier:
-                        _hush_key_ttl_warnings[_key.key_identifier] = True
-                _key = _key.replace(ttl=ksk_policy.ttl)
-            _add_unique(_new_keys, _key)
+        updated_keys = UpdatedKeys(ksk_policy_ttl=ksk_policy.ttl)
+
         #
         # Add all the 'publish' keys (KSK operator keys) to the keys already in the bundle (ZSK operator keys)
         #
         for this_key in _fetch_keys(
             this_schema.publish, _bundle, p11modules, ksk_policy, config.ksk_keys, True
         ):
-            _add_unique(_new_keys, this_key.dns)
+            updated_keys.add(this_key.dns)
         #
         # Add all the 'revoke' keys (same as 'publish' but the key gets the revoke flag bit set)
         #
@@ -88,7 +76,7 @@ def sign_bundles(
                 flags=this_key.dns.flags | FlagsDNSKEY.REVOKE.value
             )
             revoked_key = revoked_key.replace(key_tag=calculate_key_tag(revoked_key))
-            _add_unique(_new_keys, revoked_key)
+            updated_keys.update(revoked_key)
         #
         # All the signing keys sign the complete DNSKEY RRSET, so first add them to the bundles keys
         #
@@ -96,22 +84,18 @@ def sign_bundles(
             this_schema.sign, _bundle, p11modules, ksk_policy, config.ksk_keys, False
         )
         for this_key in signing_keys:
-            _add_unique(_new_keys, this_key.dns)
+            updated_keys.add(this_key.dns)
 
-        updated_bundle = _bundle.replace(keys=_new_keys)
+        # Add the keys from the request bundle too.
+        for _key in _bundle.keys:
+            updated_keys.add(_key)
 
         #
         # Using the 'signing' keys for this bundle in the schema, sign all the keys in the bundle
         #
         signatures: set[Signature] = set()
         for _sign_key in signing_keys:
-            logger.debug(f"Signing {len(updated_bundle.keys)} bundle keys:")
-            for _this in updated_bundle.keys:
-                logger.debug(f"  {_this}")
-            logger.debug(
-                f"Signing above {len(updated_bundle.keys)} bundle keys with sign_key {_sign_key}"
-            )
-            _sig = _sign_keys(updated_bundle, _sign_key, ksk_policy)
+            _sig = _sign_keys(_bundle, updated_keys, _sign_key, ksk_policy)
             if _sig:
                 signatures.add(_sig)
 
@@ -128,7 +112,7 @@ def sign_bundles(
             id=_bundle.id,
             inception=_bundle.inception,
             expiration=_bundle.expiration,
-            keys=_new_keys,
+            keys=updated_keys.keys,
             signatures=signatures,
         )
         #
@@ -140,13 +124,50 @@ def sign_bundles(
     return res
 
 
-def _add_unique(keys: set[Key], key: Key) -> set[Key]:
-    """Add a key to a set, ensuring uniqueness."""
-    for _key in keys:
-        if _key.public_key == key.public_key:
-            return keys
-    keys.add(key)
-    return keys
+class UpdatedKeys(BaseModel):
+    """Class to hold a set of keys to be signed, ensuring uniqueness and TTL according to policy."""
+
+    ksk_policy_ttl: int
+    keys: set[Key] = set()
+
+    _hush_key_ttl_warnings: set[str] = set()
+
+    def _add_unique(self, key: Key):
+        """Add a key to a set, ensuring uniqueness."""
+        for _key in self.keys:
+            if _key.public_key == key.public_key:
+                return None
+
+        if key.ttl != self.ksk_policy_ttl:
+            if key.key_identifier not in self._hush_key_ttl_warnings:
+                logger.warning(
+                    f"Overriding key {key.key_identifier} TTL {key.ttl} -> {self.ksk_policy_ttl}"
+                )
+                if key.key_identifier:
+                    self._hush_key_ttl_warnings.add(key.key_identifier)
+            key = key.replace(ttl=self.ksk_policy_ttl)
+
+        self.keys.add(key)
+
+    def add(self, key: Key) -> None:
+        """Add a key to the set, ensuring uniqueness and TTL according to policy."""
+        self._add_unique(key)
+
+    def update(self, key: Key) -> None:
+        """Same as `add`, but replace the key if it already exists."""
+        # remove key from keys
+        for _this in self.keys:
+            if _this.public_key == key.public_key:
+                self.keys.remove(_this)
+                break
+        self._add_unique(key)
+
+    def get(self, key_identifier: str) -> Key | None:
+        """Get a key from the set by key identifier."""
+        for _key in self.keys:
+            if _key.key_identifier == key_identifier:
+                return _key
+        return None
 
 
 def _fetch_keys(
@@ -175,15 +196,36 @@ def _fetch_keys(
 
 
 def _sign_keys(
-    bundle: RequestBundle, signing_key: CompositeKey, ksk_policy: KSKPolicy
+    bundle: RequestBundle,
+    updated_keys: UpdatedKeys,
+    signing_key: CompositeKey,
+    ksk_policy: KSKPolicy,
 ) -> Signature | None:
     """Sign the bundle key RRSET using the HSM key identified by 'label'."""
+    logger.debug(f"Signing {len(updated_keys.keys)} bundle keys:")
+    for _this in updated_keys.keys:
+        logger.debug(f"  {_this}")
+    logger.debug(
+        f"Signing above {len(updated_keys.keys)} bundle keys with sign_key {signing_key}"
+    )
+
     # All ZSK TTLs are guaranteed to be the same as ksk_policy.ttl at this point. Just do this for clarity.
-    for _key in bundle.keys:
-        assert _key.ttl == ksk_policy.ttl
+    for _key in updated_keys.keys:
+        if _key.ttl != ksk_policy.ttl:
+            raise CreateSignatureError(
+                f"Key {_key.key_identifier} has TTL {_key.ttl} != {ksk_policy.ttl}"
+            )
+
+    # To get the right key tag for revoked keys, we need to locate the signing key in the set of
+    # updated keys and use that key tag in the signature below.
+    _dns_key = updated_keys.get(signing_key.dns.key_identifier)
+    if not _dns_key:
+        raise CreateSignatureError(
+            f"Could not find signing key {signing_key.dns.key_identifier} in bundle {bundle.id}"
+        )
 
     sig = Signature(
-        key_tag=signing_key.dns.key_tag,
+        key_tag=_dns_key.key_tag,
         key_identifier=signing_key.dns.key_identifier,
         signature_expiration=bundle.expiration,
         signature_inception=bundle.inception,
@@ -196,7 +238,7 @@ def _sign_keys(
         signature_data=b"",  # Will replace this below
     )
 
-    rrsig_raw = make_raw_rrsig(sig, bundle.keys)
+    rrsig_raw = make_raw_rrsig(sig, updated_keys.keys)
     signature_data = sign_using_p11(
         signing_key.p11, rrsig_raw, signing_key.dns.algorithm
     )
