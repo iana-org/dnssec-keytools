@@ -57,7 +57,7 @@ def sign_bundles(
                 f"Bundle {_bundle.id} has signers specified - those will be ignored"
             )
 
-        updated_keys = UpdatedKeys(ksk_policy_ttl=ksk_policy.ttl)
+        keys_to_sign = KeysToSign(ksk_policy_ttl=ksk_policy.ttl)
 
         #
         # Add all the 'publish' keys (KSK operator keys) to the keys already in the bundle (ZSK operator keys)
@@ -65,7 +65,7 @@ def sign_bundles(
         for this_key in _fetch_keys(
             this_schema.publish, _bundle, p11modules, ksk_policy, config.ksk_keys, True
         ):
-            updated_keys.add(this_key.dns)
+            keys_to_sign.add(this_key.dns)
         #
         # Add all the 'revoke' keys (same as 'publish' but the key gets the revoke flag bit set)
         #
@@ -76,7 +76,7 @@ def sign_bundles(
                 flags=this_key.dns.flags | FlagsDNSKEY.REVOKE.value
             )
             revoked_key = revoked_key.replace(key_tag=calculate_key_tag(revoked_key))
-            updated_keys.update(revoked_key)
+            keys_to_sign.update(revoked_key)
         #
         # All the signing keys sign the complete DNSKEY RRSET, so first add them to the bundles keys
         #
@@ -84,18 +84,18 @@ def sign_bundles(
             this_schema.sign, _bundle, p11modules, ksk_policy, config.ksk_keys, False
         )
         for this_key in signing_keys:
-            updated_keys.add(this_key.dns)
+            keys_to_sign.add(this_key.dns)
 
         # Add the keys from the request bundle too.
         for _key in _bundle.keys:
-            updated_keys.add(_key)
+            keys_to_sign.add(_key)
 
         #
         # Using the 'signing' keys for this bundle in the schema, sign all the keys in the bundle
         #
         signatures: set[Signature] = set()
         for _sign_key in signing_keys:
-            _sig = _sign_keys(_bundle, updated_keys, _sign_key, ksk_policy)
+            _sig = _sign_keys(_bundle, keys_to_sign, _sign_key, ksk_policy)
             if _sig:
                 signatures.add(_sig)
 
@@ -112,7 +112,7 @@ def sign_bundles(
             id=_bundle.id,
             inception=_bundle.inception,
             expiration=_bundle.expiration,
-            keys=updated_keys.keys,
+            keys=keys_to_sign.keys,
             signatures=signatures,
         )
         #
@@ -124,7 +124,7 @@ def sign_bundles(
     return res
 
 
-class UpdatedKeys(BaseModel):
+class KeysToSign(BaseModel):
     """Class to hold a set of keys to be signed, ensuring uniqueness and TTL according to policy."""
 
     ksk_policy_ttl: int
@@ -197,28 +197,28 @@ def _fetch_keys(
 
 def _sign_keys(
     bundle: RequestBundle,
-    updated_keys: UpdatedKeys,
+    keys_to_sign: KeysToSign,
     signing_key: CompositeKey,
     ksk_policy: KSKPolicy,
 ) -> Signature | None:
     """Sign the bundle key RRSET using the HSM key identified by 'label'."""
-    logger.debug(f"Signing {len(updated_keys.keys)} bundle keys:")
-    for _this in updated_keys.keys:
+    logger.debug(f"Signing {len(keys_to_sign.keys)} bundle keys:")
+    for _this in keys_to_sign.keys:
         logger.debug(f"  {_this}")
     logger.debug(
-        f"Signing above {len(updated_keys.keys)} bundle keys with sign_key {signing_key}"
+        f"Signing above {len(keys_to_sign.keys)} bundle keys with sign_key {signing_key}"
     )
 
     # All ZSK TTLs are guaranteed to be the same as ksk_policy.ttl at this point. Just do this for clarity.
-    for _key in updated_keys.keys:
+    for _key in keys_to_sign.keys:
         if _key.ttl != ksk_policy.ttl:
             raise CreateSignatureError(
                 f"Key {_key.key_identifier} has TTL {_key.ttl} != {ksk_policy.ttl}"
             )
 
     # To get the right key tag for revoked keys, we need to locate the signing key in the set of
-    # updated keys and use that key tag in the signature below.
-    _dns_key = updated_keys.get(signing_key.dns.key_identifier)
+    # keys to sign and use that key tag in the signature below.
+    _dns_key = keys_to_sign.get(signing_key.dns.key_identifier)
     if not _dns_key:
         raise CreateSignatureError(
             f"Could not find signing key {signing_key.dns.key_identifier} in bundle {bundle.id}"
@@ -238,7 +238,7 @@ def _sign_keys(
         signature_data=b"",  # Will replace this below
     )
 
-    rrsig_raw = make_raw_rrsig(sig, updated_keys.keys)
+    rrsig_raw = make_raw_rrsig(sig, keys_to_sign.keys)
     signature_data = sign_using_p11(
         signing_key.p11, rrsig_raw, signing_key.dns.algorithm
     )

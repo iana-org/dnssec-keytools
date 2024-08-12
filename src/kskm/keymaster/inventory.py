@@ -5,7 +5,6 @@ from binascii import hexlify
 from datetime import UTC, datetime
 from typing import Generator, Self
 
-
 from kskm.common.config import KSKMConfig
 from kskm.common.config_ksk import validate_dnskey_matches_ksk
 from kskm.common.config_misc import KSKKey
