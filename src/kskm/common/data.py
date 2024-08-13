@@ -214,6 +214,15 @@ class Key(FrozenStrictBaseModel):
             return flags
         raise ValueError(f"Unsupported DNSSEC key flags combination {flags}")
 
+    def as_revoked(self) -> Self:
+        """Return a new instance with the REVOKE flag set, and key_tag re-calculated."""
+        revoked_key = self.replace(flags=self.flags | FlagsDNSKEY.REVOKE.value)
+
+        from kskm.common.dnssec import calculate_key_tag
+
+        revoked_key = revoked_key.replace(key_tag=calculate_key_tag(revoked_key))
+        return revoked_key
+
 
 class Bundle(FrozenStrictBaseModel, ABC):
     """Request Bundle base class."""

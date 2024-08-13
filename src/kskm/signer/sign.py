@@ -72,11 +72,7 @@ def sign_bundles(
         for this_key in _fetch_keys(
             this_schema.revoke, _bundle, p11modules, ksk_policy, config.ksk_keys, True
         ):
-            revoked_key = this_key.dns.replace(
-                flags=this_key.dns.flags | FlagsDNSKEY.REVOKE.value
-            )
-            revoked_key = revoked_key.replace(key_tag=calculate_key_tag(revoked_key))
-            keys_to_sign.update(revoked_key)
+            keys_to_sign.update(this_key.dns.as_revoked())
         #
         # All the signing keys sign the complete DNSKEY RRSET, so first add them to the bundles keys
         #
