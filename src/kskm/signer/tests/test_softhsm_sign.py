@@ -16,9 +16,10 @@ from unittest.mock import patch
 import pytest
 import yaml
 
+from kskm.common import signature
 from kskm.common.config import ConfigurationError, KSKMConfig
 from kskm.common.config_misc import RequestPolicy
-from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY, Key, Signer
+from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY, Key, Signature, Signer
 from kskm.common.dnssec import public_key_to_dnssec_key
 from kskm.common.parse_utils import parse_datetime, signature_policy_from_dict
 from kskm.common.signature import validate_signatures
@@ -201,6 +202,16 @@ class Test_SignWithSoftHSM_RSA(SignWithSoftHSM_Baseclass):
 
 @pytest.mark.usefixtures("p11modules_fixture")
 class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
+    def _load_key(
+        self, key_name: str, flags: int = FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value
+    ) -> Key:
+        key = self._p11_to_dnskey(
+            key_name,
+            AlgorithmDNSSEC.ECDSAP256SHA256,
+            flags=flags,
+        )
+        return key.replace(ttl=self.config.ksk_policy.ttl)
+
     def setup_method(self) -> None:
         super().setup_method()
         _EC_CONF = """---
@@ -403,35 +414,62 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
             config=self.config,
             ksk_policy=self.config.ksk_policy,
         )
-        for _bundle_idx, _bundle in enumerate(new_bundles):
-            _bundle_num = _bundle_idx + 1
 
+        bundle_keys: list[set[Key]] = []
+        bundle_signatures: list[set[Signature]] = []
+
+        key_EC1 = self._load_key("EC1", flags=FlagsDNSKEY.ZONE.value)
+        key_EC2 = self._load_key("EC2")
+        key_EC3 = self._load_key("EC3")
+
+        key_revoked_EC2 = key_EC2.as_revoked()
+
+        for _bundle in new_bundles:
             validate_signatures(_bundle)
 
-            key_ids = sorted([x.key_identifier for x in _bundle.keys])
-            if _bundle_num == 9:
-                # The last bundle should be without the old KSK
-                assert key_ids == [
-                    "EC1",  # ZSK key in RequestBundle
-                    "EC3",  # new KSK
-                ]
-            else:
-                assert key_ids == [
-                    "EC1",  # ZSK key in RequestBundle
-                    "EC2",  # ksk_test_key
-                    "EC3",  # ksk_prepublish_key
-                ], f"Wrong keys for bundle {_bundle_num}"
+            bundle_keys.append(_bundle.keys)
+            bundle_signatures.append(_bundle.signatures)
 
-            if _bundle_num > 1 and _bundle_num < 9:
-                revoked_EC2 = self._p11_to_dnskey(
-                    "EC2",
-                    AlgorithmDNSSEC.ECDSAP256SHA256,
-                    flags=FlagsDNSKEY.ZONE.value
-                    | FlagsDNSKEY.SEP.value
-                    | FlagsDNSKEY.REVOKE.value,
-                )
-                revoked_EC2 = revoked_EC2.replace(ttl=self.config.ksk_policy.ttl)
-                assert revoked_EC2 in _bundle.keys
+        # EC1 is ZSK key in RequestBundle
+        # EC2 is ksk_test_key
+        # EC3 is ksk_prepublish_key
+        expected_bundle_keys = [
+            {key_EC1, key_EC2, key_EC3},
+            {key_EC1, key_revoked_EC2, key_EC3},
+            {key_EC1, key_revoked_EC2, key_EC3},
+            {key_EC1, key_revoked_EC2, key_EC3},
+            {key_EC1, key_revoked_EC2, key_EC3},
+            {key_EC1, key_revoked_EC2, key_EC3},
+            {key_EC1, key_revoked_EC2, key_EC3},
+            {key_EC1, key_revoked_EC2, key_EC3},
+            {key_EC1, key_EC3},  # The last bundle should be without the old KSK
+        ]
+        assert bundle_keys == expected_bundle_keys
+
+        expected_signing_keys = [
+            {key_EC3},
+            {key_revoked_EC2, key_EC3},
+            {key_revoked_EC2, key_EC3},
+            {key_revoked_EC2, key_EC3},
+            {key_revoked_EC2, key_EC3},
+            {key_revoked_EC2, key_EC3},
+            {key_revoked_EC2, key_EC3},
+            {key_revoked_EC2, key_EC3},
+            {key_EC3},
+        ]
+
+        # Extract all key tags from expected_bundle_keys
+        expected_key_tags = [
+            sorted([key.key_tag for key in bundle_keys])
+            for bundle_keys in expected_signing_keys
+        ]
+
+        # Extract all key tags from the signatures
+        signature_key_tags = [
+            sorted([sig.key_tag for sig in bundle_signatures])
+            for bundle_signatures in bundle_signatures
+        ]
+        assert expected_key_tags == signature_key_tags
 
 
 @pytest.mark.usefixtures("p11modules_fixture")
