@@ -16,7 +16,6 @@ from unittest.mock import patch
 import pytest
 import yaml
 
-from kskm.common import signature
 from kskm.common.config import ConfigurationError, KSKMConfig
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY, Key, Signature, Signer

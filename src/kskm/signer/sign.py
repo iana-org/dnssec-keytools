@@ -11,8 +11,7 @@ from pydantic import BaseModel
 from kskm.common.config import ConfigurationError, KSKKeysType, KSKMConfig
 from kskm.common.config_ksk import validate_dnskey_matches_ksk
 from kskm.common.config_misc import KSKPolicy, Schema
-from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY, Key, Signature, TypeDNSSEC
-from kskm.common.dnssec import calculate_key_tag
+from kskm.common.data import AlgorithmDNSSEC, Key, Signature, TypeDNSSEC
 from kskm.common.public_key import KSKM_PublicKey
 from kskm.common.signature import dndepth, make_raw_rrsig
 from kskm.ksr import Request
