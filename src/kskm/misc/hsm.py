@@ -116,6 +116,15 @@ class KeyInfo(FrozenBaseModel):
     pubkey: bytes | None = Field(repr=False, default=None)
 
 
+class DataToSign(BaseModel):
+    """Hold the data to sign, formatted to suit the mechanism used."""
+
+    data: bytes
+    mechanism: P11_CKM_Constant
+    hash_using_hsm: bool
+    mechanism_name: str
+
+
 class KSKM_P11Key(BaseModel):
     """A reference to a key object loaded from a PKCS#11 module."""
 
@@ -502,15 +511,6 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) ->
     return bytes(sig)
 
 
-class DataToSign(BaseModel):
-    """Hold the data to sign, formatted to suit the mechanism used."""
-
-    data: bytes
-    mechanism: P11_CKM_Constant
-    hash_using_hsm: bool
-    mechanism_name: str
-
-
 def _format_data_for_signing(
     key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC
 ) -> DataToSign:
@@ -578,7 +578,7 @@ def _format_data_for_signing(
                 data = sha384(data).digest()
         case _:
             raise RuntimeError(
-                f"Can't PKCS#11 sign data with algorithm {algorithm.name}"
+                f"Can't PKCS#11 sign data with algorithm {algorithm.name} (hash_using_hsm={key.hash_using_hsm})"
             )
 
     _mechanism_name = str(PyKCS11.CKM[mechanism])
