@@ -15,7 +15,7 @@ DEFAULT_PORT = 8443
 DEFAULT_CONFIG = "wksr.yaml"
 
 
-def patch_request_scope_transport():
+def patch_request_scope_transport() -> None:
     """
     Patch transport for FastAPI.Request.scope
 
@@ -24,11 +24,11 @@ def patch_request_scope_transport():
     """
     old_on_url = HttpToolsProtocol.on_url
 
-    def new_on_url(self, url):
+    def new_on_url(self: HttpToolsProtocol, url: bytes) -> None:
         old_on_url(self, url)
-        self.scope["transport"] = self.transport
+        self.scope["transport"] = self.transport  # type: ignore[typeddict-unknown-key]
 
-    HttpToolsProtocol.on_url = new_on_url
+    HttpToolsProtocol.on_url = new_on_url  # type: ignore[method-assign]
 
 
 def main() -> None:

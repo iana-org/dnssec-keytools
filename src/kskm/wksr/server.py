@@ -8,13 +8,22 @@ import smtplib
 from datetime import UTC, datetime
 from email.message import EmailMessage
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 
 import jinja2
 import yaml
-from fastapi import APIRouter, FastAPI, HTTPException, Request, UploadFile, status
+from fastapi import (
+    APIRouter,
+    FastAPI,
+    HTTPException,
+    Request,
+    Response as FastAPIResponse,
+    UploadFile,
+    status,
+)
 from fastapi.templating import Jinja2Templates
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+from starlette.templating import _TemplateResponse
 
 from kskm.common.config import get_config
 from kskm.common.config_wksr import WKSR_Config
@@ -31,16 +40,19 @@ router = APIRouter()
 
 
 class ClientCertificateWhitelist(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next: callable):
+    async def dispatch(
+        self, request: Request, call_next: RequestResponseEndpoint
+    ) -> FastAPIResponse:
         """Check TLS client whitelist."""
         digest = request_peercert_digest(request)
+        client = request.client.host if request.client else None
         if digest is None:
-            logger.warning(f"Allowed client={request.remote_addr} digest={digest}")
-            return
+            logger.warning(f"Allowed client={client} digest={digest}")
+            return await call_next(request)
         if digest not in request.app.config.tls.client_whitelist:
-            logger.warning(f"Denied client={request.client.host} digest={digest}")
+            logger.warning(f"Denied client={client} digest={digest}")
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
-        logger.info(f"Allowed client={request.client.host} digest={digest}")
+        logger.info(f"Allowed client={client} digest={digest}")
 
         return await call_next(request)
 
@@ -56,8 +68,10 @@ async def index(request: Request) -> str:
 
 
 @router.get("/upload")
-async def upload_get(request: Request) -> str:
+async def upload_get(request: Request) -> _TemplateResponse:
     """Handle manual file upload."""
+    # tell the type checking system what request.app.templates is
+    assert isinstance(request.app.templates, Jinja2Templates)
     return request.app.templates.TemplateResponse(
         request=request,
         name=str(request.app.config.templates.upload),
@@ -68,7 +82,7 @@ async def upload_get(request: Request) -> str:
 
 
 @router.post("/upload")
-async def upload_post(request: Request, ksr: UploadFile) -> str:
+async def upload_post(request: Request, ksr: UploadFile) -> _TemplateResponse:
     """Handle manual file upload."""
 
     (filename, filehash) = await save_ksr(request.app, ksr)
@@ -99,6 +113,9 @@ async def upload_post(request: Request, ksr: UploadFile) -> str:
 
     notify(request.app, env)
 
+    # tell the type checking system what request.app.templates is
+    assert isinstance(request.app.templates, Jinja2Templates)
+
     return request.app.templates.TemplateResponse(
         request=request, name=str(request.app.config.templates.result), context=env
     )
@@ -122,7 +139,7 @@ class WKSR(FastAPI):
         self.add_middleware(ClientCertificateWhitelist)
 
     @classmethod
-    def from_file(cls, filename: str):
+    def from_file(cls, filename: str) -> Self:
         with open(filename) as fp:
             _config = yaml.load(fp.read(), Loader=yaml.SafeLoader)
         return cls(WKSR_Config.from_dict(_config))
