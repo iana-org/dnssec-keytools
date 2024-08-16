@@ -150,6 +150,17 @@ class KSKM_P11Key(BaseModel):
             ret += f" public_key={len(self.public_key)} bytes"
         return ret
 
+    def sign(self, data: DataToSign) -> bytes:
+        """Sign some data using this key."""
+        if self.privkey_handle is None:
+            raise RuntimeError(f"No private key supplied in {self}")
+        sig = self.session.sign(
+            self.privkey_handle,
+            data.data,
+            PyKCS11.Mechanism(data.mechanism, None),
+        )
+        return bytes(sig)
+
     def replace(self, **kwargs: Any) -> Self:
         """Return a new instance with the provided attributes updated. Used in tests."""
         return self.model_copy(update=kwargs)
@@ -501,14 +512,7 @@ def sign_using_p11(key: KSKM_P11Key, data: bytes, algorithm: AlgorithmDNSSEC) ->
         + f"mechanism {_sign_data.mechanism_name}, hash using hsm={_sign_data.hash_using_hsm}"
     )
 
-    if not key.privkey_handle:
-        raise RuntimeError(f"No private key supplied in {key}")
-    sig = key.session.sign(
-        key.privkey_handle,
-        _sign_data.data,
-        PyKCS11.Mechanism(_sign_data.mechanism, None),
-    )
-    return bytes(sig)
+    return key.sign(_sign_data)
 
 
 def _format_data_for_signing(
