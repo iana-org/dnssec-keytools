@@ -59,6 +59,7 @@ class RequestPolicy(Policy):
     keys_match_zsk_policy: bool = True
     rsa_exponent_match_zsk_policy: bool = True
     enable_unsupported_ecdsa: bool = False
+    enable_unsupported_edwards_dsa: bool = False
     check_cycle_length: bool = True
     min_cycle_inception_length: timedelta = Field(
         default_factory=lambda: duration_to_timedelta("P79D")

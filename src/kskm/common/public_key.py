@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from typing import Self
 
-from cryptography.hazmat.primitives.asymmetric import ec, rsa
+from cryptography.hazmat.primitives.asymmetric import ec, ed448, ed25519, rsa
 
 from kskm.common.data import (
     AlgorithmDNSSEC,
@@ -14,8 +14,12 @@ from kskm.common.data import (
 
 __author__ = "ft"
 
-
-CryptographyPubKey = rsa.RSAPublicKey | ec.EllipticCurvePublicKey
+CryptographyPubKey = (
+    rsa.RSAPublicKey
+    | ec.EllipticCurvePublicKey
+    | ed25519.Ed25519PublicKey
+    | ed448.Ed448PublicKey
+)
 
 
 class KSKM_PublicKey(FrozenStrictBaseModel, ABC):
@@ -33,12 +37,15 @@ class KSKM_PublicKey(FrozenStrictBaseModel, ABC):
         cls, public_key: bytes, algorithm: AlgorithmDNSSEC
     ) -> "KSKM_PublicKey":
         from kskm.common.ecdsa_utils import KSKM_PublicKey_ECDSA, is_algorithm_ecdsa
+        from kskm.common.eddsa_utils import KSKM_PublicKey_EdDSA, is_algorithm_eddsa
         from kskm.common.rsa_utils import KSKM_PublicKey_RSA, is_algorithm_rsa
 
         if is_algorithm_rsa(algorithm):
             return KSKM_PublicKey_RSA.decode_public_key(public_key, algorithm)
         if is_algorithm_ecdsa(algorithm):
             return KSKM_PublicKey_ECDSA.decode_public_key(public_key, algorithm)
+        if is_algorithm_eddsa(algorithm):
+            return KSKM_PublicKey_EdDSA.decode_public_key(public_key, algorithm)
         raise RuntimeError(f"Can't make public key instance for algorithm {algorithm}")
 
     @abstractmethod

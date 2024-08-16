@@ -16,6 +16,7 @@ from kskm.common.data import (
     TypeDNSSEC,
 )
 from kskm.common.ecdsa_utils import is_algorithm_ecdsa, parse_signature_policy_ecdsa
+from kskm.common.eddsa_utils import is_algorithm_eddsa, parse_signature_policy_eddsa
 from kskm.common.rsa_utils import is_algorithm_rsa, parse_signature_policy_rsa
 
 __author__ = "ft"
@@ -74,6 +75,8 @@ def _parse_signature_algorithms(
             res.add(parse_signature_policy_rsa(this))
         elif is_algorithm_ecdsa(attr_alg):
             res.add(parse_signature_policy_ecdsa(this))
+        elif is_algorithm_eddsa(attr_alg):
+            res.add(parse_signature_policy_eddsa(this))
         else:
             raise NotImplementedError(
                 f"Unhandled SignaturePolicy algorithm: {attr_alg}"

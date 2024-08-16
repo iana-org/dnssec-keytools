@@ -6,9 +6,11 @@
 | --------- | ------- | ------- | -------------- |
 | RSA       | ✅      | ✅      | ✅             |
 | ECDSA     | ✅ (*)  | ✅      | ✅             |
+| EdDSA     | ✅ (*)  | ✅ (**) | ❌ (**)        |
 
 (*) When verifying `KSR-POLICY-ALG`, ECDSA is only allowed if the configuration option `enable_unsupported_ecdsa` is enabled.
-
+(*) When verifying `KSR-POLICY-ALG`, EdDSA is only allowed if the configuration option `enable_unsupported_edwards_dsa` is enabled.
+(**) The EdDSA implementation currently lacks support for PKCS#11. The algorithm is implemented in tests only.
 
 ### Checklist for adding support for new algorithms
 
@@ -55,6 +57,12 @@ The abstract base class `KSKM_PublicKey` resides here. This is where all verifyi
 `src/kskm/common/ecdsa_utils.py`:
 
 Implementation of ECDSA functionality. Most notably the `KSKM_PublicKey_ECDSA` subclass of `KSKM_PublicKey`.
+
+`src/kskm/common/eddsa_utils.py`:
+
+Implementation of EdDSA functionality. Most notably the `KSKM_PublicKey_EdDSA` subclass of `KSKM_PublicKey`.
+
+EdDSA (Ed25519 and Ed448) currently lacks PKCS#11 support. It is implemented in principle, and tested using a mocked HSM in test cases using pycryptography for signing.
 
 `src/kskm/common/rsa_utils.py`:
 

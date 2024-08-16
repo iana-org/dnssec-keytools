@@ -7,7 +7,7 @@ import re
 from collections.abc import Iterator, Mapping, MutableMapping
 from enum import Enum
 from getpass import getpass
-from hashlib import sha1, sha256, sha384, sha512
+from hashlib import sha1, sha256, sha384, sha512, shake_256
 from pathlib import Path
 from typing import Any, NewType, Self
 
@@ -59,6 +59,7 @@ class PyKCS11WithTypes(BaseModel):
     CKM_ECDSA: P11_CKM_Constant
     CKM_ECDSA_SHA256: P11_CKM_Constant
     CKM_ECDSA_SHA384: P11_CKM_Constant
+    CKM_EDDSA: P11_CKM_Constant
     CKM_RSA_X_509: P11_CKM_Constant
     CKM_SHA1_RSA_PKCS: P11_CKM_Constant
     CKM_SHA256_RSA_PKCS: P11_CKM_Constant
@@ -527,15 +528,18 @@ def _format_data_for_signing(
             AlgorithmDNSSEC.RSASHA512: _p11.CKM_SHA512_RSA_PKCS,
             AlgorithmDNSSEC.ECDSAP256SHA256: _p11.CKM_ECDSA_SHA256,
             AlgorithmDNSSEC.ECDSAP384SHA384: _p11.CKM_ECDSA_SHA384,
+            AlgorithmDNSSEC.ED25519: _p11.CKM_EDDSA,
+            AlgorithmDNSSEC.ED448: _p11.CKM_EDDSA,
         }.get(algorithm)
     else:
-        # The AEP Keyper doesn't support hashing on the HSM, so we implement RSA PKCS#1 1.5 padding ourselves here
         mechanism = {
             AlgorithmDNSSEC.RSASHA1: _p11.CKM_RSA_X_509,
             AlgorithmDNSSEC.RSASHA256: _p11.CKM_RSA_X_509,
             AlgorithmDNSSEC.RSASHA512: _p11.CKM_RSA_X_509,
             AlgorithmDNSSEC.ECDSAP256SHA256: _p11.CKM_ECDSA,
             AlgorithmDNSSEC.ECDSAP384SHA384: _p11.CKM_ECDSA,
+            AlgorithmDNSSEC.ED25519: _p11.CKM_EDDSA,
+            AlgorithmDNSSEC.ED448: _p11.CKM_EDDSA,
         }.get(algorithm)
 
     match mechanism:
@@ -580,6 +584,16 @@ def _format_data_for_signing(
                 data = sha256(data).digest()
             elif algorithm == AlgorithmDNSSEC.ECDSAP384SHA384:
                 data = sha384(data).digest()
+        case _p11.CKM_EDDSA:
+            if key.hash_using_hsm:
+                raise NotImplementedError(
+                    "PKCS#11 signing with hash on HSM not implemented yet for EdDSA"
+                )
+            if algorithm == AlgorithmDNSSEC.ED25519:
+                data = sha512(data).digest()
+            elif algorithm == AlgorithmDNSSEC.ED448:
+                # RFC 8080 section 4: An Ed448 signature consists of a 114-octet value
+                data = shake_256(data).digest(114)
         case _:
             raise RuntimeError(
                 f"Can't PKCS#11 sign data with algorithm {algorithm.name} (hash_using_hsm={key.hash_using_hsm})"

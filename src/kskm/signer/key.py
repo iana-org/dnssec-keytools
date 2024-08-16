@@ -6,6 +6,7 @@ from kskm.common.config_misc import KSKKey, KSKPolicy
 from kskm.common.data import FlagsDNSKEY, FrozenStrictBaseModel, Key
 from kskm.common.dnssec import public_key_to_dnssec_key
 from kskm.common.ecdsa_utils import is_algorithm_ecdsa
+from kskm.common.eddsa_utils import is_algorithm_eddsa
 from kskm.common.rsa_utils import KSKM_PublicKey_RSA, is_algorithm_rsa
 from kskm.common.validate import PolicyViolation
 from kskm.ksr.data import RequestBundle
@@ -95,9 +96,11 @@ def load_pkcs11_key(
                     f"expected {ksk.rsa_exponent}"
                 )
         case KeyType.EC:
-            if not is_algorithm_ecdsa(ksk.algorithm):
+            if not is_algorithm_ecdsa(ksk.algorithm) and not is_algorithm_eddsa(
+                ksk.algorithm
+            ):
                 raise ValueError(
-                    f"PKCS#11 key {_found.label} is an ECDSA key, expected {ksk.algorithm.name}"
+                    f"PKCS#11 key {_found.label} is an ECDSA/EdDSA key, expected {ksk.algorithm.name}"
                 )
         case _:
             logger.error(
