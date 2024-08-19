@@ -132,7 +132,7 @@ class UpdatedKeys(BaseModel):
 
     _hush_key_ttl_warnings: set[str] = set()
 
-    def _add_unique(self, key: Key):
+    def _add_unique(self, key: Key) -> None:
         """Add a key to a set, ensuring uniqueness."""
         for _key in self.keys:
             if _key.public_key == key.public_key:

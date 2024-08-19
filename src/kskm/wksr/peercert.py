@@ -19,11 +19,13 @@ def request_peercert(request: Request) -> Certificate:
 def request_peercert_client_subject(request: Request) -> str | None:
     if peercert := request_peercert(request):
         return "/".join([attr.rfc4514_string() for attr in peercert.subject.rdns])
+    return None
 
 
 def request_peercert_digest(request: Request) -> str | None:
     if peercert := request_peercert(request):
         return hexlify(peercert.fingerprint(hashes.SHA256())).decode()
+    return None
 
 
 def request_peercert_digest_spki(request: Request) -> str | None:
@@ -35,3 +37,4 @@ def request_peercert_digest_spki(request: Request) -> str | None:
         digest = hashes.Hash(hashes.SHA256())
         digest.update(public_key_der)
         return hexlify(digest.finalize()).decode()
+    return None
