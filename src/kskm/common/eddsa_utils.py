@@ -12,7 +12,7 @@ from pydantic import Field, ValidationInfo, field_validator
 from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicyEdDSA
 from kskm.common.public_key import KSKM_PublicKey
 
-EdwardsCurvePublicKey = ed25519.Ed25519PublicKey | ed448.Ed448PublicKey
+EdCurvePublicKey = ed25519.Ed25519PublicKey | ed448.Ed448PublicKey
 
 __author__ = "ft"
 
@@ -60,7 +60,7 @@ class KSKM_PublicKey_EdDSA(KSKM_PublicKey):
         """Return key as string."""
         return f"alg=EC bits={self.bits} curve={self.curve.value}"
 
-    def to_cryptography_pubkey(self) -> EdwardsCurvePublicKey:
+    def to_cryptography_pubkey(self) -> EdCurvePublicKey:
         """Convert an KSKM_PublicKey_EdDSA into a 'cryptography' ec.EllipticCurvePublicKey."""
         if self.curve == EdCurve.Ed25519:
             return ed25519.Ed25519PublicKey.from_public_bytes(self.q)
