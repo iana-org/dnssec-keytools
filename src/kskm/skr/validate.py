@@ -1,4 +1,5 @@
 """Functions to validate SKRs."""
+
 import logging
 
 from kskm.common.config_misc import ResponsePolicy
@@ -24,7 +25,7 @@ def validate_response(response: Response, policy: ResponsePolicy) -> bool:
     on errors. Dealing with return values to determine outcome makes it too easy
     to screw up.
     """
-    if policy.num_bundles is not None and len(response.bundles) != policy.num_bundles:
+    if len(response.bundles) != policy.num_bundles:
         raise PolicyViolation(
             f"Wrong number of bundles in response ({len(response.bundles)}, "
             f"expected {policy.num_bundles})"
@@ -47,7 +48,7 @@ def check_valid_signatures(bundle: ResponseBundle, policy: ResponsePolicy) -> No
             raise InvalidSignatureViolation(
                 f"Unknown signature validation result in bundle {bundle.id}"
             )
-    except InvalidSignature:
+    except InvalidSignature as exc:
         raise InvalidSignatureViolation(
             f"Invalid signature encountered in bundle {bundle.id}"
-        )
+        ) from exc

@@ -1,9 +1,7 @@
-import glob
 import os
 import unittest
-from dataclasses import replace
+from pathlib import Path
 
-import pkg_resources
 from cryptography.exceptions import InvalidSignature
 
 from kskm.common.config_misc import RequestPolicy
@@ -11,27 +9,29 @@ from kskm.common.signature import validate_signatures
 from kskm.ksr import load_ksr, request_from_xml
 
 
-def archive_dir(extra=None):
+def archive_dir(extra: str | None = None) -> Path | None:
     """
     Return path to KSR archives, if found using environment variable KSKM_KSR_ARCHIVE_PATH.
 
     If None is returned, the tests in this module will be skipped.
     """
-    _archive_dir = os.environ.get("KSKM_KSR_ARCHIVE_PATH")
-    if _archive_dir is not None:
+    _env_dir = os.environ.get("KSKM_KSR_ARCHIVE_PATH")
+    if _env_dir is not None:
+        _archive_dir = Path(_env_dir)
         if extra:
-            _archive_dir = os.path.join(_archive_dir, extra)
-        if os.path.isdir(_archive_dir):
+            _archive_dir = Path(_archive_dir, extra)
+        if _archive_dir.is_dir():
             return _archive_dir
+    return None
 
 
 class TestParseRealKSRs(unittest.TestCase):
-    def setUp(self):
-        """ Prepare test instance """
-        self.data_dir = pkg_resources.resource_filename(__name__, "data")
+    def setUp(self) -> None:
+        """Prepare test instance"""
+        self.data_dir = Path(os.path.dirname(__file__), "data")
 
     @unittest.skipUnless(archive_dir("ksr"), "KSKM_KSR_ARCHIVE_PATH not set or invalid")
-    def test_parse_all_ksrs_in_archive(self):
+    def test_parse_all_ksrs_in_archive(self) -> None:
         """Parse (but do not validate) all the KSRs in the ICANN archive."""
         # Create a policy that allows some errors that are present in one or more of the historical KSRs.
         #
@@ -63,7 +63,11 @@ class TestParseRealKSRs(unittest.TestCase):
         )
 
         _dir = archive_dir("ksr")
-        for fn in sorted(glob.glob(_dir + "/*")):
+        assert (
+            _dir is not None
+        )  # for typing, test would be skipped if archive_dir() returned None
+        for fn in sorted(_dir.glob("/*")):
+            assert isinstance(fn, str)
             # print('Loading file {}'.format(fn))
             _policy = policy
             if fn.endswith("ksr-root-2016-q3-fallback-1.xml"):
@@ -72,20 +76,18 @@ class TestParseRealKSRs(unittest.TestCase):
                 # Exception: Failed validating KSR request in file ksr-root-2016-q3-fallback-1.xml
                 #            Unacceptable number of key sets in request 489e60ed-421f-40ff-a80e-ee0a87e0886a,
                 #            (2 keys instead of 3)
-                _policy = replace(
-                    policy,
+                _policy = policy.replace(
                     num_keys_per_bundle=[2, 1, 1, 1, 1, 1, 1, 1, 1],
                     num_different_keys_in_all_bundles=2,
                 )
             elif fn.endswith("ksr-root-2016-q4-0.xml"):
                 # Exception: Failed validating KSR request in file ksr-root-2016-q4-0.xml:
                 #            Bundle #2/730b49eb-3dc1-4468-adea-6db09c58a6a3 has 2 keys, not 1
-                _policy = replace(
-                    policy, num_keys_per_bundle=[2, 2, 2, 1, 1, 1, 1, 1, 2]
+                _policy = policy.replace(
+                    num_keys_per_bundle=[2, 2, 2, 1, 1, 1, 1, 1, 2]
                 )
             elif fn.endswith("ksr-root-2016-q4-fallback-1.xml"):
-                _policy = replace(
-                    policy,
+                _policy = policy.replace(
                     num_keys_per_bundle=[1, 1, 1, 1, 1, 1, 1, 1, 2],
                     num_different_keys_in_all_bundles=2,
                 )
@@ -93,11 +95,15 @@ class TestParseRealKSRs(unittest.TestCase):
             load_ksr(fn, _policy, raise_original=True)
 
     @unittest.skipUnless(archive_dir("ksr"), "KSKM_KSR_ARCHIVE_PATH not set or invalid")
-    def test_load_and_validate_all_ksrs_in_archive(self):
+    def test_load_and_validate_all_ksrs_in_archive(self) -> None:
         """Parse and validate all the KSRs in the ICANN archive."""
         _dir = archive_dir("ksr")
+        assert (
+            _dir is not None
+        )  # for typing, test would be skipped if archive_dir() returned None
         res = True
-        for fn in sorted(glob.glob(_dir + "/*")):
+        for fn in sorted(_dir.glob("/*")):
+            assert isinstance(fn, str)
             try:
                 self._test_file(fn)
             except InvalidSignature:
@@ -105,9 +111,9 @@ class TestParseRealKSRs(unittest.TestCase):
         if not res:
             self.fail()
 
-    def _test_file(self, fn, filter_ids=None):
-        fn = os.path.join(self.data_dir, fn)
-        with open(fn, "r") as fd:
+    def _test_file(self, fn: Path, filter_ids: list[str] | None = None) -> None:
+        fn = self.data_dir.joinpath(fn)
+        with open(fn) as fd:
             xml = fd.read()
         ksr = request_from_xml(xml)
         for bundle in ksr.bundles:
@@ -115,7 +121,7 @@ class TestParseRealKSRs(unittest.TestCase):
                 continue
             try:
                 validate_signatures(bundle)
-                print("{}: Bundle {} validated successfully".format(fn, bundle.id))
+                print(f"{fn}: Bundle {bundle.id} validated successfully")
             except InvalidSignature:
-                print("{}: Bundle {} FAILED validation".format(fn, bundle.id))
+                print(f"{fn}: Bundle {bundle.id} FAILED validation")
                 raise

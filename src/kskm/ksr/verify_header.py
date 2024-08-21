@@ -1,4 +1,5 @@
 """Controls to verify KSR header."""
+
 from logging import Logger
 
 from kskm.common.config_misc import RequestPolicy

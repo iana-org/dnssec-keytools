@@ -2,6 +2,7 @@
 
 import logging
 import os
+from pathlib import Path
 from typing import Any
 
 from kskm.common.config_misc import RequestPolicy
@@ -11,7 +12,7 @@ from kskm.common.parse_utils import parse_datetime, signature_policy_from_dict
 from kskm.common.validate import PolicyViolation
 from kskm.common.xml_parser import parse_ksr
 from kskm.ksr.data import Request
-from kskm.ksr.parse_utils import requestbundles_from_list_of_dicts
+from kskm.ksr.parse_utils import request_bundles_from_list_of_dicts
 from kskm.ksr.validate import validate_request
 
 __author__ = "ft"
@@ -23,7 +24,7 @@ MAX_KSR_SIZE = 1024 * 1024
 
 
 def load_ksr(
-    filename: str,
+    filename: Path,
     policy: RequestPolicy,
     raise_original: bool = False,
     log_contents: bool = False,
@@ -42,25 +43,23 @@ def load_ksr(
     request = request_from_xml_file(filename, xml_bytes)
     try:
         if validate_request(request, policy) is not True:
-            raise RuntimeError(
-                "Failed validating KSR request in file {}".format(filename)
-            )
+            raise RuntimeError(f"Failed validating KSR request in file {filename}")
     except PolicyViolation as exc:
         if raise_original:
             # This is better in test cases
             raise
         # This is better in regular operations since it adds information about the context
         raise RuntimeError(
-            "Failed validating KSR request in file {}: {}".format(filename, exc)
-        )
+            f"Failed validating KSR request in file {filename}: {exc}"
+        ) from exc
     return request
 
 
-def request_from_xml_file(filename: str, xml_bytes: bytes) -> Request:
+def request_from_xml_file(filename: Path, xml_bytes: bytes) -> Request:
     """Parse XML data and return Request instance."""
     xml_hash = sha256(xml_bytes)
     return request_from_xml(
-        xml_bytes.decode(), xml_filename=filename, xml_hash=xml_hash
+        xml_bytes.decode(), xml_filename=str(filename), xml_hash=xml_hash
     )
 
 
@@ -71,7 +70,7 @@ def request_from_xml(xml: str, **kwargs: Any) -> Request:
     if not isinstance(bundles_list, list):
         # handle a single RequestBundle in the request
         bundles_list = [bundles_list]
-    bundles = requestbundles_from_list_of_dicts(bundles_list)
+    bundles = request_bundles_from_list_of_dicts(bundles_list)
     zsk_policy = signature_policy_from_dict(
         data["KSR"]["value"]["Request"]["RequestPolicy"]["ZSK"]
     )

@@ -1,7 +1,9 @@
 """Version information."""
 
+from importlib.metadata import version
+
 # https://www.python.org/dev/peps/pep-0440
-__version__ = "0.0.1"
+__version__ = version("kskm")
 
 try:
     from kskm.buildinfo import __commit__, __timestamp__
@@ -9,5 +11,5 @@ try:
     __verbose_version__ = f"{__version__} ({__commit__})"
 except (ImportError, ModuleNotFoundError):
     __verbose_version__ = __version__
-    __commit__ = None  # type: ignore
-    __timestamp__ = None  # type: ignore
+    __commit__ = None  # type: ignore[assignment]
+    __timestamp__ = None  # type: ignore[assignment]

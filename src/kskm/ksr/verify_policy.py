@@ -1,7 +1,7 @@
 """Controls to verify KSR policy parameters."""
-from datetime import datetime, timedelta, timezone
+
+from datetime import UTC, datetime, timedelta, timezone
 from logging import Logger
-from typing import Optional
 
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import (
@@ -12,6 +12,7 @@ from kskm.common.data import (
 )
 from kskm.common.display import fmt_bundle, fmt_timedelta, fmt_timestamp
 from kskm.common.ecdsa_utils import is_algorithm_ecdsa
+from kskm.common.eddsa_utils import is_algorithm_eddsa
 from kskm.common.rsa_utils import is_algorithm_rsa
 from kskm.common.validate import PolicyViolation
 from kskm.ksr import Request
@@ -96,7 +97,7 @@ def check_keys_in_bundles(
     # but on some occasions a different number might be acceptable.
     # In ksr-root-2016-q3-fallback-1.xml, there were only two key sets.
     if policy.num_different_keys_in_all_bundles is not None:
-        _keys = {}
+        _keys: dict[str, int] = {}
         for _bundle in request.bundles:
             for _key in _bundle.keys:
                 _keys[_key.key_identifier] = 1
@@ -104,9 +105,7 @@ def check_keys_in_bundles(
 
         if num_keys != 3:
             logger.warning(
-                "Request {} does not have three (early,on-time,late) key sets in it ({})".format(
-                    request.id, num_keys
-                )
+                f"Request {request.id} does not have three (early,on-time,late) key sets in it ({num_keys})"
             )
         if num_keys != policy.num_different_keys_in_all_bundles:
             raise KSR_POLICY_KEYS_Violation(
@@ -115,7 +114,7 @@ def check_keys_in_bundles(
             )
 
     logger.info(
-        f"KSR-POLICY-KEYS: Validated number of keys per bundle, and for all bundles"
+        "KSR-POLICY-KEYS: Validated number of keys per bundle, and for all bundles"
     )
 
 
@@ -130,17 +129,10 @@ def check_signature_validity(
         return
 
     logger.debug("Verifying RequestBundles validity parameters:")
-    num = 0
-    for bundle in request.bundles:
-        num += 1
+    for num, bundle in enumerate(request.bundles, 1):
         validity = bundle.expiration - bundle.inception
         logger.debug(
-            "{num:<2} {inception:29} {expiration:30} {validity}".format(
-                num=num,
-                inception=fmt_timestamp(bundle.inception),
-                expiration=fmt_timestamp(bundle.expiration),
-                validity=validity,
-            )
+            f"{num:<2} {fmt_timestamp(bundle.inception):29} {fmt_timestamp(bundle.expiration):30} {validity}"
         )
 
     for bundle in request.bundles:
@@ -180,7 +172,7 @@ def check_signature_horizon(
         )
         return
 
-    dt_now = datetime.utcnow().replace(tzinfo=timezone.utc)
+    dt_now = datetime.now(UTC).replace(tzinfo=timezone.utc)
     for bundle in request.bundles:
         expire_days = (bundle.expiration - dt_now).days
         # DPS section 5.1.4: Any RRSIG record generated as a result of a KSK signing operation will not have
@@ -232,6 +224,11 @@ def check_zsk_policy_algorithm(
             )
         if is_algorithm_ecdsa(alg.algorithm) and not policy.enable_unsupported_ecdsa:
             raise KSR_POLICY_ALG_Violation("Algorithm ECDSA is not supported")
+        if (
+            is_algorithm_eddsa(alg.algorithm)
+            and not policy.enable_unsupported_edwards_dsa
+        ):
+            raise KSR_POLICY_ALG_Violation("Algorithm EdDSA is not supported")
 
     if not policy.signature_algorithms_match_zsk_policy:
         logger.warning(
@@ -292,7 +289,7 @@ def check_bundle_overlaps(
         )
         return
 
-    logger.debug("Verifying request {} bundle times and overlap:".format(request.id))
+    logger.debug(f"Verifying request {request.id} bundle times and overlap:")
     for i in range(len(request.bundles)):
         overlap_str = "-"
         previous = request.bundles[i - 1]
@@ -301,13 +298,7 @@ def check_bundle_overlaps(
             overlap = previous.expiration - this.inception
             overlap_str = fmt_timedelta(overlap)
         logger.debug(
-            "{num:<2} {id:8} {inception:19} {expiration:20} {overlap}".format(
-                num=i + 1,
-                id=this.id[:8],
-                inception=fmt_timestamp(this.inception),
-                expiration=fmt_timestamp(this.expiration),
-                overlap=overlap_str,
-            )
+            f"{i + 1:<2} {this.id[:8]:8} {fmt_timestamp(this.inception):19} {fmt_timestamp(this.expiration):20} {overlap_str}"
         )
 
     # check that bundles overlap, and with how much
@@ -322,24 +313,14 @@ def check_bundle_overlaps(
         overlap = previous.expiration - this.inception
         if overlap < request.zsk_policy.min_validity_overlap:
             raise KSR_POLICY_SIG_OVERLAP_Violation(
-                'Bundle "{}" overlap {} with "{}" is < claimed minimum {}'.format(
-                    fmt_bundle(this),
-                    fmt_timedelta(overlap),
-                    fmt_bundle(previous),
-                    fmt_timedelta(request.zsk_policy.min_validity_overlap),
-                )
+                f'Bundle "{fmt_bundle(this)}" overlap {fmt_timedelta(overlap)} with "{fmt_bundle(previous)}" is < claimed minimum {fmt_timedelta(request.zsk_policy.min_validity_overlap)}'
             )
         if overlap > request.zsk_policy.max_validity_overlap:
             raise KSR_POLICY_SIG_OVERLAP_Violation(
-                'Bundle "{}" overlap {} with "{}" is > claimed maximum {}'.format(
-                    fmt_bundle(this),
-                    fmt_timedelta(overlap),
-                    fmt_bundle(previous),
-                    fmt_timedelta(request.zsk_policy.max_validity_overlap),
-                )
+                f'Bundle "{fmt_bundle(this)}" overlap {fmt_timedelta(overlap)} with "{fmt_bundle(previous)}" is > claimed maximum {fmt_timedelta(request.zsk_policy.max_validity_overlap)}'
             )
     logger.info(
-        f"KSR-POLICY-SIG-OVERLAP: All bundles overlap in accordance with the stated ZSK operator policy"
+        "KSR-POLICY-SIG-OVERLAP: All bundles overlap in accordance with the stated ZSK operator policy"
     )
 
 
@@ -361,7 +342,7 @@ def check_bundle_intervals(
         "(from KSK operator policy)"
     )
     for num in range(len(request.bundles)):
-        interval: Optional[timedelta] = None
+        interval: timedelta | None = None
         if num:
             interval = (
                 request.bundles[num].inception - request.bundles[num - 1].inception
@@ -392,5 +373,5 @@ def check_bundle_intervals(
             )
 
     logger.info(
-        f"KSR-POLICY-BUNDLE-INTERVALS: All bundles intervals in accordance with the KSK operator policy"
+        "KSR-POLICY-BUNDLE-INTERVALS: All bundles intervals in accordance with the KSK operator policy"
     )

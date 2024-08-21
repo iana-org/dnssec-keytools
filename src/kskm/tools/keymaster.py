@@ -14,19 +14,13 @@ Tool to create and delete keys as well as perform a key inventory.
 # Allow choosing RSA exponent? As of now, this will default to 65537.
 
 import argparse
-import binascii
 import logging
 import os
 import sys
-from datetime import datetime
-from typing import List
 
 from PyKCS11 import PyKCS11Error
 
-import kskm
-import kskm.misc
 from kskm.common.config import ConfigurationError, KSKMConfig, get_config
-from kskm.common.config_misc import KSKKey
 from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY
 from kskm.common.dnssec import public_key_to_dnssec_key
 from kskm.common.ecdsa_utils import algorithm_to_curve, is_algorithm_ecdsa
@@ -34,10 +28,9 @@ from kskm.common.logging import get_logger
 from kskm.common.rsa_utils import is_algorithm_rsa
 from kskm.common.wordlist import pgp_wordlist
 from kskm.keymaster.delete import key_delete
-from kskm.keymaster.inventory import key_inventory
+from kskm.keymaster.inventory import DNSRecords, key_inventory
 from kskm.keymaster.keygen import generate_ec_key, generate_rsa_key
-from kskm.misc.hsm import KSKM_P11, KeyType
-from kskm.ta.keydigest import create_trustanchor_keydigest
+from kskm.misc.hsm import KSKM_P11, KeyType, init_pkcs11_modules
 from kskm.version import __verbose_version__
 
 SUPPORTED_ALGORITHMS = [str(x.name) for x in KeyType]
@@ -73,9 +66,9 @@ def keygen(
         raise RuntimeError("No public key returned by key generation")
 
     # Calculate the DNSSEC key tag of the new key and look for a collision in the configuration
-    key_tags: List[int] = []
+    key_tags: list[int] = []
     _key = public_key_to_dnssec_key(
-        key=p11key.public_key,
+        public_key=p11key.public_key,
         key_identifier=p11key.label,
         algorithm=AlgorithmDNSSEC[args.key_alg],
         flags=FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value,
@@ -87,7 +80,7 @@ def keygen(
     )
     key_tags += [_key.key_tag]
     _revoked_key = public_key_to_dnssec_key(
-        key=p11key.public_key,
+        public_key=p11key.public_key,
         key_identifier=p11key.label,
         algorithm=AlgorithmDNSSEC[args.key_alg],
         flags=FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value | FlagsDNSKEY.REVOKE.value,
@@ -107,25 +100,11 @@ def keygen(
             )
             raise RuntimeError("Key tag collision detected")
 
-    _now = datetime.utcnow()
-    # create_trustanchor_keydigest wants an KSKKey, but it is not used in the digest calculation
-    _temp_ksk = KSKKey(
-        description="Newly generated key",
-        label=_now.isoformat(),
-        key_tag=_key.key_tag,
-        algorithm=_key.algorithm,
-        valid_from=_now,
-        valid_until=_now,
-    )
-    _domain = "."
-    _ds = create_trustanchor_keydigest(_temp_ksk, _key, domain=_domain)
-    digest = binascii.hexlify(_ds.digest).decode("UTF-8").upper()
-    _digest_type = "2"  # create_trustanchor_keydigest always does SHA256
-    logger.info(
-        f"DS record for generated key:\n"
-        f"{_domain} IN DS {_key.key_tag} {_key.algorithm.value} {_digest_type} {digest}\n"
-        f">> {' '.join(pgp_wordlist(_ds.digest))}"
-    )
+    dns = DNSRecords.from_key(_key)
+    _formatted = "\n".join(dns.format(indent=4, max_length=100))
+
+    logger.info(f"DNS records for generated key:\n" f"{_formatted}\n")
+    logger.info(f"DS digest as PGP words:\n>> {' '.join(pgp_wordlist(dns.ds.digest))}")
 
     return True
 
@@ -150,7 +129,7 @@ def inventory(
 ) -> bool:
     """Show HSM inventory."""
     logger.info("Show HSM inventory")
-    inv = key_inventory(p11modules, config)
+    inv = key_inventory(p11modules, config, args.dns)
     inv_str = "\n".join(inv)
     logger.info(f"Key inventory:\n{inv_str}")
 
@@ -176,7 +155,11 @@ def main() -> bool:
         help="Path to the KSR signer configuration file",
     )
     parser.add_argument(
-        "--hsm", dest="hsm", metavar="HSM", type=str, help="HSM to operate on",
+        "--hsm",
+        dest="hsm",
+        metavar="HSM",
+        type=str,
+        help="HSM to operate on",
     )
     parser.add_argument(
         "--debug",
@@ -190,6 +173,14 @@ def main() -> bool:
 
     parser_inventory = subparsers.add_parser("inventory")
     parser_inventory.set_defaults(func=inventory)
+
+    parser_inventory.add_argument(
+        "--dns",
+        dest="dns",
+        action="store_true",
+        default=False,
+        help="Print DNS records for keys found",
+    )
 
     parser_keygen = subparsers.add_parser("keygen")
     parser_keygen.set_defaults(func=keygen)
@@ -274,9 +265,7 @@ def main() -> bool:
     # Initialise PKCS#11 modules (HSMs)
     #
     try:
-        p11modules = kskm.misc.hsm.init_pkcs11_modules_from_dict(
-            config.hsm, name=args.hsm, rw_session=True
-        )
+        p11modules = init_pkcs11_modules(config, name=args.hsm, rw_session=True)
     except Exception as e:
         logger.critical("HSM initialisation error: %s", str(e))
         return False

@@ -4,17 +4,20 @@ KSR signer tool.
 Process a KSR received from the ZSK operator and produce an SKR response
 with signatures created using the KSK keys.
 """
+
 import argparse
 import binascii
 import logging.handlers
 import os
 import sys
 from argparse import Namespace as ArgsType
-from typing import Optional
+from pathlib import Path
+from typing import Any
 
 import kskm.common
 import kskm.ksr
 import kskm.misc
+import kskm.misc.hsm
 import kskm.skr
 from kskm.common.config import ConfigurationError, KSKMConfig, get_config
 from kskm.common.display import format_bundles_for_humans
@@ -42,7 +45,7 @@ _DEFAULTS = {
 EXIT_CODES = {"success": 0, "interrupt": 1, "config": 2, "fatal": 3}
 
 
-def parse_args(defaults: dict) -> ArgsType:
+def parse_args(defaults: dict[str, Any]) -> ArgsType:
     """
     Parse command line arguments.
 
@@ -152,26 +155,26 @@ def parse_args(defaults: dict) -> ArgsType:
     return args
 
 
-def _previous_skr_filename(args: ArgsType, config: KSKMConfig) -> Optional[str]:
+def _previous_skr_filename(args: ArgsType, config: KSKMConfig) -> Path | None:
     if args and args.previous_skr:
-        return str(args.previous_skr)
-    return config.get_filename("previous_skr")
+        return Path(args.previous_skr)
+    return config.filenames.previous_skr
 
 
-def _ksr_filename(args: ArgsType, config: KSKMConfig) -> Optional[str]:
+def _ksr_filename(args: ArgsType, config: KSKMConfig) -> Path | None:
     if args and args.ksr:
-        return str(args.ksr)
-    return config.get_filename("input_ksr")
+        return Path(args.ksr)
+    return config.filenames.input_ksr
 
 
-def _skr_filename(args: ArgsType, config: KSKMConfig) -> Optional[str]:
+def _skr_filename(args: ArgsType, config: KSKMConfig) -> Path | None:
     if args and args.skr:
-        return str(args.skr)
-    return config.get_filename("output_skr")
+        return Path(args.skr)
+    return config.filenames.output_skr
 
 
 def ksrsigner(
-    logger: logging.Logger, args: ArgsType, config: Optional[KSKMConfig] = None
+    logger: logging.Logger, args: ArgsType, config: KSKMConfig | None = None
 ) -> bool:
     """Parse KSR and previous SKR. Produce a new SKR."""
     #
@@ -226,9 +229,7 @@ def ksrsigner(
     # Initialise PKCS#11 modules (HSMs)
     #
     try:
-        p11modules = kskm.misc.hsm.init_pkcs11_modules_from_dict(
-            config.hsm, name=args.hsm
-        )
+        p11modules = kskm.misc.hsm.init_pkcs11_modules(config, name=args.hsm)
     except Exception as e:
         logger.critical("HSM initialisation error: %s", str(e))
         return False

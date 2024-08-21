@@ -1,6 +1,6 @@
 """Code to validate daisy-chain properties between KSR(n) and SKR(n-1)."""
+
 import logging
-from typing import Optional
 
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import FlagsDNSKEY
@@ -92,13 +92,8 @@ def check_chain_overlap(
             + fmt_timedelta(ksr.zsk_policy.min_validity_overlap)
         )
         raise KSR_CHAIN_OVERLAP_Violation(
-            'Bundle "{}" (from SKR(n-1)) '
-            'overlap {} with "{}" is < claimed minimum {}'.format(
-                fmt_bundle(ksr_first),
-                fmt_timedelta(overlap),
-                fmt_bundle(previous),
-                fmt_timedelta(ksr.zsk_policy.min_validity_overlap),
-            )
+            f'Bundle "{fmt_bundle(ksr_first)}" (from SKR(n-1)) '
+            f'overlap {fmt_timedelta(overlap)} with "{fmt_bundle(previous)}" is < claimed minimum {fmt_timedelta(ksr.zsk_policy.min_validity_overlap)}'
         )
     if overlap > ksr.zsk_policy.max_validity_overlap:
         logger.debug(f"Last bundle in SKR(n-1) expiration: {previous.expiration}")
@@ -108,13 +103,8 @@ def check_chain_overlap(
             + fmt_timedelta(ksr.zsk_policy.max_validity_overlap)
         )
         raise KSR_CHAIN_OVERLAP_Violation(
-            'Bundle "{}" (from SRK(n-1)) '
-            'overlap {} with "{}" is > claimed maximum {}'.format(
-                fmt_bundle(ksr_first),
-                fmt_timedelta(overlap),
-                fmt_bundle(previous),
-                fmt_timedelta(ksr.zsk_policy.max_validity_overlap),
-            )
+            f'Bundle "{fmt_bundle(ksr_first)}" (from SRK(n-1)) '
+            f'overlap {fmt_timedelta(overlap)} with "{fmt_bundle(previous)}" is > claimed maximum {fmt_timedelta(ksr.zsk_policy.max_validity_overlap)}'
         )
 
     logger.info(
@@ -124,7 +114,7 @@ def check_chain_overlap(
 
 
 def check_last_skr_key_present(
-    skr: Response, policy: RequestPolicy, p11modules: Optional[KSKM_P11]
+    skr: Response, policy: RequestPolicy, p11modules: KSKM_P11 | None
 ) -> None:
     """Verify the KSK(s) that signed the last bundle in the SKR(n-1) is present in the available HSM(s)."""
     if not p11modules:
@@ -141,13 +131,13 @@ def check_last_skr_key_present(
     count = 0
     for sig in last_bundle.signatures:
         p11key = get_p11_key(sig.key_identifier, p11modules, public=True)
-        if not p11key:
+        if not p11key or not p11key.public_key:
             raise KSR_CHAIN_KEYS_Violation(
                 f"Key {sig.key_identifier} not found in the HSM(s) "
                 f"(bundle {last_bundle.id})"
             )
         hsmkey = public_key_to_dnssec_key(
-            key=p11key.public_key,  # type: ignore
+            public_key=p11key.public_key,
             key_identifier=sig.key_identifier,
             algorithm=sig.algorithm,
             flags=FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value,

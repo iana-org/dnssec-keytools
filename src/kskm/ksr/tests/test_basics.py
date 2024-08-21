@@ -8,14 +8,14 @@ from kskm.skr.output import timedelta_to_duration
 
 
 class TestBasics(unittest.TestCase):
-    def test_basic_init(self):
-        """ Test basic module import """
+    def test_basic_init(self) -> None:
+        """Test basic module import"""
         import kskm.ksr
 
         self.assertEqual(kskm.ksr.__author__, "ft")
 
-    def test_minimal(self):
-        """ Test parsing a minimal KSR """
+    def test_minimal(self) -> None:
+        """Test parsing a minimal KSR"""
         ksr_xml = """
 <KSR domain="." id="4fe9bb10-6f6b-4503-8575-7824e2d66925" serial="99">
   <Request>
@@ -54,8 +54,8 @@ class TestBasics(unittest.TestCase):
         )
         self.assertEqual(request.zsk_policy, policy)
 
-    def test_ksr_with_timestamp(self):
-        """ Test parsing a minimal KSR with the optional timestamp """
+    def test_ksr_with_timestamp(self) -> None:
+        """Test parsing a minimal KSR with the optional timestamp"""
         ksr_xml = """
 <KSR domain="." id="4fe9bb10-6f6b-4503-8575-7824e2d66925" serial="99" timestamp="2018-01-01T00:00:00">
   <Request>
@@ -83,7 +83,7 @@ class TestBasics(unittest.TestCase):
             datetime.datetime.fromisoformat("2018-01-01T00:00:00+00:00"),
         )
 
-    def test_timedelta_parsing(self):
+    def test_timedelta_parsing(self) -> None:
         """Test timedelta parsing and printing"""
         duration = "P3DT4H5M6S"
         td = duration_to_timedelta(duration)

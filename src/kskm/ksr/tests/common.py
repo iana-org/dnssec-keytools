@@ -1,6 +1,4 @@
 import unittest
-from dataclasses import replace
-from typing import Optional
 
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY
@@ -24,9 +22,9 @@ class Test_Requests(unittest.TestCase):
     def _make_request(
         self,
         domain: str = ".",
-        request_policy: Optional[str] = None,
-        request_bundle: Optional[str] = None,
-    ):
+        request_policy: str | None = None,
+        request_bundle: str | None = None,
+    ) -> str:
         if request_policy is None:
             request_policy = self._make_request_policy()
         if request_bundle is None:
@@ -42,7 +40,7 @@ class Test_Requests(unittest.TestCase):
     """
         return xml.strip()
 
-    def _make_request_policy(self, signature_algorithm: Optional[str] = None) -> str:
+    def _make_request_policy(self, signature_algorithm: str | None = None) -> str:
         if signature_algorithm is None:
             signature_algorithm = self._make_signature_algorithm()
         xml = f"""
@@ -61,7 +59,7 @@ class Test_Requests(unittest.TestCase):
         return xml.strip()
 
     def _make_signature_algorithm(self) -> str:
-        xml = f"""
+        xml = """
             <SignatureAlgorithm algorithm="8">
               <RSA size="1024" exponent="65537"/>
             </SignatureAlgorithm>
@@ -77,10 +75,10 @@ class Test_Requests(unittest.TestCase):
         key_tag: int = 49920,
         flags: int = FlagsDNSKEY.ZONE.value,
         algorithm: int = AlgorithmDNSSEC.RSASHA256.value,
-        pubkey: Optional[str] = None,
+        pubkey: str | None = None,
         signature_inception: str = "2009-11-09T20:33:05",
         signature_expiration: str = "2009-12-09T20:33:05",
-        signature: Optional[str] = None,
+        signature: str | None = None,
     ) -> str:
         if pubkey is None:
             pubkey = (
@@ -121,7 +119,7 @@ class Test_Requests(unittest.TestCase):
 
 
 class Test_Requests_With_Two_Bundles(Test_Requests):
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
         # the public part of key RSA1 in softhsm
         self.RSA1 = """
@@ -146,10 +144,10 @@ class Test_Requests_With_Two_Bundles(Test_Requests):
     def _make_request(
         self,
         domain: str = ".",
-        request_policy: Optional[str] = None,
-        bundle1: Optional[str] = None,
-        bundle2: Optional[str] = None,
-    ):
+        request_policy: str | None = None,
+        bundle1: str | None = None,
+        bundle2: str | None = None,
+    ) -> str:
         signature = """
         qeD7321YJ0g2ihT8XHPGIkMVumQoL7tdTQ6fMttyxmLeCMSE3K2cQBBQd622FGuF88JRiZKrQxWMfx2aow5k0WehytAhqaXy
         7DVzNJ+vxa0N5JoczkTMdNp6zF/L5DF2xbxgY88Yu9WVXZ0vpn5rx8bHwgsvrTfGhYWHipMgHBZpgmpWR2sS60mW/FnljmQE
@@ -205,11 +203,11 @@ class Test_Requests_With_Two_Bundles(Test_Requests):
 
     def _get_two_bundles(
         self,
-        bundle1_inception="2019-01-01T00:00:00",
-        bundle1_expiration="2019-01-22T00:00:00",
-        bundle2_inception="2019-02-01T00:00:00",
-        bundle2_expiration="2019-02-22T00:00:00",
-    ):
+        bundle1_inception: str = "2019-01-01T00:00:00",
+        bundle1_expiration: str = "2019-01-22T00:00:00",
+        bundle2_inception: str = "2019-02-01T00:00:00",
+        bundle2_expiration: str = "2019-02-22T00:00:00",
+    ) -> tuple[str, str]:
         bundle1 = self._make_request_bundle(
             bundle_id="test-1",
             bundle_inception=bundle1_inception,
@@ -236,12 +234,11 @@ class Test_Requests_With_Two_Bundles(Test_Requests):
 
 
 class Test_Validate_KSR_ECDSA(Test_Requests):
-    def setUp(self):
+    def setUp(self) -> None:
         super().setUp()
-        self.policy = replace(
-            self.policy,
-            enable_unsupported_ecdsa=True,
+        self.policy = self.policy.replace(
             approved_algorithms=[AlgorithmDNSSEC.ECDSAP256SHA256.name],
+            enable_unsupported_ecdsa=True,
         )
 
     def _make_signature_algorithm(self) -> str:
@@ -261,10 +258,10 @@ class Test_Validate_KSR_ECDSA(Test_Requests):
         key_tag: int = 45612,
         flags: int = FlagsDNSKEY.ZONE.value,
         algorithm: int = AlgorithmDNSSEC.ECDSAP256SHA256.value,
-        pubkey: Optional[str] = None,
+        pubkey: str | None = None,
         signature_inception: str = "2009-11-09T20:33:05",
         signature_expiration: str = "2009-12-09T20:33:05",
-        signature: Optional[str] = None,
+        signature: str | None = None,
     ) -> str:
         if pubkey is None:
             # Key EC1 in SoftHSM

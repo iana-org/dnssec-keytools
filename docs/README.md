@@ -12,3 +12,10 @@ The following documents are contained in this sub-directory:
 Describes the high-level architectural design of the KSR Signer software, describing the security domains and functions maintained by the software.
 
 [Test Framework:](test.md) Describes the scope and method for unit testing.
+
+## Source Code Review
+
+The kskm-0.0.1 source code audit has been performed by No Hats Corporation. 
+
+- No Hats Corporation's audit report is available at [NoHatsAudit-KSKM-Tools-v1.01.pdf](./reports/NoHatsAudit-KSKM-Tools-v1.01.pdf)
+- The audit report's PGP signature is available at [NoHatsAudit-KSKM-Tools-v1.01.sig](./reports/NoHatsAudit-KSKM-Tools-v1.01.sig)

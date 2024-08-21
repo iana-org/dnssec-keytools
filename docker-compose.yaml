@@ -1,0 +1,15 @@
+services:
+  kskm:
+    image: kskm:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.kskm
+      args:
+        PYTHON_VERSION: 3.12
+  wksr:
+    image: wksr:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.wksr
+      args:
+        PYTHON_VERSION: 3.12

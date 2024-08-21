@@ -4,8 +4,8 @@ from kskm.common.xml_parser import parse
 
 
 class TestXMLParser(unittest.TestCase):
-    def test_shortest_possible(self):
-        """ Test parsing XML with only one element """
+    def test_shortest_possible(self) -> None:
+        """Test parsing XML with only one element"""
         xml = """
         <KSR id="foo">hello</KSR>
         """
@@ -13,8 +13,8 @@ class TestXMLParser(unittest.TestCase):
         expected = {"KSR": {"attrs": {"id": "foo"}, "value": "hello"}}
         self.assertEqual(parsed, expected)
 
-    def test_basic_xml_parser(self):
-        """ Test parsing the very most basic KSR XML"""
+    def test_basic_xml_parser(self) -> None:
+        """Test parsing the very most basic KSR XML"""
         xml = """
                 <KSR id="46E2A89A-91A4-11DE-9606-D3C665893CB7" domain=".">
                  <Request>
@@ -42,8 +42,8 @@ class TestXMLParser(unittest.TestCase):
         }
         self.assertEqual(parsed, expected)
 
-    def test_multiple_bundles(self):
-        """ Test parsing a rather basic KSR XML with multiple RequestBundle"""
+    def test_multiple_bundles(self) -> None:
+        """Test parsing a rather basic KSR XML with multiple RequestBundle"""
         xml = """
                 <KSR>
                  <Request>
@@ -75,8 +75,8 @@ class TestXMLParser(unittest.TestCase):
         }
         self.assertEqual(parsed, expected)
 
-    def test_signer(self):
-        """ Test parsing a rather basic KSR XML with Signer elements that have no value"""
+    def test_signer(self) -> None:
+        """Test parsing a rather basic KSR XML with Signer elements that have no value"""
         xml = """
                 <KSR>
                   <Signer keyIdentifier="KC00020" />
@@ -94,8 +94,8 @@ class TestXMLParser(unittest.TestCase):
         }
         self.assertEqual(parsed, expected)
 
-    def test_nested_tags(self):
-        """ Test parsing of nested Signature tags """
+    def test_nested_tags(self) -> None:
+        """Test parsing of nested Signature tags"""
         xml = """
         <KSR>
           <Signature keyIdentifier="ZSK-24315">
@@ -108,14 +108,17 @@ class TestXMLParser(unittest.TestCase):
             "KSR": {
                 "Signature": {
                     "attrs": {"keyIdentifier": "ZSK-24315"},
-                    "value": {"KeyTag": "24315", "Signature": "WL7ks0TL...",},
+                    "value": {
+                        "KeyTag": "24315",
+                        "Signature": "WL7ks0TL...",
+                    },
                 }
             }
         }
         self.assertEqual(parsed, expected)
 
-    def test_invalid_tag(self):
-        """ Test parsing of XML with an invalid tag """
+    def test_invalid_tag(self) -> None:
+        """Test parsing of XML with an invalid tag"""
         xml = """
         <KSR>
           <Signature
@@ -124,8 +127,8 @@ class TestXMLParser(unittest.TestCase):
             parse(xml)
         self.assertEqual(str(cm.exception), "Failed parsing tag '<Signature'...")
 
-    def test_trailing_data(self):
-        """ Test parsing of XML with non-XML data after it """
+    def test_trailing_data(self) -> None:
+        """Test parsing of XML with non-XML data after it"""
         xml = """
         <KSR>
         </KSR>fail"""
@@ -133,8 +136,8 @@ class TestXMLParser(unittest.TestCase):
             parse(xml)
         self.assertEqual(str(cm.exception), "XML parser got lost at: 'fail'")
 
-    def test_too_much_recursuin(self):
-        """ Test parsing of XML with too many nested levels """
+    def test_too_much_recursion(self) -> None:
+        """Test parsing of XML with too many nested levels"""
         xml = """
         <a><b><c><d><e><ft>testing</ft></e></d></c></b></a>
         """

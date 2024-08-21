@@ -29,7 +29,7 @@ request = element Request {
     attribute id { xsd:string },
     element Inception { xsd:dateTime },
     element Expiration { xsd:dateTime },
-    
+
     # optional request that the request is signed by specific KSKs
     signer*,
 
@@ -59,7 +59,7 @@ response = element Response {
 
     # KSKs & ZSK:s from RequestBundle
     key+,
-    
+
     # Signatures by KSKs
     signature+
   }+
@@ -67,17 +67,12 @@ response = element Response {
 
 algorithmPolicy = element SignatureAlgorithm {
     attribute algorithm { algorithm },
-    ( RSA | DSA | ECDSA)
+    ( RSA | ECDSA)
 }
 
 RSA = element RSA {
     attribute size { xsd:nonNegativeInteger },
     attribute exponent { xsd:nonNegativeInteger },
-    empty
-}
-
-DSA = element DSA {
-    attribute size { xsd:nonNegativeInteger },
     empty
 }
 
@@ -111,7 +106,7 @@ signature = element Signature {
   element SignatureInception { xsd:dateTime },
   element KeyTag { keytag },
   element SignersName { xsd:string },
-  element SignatureData { xsd:base64Binary }  
+  element SignatureData { xsd:base64Binary }
 }
 
 key = element Key {
@@ -135,6 +130,6 @@ ttl = xsd:nonNegativeInteger
 protocol = xsd:nonNegativeInteger
   { minInclusive = "3" maxInclusive = "3" }
 
-flags = xsd:nonNegativeInteger { maxInclusive = "65535" } 
+flags = xsd:nonNegativeInteger { maxInclusive = "65535" }
 
 labels = xsd:nonNegativeInteger { maxInclusive = "255" }

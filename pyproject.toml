@@ -1,10 +1,93 @@
 # PEP 518: https://www.python.org/dev/peps/pep-0518/
 
-[tool.isort]
-profile = "black"
+[tool.poetry]
+name = "kskm"
+version = "0.0.1"
+description = "KSK Management tools"
+authors = ["IANA <iana@iana.org>"]
+license = "BSD-2-Clause"
+repository = "https://github.com/iana-org/dnssec-keytools"
+readme = "README.md"
+exclude = ["src/**/tests"]
+packages = [
+    { include = "kskm", from = "src" }
+]
+
+[tool.poetry.dependencies]
+python = ">=3.11,<4"
+fastapi = {version = "^0.111.0", optional = true}
+pyopenssl = {version = "^24.1.0", optional = true}
+pydantic = {extras = ["email"], version = "^2.7.4"}
+pyyaml = "^6.0.1"
+pykcs11 = "^1.5.14"
+jinja2 = "^3.1.4"
+cryptography = ">=42.0.5"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.1.1"
+coverage = "^7.4.4"
+mypy = "^1.9.0"
+dnspython = {extras = ["dnssec"], version = "^2.6.1"}
+ruff = "^0.3.5"
+pytest-ruff = "^0.3.1"
+
+[tool.poetry.extras]
+online = ["fastapi", "pyopenssl"]
+
+[tool.poetry.scripts]
+kskm-keymaster = "kskm.tools.keymaster:main"
+kskm-ksrsigner = "kskm.tools.ksrsigner:main"
+kskm-sha2wordlist = "kskm.tools.sha2wordlist:main"
+kskm-trustanchor = "kskm.tools.trustanchor:main"
+kskm-wksr = "kskm.tools.wksr:main"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.coverage.run]
 omit = [
-    "src/*/tests/*",
-    "venv/*",
+    "src/*/tests/*"
 ]
+
+[tool.mypy]
+follow_imports = "silent"
+disallow_untyped_calls = false
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_subclassing_any = true
+disallow_untyped_decorators = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unused_ignores = true
+warn_unused_configs = true
+no_implicit_optional = true
+
+[tool.isort]
+profile = "black"
+
+[tool.ruff.lint]
+select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+]
+ignore = ["E501", "I001"]
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = false
+known-first-party = [
+    "kskm",
+]
+combine-as-imports = true
+split-on-trailing-comma = false
