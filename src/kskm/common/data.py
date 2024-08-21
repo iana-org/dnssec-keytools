@@ -80,12 +80,14 @@ DEPRECATED_ALGORITHMS = [
     AlgorithmDNSSEC.ECC_GOST,
 ]
 
-# Supported algorithms (note that ECDSA is not yet fully supported)
+# Supported algorithms (note that ECDSA, Ed25519 and Ed448 is not yet fully supported)
 SUPPORTED_ALGORITHMS = [
     AlgorithmDNSSEC.RSASHA256,
     AlgorithmDNSSEC.RSASHA512,
     AlgorithmDNSSEC.ECDSAP256SHA256,
     AlgorithmDNSSEC.ECDSAP384SHA384,
+    AlgorithmDNSSEC.ED25519,
+    AlgorithmDNSSEC.ED448,
 ]
 
 
@@ -118,6 +120,10 @@ class AlgorithmPolicyRSA(AlgorithmPolicy):
 
 class AlgorithmPolicyECDSA(AlgorithmPolicy):
     """Algorithm Policy for ECDSA signatures."""
+
+
+class AlgorithmPolicyEdDSA(AlgorithmPolicy):
+    """Algorithm Policy for EdDSA signatures."""
 
 
 class AlgorithmPolicyDSA(AlgorithmPolicy):

@@ -4,6 +4,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY
 from kskm.common.parse_utils import duration_to_timedelta
@@ -22,6 +24,7 @@ from kskm.ksr.verify_bundles import (
     KSR_BUNDLE_UNIQUE_Violation,
 )
 from kskm.ksr.verify_header import KSR_DOMAIN_Violation
+from kskm.ksr.verify_policy import KSR_POLICY_ALG_Violation
 
 
 class Test_Validate_KSR_bundles(unittest.TestCase):
@@ -140,18 +143,56 @@ class Test_Valid_Requests(Test_Requests):
         request = request_from_xml(xml)
         assert validate_request(request, policy)
 
+    def test_Ed25519_bundle(self) -> None:
+        """Test validating a KSR with a key/signature using an Ed25519 key type"""
+
+        _pubkey = "l02Woi0iS8Aa25FQkUd9RMzZHJpBoRQwAQEX1SxZJA4="  # RFC 8080 example key
+
+        signature_algorithm = """
+            <SignatureAlgorithm algorithm="15">
+              <EdDSA size="256"/>
+            </SignatureAlgorithm>
+        """.strip()
+        request_policy = self._make_request_policy(
+            signature_algorithm=signature_algorithm
+        )
+
+        bundle = self._make_request_bundle(
+            algorithm=AlgorithmDNSSEC.ED25519.value, pubkey=_pubkey, key_tag=3612
+        )
+        xml = self._make_request(request_bundle=bundle, request_policy=request_policy)
+        policy = self.policy.replace(
+            approved_algorithms=[
+                AlgorithmDNSSEC.ED25519.name,
+            ],
+            validate_signatures=False,  # the signature is not valid with this RFC 8080 example key
+        )
+        request = request_from_xml(xml)
+
+        # Try to validate the request without the policy flag enable_unsupported_edwards_dsa=True
+        with pytest.raises(
+            KSR_POLICY_ALG_Violation, match=".*Algorithm EdDSA is not supported.*"
+        ):
+            validate_request(request, policy)
+
+        # Now, enable the flag and try again
+        policy = policy.replace(enable_unsupported_edwards_dsa=True)
+
+        # Should validate now
+        assert validate_request(request, policy)
+
 
 class Test_Invalid_Requests(Test_Requests):
     def test_bundle_with_unhandled_key_type(self) -> None:
         """Test validating a KSR with a key/signature using an unhandled key type"""
-        bundle = self._make_request_bundle(algorithm=AlgorithmDNSSEC.ED448.value)
+        bundle = self._make_request_bundle(algorithm=AlgorithmDNSSEC.ECC_GOST.value)
         xml = self._make_request(request_bundle=bundle)
         policy = RequestPolicy()
         request = request_from_xml(xml)
         with self.assertRaises(ValueError) as exc:
             validate_request(request, policy)
         self.assertEqual(
-            "Key testkey in bundle test-id uses unhandled algorithm: AlgorithmDNSSEC.ED448",
+            "Key testkey in bundle test-id uses unhandled algorithm: AlgorithmDNSSEC.ECC_GOST",
             str(exc.exception),
         )
 

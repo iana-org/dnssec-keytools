@@ -9,6 +9,7 @@ from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import (
     AlgorithmPolicy,
     AlgorithmPolicyECDSA,
+    AlgorithmPolicyEdDSA,
     AlgorithmPolicyRSA,
     FlagsDNSKEY,
     Key,
@@ -19,6 +20,11 @@ from kskm.common.ecdsa_utils import (
     ecdsa_public_key_without_prefix,
     get_ecdsa_pubkey_size,
     is_algorithm_ecdsa,
+)
+from kskm.common.eddsa_utils import (
+    eddsa_public_key_without_prefix,
+    get_eddsa_pubkey_size,
+    is_algorithm_eddsa,
 )
 from kskm.common.rsa_utils import KSKM_PublicKey_RSA, is_algorithm_rsa
 from kskm.common.signature import validate_signatures
@@ -165,6 +171,19 @@ def check_keys_match_zsk_policy(
                     f"Key {key.key_tag}/{key.key_identifier} parameters accepted"
                 )
                 seen[key.key_identifier] = key
+            elif is_algorithm_eddsa(key.algorithm):
+                logger.warning(
+                    f"Key {key.key_identifier} in bundle {bundle.id} is an EdDSA key - this is untested"
+                )
+                if not _find_matching_zsk_policy_eddsa_alg(request, key):
+                    raise KSR_BUNDLE_KEYS_Violation(
+                        f"Key {key.key_identifier} in bundle {bundle.id} "
+                        f"does not match the ZSK SignaturePolicy"
+                    )
+                logger.debug(
+                    f"Key {key.key_tag}/{key.key_identifier} parameters accepted"
+                )
+                seen[key.key_identifier] = key
             else:
                 raise ValueError(
                     f"Key {key.key_identifier} in bundle {bundle.id} uses unhandled algorithm: "
@@ -231,6 +250,23 @@ def _find_matching_zsk_policy_ecdsa_alg(
             b64decode(key.public_key), this.algorithm
         )
         ec_size = get_ecdsa_pubkey_size(_pubkey)
+        if key.algorithm == this.algorithm and ec_size == this.bits:
+            return this
+    return None
+
+
+def _find_matching_zsk_policy_eddsa_alg(
+    request: Request, key: Key
+) -> AlgorithmPolicy | None:
+    for this in request.zsk_policy.algorithms:
+        if not isinstance(this, AlgorithmPolicyEdDSA):
+            # This branch is covered by test cases, but since the order of the set is not guaranteed
+            # it won't register every time
+            continue
+        _pubkey = eddsa_public_key_without_prefix(
+            b64decode(key.public_key), this.algorithm
+        )
+        ec_size = get_eddsa_pubkey_size(_pubkey)
         if key.algorithm == this.algorithm and ec_size == this.bits:
             return this
     return None

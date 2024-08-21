@@ -12,6 +12,7 @@ from kskm.common.data import (
 )
 from kskm.common.display import fmt_bundle, fmt_timedelta, fmt_timestamp
 from kskm.common.ecdsa_utils import is_algorithm_ecdsa
+from kskm.common.eddsa_utils import is_algorithm_eddsa
 from kskm.common.rsa_utils import is_algorithm_rsa
 from kskm.common.validate import PolicyViolation
 from kskm.ksr import Request
@@ -223,6 +224,11 @@ def check_zsk_policy_algorithm(
             )
         if is_algorithm_ecdsa(alg.algorithm) and not policy.enable_unsupported_ecdsa:
             raise KSR_POLICY_ALG_Violation("Algorithm ECDSA is not supported")
+        if (
+            is_algorithm_eddsa(alg.algorithm)
+            and not policy.enable_unsupported_edwards_dsa
+        ):
+            raise KSR_POLICY_ALG_Violation("Algorithm EdDSA is not supported")
 
     if not policy.signature_algorithms_match_zsk_policy:
         logger.warning(
