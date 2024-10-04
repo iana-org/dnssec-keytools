@@ -28,7 +28,7 @@ def key_inventory(
     for module in p11modules:
         res += [f"HSM {module.label}:"]
         for slot, session in sorted(module.sessions.items()):
-            keys: dict[KeyClass, dict[str, KeyInfo]] = dict()
+            keys: dict[KeyClass, dict[str, KeyInfo]] = {}
             for this in module.get_key_inventory(session):
                 if this.key_class not in keys:
                     keys[this.key_class] = {}
