@@ -166,7 +166,7 @@ class SignWithMockedHSM_Baseclass:
                 signers=signers,
             )
             bundles.append(bundle)
-        request = Request(
+        return Request(
             id="test-req-01" + id_suffix,
             serial=1,
             domain=".",
@@ -174,7 +174,6 @@ class SignWithMockedHSM_Baseclass:
             zsk_policy=self.request_zsk_policy,
             timestamp=None,
         )
-        return request
 
 
 class Test_SignWithMocked_EdDSA(SignWithMockedHSM_Baseclass):

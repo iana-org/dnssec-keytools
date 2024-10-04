@@ -64,7 +64,7 @@ class KSKM_PublicKey_EdDSA(KSKM_PublicKey):
         """Convert an KSKM_PublicKey_EdDSA into a 'cryptography' ec.EllipticCurvePublicKey."""
         if self.curve == EdCurve.Ed25519:
             return ed25519.Ed25519PublicKey.from_public_bytes(self.q)
-        elif self.curve == EdCurve.Ed448:
+        if self.curve == EdCurve.Ed448:
             return ed448.Ed448PublicKey.from_public_bytes(self.q)
 
         raise RuntimeError(f"Don't know which curve to use for {self.curve.name}")
@@ -123,11 +123,10 @@ def parse_signature_policy_eddsa(
     """
     attr_alg = AlgorithmDNSSEC(int(data["attrs"]["algorithm"]))
     attrs = data["value"]["EdDSA"]["attrs"]
-    policy = AlgorithmPolicyEdDSA(
+    return AlgorithmPolicyEdDSA(
         algorithm=attr_alg,
         bits=int(attrs["size"]),
     )
-    return policy
 
 
 def eddsa_public_key_without_prefix(

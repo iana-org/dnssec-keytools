@@ -18,5 +18,4 @@ def get_session(p11modules: KSKM_P11, logger: logging.Logger) -> PyKCS11.Session
     logger.debug(
         f"Setting up session with first slot ({first_slot}) of P11 module {first_p11}"
     )
-    session = first_p11.sessions[first_slot]
-    return session
+    return first_p11.sessions[first_slot]

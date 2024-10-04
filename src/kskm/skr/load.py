@@ -60,7 +60,7 @@ def response_from_xml(xml: str) -> Response:
     timestamp = None
     if "timestamp" in _attrs:
         timestamp = parse_datetime(_attrs["timestamp"])
-    res = Response(
+    return Response(
         id=_attrs["id"],
         serial=int(_attrs["serial"]),
         domain=_attrs["domain"],
@@ -69,4 +69,3 @@ def response_from_xml(xml: str) -> Response:
         ksk_policy=ksk_policy,
         zsk_policy=zsk_policy,
     )
-    return res

@@ -90,8 +90,7 @@ def parse_args(defaults: dict[str, Any]) -> ArgsType:
         help="HSM to operate on",
     )
 
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def _trustanchor_filename(args: ArgsType | None, config: KSKMConfig) -> Path | None:

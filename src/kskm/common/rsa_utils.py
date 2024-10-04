@@ -36,12 +36,11 @@ def parse_signature_policy_rsa(data: dict[str, Any]) -> AlgorithmPolicyRSA:
     """
     attr_alg = AlgorithmDNSSEC(int(data["attrs"]["algorithm"]))
     attrs = data["value"]["RSA"]["attrs"]
-    rsa = AlgorithmPolicyRSA(
+    return AlgorithmPolicyRSA(
         bits=int(attrs["size"]),
         exponent=int(attrs["exponent"]),
         algorithm=attr_alg,
     )
-    return rsa
 
 
 class KSKM_PublicKey_RSA(KSKM_PublicKey):

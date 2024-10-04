@@ -82,7 +82,9 @@ select = [
     # isort
     "I",
     # conventions
-    "C"
+    "C",
+    # refactor
+    "R"
 ]
 ignore = ["E501", "C901"]
 

@@ -78,7 +78,7 @@ def request_from_xml(xml: str, **kwargs: Any) -> Request:
     timestamp = None
     if "timestamp" in _attrs:
         timestamp = parse_datetime(_attrs["timestamp"])
-    req = Request(
+    return Request(
         id=_attrs["id"],
         serial=int(_attrs["serial"]),
         domain=_attrs["domain"],
@@ -87,4 +87,3 @@ def request_from_xml(xml: str, **kwargs: Any) -> Request:
         bundles=bundles,
         **kwargs,
     )
-    return req
