@@ -66,7 +66,7 @@ def _format_keys(
             ksk_info = "Matching KSK not found in configuration"
             dns = None
             # Look for the key in the config
-            for _name, ksk in config.ksk_keys.items():
+            for ksk in config.ksk_keys.values():
                 if ksk.label == this.label:
                     dnskey = public_key_to_dnssec_key(
                         public_key=this.pubkey,

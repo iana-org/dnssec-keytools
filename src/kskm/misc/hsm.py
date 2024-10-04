@@ -299,7 +299,7 @@ class KSKM_P11Module:
                             f"Not logging in to module {self.label} slot {_slot} - no PIN provided"
                         )
                     self._sessions[_slot] = _session
-                except PyKCS11.PyKCS11Error:
+                except PyKCS11.PyKCS11Error:  # noqa: PERF203
                     # not an error if one or more slots succeeded before this one
                     _level = logging.WARNING if not _success_count else logging.DEBUG
                     logger.log(

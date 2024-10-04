@@ -139,7 +139,7 @@ def trustanchor(
 
     key_digests: set[KeyDigest] = set()
 
-    for _name, ksk in config.ksk_keys.items():
+    for ksk in config.ksk_keys.values():
         p11key = get_p11_key(ksk.label, p11modules, public=True)
         if not p11key or not p11key.public_key:
             logger.warning(

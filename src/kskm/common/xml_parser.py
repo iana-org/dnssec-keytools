@@ -9,6 +9,7 @@ Focus for this implementation is:
 NOT XML compliance. We just need to parse KSRs good enough.
 """
 
+import contextlib
 import logging
 import re
 from typing import Any
@@ -231,10 +232,8 @@ def _find_end_of_element(xml: str, start_idx: int, name: str) -> tuple[int, int]
     end_idx = xml.index(element_end_tag, start_idx)
     # Now check if there is another starting tag for this name before the end tag we found
     for nested_tag in [f"<{name}>", f"<{name} "]:
-        try:
+        with contextlib.suppress(ValueError):
             inner_idx = xml.index(nested_tag)
             if inner_idx and inner_idx < end_idx:
                 end_idx = xml.index(element_end_tag, end_idx + len(element_end_tag))
-        except ValueError:
-            pass
     return end_idx, end_idx + len(element_end_tag)

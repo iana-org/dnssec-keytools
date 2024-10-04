@@ -84,7 +84,9 @@ select = [
     # conventions
     "C",
     # refactor
-    "R"
+    "R",
+    # performance
+    "PERF"
 ]
 ignore = ["E501", "C901"]
 
