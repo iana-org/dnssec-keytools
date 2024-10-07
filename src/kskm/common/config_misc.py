@@ -18,7 +18,7 @@ __author__ = "ft"
 DomainNameString = Annotated[str, StringConstraints(pattern=r"^[\w\.]+$")]
 IntegerRSASize = Annotated[int, Field(ge=1, le=65535)]
 IntegerDNSTTL = Annotated[int, Field(ge=0)]
-HexDigestString = Annotated[str, StringConstraints(pattern=r"^[0-9a-fA-F]+$")]
+HexDigestStringSha256 = Annotated[str, StringConstraints(pattern=r"^[0-9a-fA-F]{64}$")]
 
 
 PolicyType = TypeVar("PolicyType", bound="Policy")
@@ -172,7 +172,7 @@ class KSKKey(FrozenBaseModel):
     valid_until: datetime | None = None
     rsa_size: IntegerRSASize | None = None
     rsa_exponent: PositiveInt | None = None
-    ds_sha256: HexDigestString | None = None
+    ds_sha256: HexDigestStringSha256 | None = None
     hash_using_hsm: bool | None = None
 
     @field_validator("algorithm", mode="before")

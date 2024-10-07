@@ -5,7 +5,7 @@ from typing import Annotated, Any, Mapping, Self
 
 from pydantic import BaseModel, EmailStr, Field, FilePath
 
-from kskm.common.config_misc import HexDigestString
+from kskm.common.config_misc import HexDigestStringSha256
 
 
 class WKSR_TLS(BaseModel):
@@ -19,7 +19,7 @@ class WKSR_TLS(BaseModel):
         ]
     )  # TODO: could be a colon-separated string too before
     require_client_cert: bool
-    client_whitelist: list[HexDigestString] = Field(default_factory=list)
+    client_whitelist: list[HexDigestStringSha256] = Field(default_factory=list)
 
 
 class WKSR_KSR(BaseModel):
