@@ -111,7 +111,7 @@ class Test_Invalid_Requests_policy(Test_Requests):
         )
 
     def test_RSA_wrong_exponent(self) -> None:
-        """Test validating a KSR with RSA-SHA1 (not supported)"""
+        """Test validating a KSR with RSA/SHA-256 using an invalid exponent"""
         signature_algorithm = f"""
             <SignatureAlgorithm algorithm="{AlgorithmDNSSEC.RSASHA256.value}">
               <RSA size="2048" exponent="17"/>
