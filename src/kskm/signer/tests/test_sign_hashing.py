@@ -20,7 +20,7 @@ class Test_Sign_Formatting(unittest.TestCase):
             key_class=KeyClass.PRIVATE,
             public_key=KSKM_PublicKey_RSA(
                 bits=3,
-                exponent=3,
+                exponent=65537,
                 n=b"test",
                 algorithm=AlgorithmDNSSEC.RSASHA256,
             ).encode_public_key(),  # signatures get longer with larger keys
