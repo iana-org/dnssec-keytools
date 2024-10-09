@@ -1,16 +1,15 @@
 {
-        "ruff.fixAll": true,
-        "editor.codeActionsOnSave": {
-                "source.organizeImports": "explicit"
-        },
-        "editor.defaultFormatter": "charliermarsh.ruff",
         "editor.formatOnSave": true,
         "editor.formatOnPaste": true,
         "python.envFile": "${workspaceFolder}/.vscode/.env",
-        "isort.check": true,
-        "isort.args": [
-                "[\"--profile\",\"black\"]"
-        ],
+        "[python]": {
+                "editor.formatOnSave": true,
+                "editor.codeActionsOnSave": {
+                        "source.fixAll": "explicit",
+                        "source.organizeImports": "explicit"
+                },
+                "editor.defaultFormatter": "charliermarsh.ruff"
+        },
         "cSpell.words": [
                 "algs",
                 "CFGFILE",
