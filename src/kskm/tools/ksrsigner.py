@@ -172,9 +172,7 @@ def _skr_filename(args: ArgsType, config: KSKMConfig) -> Path | None:
     return config.filenames.output_skr
 
 
-def ksrsigner(
-    logger: logging.Logger, args: ArgsType, config: KSKMConfig | None = None
-) -> bool:
+def ksrsigner(logger: logging.Logger, args: ArgsType, config: KSKMConfig | None = None) -> bool:
     """Parse KSR and previous SKR. Produce a new SKR."""
     #
     # Load configuration, if not provided already
@@ -217,9 +215,7 @@ def ksrsigner(
     if _ksr_fn is None:
         logger.error("No KSR filename specified")
         return False
-    request = kskm.ksr.load_ksr(
-        _ksr_fn, config.request_policy, log_contents=args.log_ksr_contents
-    )
+    request = kskm.ksr.load_ksr(_ksr_fn, config.request_policy, log_contents=args.log_ksr_contents)
     logger.info("Request:")
     for x in format_bundles_for_humans(request.bundles):
         logger.info(x)
@@ -239,12 +235,8 @@ def ksrsigner(
     if skr is not None:
         check_skr_and_ksr(request, skr, config.request_policy, p11modules)
     else:
-        logger.warning(
-            "KSR-CHAIN: Previous SKR *NOT* loaded - daisy chain not validated"
-        )
-        logger.warning(
-            "KSR-CHAIN: Previous SKR *NOT* loaded - presence of SKR(n-1) in HSM not validated"
-        )
+        logger.warning("KSR-CHAIN: Previous SKR *NOT* loaded - daisy chain not validated")
+        logger.warning("KSR-CHAIN: Previous SKR *NOT* loaded - presence of SKR(n-1) in HSM not validated")
 
     print("")
     print("FILENAME:      ", request.xml_filename)
@@ -254,9 +246,7 @@ def ksrsigner(
     print("")
 
     if not args.force:
-        ack = input(
-            'Sign KSR? Confirm with "Yes" (exactly) or anything else to abort: '
-        )
+        ack = input('Sign KSR? Confirm with "Yes" (exactly) or anything else to abort: ')
         if ack.strip("\n") != "Yes":
             logger.warning("KSR signing aborted")
             return False
@@ -283,9 +273,7 @@ def main() -> None:
     try:
         progname = os.path.basename(sys.argv[0])
         args = parse_args(_DEFAULTS)
-        logger = get_logger(
-            progname=progname, debug=args.debug, syslog=args.syslog, filelog=True
-        ).getChild(__name__)
+        logger = get_logger(progname=progname, debug=args.debug, syslog=args.syslog, filelog=True).getChild(__name__)
         res = ksrsigner(logger, args)
         if res is True:
             sys.exit(EXIT_CODES["success"])

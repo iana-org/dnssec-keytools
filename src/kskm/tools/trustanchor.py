@@ -99,18 +99,14 @@ def _trustanchor_filename(args: ArgsType | None, config: KSKMConfig) -> Path | N
     return config.filenames.output_trustanchor
 
 
-def output_trustanchor_xml(
-    ta: TrustAnchor, output_filename: Path | None, logger: logging.Logger
-) -> None:
+def output_trustanchor_xml(ta: TrustAnchor, output_filename: Path | None, logger: logging.Logger) -> None:
     """Return trust anchor as XML."""
     xml = ta.to_xml_doc()
     if output_filename:
         xml_bytes = xml.encode()
         with open(output_filename, "wb") as fd:
             fd.write(xml_bytes)
-        logger.info(
-            f"Wrote trust anchor to file {output_filename} {checksum_bytes2str(xml_bytes)}"
-        )
+        logger.info(f"Wrote trust anchor to file {output_filename} {checksum_bytes2str(xml_bytes)}")
     else:
         print(xml)
 
@@ -142,9 +138,7 @@ def trustanchor(
     for ksk in config.ksk_keys.values():
         p11key = get_p11_key(ksk.label, p11modules, public=True)
         if not p11key or not p11key.public_key:
-            logger.warning(
-                f"KSK key with label {ksk.label} could not be loaded using PKCS#11"
-            )
+            logger.warning(f"KSK key with label {ksk.label} could not be loaded using PKCS#11")
             continue
         _key = public_key_to_dnssec_key(
             public_key=p11key.public_key,
@@ -173,9 +167,7 @@ def main() -> None:
     try:
         progname = os.path.basename(sys.argv[0])
         args = parse_args(_DEFAULTS)
-        logger = get_logger(
-            progname=progname, debug=args.debug, syslog=False, filelog=True
-        ).getChild(__name__)
+        logger = get_logger(progname=progname, debug=args.debug, syslog=False, filelog=True).getChild(__name__)
         res = trustanchor(logger, args)
         if res is True:
             sys.exit(0)

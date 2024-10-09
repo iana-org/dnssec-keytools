@@ -7,11 +7,7 @@ from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import AlgorithmDNSSEC
 from kskm.common.parse_utils import duration_to_timedelta
 from kskm.ksr import load_ksr, request_from_xml
-from kskm.ksr.tests.common import (
-    Test_Requests,
-    Test_Requests_With_Two_Bundles,
-    Test_Validate_KSR_ECDSA,
-)
+from kskm.ksr.tests.common import Test_Requests, Test_Requests_With_Two_Bundles, Test_Validate_KSR_ECDSA
 from kskm.ksr.validate import validate_request
 from kskm.ksr.verify_policy import (
     KSR_POLICY_ALG_Violation,
@@ -32,27 +28,21 @@ class Test_Validate_KSR_policy(unittest.TestCase):
     def test_load_ksr_with_signatures_in_the_past(self) -> None:
         """Test loading a KSR requesting signatures that has expired already"""
         fn = self.data_dir.joinpath("ksr-root-2018-q1-0-d_to_e.xml")
-        policy = RequestPolicy(
-            signature_horizon_days=180, rsa_approved_exponents=[3, 65537]
-        )
+        policy = RequestPolicy(signature_horizon_days=180, rsa_approved_exponents=[3, 65537])
         with self.assertRaises(KSR_PolicyViolation):
             load_ksr(fn, policy, raise_original=True)
 
     def test_load_ksr_with_signatures_in_the_past2(self) -> None:
         """Test loading a KSR requesting signatures that has expired already, but allowing it"""
         fn = self.data_dir.joinpath("ksr-root-2018-q1-0-d_to_e.xml")
-        policy = RequestPolicy(
-            signature_horizon_days=-1, rsa_approved_exponents=[3, 65537]
-        )
+        policy = RequestPolicy(signature_horizon_days=-1, rsa_approved_exponents=[3, 65537])
         load_ksr(fn, policy, raise_original=True)
 
     def test_load_ksr_with_signatures_in_the_past3(self) -> None:
         """Test loading a KSR requesting signatures just outside of policy"""
         fn = self.data_dir.joinpath("ksr-root-2018-q1-0-d_to_e.xml")
         # first load the KSR, allowing the old signatures
-        policy = RequestPolicy(
-            signature_horizon_days=-1, rsa_approved_exponents=[3, 65537]
-        )
+        policy = RequestPolicy(signature_horizon_days=-1, rsa_approved_exponents=[3, 65537])
         ksr = load_ksr(fn, policy, raise_original=True)
         first_expire = ksr.bundles[0].expiration
         dt_now = datetime.datetime.now(datetime.UTC).replace(tzinfo=datetime.UTC)
@@ -86,9 +76,7 @@ class Test_Invalid_Requests_policy(Test_Requests):
         request = request_from_xml(xml)
         # RSA is supported, but not RSASHA1
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
-            validate_request(
-                request, self.policy.replace(approved_algorithms=["RSASHA256"])
-            )
+            validate_request(request, self.policy.replace(approved_algorithms=["RSASHA256"]))
         self.assertEqual("Algorithm RSASHA1 not supported", str(exc.exception))
 
     def test_RSA_wrong_size(self) -> None:
@@ -103,12 +91,8 @@ class Test_Invalid_Requests_policy(Test_Requests):
         request = request_from_xml(xml)
         # RSA is supported, but not RSASHA1
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
-            validate_request(
-                request, self.policy.replace(approved_algorithms=["RSASHA256"])
-            )
-        self.assertEqual(
-            "ZSK policy has RSA-1024, but policy dictates [2048]", str(exc.exception)
-        )
+            validate_request(request, self.policy.replace(approved_algorithms=["RSASHA256"]))
+        self.assertEqual("ZSK policy has RSA-1024, but policy dictates [2048]", str(exc.exception))
 
     def test_RSA_wrong_exponent(self) -> None:
         """Test validating a KSR with RSA/SHA-256 using an invalid exponent"""
@@ -122,9 +106,7 @@ class Test_Invalid_Requests_policy(Test_Requests):
         request = request_from_xml(xml)
         # RSA is supported, but not RSASHA1
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
-            validate_request(
-                request, self.policy.replace(approved_algorithms=["RSASHA256"])
-            )
+            validate_request(request, self.policy.replace(approved_algorithms=["RSASHA256"]))
         self.assertEqual(
             "ZSK policy has RSA exponent 17, but policy dictates [65537]",
             str(exc.exception),
@@ -141,9 +123,7 @@ class Test_Invalid_Requests_policy(Test_Requests):
         xml = self._make_request(request_policy=policy, request_bundle="")
         request = request_from_xml(xml)
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
-            validate_request(
-                request, self.policy.replace(approved_algorithms=["RSASHA256"])
-            )
+            validate_request(request, self.policy.replace(approved_algorithms=["RSASHA256"]))
         self.assertEqual("Algorithm ECDSA is not supported", str(exc.exception))
 
 
@@ -155,9 +135,7 @@ class Test_ECDSA_Policy(Test_Validate_KSR_ECDSA):
         policy = self.policy.replace(approved_algorithms=["RSASHA256"])
         with self.assertRaises(KSR_POLICY_ALG_Violation) as exc:
             validate_request(request, policy)
-        self.assertIn(
-            "ZSK policy has AlgorithmDNSSEC.ECDSAP256SHA256, but", str(exc.exception)
-        )
+        self.assertIn("ZSK policy has AlgorithmDNSSEC.ECDSAP256SHA256, but", str(exc.exception))
 
         # test disabling check
         policy = self.policy.replace(signature_algorithms_match_zsk_policy=False)
@@ -198,9 +176,7 @@ class Test_KSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
             bundle1,
             bundle2,
         ) = self._get_two_bundles()
-        xml = self._make_request(
-            request_policy=request_policy, bundle1=bundle1, bundle2=bundle2
-        )
+        xml = self._make_request(request_policy=request_policy, bundle1=bundle1, bundle2=bundle2)
         request = request_from_xml(xml)
         policy = self.policy.replace(
             check_bundle_intervals=False,  # want to test against ZSK policy, not KSK policy

@@ -8,11 +8,7 @@ from fastapi import Request
 
 
 def request_peercert(request: Request) -> Certificate:
-    cert = (
-        request.scope["transport"]
-        .get_extra_info("ssl_object")
-        .getpeercert(binary_form=True)
-    )
+    cert = request.scope["transport"].get_extra_info("ssl_object").getpeercert(binary_form=True)
     return load_der_x509_certificate(cert)
 
 

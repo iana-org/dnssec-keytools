@@ -42,9 +42,7 @@ def main() -> None:
         add_help=True,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument(
-        "inputs", metavar="filename", type=str, nargs="*", help="Input file"
-    )
+    parser.add_argument("inputs", metavar="filename", type=str, nargs="*", help="Input file")
 
     args = parser.parse_args()
 

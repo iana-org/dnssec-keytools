@@ -56,9 +56,7 @@ def generate_key_label(flags: int, now: int | None = None) -> str:
         now = int(time.time())
 
     _b64data = base64.b32encode(now.to_bytes(length=4, byteorder="big")).lower()
-    data = _b64data[:6].decode(
-        "utf-8"
-    )  # six characters time, plus prefix character below
+    data = _b64data[:6].decode("utf-8")  # six characters time, plus prefix character below
 
     if flags == FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value:
         return "K" + data
@@ -80,14 +78,10 @@ def generate_rsa_key(
     if label is None:
         label = generate_key_label(flags)
 
-    publicKeyTemplate = public_key_template(
-        label, CKK_RSA, bits=bits, rsa_exponent=exponent
-    )
+    publicKeyTemplate = public_key_template(label, CKK_RSA, bits=bits, rsa_exponent=exponent)
     privateKeyTemplate = private_key_template(label, CKK_RSA)
 
-    return generate_key_from_templates(
-        publicKeyTemplate, privateKeyTemplate, label, p11modules
-    )
+    return generate_key_from_templates(publicKeyTemplate, privateKeyTemplate, label, p11modules)
 
 
 def public_key_template(
@@ -141,9 +135,7 @@ def private_key_template(label: str, key_type: int) -> list[tuple[Any, Any]]:
     return privateKeyTemplate
 
 
-def generate_ec_key(
-    flags: int, curve: ECCurve, p11modules: KSKM_P11, label: str | None = None
-) -> KSKM_P11Key | None:
+def generate_ec_key(flags: int, curve: ECCurve, p11modules: KSKM_P11, label: str | None = None) -> KSKM_P11Key | None:
     """Generate EC key."""
     raise NotImplementedError("EC key generation not implemented yet")
 

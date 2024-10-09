@@ -20,9 +20,7 @@ __author__ = "ft"
 logger = logging.getLogger(__name__)
 
 
-def key_inventory(
-    p11modules: KSKM_P11, config: KSKMConfig, dns_records: bool
-) -> list[str]:
+def key_inventory(p11modules: KSKM_P11, config: KSKMConfig, dns_records: bool) -> list[str]:
     """Return key inventory."""
     res: list[str] = []
     for module in p11modules:
@@ -34,9 +32,7 @@ def key_inventory(
                     keys[this.key_class] = {}
                 label_and_id = f"{this.label}+{this.key_id!r}"
                 if label_and_id in keys[this.key_class]:
-                    logger.error(
-                        f"Key with class {this.key_class} and label+id {label_and_id} already seen in slot"
-                    )
+                    logger.error(f"Key with class {this.key_class} and label+id {label_and_id} already seen in slot")
                     continue
                 keys[this.key_class][label_and_id] = this
 
@@ -48,9 +44,7 @@ def key_inventory(
     return res
 
 
-def _format_keys(
-    data: dict[KeyClass, dict[str, KeyInfo]], config: KSKMConfig, dns_records: bool
-) -> list[str]:
+def _format_keys(data: dict[KeyClass, dict[str, KeyInfo]], config: KSKMConfig, dns_records: bool) -> list[str]:
     """Format keys for inventory."""
     res: list[str] = []
     pairs: list[str] = []
@@ -82,9 +76,7 @@ def _format_keys(
                     try:
                         validate_dnskey_matches_ksk(ksk, dnskey)
                     except RuntimeError as exc:
-                        ksk_info = (
-                            f"BAD KSK '{ksk.label}/{ksk.description}': {str(exc)}"
-                        )
+                        ksk_info = f"BAD KSK '{ksk.label}/{ksk.description}': {str(exc)}"
                         break
 
                     ksk_info = (
@@ -99,14 +91,8 @@ def _format_keys(
                     pairs += [f"                 {_id_to_str(this.key_id)}"]
                     pairs += dns.format(indent=17, max_length=100)
                 else:
-                    _public_key = "\n".join(
-                        _chunks(
-                            f"public_key={this.pubkey.decode()}", indent=17, length=80
-                        )
-                    )
-                    pairs += [
-                        f"                 {_id_to_str(this.key_id)}\n" + _public_key
-                    ]
+                    _public_key = "\n".join(_chunks(f"public_key={this.pubkey.decode()}", indent=17, length=80))
+                    pairs += [f"                 {_id_to_str(this.key_id)}\n" + _public_key]
 
                 del data[KeyClass.PRIVATE][label_and_id]
             del data[KeyClass.PUBLIC][label_and_id]
@@ -156,9 +142,7 @@ class DNSRecords(FrozenStrictBaseModel):
 
         ds_str = f"{_pad}{self.domain} IN DS {self.key.key_tag} {self.key.algorithm.value} {_digest_type} {digest}"
 
-        public_key = "\n".join(
-            _chunks(self.key.public_key.decode(), indent + 4, max_length - indent - 4)
-        )
+        public_key = "\n".join(_chunks(self.key.public_key.decode(), indent + 4, max_length - indent - 4))
         dnskey_str = (
             f"{_pad}{self.domain} IN DNSKEY {self.key.flags} {self.key.protocol} {self.key.algorithm.value} (\n"
             f"{public_key}\n"

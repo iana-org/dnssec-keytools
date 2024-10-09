@@ -27,8 +27,7 @@ def validate_response(response: Response, policy: ResponsePolicy) -> bool:
     """
     if len(response.bundles) != policy.num_bundles:
         raise PolicyViolation(
-            f"Wrong number of bundles in response ({len(response.bundles)}, "
-            f"expected {policy.num_bundles})"
+            f"Wrong number of bundles in response ({len(response.bundles)}, " f"expected {policy.num_bundles})"
         )
     for bundle in response.bundles:
         # check that all keys in the bundle are covered by a correct signature
@@ -39,16 +38,10 @@ def validate_response(response: Response, policy: ResponsePolicy) -> bool:
 def check_valid_signatures(bundle: ResponseBundle, policy: ResponsePolicy) -> None:
     """Validate requester proof of ownership of all the keys in the bundles."""
     if not policy.validate_signatures:
-        logger.warning(
-            "SKR signature validation disabled by policy (validate_signatures)"
-        )
+        logger.warning("SKR signature validation disabled by policy (validate_signatures)")
         return
     try:
         if not validate_signatures(bundle):
-            raise InvalidSignatureViolation(
-                f"Unknown signature validation result in bundle {bundle.id}"
-            )
+            raise InvalidSignatureViolation(f"Unknown signature validation result in bundle {bundle.id}")
     except InvalidSignature as exc:
-        raise InvalidSignatureViolation(
-            f"Invalid signature encountered in bundle {bundle.id}"
-        ) from exc
+        raise InvalidSignatureViolation(f"Invalid signature encountered in bundle {bundle.id}") from exc

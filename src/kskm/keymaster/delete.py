@@ -21,9 +21,7 @@ def key_delete(label: str, p11modules: KSKM_P11, force: bool = False) -> bool:
         return False
 
     if not force:
-        ack = input(
-            f'Delete key pair {existing_key}? Confirm with "Yes" (exactly) or anything else to abort: '
-        )
+        ack = input(f'Delete key pair {existing_key}? Confirm with "Yes" (exactly) or anything else to abort: ')
         if ack.strip("\n") != "Yes":
             logger.warning(f"Deletion of key pair {existing_key} aborted")
             return True
@@ -43,8 +41,6 @@ def key_delete(label: str, p11modules: KSKM_P11, force: bool = False) -> bool:
     return False
 
 
-def _destroy_object(
-    session: PyKCS11.Session, handle: PyKCS11.LowLevel.CK_OBJECT_HANDLE
-) -> None:
+def _destroy_object(session: PyKCS11.Session, handle: PyKCS11.LowLevel.CK_OBJECT_HANDLE) -> None:
     """Typed wrapper of session.destroyObject()."""
     session.destroyObject(handle)  # returns None

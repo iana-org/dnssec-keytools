@@ -21,9 +21,7 @@ __author__ = "ft"
 logger = logging.getLogger(__name__)
 
 
-def create_skr(
-    request: Request, schema: Schema, p11modules: KSKM_P11, config: KSKMConfig
-) -> Response:
+def create_skr(request: Request, schema: Schema, p11modules: KSKM_P11, config: KSKMConfig) -> Response:
     """Create a SKR (response) from a request (KSR) and a schema."""
     bundles = sign_bundles(request, schema, p11modules, config.ksk_policy, config)
     return Response(
@@ -37,27 +35,21 @@ def create_skr(
     )
 
 
-def output_skr_xml(
-    skr: Response, output_filename: Path | None, log_contents: bool = False
-) -> None:
+def output_skr_xml(skr: Response, output_filename: Path | None, log_contents: bool = False) -> None:
     """Return SKR as XML."""
     xml = skr_to_xml(skr)
     if output_filename:
         xml_bytes = xml.encode()
         with open(output_filename, "wb") as fd:
             fd.write(xml_bytes)
-        logger.info(
-            "Wrote SKR to file %s %s", output_filename, checksum_bytes2str(xml_bytes)
-        )
+        logger.info("Wrote SKR to file %s %s", output_filename, checksum_bytes2str(xml_bytes))
         if log_contents:
             log_file_contents(output_filename, xml_bytes, logger.getChild("skr"))
     else:
         print(xml)
 
 
-def _ksk_signature_policy(
-    ksk_policy: KSKPolicy, bundles: Iterable[ResponseBundle]
-) -> SignaturePolicy:
+def _ksk_signature_policy(ksk_policy: KSKPolicy, bundles: Iterable[ResponseBundle]) -> SignaturePolicy:
     """Create the statement for what algorithms the SKR response contains."""
     algorithms: set[AlgorithmPolicy] = set()
     for bundle in bundles:

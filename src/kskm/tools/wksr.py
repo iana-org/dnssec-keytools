@@ -52,12 +52,8 @@ def main() -> None:
         default=DEFAULT_HOSTNAME,
         help=f"Default hostname (default {DEFAULT_HOSTNAME})",
     )
-    parser.add_argument(
-        "--port", dest="port", type=int, default=DEFAULT_PORT, help="Port to listen on"
-    )
-    parser.add_argument(
-        "--debug", dest="debug", action="store_true", help="Enable debugging"
-    )
+    parser.add_argument("--port", dest="port", type=int, default=DEFAULT_PORT, help="Port to listen on")
+    parser.add_argument("--debug", dest="debug", action="store_true", help="Enable debugging")
 
     args = parser.parse_args()
 
@@ -72,9 +68,7 @@ def main() -> None:
 
     app = WKSR.from_file(args.config)
 
-    ssl_cert_reqs = (
-        ssl.CERT_REQUIRED if app.config.tls.require_client_cert else ssl.CERT_OPTIONAL
-    )
+    ssl_cert_reqs = ssl.CERT_REQUIRED if app.config.tls.require_client_cert else ssl.CERT_OPTIONAL
 
     # start application using uvicorn
     uvicorn.run(

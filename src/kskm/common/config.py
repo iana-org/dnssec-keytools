@@ -147,9 +147,7 @@ class KSKMConfig(FrozenBaseModel):
     list of key names. In the resulting Schema, it is always a list of key names,
     even if there is a single key name in the list.
     """
-    schemas: Mapping[SchemaName, Mapping[int, SchemaAction]] = Field(
-        default_factory=dict
-    )
+    schemas: Mapping[SchemaName, Mapping[int, SchemaAction]] = Field(default_factory=dict)
 
     def get_schema(self, name: str) -> Schema:
         """
@@ -200,9 +198,7 @@ class KSKMConfig(FrozenBaseModel):
         if loaded.request_policy.signature_horizon_days < 1:
             # The model permits this value to be negative since a bunch of tests depend on that,
             # but when loading the configuration from a dict we enforce it to be positive.
-            raise ConfigurationError(
-                "signature_horizon_days must be a positive integer"
-            )
+            raise ConfigurationError("signature_horizon_days must be a positive integer")
 
         if loaded.request_policy.num_bundles < 1:
             # The model permits this value to be zero since a bunch of tests depend on that
@@ -210,9 +206,7 @@ class KSKMConfig(FrozenBaseModel):
 
         if loaded.request_policy.num_different_keys_in_all_bundles < 1:
             # The model permits this value to be zero since a bunch of tests depend on that
-            raise ConfigurationError(
-                "num_different_keys_in_all_bundles must be a positive integer"
-            )
+            raise ConfigurationError("num_different_keys_in_all_bundles must be a positive integer")
 
         return loaded
 
@@ -229,9 +223,7 @@ class KSKMConfig(FrozenBaseModel):
                 if _move in _old_ksk_policy:
                     _new_ksk_policy[_move] = _old_ksk_policy.pop(_move)
             # put everything else in "signature_policy"
-            _new_ksk_policy["signature_policy"] = {
-                k: duration_to_timedelta(v) for k, v in _old_ksk_policy.items()
-            }
+            _new_ksk_policy["signature_policy"] = {k: duration_to_timedelta(v) for k, v in _old_ksk_policy.items()}
             _config["ksk_policy"] = _new_ksk_policy
 
         if "keys" in _config:
@@ -254,9 +246,7 @@ def get_config(filename: Path | None) -> KSKMConfig:
     """Top-level function to load configuration, or return a default ConfigType instance."""
     if not filename:
         # Avoid having Optional[ConfigType] everywhere by always having a config, even if it is empty
-        logger.warning(
-            "No configuration filename provided, using default configuration."
-        )
+        logger.warning("No configuration filename provided, using default configuration.")
         return KSKMConfig()
     with open(filename, "rb") as fd:
         config_bytes = fd.read()

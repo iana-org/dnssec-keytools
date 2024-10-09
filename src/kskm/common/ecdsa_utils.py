@@ -49,9 +49,7 @@ class KSKM_PublicKey_ECDSA(KSKM_PublicKey):
     @classmethod
     def _check_curve(cls, v: ECCurve, info: ValidationInfo) -> ECCurve:
         if v != algorithm_to_curve(info.data["algorithm"]):
-            raise ValueError(
-                f"Curve mismatch: Expected {algorithm_to_curve(info.data['algorithm'])}, got {v}"
-            )
+            raise ValueError(f"Curve mismatch: Expected {algorithm_to_curve(info.data['algorithm'])}, got {v}")
         return v
 
     def __str__(self) -> str:
@@ -136,9 +134,7 @@ def parse_signature_policy_ecdsa(data: dict[str, Any]) -> AlgorithmPolicyECDSA:
     )
 
 
-def ecdsa_public_key_without_prefix(
-    public_key: bytes, algorithm: AlgorithmDNSSEC
-) -> bytes:
+def ecdsa_public_key_without_prefix(public_key: bytes, algorithm: AlgorithmDNSSEC) -> bytes:
     """
     Normalise ECDSA public keys by removing the common 0x04 prefix byte.
 

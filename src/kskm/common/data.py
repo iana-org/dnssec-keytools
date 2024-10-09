@@ -203,9 +203,7 @@ class Key(FrozenStrictBaseModel):
             _pubkey = ecdsa_public_key_without_prefix(b64decode(v), _algorithm)
             _size = get_ecdsa_pubkey_size(_pubkey)
             if _size != expected_ecdsa_key_size(_algorithm):
-                raise ValueError(
-                    f"Unexpected ECDSA key length {_size} for algorithm {_algorithm}"
-                )
+                raise ValueError(f"Unexpected ECDSA key length {_size} for algorithm {_algorithm}")
         return v
 
     @field_validator("flags", mode="after")
@@ -213,8 +211,7 @@ class Key(FrozenStrictBaseModel):
     def validate_flags(cls, flags: int, info: ValidationInfo) -> int:
         if (
             flags == FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value
-            or flags
-            == FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value | FlagsDNSKEY.REVOKE.value
+            or flags == FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value | FlagsDNSKEY.REVOKE.value
             or flags == FlagsDNSKEY.ZONE.value
         ):
             return flags

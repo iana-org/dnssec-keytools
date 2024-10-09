@@ -31,13 +31,7 @@ class TestXMLParser(unittest.TestCase):
         expected = {
             "KSR": {
                 "attrs": {"id": "46E2A89A-91A4-11DE-9606-D3C665893CB7", "domain": "."},
-                "value": {
-                    "Request": {
-                        "RequestPolicy": {
-                            "ZSK": {"PublishSafety": "P14D", "RetireSafety": "P7D"}
-                        }
-                    }
-                },
+                "value": {"Request": {"RequestPolicy": {"ZSK": {"PublishSafety": "P14D", "RetireSafety": "P7D"}}}},
             }
         }
         self.assertEqual(parsed, expected)

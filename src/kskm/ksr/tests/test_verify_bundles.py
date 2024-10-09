@@ -10,11 +10,7 @@ from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import AlgorithmDNSSEC, FlagsDNSKEY
 from kskm.common.parse_utils import duration_to_timedelta
 from kskm.ksr import load_ksr, request_from_xml
-from kskm.ksr.tests.common import (
-    Test_Requests,
-    Test_Requests_With_Two_Bundles,
-    Test_Validate_KSR_ECDSA,
-)
+from kskm.ksr.tests.common import Test_Requests, Test_Requests_With_Two_Bundles, Test_Validate_KSR_ECDSA
 from kskm.ksr.validate import validate_request
 from kskm.ksr.verify_bundles import (
     KSR_BUNDLE_COUNT_Violation,
@@ -89,9 +85,7 @@ class Test_Validate_KSR_bundles(unittest.TestCase):
             validate_request(ksr, policy.replace(validate_signatures=False))
 
         # test that the check can be disabled
-        validate_request(
-            ksr, policy.replace(validate_signatures=False, keys_match_zsk_policy=False)
-        )
+        validate_request(ksr, policy.replace(validate_signatures=False, keys_match_zsk_policy=False))
 
     def test_load_ksr_with_policy_violation(self) -> None:
         """Test loading a KSR failing the supplied policy"""
@@ -153,13 +147,9 @@ class Test_Valid_Requests(Test_Requests):
               <EdDSA size="256"/>
             </SignatureAlgorithm>
         """.strip()
-        request_policy = self._make_request_policy(
-            signature_algorithm=signature_algorithm
-        )
+        request_policy = self._make_request_policy(signature_algorithm=signature_algorithm)
 
-        bundle = self._make_request_bundle(
-            algorithm=AlgorithmDNSSEC.ED25519.value, pubkey=_pubkey, key_tag=3612
-        )
+        bundle = self._make_request_bundle(algorithm=AlgorithmDNSSEC.ED25519.value, pubkey=_pubkey, key_tag=3612)
         xml = self._make_request(request_bundle=bundle, request_policy=request_policy)
         policy = self.policy.replace(
             approved_algorithms=[
@@ -170,9 +160,7 @@ class Test_Valid_Requests(Test_Requests):
         request = request_from_xml(xml)
 
         # Try to validate the request without the policy flag enable_unsupported_edwards_dsa=True
-        with pytest.raises(
-            KSR_POLICY_ALG_Violation, match=".*Algorithm EdDSA is not supported.*"
-        ):
+        with pytest.raises(KSR_POLICY_ALG_Violation, match=".*Algorithm EdDSA is not supported.*"):
             validate_request(request, policy)
 
         # Now, enable the flag and try again
@@ -232,9 +220,7 @@ class Test_Invalid_Requests(Test_Requests):
         xml = self._make_request(request_bundle=bundle)
         with self.assertRaises(ValueError) as exc:
             request_from_xml(xml)
-        self.assertEqual(
-            "Bundle test-non-unique-id missing mandatory Key", str(exc.exception)
-        )
+        self.assertEqual("Bundle test-non-unique-id missing mandatory Key", str(exc.exception))
 
     def test_wrong_RSA_key_size(self) -> None:
         """Test a request with an RSA key of a size not matching the ZSK policy."""
@@ -243,9 +229,7 @@ class Test_Invalid_Requests(Test_Requests):
               <RSA size="2048" exponent="65537"/>
             </SignatureAlgorithm>
         """.strip()
-        request_policy = self._make_request_policy(
-            signature_algorithm=signature_algorithm
-        )
+        request_policy = self._make_request_policy(signature_algorithm=signature_algorithm)
         xml = self._make_request(request_policy=request_policy)
         request = request_from_xml(xml)
         with self.assertRaises(KSR_BUNDLE_KEYS_Violation) as exc:
@@ -262,9 +246,7 @@ class Test_Invalid_Requests(Test_Requests):
               <RSA size="1024" exponent="3"/>
             </SignatureAlgorithm>
         """.strip()
-        request_policy = self._make_request_policy(
-            signature_algorithm=signature_algorithm
-        )
+        request_policy = self._make_request_policy(signature_algorithm=signature_algorithm)
         xml = self._make_request(request_policy=request_policy)
         request = request_from_xml(xml)
         with self.assertRaises(KSR_BUNDLE_KEYS_Violation) as exc:
@@ -281,9 +263,7 @@ class Test_Invalid_Requests(Test_Requests):
 
     def test_bad_key_flags(self) -> None:
         """Test a request with a non-ZSK key."""
-        bundle = self._make_request_bundle(
-            flags=FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value
-        )
+        bundle = self._make_request_bundle(flags=FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value)
         xml = self._make_request(request_bundle=bundle)
         request = request_from_xml(xml)
         with self.assertRaises(KSR_BUNDLE_KEYS_Violation) as exc:
@@ -365,9 +345,7 @@ class Test_Invalid_Requests(Test_Requests):
               <RSA size="2048" exponent="65537"/>
             </SignatureAlgorithm>
         """.strip()
-        request_policy = self._make_request_policy(
-            signature_algorithm=signature_algorithm
-        )
+        request_policy = self._make_request_policy(signature_algorithm=signature_algorithm)
         xml = self._make_request(request_policy=request_policy, request_bundle=bundle)
         request = request_from_xml(xml)
         policy = self.policy.replace(rsa_approved_key_sizes=[1024, 2048])
@@ -391,9 +369,7 @@ class Test_ZSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
         """Test two bundles with too small inception interval"""
         xml = self._make_request()
         request = request_from_xml(xml)
-        policy = self.policy.replace(
-            min_cycle_inception_length=duration_to_timedelta("P20D")
-        )
+        policy = self.policy.replace(min_cycle_inception_length=duration_to_timedelta("P20D"))
         with self.assertRaises(KSR_BUNDLE_CYCLE_DURATION_Violation) as exc:
             validate_request(request, policy)
         self.assertEqual(
@@ -405,9 +381,7 @@ class Test_ZSK_Policy_Two_Bundles(Test_Requests_With_Two_Bundles):
         """Test two bundles with too large inception interval"""
         xml = self._make_request()
         request = request_from_xml(xml)
-        policy = self.policy.replace(
-            max_cycle_inception_length=duration_to_timedelta("P10D")
-        )
+        policy = self.policy.replace(max_cycle_inception_length=duration_to_timedelta("P10D"))
         with self.assertRaises(KSR_BUNDLE_CYCLE_DURATION_Violation) as exc:
             validate_request(request, policy)
         self.assertEqual(
@@ -424,14 +398,10 @@ class Test_ECDSA_Bundles(Test_Validate_KSR_ECDSA):
               <ECDSA size="384"/>
             </SignatureAlgorithm>
         """.strip()
-        request_policy = self._make_request_policy(
-            signature_algorithm=signature_algorithm
-        )
+        request_policy = self._make_request_policy(signature_algorithm=signature_algorithm)
         xml = self._make_request(request_policy=request_policy)
         request = request_from_xml(xml)
-        policy = self.policy.replace(
-            approved_algorithms=[AlgorithmDNSSEC.ECDSAP384SHA384.name]
-        )
+        policy = self.policy.replace(approved_algorithms=[AlgorithmDNSSEC.ECDSAP384SHA384.name])
         with self.assertRaises(KSR_BUNDLE_KEYS_Violation) as exc:
             self.assertTrue(validate_request(request, policy))
         self.assertIn(

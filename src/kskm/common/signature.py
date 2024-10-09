@@ -39,16 +39,12 @@ def validate_signatures(bundle: Bundle) -> bool:
     _keys: dict[str, Key] = {}
     for key in bundle.keys:
         if key.key_identifier in _keys:
-            raise ValueError(
-                f"More than one key with key_identifier {key.key_identifier} in bundle {bundle.id}"
-            )
+            raise ValueError(f"More than one key with key_identifier {key.key_identifier} in bundle {bundle.id}")
         _keys[key.key_identifier] = key
 
     for sig in bundle.signatures:
         if sig.key_identifier not in _keys:
-            raise ValueError(
-                f"No key with key_identifier {sig.key_identifier} in bundle {bundle.id}"
-            )
+            raise ValueError(f"No key with key_identifier {sig.key_identifier} in bundle {bundle.id}")
         key = _keys[sig.key_identifier]
         pubkey = KSKM_PublicKey.from_key(key)
         _sig_decoded = base64.b64decode(sig.signature_data)
@@ -60,9 +56,7 @@ def validate_signatures(bundle: Bundle) -> bool:
             _key_list = list(_keys.keys())
             logger.debug(f"Signature {sig.key_identifier} validates key(s) {_key_list}")
         except InvalidSignature:
-            logger.error(
-                f"Key {key.key_tag}/{key.key_identifier} in bundle {bundle.id} FAILED validation"
-            )
+            logger.error(f"Key {key.key_tag}/{key.key_identifier} in bundle {bundle.id} FAILED validation")
             logger.debug(f"RRSIG: {binascii.hexlify(rrsig_raw).decode()} ")
             logger.debug(f"DIGEST: {sha256(rrsig_raw).hexdigest()}")
             logger.debug(f"Public key: {pubkey}")

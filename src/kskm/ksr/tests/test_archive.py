@@ -63,9 +63,7 @@ class TestParseRealKSRs(unittest.TestCase):
         )
 
         _dir = archive_dir("ksr")
-        assert (
-            _dir is not None
-        )  # for typing, test would be skipped if archive_dir() returned None
+        assert _dir is not None  # for typing, test would be skipped if archive_dir() returned None
         for fn in sorted(_dir.glob("/*")):
             assert isinstance(fn, str)
             # print('Loading file {}'.format(fn))
@@ -83,9 +81,7 @@ class TestParseRealKSRs(unittest.TestCase):
             elif fn.endswith("ksr-root-2016-q4-0.xml"):
                 # Exception: Failed validating KSR request in file ksr-root-2016-q4-0.xml:
                 #            Bundle #2/730b49eb-3dc1-4468-adea-6db09c58a6a3 has 2 keys, not 1
-                _policy = policy.replace(
-                    num_keys_per_bundle=[2, 2, 2, 1, 1, 1, 1, 1, 2]
-                )
+                _policy = policy.replace(num_keys_per_bundle=[2, 2, 2, 1, 1, 1, 1, 1, 2])
             elif fn.endswith("ksr-root-2016-q4-fallback-1.xml"):
                 _policy = policy.replace(
                     num_keys_per_bundle=[1, 1, 1, 1, 1, 1, 1, 1, 2],
@@ -98,9 +94,7 @@ class TestParseRealKSRs(unittest.TestCase):
     def test_load_and_validate_all_ksrs_in_archive(self) -> None:
         """Parse and validate all the KSRs in the ICANN archive."""
         _dir = archive_dir("ksr")
-        assert (
-            _dir is not None
-        )  # for typing, test would be skipped if archive_dir() returned None
+        assert _dir is not None  # for typing, test would be skipped if archive_dir() returned None
         res = True
         for fn in sorted(_dir.glob("/*")):
             assert isinstance(fn, str)

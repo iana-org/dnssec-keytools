@@ -16,9 +16,7 @@ __author__ = "ft"
 logger = logging.getLogger(__name__)
 
 
-def create_trustanchor_keydigest(
-    ksk_key: KSKKey, key: Key, domain: str = "."
-) -> KeyDigest:
+def create_trustanchor_keydigest(ksk_key: KSKKey, key: Key, domain: str = ".") -> KeyDigest:
     """
     Create a TrustAnchor entry for a key in the ksrsigner configuration.
 

@@ -2,11 +2,7 @@ import datetime
 from unittest import TestCase
 
 from kskm.common.data import AlgorithmDNSSEC, Key, Signature, Signer, TypeDNSSEC
-from kskm.common.parse_utils import (
-    duration_to_timedelta,
-    keys_from_dict,
-    signature_from_dict,
-)
+from kskm.common.parse_utils import duration_to_timedelta, keys_from_dict, signature_from_dict
 from kskm.ksr.parse_utils import signers_from_list
 
 
@@ -65,9 +61,7 @@ class Test_signers_from_list(TestCase):
             {"attrs": {"keyIdentifier": "KC00094"}, "value": ""},
         ]
         out = signers_from_list(data)
-        self.assertEqual(
-            out, {Signer(key_identifier="KC00020"), Signer(key_identifier="KC00094")}
-        )
+        self.assertEqual(out, {Signer(key_identifier="KC00020"), Signer(key_identifier="KC00094")})
 
     def test_no_signer(self) -> None:
         """Test that KSR Signer is optional"""
@@ -198,12 +192,8 @@ class Test_signature_from_dict(TestCase):
                 algorithm=AlgorithmDNSSEC.RSASHA1,
                 labels=0,
                 original_ttl=3600,
-                signature_expiration=datetime.datetime(
-                    2009, 9, 24, 18, 22, 41, tzinfo=utc
-                ),
-                signature_inception=datetime.datetime(
-                    2009, 8, 25, 18, 22, 41, tzinfo=utc
-                ),
+                signature_expiration=datetime.datetime(2009, 9, 24, 18, 22, 41, tzinfo=utc),
+                signature_inception=datetime.datetime(2009, 8, 25, 18, 22, 41, tzinfo=utc),
                 key_tag=24315,
                 signers_name=".",
                 signature_data=b"SIG...",
