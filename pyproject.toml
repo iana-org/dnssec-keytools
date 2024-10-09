@@ -81,8 +81,14 @@ select = [
     "SIM",
     # isort
     "I",
+    # conventions
+    "C",
+    # refactor
+    "R",
+    # performance
+    "PERF"
 ]
-ignore = ["E501"]
+ignore = ["E501", "C901", "C408"]
 
 [tool.ruff.lint.isort]
 force-sort-within-sections = false

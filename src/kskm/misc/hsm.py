@@ -299,7 +299,7 @@ class KSKM_P11Module:
                             f"Not logging in to module {self.label} slot {_slot} - no PIN provided"
                         )
                     self._sessions[_slot] = _session
-                except PyKCS11.PyKCS11Error:
+                except PyKCS11.PyKCS11Error:  # noqa: PERF203
                     # not an error if one or more slots succeeded before this one
                     _level = logging.WARNING if not _success_count else logging.DEBUG
                     logger.log(
@@ -336,7 +336,7 @@ class KSKM_P11Module:
                 _cka_type = _p11.getAttributeValue(_session, this, [_p11.CKA_KEY_TYPE])[
                     0
                 ]
-                key = KSKM_P11Key(
+                return KSKM_P11Key(
                     label=label,
                     key_type=KeyType(_cka_type),
                     key_class=key_class,
@@ -346,7 +346,6 @@ class KSKM_P11Module:
                     privkey_handle=this if key_class != KeyClass.PUBLIC else None,
                     pubkey_handle=_pubkey_handle,
                 )
-                return key
 
         logger.debug(
             f"Key with label {label!r} not found in slots {_slots} (module {self.module})"

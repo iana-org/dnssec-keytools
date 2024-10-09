@@ -151,8 +151,7 @@ def parse_args(defaults: dict[str, Any]) -> ArgsType:
         default=None,
         help="HSM to operate on",
     )
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def _previous_skr_filename(args: ArgsType, config: KSKMConfig) -> Path | None:

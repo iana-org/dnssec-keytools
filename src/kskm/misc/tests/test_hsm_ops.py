@@ -49,7 +49,7 @@ class OperationsWithSoftHSM(unittest.TestCase):
         assert by_label is not None
 
         by_id = None
-        for _slot, session in module.sessions.items():
+        for session in module.sessions.values():
             _res = module.find_key_by_id((1,), session)
             if _res:
                 for this in _res:

@@ -131,7 +131,7 @@ class KeysToSign(BaseModel):
         """Add a key to a set, ensuring uniqueness."""
         for _key in self.keys:
             if _key.public_key == key.public_key:
-                return None
+                return
 
         if key.ttl != self.ksk_policy_ttl:
             if key.key_identifier not in self._hush_key_ttl_warnings:
@@ -248,8 +248,7 @@ def _sign_keys(
             f"Invalid KSK signature encountered in bundle {bundle.id}"
         ) from exc
 
-    sig = sig.replace(signature_data=base64.b64encode(signature_data))
-    return sig
+    return sig.replace(signature_data=base64.b64encode(signature_data))
 
 
 def _verify_using_crypto(

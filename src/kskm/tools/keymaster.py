@@ -92,7 +92,7 @@ def keygen(
     )
     key_tags += [_revoked_key.key_tag]
 
-    for _name, ksk in config.ksk_keys.items():
+    for ksk in config.ksk_keys.values():
         if ksk.key_tag in key_tags:
             logger.error(
                 f"Generated key {p11key.label} has key tags {key_tags} matching "

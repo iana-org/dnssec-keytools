@@ -120,14 +120,13 @@ class SignWithSoftHSM_Baseclass:
         p11_key = get_p11_key(key_name, self.p11modules, public=True)
         if not p11_key or not p11_key.public_key:
             pytest.fail("Key not found")
-        zsk_key = public_key_to_dnssec_key(
+        return public_key_to_dnssec_key(
             public_key=p11_key.public_key,
             key_identifier=key_name,
             algorithm=algorithm,
             flags=flags,
             ttl=ttl,
         )
-        return zsk_key
 
     def _make_request(
         self,
@@ -153,7 +152,7 @@ class SignWithSoftHSM_Baseclass:
                 signers=signers,
             )
             bundles.append(bundle)
-        request = Request(
+        return Request(
             id="test-req-01" + id_suffix,
             serial=1,
             domain=".",
@@ -161,7 +160,6 @@ class SignWithSoftHSM_Baseclass:
             zsk_policy=self.request_zsk_policy,
             timestamp=None,
         )
-        return request
 
 
 @pytest.mark.usefixtures("p11modules_fixture")

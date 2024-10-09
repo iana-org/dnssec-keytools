@@ -226,8 +226,7 @@ class Key(FrozenStrictBaseModel):
 
         from kskm.common.dnssec import calculate_key_tag
 
-        revoked_key = revoked_key.replace(key_tag=calculate_key_tag(revoked_key))
-        return revoked_key
+        return revoked_key.replace(key_tag=calculate_key_tag(revoked_key))
 
 
 class Bundle(FrozenStrictBaseModel, ABC):

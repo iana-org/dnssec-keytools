@@ -63,8 +63,7 @@ async def index(request: Request) -> str:
 
     if client_name := request_peercert_client_subject(request):
         return f"Hello world: {client_name}"
-    else:
-        return "Hello world: ANONYMOUS"
+    return "Hello world: ANONYMOUS"
 
 
 @router.get("/upload")
