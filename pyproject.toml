@@ -35,11 +35,11 @@ pytest-ruff = "^0.4.1"
 online = ["fastapi", "pyopenssl"]
 
 [tool.poetry.scripts]
-kskm-keymaster = "kskm.tools.keymaster:main"
-kskm-ksrsigner = "kskm.tools.ksrsigner:main"
-kskm-sha2wordlist = "kskm.tools.sha2wordlist:main"
-kskm-trustanchor = "kskm.tools.trustanchor:main"
-kskm-wksr = "kskm.tools.wksr:main"
+kskm-keymaster = "kskm.tools.keymaster:script_entrypoint"
+kskm-ksrsigner = "kskm.tools.ksrsigner:script_entrypoint"
+kskm-sha2wordlist = "kskm.tools.sha2wordlist:script_entrypoint"
+kskm-trustanchor = "kskm.tools.trustanchor:script_entrypoint"
+kskm-wksr = "kskm.tools.wksr:script_entrypoint"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

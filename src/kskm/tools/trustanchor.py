@@ -17,7 +17,7 @@ import sys
 import uuid
 from argparse import Namespace as ArgsType
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping, NoReturn
 
 from kskm.common.config import KSKMConfig, get_config
 from kskm.common.data import FlagsDNSKEY
@@ -28,15 +28,16 @@ from kskm.misc.hsm import get_p11_key, init_pkcs11_modules
 from kskm.ta import TrustAnchor
 from kskm.ta.data import KeyDigest
 from kskm.ta.keydigest import create_trustanchor_keydigest
+from kskm.tools import EXIT_CODES
 from kskm.version import __verbose_version__
 
-_DEFAULTS = {
+_DEFAULTS: Mapping[str, Any] = {
     "debug": False,
     "config": "ksrsigner.yaml",
 }
 
 
-def parse_args(defaults: dict[str, Any]) -> ArgsType:
+def parse_args(arguments: list[str], defaults: Mapping[str, Any]) -> ArgsType:
     """
     Parse command line arguments.
 
@@ -90,7 +91,7 @@ def parse_args(defaults: dict[str, Any]) -> ArgsType:
         help="HSM to operate on",
     )
 
-    return parser.parse_args()
+    return parser.parse_args(args=arguments)
 
 
 def _trustanchor_filename(args: ArgsType | None, config: KSKMConfig) -> Path | None:
@@ -115,7 +116,7 @@ def trustanchor(
     logger: logging.Logger,
     args: ArgsType,
     config: KSKMConfig | None = None,
-) -> bool:
+) -> EXIT_CODES:
     """Main entry point for generating trust anchors and writing them (as XML) to a file."""
     #
     # Load configuration, if not provided already
@@ -126,7 +127,7 @@ def trustanchor(
             config = get_config(_filename)
         except FileNotFoundError as exc:
             logger.critical(str(exc))
-            sys.exit(-1)
+            return EXIT_CODES.fatal
 
     #
     # Initialise PKCS#11 modules (HSMs)
@@ -159,22 +160,26 @@ def trustanchor(
 
     output_trustanchor_xml(ta, _trustanchor_filename(args, config), logger)
 
-    return True
+    return EXIT_CODES.success
 
 
-def main() -> None:
+def main(progname: str, arguments: list[str]) -> EXIT_CODES:
     """Main program function."""
+    args = parse_args(arguments=arguments, defaults=_DEFAULTS)
+    logger = get_logger(progname=progname, debug=args.debug, syslog=False, filelog=True).getChild(__name__)
+    return trustanchor(logger, args)
+
+
+def script_entrypoint() -> NoReturn:
+    """Script entrypoint for this tool"""
     try:
         progname = os.path.basename(sys.argv[0])
-        args = parse_args(_DEFAULTS)
-        logger = get_logger(progname=progname, debug=args.debug, syslog=False, filelog=True).getChild(__name__)
-        res = trustanchor(logger, args)
-        if res is True:
-            sys.exit(0)
-        sys.exit(1)
+        res = main(progname=progname, arguments=sys.argv[1:])
+        sys.exit(res.value)
     except KeyboardInterrupt:
-        sys.exit(0)
+        sys.exit(EXIT_CODES.interrupt.value)
 
 
 if __name__ == "__main__":
-    main()
+    # Run the script entrypoint if executed manually
+    script_entrypoint()

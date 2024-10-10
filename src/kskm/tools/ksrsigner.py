@@ -12,7 +12,7 @@ import os
 import sys
 from argparse import Namespace as ArgsType
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping, NoReturn
 
 import kskm.common
 import kskm.ksr
@@ -25,11 +25,12 @@ from kskm.common.logging import get_logger
 from kskm.common.wordlist import pgp_wordlist
 from kskm.signer import create_skr, output_skr_xml
 from kskm.signer.policy import check_last_skr_and_new_skr, check_skr_and_ksr
+from kskm.tools import EXIT_CODES
 from kskm.version import __verbose_version__
 
 __author__ = "ft"
 
-_DEFAULTS = {
+_DEFAULTS: Mapping[str, Any] = {
     "debug": False,
     "syslog": False,
     "previous_skr": None,
@@ -42,10 +43,8 @@ _DEFAULTS = {
     "schema": "normal",
 }
 
-EXIT_CODES = {"success": 0, "interrupt": 1, "config": 2, "fatal": 3}
 
-
-def parse_args(defaults: dict[str, Any]) -> ArgsType:
+def parse_args(arguments: list[str], defaults: Mapping[str, Any]) -> ArgsType:
     """
     Parse command line arguments.
 
@@ -151,7 +150,7 @@ def parse_args(defaults: dict[str, Any]) -> ArgsType:
         default=None,
         help="HSM to operate on",
     )
-    return parser.parse_args()
+    return parser.parse_args(args=arguments)
 
 
 def _previous_skr_filename(args: ArgsType, config: KSKMConfig) -> Path | None:
@@ -268,27 +267,37 @@ def ksrsigner(logger: logging.Logger, args: ArgsType, config: KSKMConfig | None 
     return True
 
 
-def main() -> None:
+def main(progname: str, arguments: list[str]) -> EXIT_CODES:
     """Main program function."""
     try:
-        progname = os.path.basename(sys.argv[0])
-        args = parse_args(_DEFAULTS)
+        args = parse_args(arguments=arguments, defaults=_DEFAULTS)
         logger = get_logger(progname=progname, debug=args.debug, syslog=args.syslog, filelog=True).getChild(__name__)
         res = ksrsigner(logger, args)
         if res is True:
-            sys.exit(EXIT_CODES["success"])
+            return EXIT_CODES.success
         logging.critical("Fatal error, program stopped")
-        sys.exit(EXIT_CODES["fatal"])
+        return EXIT_CODES.fatal
     except KeyboardInterrupt:
         logging.warning("Keyboard interrupt, program stopped")
-        sys.exit(EXIT_CODES["interrupt"])
+        raise
     except ConfigurationError as exc:
         logger = logging.getLogger("configuration")
         for message in str(exc).splitlines():
             logger.critical(message)
         logging.critical("Configuration error, program stopped")
-        sys.exit(EXIT_CODES["config"])
+        return EXIT_CODES.config
+
+
+def script_entrypoint() -> NoReturn:
+    """Script entrypoint for this tool"""
+    try:
+        progname = os.path.basename(sys.argv[0])
+        res = main(progname=progname, arguments=sys.argv[1:])
+        sys.exit(res.value)
+    except KeyboardInterrupt:
+        sys.exit(EXIT_CODES.interrupt.value)
 
 
 if __name__ == "__main__":
-    main()
+    # Run the script entrypoint if executed manually
+    script_entrypoint()
