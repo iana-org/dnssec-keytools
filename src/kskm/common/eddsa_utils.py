@@ -51,9 +51,7 @@ class KSKM_PublicKey_EdDSA(KSKM_PublicKey):
     @classmethod
     def _check_curve(cls, v: EdCurve, info: ValidationInfo) -> EdCurve:
         if v != algorithm_to_curve(info.data["algorithm"]):
-            raise ValueError(
-                f"Curve mismatch: Expected {algorithm_to_curve(info.data['algorithm'])}, got {v}"
-            )
+            raise ValueError(f"Curve mismatch: Expected {algorithm_to_curve(info.data['algorithm'])}, got {v}")
         return v
 
     def __str__(self) -> str:
@@ -129,9 +127,7 @@ def parse_signature_policy_eddsa(
     )
 
 
-def eddsa_public_key_without_prefix(
-    public_key: bytes, algorithm: AlgorithmDNSSEC
-) -> bytes:
+def eddsa_public_key_without_prefix(public_key: bytes, algorithm: AlgorithmDNSSEC) -> bytes:
     """
     Normalise EdDSA public keys by removing the common 0x04 prefix byte.
 

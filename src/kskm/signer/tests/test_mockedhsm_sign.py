@@ -48,9 +48,7 @@ class Mocked_KSKM_P11Key(KSKM_P11Key):
         return self.eddsa_key.ed25519_private_key.sign(data.data)
 
     @classmethod
-    def from_eddsa_key(
-        cls, eddsa_key: Mocked_EdDSA_Key, label: str, key_class: KeyClass
-    ) -> Self:
+    def from_eddsa_key(cls, eddsa_key: Mocked_EdDSA_Key, label: str, key_class: KeyClass) -> Self:
         return cls(
             label=label,
             key_type=KeyType.EC,
@@ -68,11 +66,7 @@ class Mocked_P11Module:
     #
     #   example.com. 3600 IN DNSKEY 257 3 15 (
     #                l02Woi0iS8Aa25FQkUd9RMzZHJpBoRQwAQEX1SxZJA4= )
-    keys = {
-        "ksk_EdDSA_1": Mocked_EdDSA_Key.from_private_key(
-            "ODIyNjAzODQ2MjgwODAxMjI2NDUxOTAyMDQxNDIyNjI="
-        )
-    }
+    keys = {"ksk_EdDSA_1": Mocked_EdDSA_Key.from_private_key("ODIyNjAzODQ2MjgwODAxMjI2NDUxOTAyMDQxNDIyNjI=")}
 
     def find_key_by_label(
         self, label: str, key_class: KeyClass, hash_using_hsm: bool | None = None
@@ -113,9 +107,7 @@ def _get_test_config() -> KSKMConfig:
                     "label": "ksk_EdDSA_1",
                     "key_tag": 2008,
                     "algorithm": "ED25519",
-                    "valid_from": datetime.datetime(
-                        2010, 7, 15, 0, 0, tzinfo=datetime.timezone.utc
-                    ),
+                    "valid_from": datetime.datetime(2010, 7, 15, 0, 0, tzinfo=datetime.timezone.utc),
                     "ds_sha256": "72C3E80B7AE481BF39BA87C505039124EA9C6B501AB2D26BC0489DBC4AF87250",
                 }
             },

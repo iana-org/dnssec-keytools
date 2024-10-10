@@ -10,12 +10,7 @@ data container classes from kskm.ksr.data.
 import logging
 from typing import Any, Mapping
 
-from kskm.common.parse_utils import (
-    keys_from_dict,
-    parse_datetime,
-    signature_from_dict,
-    signers_from_list,
-)
+from kskm.common.parse_utils import keys_from_dict, parse_datetime, signature_from_dict, signers_from_list
 from kskm.ksr.data import RequestBundle
 
 __author__ = "ft"

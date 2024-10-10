@@ -12,15 +12,7 @@ from typing import Any, Self
 
 import jinja2
 import yaml
-from fastapi import (
-    APIRouter,
-    FastAPI,
-    HTTPException,
-    Request,
-    Response as FastAPIResponse,
-    UploadFile,
-    status,
-)
+from fastapi import APIRouter, FastAPI, HTTPException, Request, Response as FastAPIResponse, UploadFile, status
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.templating import _TemplateResponse
@@ -40,9 +32,7 @@ router = APIRouter()
 
 
 class ClientCertificateWhitelist(BaseHTTPMiddleware):
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> FastAPIResponse:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> FastAPIResponse:
         """Check TLS client whitelist."""
         digest = request_peercert_digest(request)
         client = request.client.host if request.client else None
@@ -194,9 +184,7 @@ def notify(app: WKSR, env: dict[str, Any]) -> None:
     if not app.config.notify or not app.config.notify.smtp_server:
         return
 
-    template: jinja2.Template = app.templates.get_template(
-        str(app.config.templates.email)
-    )
+    template: jinja2.Template = app.templates.get_template(str(app.config.templates.email))
     body = template.render(**env)
 
     msg = EmailMessage()
@@ -233,15 +221,11 @@ async def save_ksr(app: WKSR, upload_file: UploadFile) -> tuple[Path, str]:
     filename_washed = re.sub(r"[^a-zA-Z0-9_\-]+", "_", str(upload_file.filename))
     filename_suffix = datetime.now(UTC).strftime("_%Y%m%d_%H%M%S_%f")
 
-    filename = app.config.ksr.upload_path / Path(
-        filename_washed + filename_suffix + ".xml"
-    )
+    filename = app.config.ksr.upload_path / Path(filename_washed + filename_suffix + ".xml")
 
     with open(filename, "wb") as ksr_file:
         ksr_file.write(contents)
 
-    logger.info(
-        "Saved filename=%s size=%d hash=%s", filename, upload_file.size, filehash
-    )
+    logger.info("Saved filename=%s size=%d hash=%s", filename, upload_file.size, filehash)
 
     return filename, filehash

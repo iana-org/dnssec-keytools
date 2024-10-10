@@ -34,9 +34,7 @@ from kskm.skr import response_from_xml
 
 __author__ = "ft"
 
-_TEST_SOFTHSM2 = bool(
-    os.environ.get("SOFTHSM2_MODULE") and os.environ.get("SOFTHSM2_CONF")
-)
+_TEST_SOFTHSM2 = bool(os.environ.get("SOFTHSM2_MODULE") and os.environ.get("SOFTHSM2_CONF"))
 
 _TEST_CONFIG = """
 schemas:
@@ -101,9 +99,7 @@ class SignWithSoftHSM_Baseclass:
             "MinValidityOverlap": "P5D",
             "SignatureAlgorithm": {
                 "attrs": {"algorithm": "8"},
-                "value": {
-                    "RSA": {"attrs": {"size": "1024", "exponent": "3"}, "value": ""}
-                },
+                "value": {"RSA": {"attrs": {"size": "1024", "exponent": "3"}, "value": ""}},
             },
         }
         self.request_zsk_policy = signature_policy_from_dict(_policy)
@@ -192,16 +188,12 @@ class Test_SignWithSoftHSM_RSA(SignWithSoftHSM_Baseclass):
                     config=self.config,
                     ksk_policy=self.config.ksk_policy,
                 )
-            assert (
-                str(exc.value) == "Invalid KSK signature encountered in bundle test_1"
-            )
+            assert str(exc.value) == "Invalid KSK signature encountered in bundle test_1"
 
 
 @pytest.mark.usefixtures("p11modules_fixture")
 class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
-    def _load_key(
-        self, key_name: str, flags: int = FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value
-    ) -> Key:
+    def _load_key(self, key_name: str, flags: int = FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value) -> Key:
         key = self._p11_to_dnskey(
             key_name,
             AlgorithmDNSSEC.ECDSAP256SHA256,
@@ -243,9 +235,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_ec_sign_with_softhsm(self) -> None:
         """Test ECDSA signing a key record with SoftHSM and then verifying it"""
-        zsk_keys = {
-            self._p11_to_dnskey(self.ksk_key_label, AlgorithmDNSSEC.ECDSAP256SHA256)
-        }
+        zsk_keys = {self._p11_to_dnskey(self.ksk_key_label, AlgorithmDNSSEC.ECDSAP256SHA256)}
         request = self._make_request(zsk_keys=zsk_keys)
         new_bundles = sign_bundles(
             request=request,
@@ -259,9 +249,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_bundle_signers_are_ignored(self) -> None:
         """Test that bundles signers are ignored"""
-        zsk_keys = {
-            self._p11_to_dnskey(self.ksk_key_label, AlgorithmDNSSEC.ECDSAP256SHA256)
-        }
+        zsk_keys = {self._p11_to_dnskey(self.ksk_key_label, AlgorithmDNSSEC.ECDSAP256SHA256)}
         signer = Signer(key_identifier="EC1")
         request = self._make_request(zsk_keys=zsk_keys, signers={signer})
         new_bundles = sign_bundles(
@@ -278,9 +266,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_ec_sign_rsa_zsk(self) -> None:
         """Test mismatching algorithms for ZSK and KSK."""
-        zsk_keys = {
-            self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)
-        }
+        zsk_keys = {self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)}
         request = self._make_request(zsk_keys=zsk_keys)
         with pytest.raises(CreateSignatureError):
             sign_bundles(
@@ -315,9 +301,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
         """
         self.config = self.config.update(yaml.safe_load(io.StringIO(_PUBLISH_SCHEMA)))
         self.schema = self.config.get_schema("test")
-        zsk_keys = {
-            self._p11_to_dnskey("EC1", AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK)
-        }
+        zsk_keys = {self._p11_to_dnskey("EC1", AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK)}
         request = self._make_request(zsk_keys=zsk_keys)
         new_bundles = sign_bundles(
             request=request,
@@ -352,9 +336,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
         """
         self.config = self.config.update(yaml.safe_load(io.StringIO(_REVOKE_SCHEMA)))
         self.schema = self.config.get_schema("test")
-        zsk_keys = {
-            self._p11_to_dnskey("EC1", AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK)
-        }
+        zsk_keys = {self._p11_to_dnskey("EC1", AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK)}
         request = self._make_request(zsk_keys=zsk_keys)
         new_bundles = sign_bundles(
             request=request,
@@ -375,9 +357,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
         revoked_EC2 = self._p11_to_dnskey(
             "EC2",
             AlgorithmDNSSEC.ECDSAP256SHA256,
-            flags=FlagsDNSKEY.ZONE.value
-            | FlagsDNSKEY.SEP.value
-            | FlagsDNSKEY.REVOKE.value,
+            flags=FlagsDNSKEY.ZONE.value | FlagsDNSKEY.SEP.value | FlagsDNSKEY.REVOKE.value,
         )
         revoked_EC2 = revoked_EC2.replace(ttl=self.config.ksk_policy.ttl)
         assert revoked_EC2 in bundle_keys
@@ -400,9 +380,7 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
         """
         self.config = self.config.update(yaml.safe_load(io.StringIO(_REVOKE_SCHEMA)))
         self.schema = self.config.get_schema("test")
-        zsk_keys = {
-            self._p11_to_dnskey("EC1", AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK)
-        }
+        zsk_keys = {self._p11_to_dnskey("EC1", AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK)}
         request = self._make_request(zsk_keys=zsk_keys, num_bundles=9)
         new_bundles = sign_bundles(
             request=request,
@@ -456,15 +434,11 @@ class Test_SignWithSoftHSM_ECDSA(SignWithSoftHSM_Baseclass):
         ]
 
         # Extract all key tags from expected_bundle_keys
-        expected_key_tags = [
-            sorted([key.key_tag for key in bundle_keys])
-            for bundle_keys in expected_signing_keys
-        ]
+        expected_key_tags = [sorted([key.key_tag for key in bundle_keys]) for bundle_keys in expected_signing_keys]
 
         # Extract all key tags from the signatures
         signature_key_tags = [
-            sorted([sig.key_tag for sig in bundle_signatures])
-            for bundle_signatures in bundle_signatures
+            sorted([sig.key_tag for sig in bundle_signatures]) for bundle_signatures in bundle_signatures
         ]
         assert expected_key_tags == signature_key_tags
 
@@ -491,9 +465,7 @@ class Test_SignWithSoftHSM_DualAlgorithm(SignWithSoftHSM_Baseclass):
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_single_zsk_dual_ksk(self) -> None:
         """Test algorithm mismatch with one ZSK algorithm and two KSK algorithms."""
-        zsk_keys = {
-            self._p11_to_dnskey("EC1", AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK)
-        }
+        zsk_keys = {self._p11_to_dnskey("EC1", AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK)}
         request = self._make_request(zsk_keys=zsk_keys)
         with pytest.raises(CreateSignatureError):
             sign_bundles(
@@ -508,9 +480,7 @@ class Test_SignWithSoftHSM_DualAlgorithm(SignWithSoftHSM_Baseclass):
     def test_ec_sign_prepublish_key(self) -> None:
         """Test signing a full dual algorithm request."""
         zsk_keys = {
-            self._p11_to_dnskey(
-                "EC1", AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK
-            ),
+            self._p11_to_dnskey("EC1", AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK),
             self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK),
         }
         request = self._make_request(zsk_keys=zsk_keys)
@@ -548,9 +518,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             valid_until: 2019-01-11T00:00:00+00:00
         """
         self.config = self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
-        zsk_keys = {
-            self._p11_to_dnskey("EC1", AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK)
-        }
+        zsk_keys = {self._p11_to_dnskey("EC1", AlgorithmDNSSEC.ECDSAP256SHA256, flags=FLAGS_ZSK)}
         request = self._make_request(zsk_keys=zsk_keys)
         with pytest.raises(ConfigurationError):
             sign_bundles(
@@ -563,9 +531,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
 
     def test_not_yet_valid_key(self) -> None:
         """Test referring to a key that is not yet valid."""
-        zsk_keys = {
-            self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)
-        }
+        zsk_keys = {self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)}
         ksk_key = self.config.ksk_keys["ksk_EC2"]
         request = self._make_request(
             zsk_keys=zsk_keys,
@@ -595,9 +561,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             valid_until: 2019-01-11T00:00:00+00:00
         """
         self.config = self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
-        zsk_keys = {
-            self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)
-        }
+        zsk_keys = {self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)}
         ksk_key = self.config.ksk_keys["ksk_RSA2"]
         assert ksk_key.valid_until is not None  # for typing
         request = self._make_request(
@@ -628,9 +592,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             valid_until: 2019-01-11T00:00:00+00:00
         """
         self.config = self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
-        zsk_keys = {
-            self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)
-        }
+        zsk_keys = {self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)}
         request = self._make_request(zsk_keys=zsk_keys)
         with pytest.raises(ValueError):
             sign_bundles(
@@ -656,9 +618,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             valid_until: 2019-01-11T00:00:00+00:00
         """
         self.config = self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
-        zsk_keys = {
-            self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)
-        }
+        zsk_keys = {self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)}
         request = self._make_request(zsk_keys=zsk_keys)
         with pytest.raises(ValueError):
             sign_bundles(
@@ -684,9 +644,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             valid_until: 2019-01-11T00:00:00+00:00
         """
         self.config = self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
-        zsk_keys = {
-            self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)
-        }
+        zsk_keys = {self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)}
         request = self._make_request(zsk_keys=zsk_keys)
         with pytest.raises(ValueError):
             sign_bundles(
@@ -710,9 +668,7 @@ class Test_SignWithSoftHSM_ErrorHandling(SignWithSoftHSM_Baseclass):
             valid_until: 2019-01-11T00:00:00+00:00
         """
         self.config = self.config.merge_update(yaml.safe_load(io.StringIO(_BAD_KEYS)))
-        zsk_keys = {
-            self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)
-        }
+        zsk_keys = {self._p11_to_dnskey("RSA1", AlgorithmDNSSEC.RSASHA256, flags=FLAGS_ZSK)}
         request = self._make_request(zsk_keys=zsk_keys)
         with pytest.raises(ValueError):
             sign_bundles(
@@ -762,9 +718,7 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
     def test_chain_keys_not_found_in_hsm(self) -> None:
         """Test KSR-CHAIN-KEYS with real KSR/SKR, signed with key not found in this HSM."""
         with pytest.raises(KSR_CHAIN_KEYS_Violation, match="Key Kjqmt7v not found"):
-            check_skr_and_ksr(
-                self.ksr, self.last_skr, self.policy, p11modules=self.p11modules
-            )
+            check_skr_and_ksr(self.ksr, self.last_skr, self.policy, p11modules=self.p11modules)
 
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
     def test_check_chain_config(self) -> None:
@@ -781,13 +735,9 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
     def test_chain_keys_found_but_different(self) -> None:
         """Test KSR-CHAIN-KEYS with real KSR/SKR, signed with key found in this HSM, but wrong."""
         ksr = request_from_xml(self.ksr_xml.replace("Kjqmt7v", self.ksk_key_label))
-        last_skr = response_from_xml(
-            self.last_skr_xml.replace("Kjqmt7v", self.ksk_key_label)
-        )
+        last_skr = response_from_xml(self.last_skr_xml.replace("Kjqmt7v", self.ksk_key_label))
 
-        with pytest.raises(
-            KSR_CHAIN_KEYS_Violation, match="Key RSA2 does not match key in the HSM"
-        ):
+        with pytest.raises(KSR_CHAIN_KEYS_Violation, match="Key RSA2 does not match key in the HSM"):
             check_skr_and_ksr(ksr, last_skr, self.policy, p11modules=self.p11modules)
 
     @unittest.skipUnless(_TEST_SOFTHSM2, "SOFTHSM2_MODULE and SOFTHSM2_CONF not set")
@@ -795,9 +745,7 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
         """Test KSR-CHAIN-KEYS with real KSR/SKR, but not matching keys between last/first."""
         last_skr = response_from_xml(self.last_skr_xml)
         last_bundle = last_skr.bundles[-1]
-        _updated_keys = {
-            x for x in last_bundle.keys if x.key_tag != 14796
-        }  # remove one of the ZSKs
+        _updated_keys = {x for x in last_bundle.keys if x.key_tag != 14796}  # remove one of the ZSKs
         last_bundle = last_bundle.replace(keys=_updated_keys)
         bundles = last_skr.bundles[:-1] + [last_bundle]
         last_skr = last_skr.replace(bundles=bundles)
@@ -816,14 +764,10 @@ class Test_SignWithSoftHSM_LastSKRValidation(SignWithSoftHSM_Baseclass):
     def test_last_bundle_without_signatures(self) -> None:
         """Test KSR-CHAIN-KEYS with real KSR/SKR, but no signatures in last_skr last bundle."""
         last_skr = response_from_xml(self.last_skr_xml)
-        last_bundle = last_skr.bundles[-1].replace(
-            signatures=set()
-        )  # remove all signatures
+        last_bundle = last_skr.bundles[-1].replace(signatures=set())  # remove all signatures
         bundles = last_skr.bundles[:-1] + [last_bundle]
         last_skr = self.last_skr.replace(bundles=bundles)
-        policy = self.policy.replace(
-            check_bundle_overlap=False, check_chain_overlap=False
-        )
+        policy = self.policy.replace(check_bundle_overlap=False, check_chain_overlap=False)
         with pytest.raises(
             KSR_CHAIN_KEYS_Violation,
             match="No signatures in the last bundle of the last SKR",

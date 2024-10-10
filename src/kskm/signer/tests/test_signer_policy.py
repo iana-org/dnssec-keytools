@@ -175,11 +175,7 @@ class Test_Chain(Test_KSR_SKR_policy):
         check_skr_and_ksr(new_ksr, self.skr1, self.policy, p11modules=None)
 
         # next, move inception back one more second
-        new_inception = (
-            last_expire
-            - self.ksr.zsk_policy.min_validity_overlap
-            + datetime.timedelta(seconds=1)
-        )
+        new_inception = last_expire - self.ksr.zsk_policy.min_validity_overlap + datetime.timedelta(seconds=1)
         ksr_bundles[0] = ksr_bundles[0].replace(inception=new_inception)
         new_ksr = self.ksr.replace(bundles=ksr_bundles)
 
@@ -197,11 +193,7 @@ class Test_Chain(Test_KSR_SKR_policy):
         check_skr_and_ksr(new_ksr, self.skr1, self.policy, p11modules=None)
 
         # next, move inception back one more second
-        new_inception = (
-            last_inception
-            + self.ksr.zsk_policy.min_validity_overlap
-            - datetime.timedelta(seconds=1)
-        )
+        new_inception = last_inception + self.ksr.zsk_policy.min_validity_overlap - datetime.timedelta(seconds=1)
         ksr_bundles[0] = ksr_bundles[0].replace(inception=new_inception)
         new_ksr = self.ksr.replace(bundles=ksr_bundles)
 

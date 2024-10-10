@@ -5,21 +5,11 @@ from typing import Self
 
 from cryptography.hazmat.primitives.asymmetric import ec, ed448, ed25519, rsa
 
-from kskm.common.data import (
-    AlgorithmDNSSEC,
-    AlgorithmPolicy,
-    FrozenStrictBaseModel,
-    Key,
-)
+from kskm.common.data import AlgorithmDNSSEC, AlgorithmPolicy, FrozenStrictBaseModel, Key
 
 __author__ = "ft"
 
-CryptographyPubKey = (
-    rsa.RSAPublicKey
-    | ec.EllipticCurvePublicKey
-    | ed25519.Ed25519PublicKey
-    | ed448.Ed448PublicKey
-)
+CryptographyPubKey = rsa.RSAPublicKey | ec.EllipticCurvePublicKey | ed25519.Ed25519PublicKey | ed448.Ed448PublicKey
 
 
 class KSKM_PublicKey(FrozenStrictBaseModel, ABC):
@@ -33,9 +23,7 @@ class KSKM_PublicKey(FrozenStrictBaseModel, ABC):
         return KSKM_PublicKey.from_bytes(key.public_key, key.algorithm)
 
     @classmethod
-    def from_bytes(
-        cls, public_key: bytes, algorithm: AlgorithmDNSSEC
-    ) -> "KSKM_PublicKey":
+    def from_bytes(cls, public_key: bytes, algorithm: AlgorithmDNSSEC) -> "KSKM_PublicKey":
         from kskm.common.ecdsa_utils import KSKM_PublicKey_ECDSA, is_algorithm_ecdsa
         from kskm.common.eddsa_utils import KSKM_PublicKey_EdDSA, is_algorithm_eddsa
         from kskm.common.rsa_utils import KSKM_PublicKey_RSA, is_algorithm_rsa

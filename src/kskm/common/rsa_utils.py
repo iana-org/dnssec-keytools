@@ -73,9 +73,7 @@ class KSKM_PublicKey_RSA(KSKM_PublicKey):
     def verify_signature(self, signature: bytes, data: bytes) -> None:
         """Verify a signature over 'data' using the 'cryptography' library."""
         pubkey = self.to_cryptography_pubkey()
-        pubkey.verify(
-            signature, data, PKCS1v15(), self.algorithm_to_hash[self.algorithm]
-        )
+        pubkey.verify(signature, data, PKCS1v15(), self.algorithm_to_hash[self.algorithm])
 
     def to_algorithm_policy(self) -> AlgorithmPolicyRSA:
         """Return an algorithm policy instance for this key."""
@@ -109,7 +107,7 @@ class KSKM_PublicKey_RSA(KSKM_PublicKey):
         """
         _exp_len = math.ceil(int.bit_length(self.exponent) / 8)
         exp = int.to_bytes(self.exponent, length=_exp_len, byteorder="big")
-        if _exp_len > 255:
+        if _exp_len > 255:  # noqa: SIM108
             # A value larger than 255 can't be represented using a single byte. Use long variant
             # of encoding, which is a zero byte followed by the value in two bytes.
             exp_header = b"\0" + struct.pack("!H", _exp_len)

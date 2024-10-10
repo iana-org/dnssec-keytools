@@ -70,9 +70,7 @@ def _fmt_fields(**kwargs: int | str) -> str:
     2  2010-04-11T00:00:00 2010-04-25T23:59:59  55138         05017(KSK1)/S,55186(KSK2)/P
     ...
     """
-    return "{num:<2} {inception:19} {expiration:20} {zsk_tags:13} {ksk_tag}".format(
-        **kwargs
-    )
+    return "{num:<2} {inception:19} {expiration:20} {zsk_tags:13} {ksk_tag}".format(**kwargs)
 
 
 def fmt_bundle(bundle: Bundle) -> str:

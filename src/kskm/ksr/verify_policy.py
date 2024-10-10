@@ -4,12 +4,7 @@ from datetime import UTC, datetime, timedelta, timezone
 from logging import Logger
 
 from kskm.common.config_misc import RequestPolicy
-from kskm.common.data import (
-    DEPRECATED_ALGORITHMS,
-    SUPPORTED_ALGORITHMS,
-    AlgorithmDNSSEC,
-    AlgorithmPolicyRSA,
-)
+from kskm.common.data import DEPRECATED_ALGORITHMS, SUPPORTED_ALGORITHMS, AlgorithmDNSSEC, AlgorithmPolicyRSA
 from kskm.common.display import fmt_bundle, fmt_timedelta, fmt_timestamp
 from kskm.common.ecdsa_utils import is_algorithm_ecdsa
 from kskm.common.eddsa_utils import is_algorithm_eddsa
@@ -66,30 +61,23 @@ def verify_policy(request: Request, policy: RequestPolicy, logger: Logger) -> No
     logger.debug('End "Verify KSR policy parameters"')
 
 
-def check_keys_in_bundles(
-    request: Request, policy: RequestPolicy, logger: Logger
-) -> None:
+def check_keys_in_bundles(request: Request, policy: RequestPolicy, logger: Logger) -> None:
     """Check that the keys in the bundles match the KSK operator's configured policy."""
     if not policy.check_keys_match_ksk_operator_policy:
-        logger.warning(
-            "KSR-POLICY-KEYS: Disabled by policy (check_keys_match_ksk_operator_policy)"
-        )
+        logger.warning("KSR-POLICY-KEYS: Disabled by policy (check_keys_match_ksk_operator_policy)")
         return
 
     # Check the number of keys per bundle slot. The first and the last slot typically has two keys.
     if len(request.bundles) != len(policy.num_keys_per_bundle):
         raise KSR_POLICY_KEYS_Violation(
-            f"Can't check number of keys per bundle for a KSR with "
-            f"{len(request.bundles)} bundles"
+            f"Can't check number of keys per bundle for a KSR with " f"{len(request.bundles)} bundles"
         )
     for _idx in range(len(request.bundles)):
         _bundle = request.bundles[_idx]
         if len(_bundle.keys) != policy.num_keys_per_bundle[_idx]:
             _num_keys = len(_bundle.keys)
             _expected = policy.num_keys_per_bundle[_idx]
-            raise KSR_POLICY_KEYS_Violation(
-                f"Bundle #{_idx + 1}/{_bundle.id} has {_num_keys} keys, not {_expected}"
-            )
+            raise KSR_POLICY_KEYS_Violation(f"Bundle #{_idx + 1}/{_bundle.id} has {_num_keys} keys, not {_expected}")
 
     # Check the number of different key sets in a request.
     #
@@ -104,36 +92,26 @@ def check_keys_in_bundles(
         num_keys = len(_keys)
 
         if num_keys != 3:
-            logger.warning(
-                f"Request {request.id} does not have three (early,on-time,late) key sets in it ({num_keys})"
-            )
+            logger.warning(f"Request {request.id} does not have three (early,on-time,late) key sets in it ({num_keys})")
         if num_keys != policy.num_different_keys_in_all_bundles:
             raise KSR_POLICY_KEYS_Violation(
                 f"Unacceptable number of key sets in request {request.id}, "
                 f"({num_keys} keys instead of {policy.num_different_keys_in_all_bundles})"
             )
 
-    logger.info(
-        "KSR-POLICY-KEYS: Validated number of keys per bundle, and for all bundles"
-    )
+    logger.info("KSR-POLICY-KEYS: Validated number of keys per bundle, and for all bundles")
 
 
-def check_signature_validity(
-    request: Request, policy: RequestPolicy, logger: Logger
-) -> None:
+def check_signature_validity(request: Request, policy: RequestPolicy, logger: Logger) -> None:
     """Check that the signatures in a bundle match the claims in the SignaturePolicy."""
     if not policy.signature_validity_match_zsk_policy:
-        logger.warning(
-            "KSR-POLICY-SIG-VALIDITY: Disabled by policy (signature_validity_match_zsk_policy)"
-        )
+        logger.warning("KSR-POLICY-SIG-VALIDITY: Disabled by policy (signature_validity_match_zsk_policy)")
         return
 
     logger.debug("Verifying RequestBundles validity parameters:")
     for num, bundle in enumerate(request.bundles, 1):
         validity = bundle.expiration - bundle.inception
-        logger.debug(
-            f"{num:<2} {fmt_timestamp(bundle.inception):29} {fmt_timestamp(bundle.expiration):30} {validity}"
-        )
+        logger.debug(f"{num:<2} {fmt_timestamp(bundle.inception):29} {fmt_timestamp(bundle.expiration):30} {validity}")
 
     for bundle in request.bundles:
         validity = bundle.expiration - bundle.inception
@@ -157,19 +135,13 @@ def check_signature_validity(
     _num_bundles = len(request.bundles)
     _min_str = fmt_timedelta(request.zsk_policy.min_signature_validity)
     _max_str = fmt_timedelta(request.zsk_policy.max_signature_validity)
-    logger.info(
-        f"KSR-POLICY-SIG-VALIDITY: All {_num_bundles} bundles have {_min_str} <= validity >= {_max_str}"
-    )
+    logger.info(f"KSR-POLICY-SIG-VALIDITY: All {_num_bundles} bundles have {_min_str} <= validity >= {_max_str}")
 
 
-def check_signature_horizon(
-    request: Request, policy: RequestPolicy, logger: Logger
-) -> None:
+def check_signature_horizon(request: Request, policy: RequestPolicy, logger: Logger) -> None:
     """Check that signatures do not expire too long into the future."""
     if not policy.signature_check_expire_horizon:
-        logger.warning(
-            "KSR-POLICY-SIG-HORIZON: Disabled by policy (signature_check_expire_horizon)"
-        )
+        logger.warning("KSR-POLICY-SIG-HORIZON: Disabled by policy (signature_check_expire_horizon)")
         return
 
     dt_now = datetime.now(UTC).replace(tzinfo=timezone.utc)
@@ -177,36 +149,26 @@ def check_signature_horizon(
         expire_days = (bundle.expiration - dt_now).days
         # DPS section 5.1.4: Any RRSIG record generated as a result of a KSK signing operation will not have
         # a validity period longer than 21 days, and will never expire more than 180 days in the future.
-        if (
-            policy.signature_horizon_days
-            and expire_days > policy.signature_horizon_days
-        ):
+        if policy.signature_horizon_days and expire_days > policy.signature_horizon_days:
             logger.error(
                 f"Bundle {bundle.id} signature expires in {expire_days} days ({bundle.expiration}), "
                 f"above maximum of {policy.signature_horizon_days}"
             )
-            raise KSR_POLICY_SIG_HORIZON_Violation(
-                "Bundle signature expires too far in the future"
-            )
+            raise KSR_POLICY_SIG_HORIZON_Violation("Bundle signature expires too far in the future")
 
         # If we're checking that signatures don't expire too long into the future, it makes
         # sense to also check that they don't expire in the past which could indicate the clock
         # is wrong on the system performing the checks.
         if policy.signature_horizon_days > 0 and expire_days < 0:
             logger.error(
-                f"Bundle {bundle.id} signature expires {abs(expire_days)} days in the past "
-                f"({bundle.expiration})"
+                f"Bundle {bundle.id} signature expires {abs(expire_days)} days in the past " f"({bundle.expiration})"
             )
             raise KSR_PolicyViolation("Bundle signature expire in the past")
 
-    logger.info(
-        f"KSR-POLICY-SIG-HORIZON: All signatures expire in less than {policy.signature_horizon_days} days"
-    )
+    logger.info(f"KSR-POLICY-SIG-HORIZON: All signatures expire in less than {policy.signature_horizon_days} days")
 
 
-def check_zsk_policy_algorithm(
-    request: Request, policy: RequestPolicy, logger: Logger
-) -> None:
+def check_zsk_policy_algorithm(request: Request, policy: RequestPolicy, logger: Logger) -> None:
     """
     KSR-POLICY-ALG.
 
@@ -219,29 +181,21 @@ def check_zsk_policy_algorithm(
         if alg.algorithm in DEPRECATED_ALGORITHMS:
             raise KSR_POLICY_ALG_Violation(f"Algorithm {alg.algorithm.name} deprecated")
         if alg.algorithm not in SUPPORTED_ALGORITHMS:
-            raise KSR_POLICY_ALG_Violation(
-                f"Algorithm {alg.algorithm.name} not supported"
-            )
+            raise KSR_POLICY_ALG_Violation(f"Algorithm {alg.algorithm.name} not supported")
         if is_algorithm_ecdsa(alg.algorithm) and not policy.enable_unsupported_ecdsa:
             raise KSR_POLICY_ALG_Violation("Algorithm ECDSA is not supported")
-        if (
-            is_algorithm_eddsa(alg.algorithm)
-            and not policy.enable_unsupported_edwards_dsa
-        ):
+        if is_algorithm_eddsa(alg.algorithm) and not policy.enable_unsupported_edwards_dsa:
             raise KSR_POLICY_ALG_Violation("Algorithm EdDSA is not supported")
 
     if not policy.signature_algorithms_match_zsk_policy:
-        logger.warning(
-            "KSR-POLICY-ALG: Disabled by policy (signature_algorithms_match_zsk_policy)"
-        )
+        logger.warning("KSR-POLICY-ALG: Disabled by policy (signature_algorithms_match_zsk_policy)")
         return
 
     _approved_algorithms = [AlgorithmDNSSEC[x] for x in policy.approved_algorithms]
     for alg in request.zsk_policy.algorithms:
         if alg.algorithm not in _approved_algorithms:
             raise KSR_POLICY_ALG_Violation(
-                f"ZSK policy has {alg.algorithm}, but policy only allows "
-                f"{_approved_algorithms}"
+                f"ZSK policy has {alg.algorithm}, but policy only allows " f"{_approved_algorithms}"
             )
 
     _num_algs = len(request.zsk_policy.algorithms)
@@ -254,8 +208,7 @@ def check_zsk_policy_algorithm(
 
             if alg.bits not in policy.rsa_approved_key_sizes:
                 raise KSR_POLICY_ALG_Violation(
-                    f"ZSK policy has RSA-{alg.bits}, but policy dictates "
-                    f"{policy.rsa_approved_key_sizes}"
+                    f"ZSK policy has RSA-{alg.bits}, but policy dictates " f"{policy.rsa_approved_key_sizes}"
                 )
 
             if alg.exponent not in policy.rsa_approved_exponents:
@@ -266,14 +219,10 @@ def check_zsk_policy_algorithm(
 
             logger.debug(f"ZSK policy algorithm {alg} parameters accepted")
 
-    logger.info(
-        f"KSR-POLICY-ALG: All {_num_algs} ZSK operator signature algorithms accepted by policy"
-    )
+    logger.info(f"KSR-POLICY-ALG: All {_num_algs} ZSK operator signature algorithms accepted by policy")
 
 
-def check_bundle_overlaps(
-    request: Request, policy: RequestPolicy, logger: Logger
-) -> None:
+def check_bundle_overlaps(request: Request, policy: RequestPolicy, logger: Logger) -> None:
     """
     Check that bundles are continuous and overlap according to policy.
 
@@ -284,9 +233,7 @@ def check_bundle_overlaps(
       This check ensures that no gaps exists in the KSR timeline.
     """
     if not policy.check_bundle_overlap:
-        logger.warning(
-            "KSR-POLICY-SIG-OVERLAP: Disabled by policy (check_bundle_overlap)"
-        )
+        logger.warning("KSR-POLICY-SIG-OVERLAP: Disabled by policy (check_bundle_overlap)")
         return
 
     logger.debug(f"Verifying request {request.id} bundle times and overlap:")
@@ -319,19 +266,13 @@ def check_bundle_overlaps(
             raise KSR_POLICY_SIG_OVERLAP_Violation(
                 f'Bundle "{fmt_bundle(this)}" overlap {fmt_timedelta(overlap)} with "{fmt_bundle(previous)}" is > claimed maximum {fmt_timedelta(request.zsk_policy.max_validity_overlap)}'
             )
-    logger.info(
-        "KSR-POLICY-SIG-OVERLAP: All bundles overlap in accordance with the stated ZSK operator policy"
-    )
+    logger.info("KSR-POLICY-SIG-OVERLAP: All bundles overlap in accordance with the stated ZSK operator policy")
 
 
-def check_bundle_intervals(
-    request: Request, policy: RequestPolicy, logger: Logger
-) -> None:
+def check_bundle_intervals(request: Request, policy: RequestPolicy, logger: Logger) -> None:
     """Check that the bundles' intervals fall within expected limits."""
     if not policy.check_bundle_intervals:
-        logger.warning(
-            "KSR-POLICY-BUNDLE-INTERVALS: Disabled by policy (check_bundle_intervals)"
-        )
+        logger.warning("KSR-POLICY-BUNDLE-INTERVALS: Disabled by policy (check_bundle_intervals)")
         return
 
     _min_str = fmt_timedelta(policy.min_bundle_interval)
@@ -344,9 +285,7 @@ def check_bundle_intervals(
     for num in range(len(request.bundles)):
         interval: timedelta | None = None
         if num:
-            interval = (
-                request.bundles[num].inception - request.bundles[num - 1].inception
-            )
+            interval = request.bundles[num].inception - request.bundles[num - 1].inception
         logger.debug(
             "{num:<2} {inception:29} {interval}".format(
                 num=num + 1,
@@ -372,6 +311,4 @@ def check_bundle_intervals(
                 f"greater than maximum acceptable interval {_max_str}"
             )
 
-    logger.info(
-        "KSR-POLICY-BUNDLE-INTERVALS: All bundles intervals in accordance with the KSK operator policy"
-    )
+    logger.info("KSR-POLICY-BUNDLE-INTERVALS: All bundles intervals in accordance with the KSK operator policy")

@@ -78,9 +78,7 @@ def _parse_signature_algorithms(
         elif is_algorithm_eddsa(attr_alg):
             res.add(parse_signature_policy_eddsa(this))
         else:
-            raise NotImplementedError(
-                f"Unhandled SignaturePolicy algorithm: {attr_alg}"
-            )
+            raise NotImplementedError(f"Unhandled SignaturePolicy algorithm: {attr_alg}")
     return res
 
 

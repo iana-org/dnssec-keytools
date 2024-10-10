@@ -42,9 +42,7 @@ class TestValidate_signatures(TestCase):
 
     def test_invalid_signature(self) -> None:
         """Change a key to break the signature"""
-        bundle = self._load_bundle_from_file(
-            "ksr-root-2016-q3-0.xml", "a6b6162e-b299-427e-b11b-1a8c54a08910"
-        )
+        bundle = self._load_bundle_from_file("ksr-root-2016-q3-0.xml", "a6b6162e-b299-427e-b11b-1a8c54a08910")
         assert bundle is not None
         # validate signature is OK with the original key
         self.assertTrue(validate_signatures(bundle))
@@ -68,9 +66,7 @@ class TestValidate_signatures(TestCase):
 
     def test_key_without_signature(self) -> None:
         """Add a key without a signature"""
-        bundle = self._load_bundle_from_file(
-            "ksr-root-2016-q3-0.xml", "a6b6162e-b299-427e-b11b-1a8c54a08910"
-        )
+        bundle = self._load_bundle_from_file("ksr-root-2016-q3-0.xml", "a6b6162e-b299-427e-b11b-1a8c54a08910")
         assert bundle is not None
         new_key = Key(
             key_identifier="ZSK-24315",
@@ -88,9 +84,7 @@ class TestValidate_signatures(TestCase):
 
     def test_signature_without_key(self) -> None:
         """Add a key without a signature"""
-        bundle = self._load_bundle_from_file(
-            "ksr-root-2016-q3-0.xml", "a6b6162e-b299-427e-b11b-1a8c54a08910"
-        )
+        bundle = self._load_bundle_from_file("ksr-root-2016-q3-0.xml", "a6b6162e-b299-427e-b11b-1a8c54a08910")
         assert bundle is not None
         _sig = list(bundle.signatures)[0]
         new_sig = Signature(
@@ -113,9 +107,7 @@ class TestValidate_signatures(TestCase):
 
     def test_duplicate_key_identifier(self) -> None:
         """Add a key with the same key_identifier as another key in the set"""
-        bundle = self._load_bundle_from_file(
-            "ksr-root-2016-q3-0.xml", "a6b6162e-b299-427e-b11b-1a8c54a08910"
-        )
+        bundle = self._load_bundle_from_file("ksr-root-2016-q3-0.xml", "a6b6162e-b299-427e-b11b-1a8c54a08910")
         assert bundle is not None
         new_key = Key(
             key_identifier=list(bundle.keys)[0].key_identifier,

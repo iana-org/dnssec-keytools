@@ -125,16 +125,12 @@ class TestParseRealKSRs(unittest.TestCase):
             )
 
         with self.assertRaises(kskm.ksr.verify_policy.KSR_POLICY_ALG_Violation):
-            load_ksr(
-                fn, policy.replace(rsa_approved_key_sizes=[2048]), raise_original=True
-            )
+            load_ksr(fn, policy.replace(rsa_approved_key_sizes=[2048]), raise_original=True)
 
         with self.assertRaises(kskm.ksr.verify_policy.KSR_POLICY_SIG_OVERLAP_Violation):
             load_ksr(fn, policy.replace(check_bundle_overlap=True), raise_original=True)
 
-        with self.assertRaises(
-            kskm.ksr.verify_policy.KSR_POLICY_SIG_VALIDITY_Violation
-        ):
+        with self.assertRaises(kskm.ksr.verify_policy.KSR_POLICY_SIG_VALIDITY_Violation):
             load_ksr(
                 fn,
                 policy.replace(signature_validity_match_zsk_policy=True),

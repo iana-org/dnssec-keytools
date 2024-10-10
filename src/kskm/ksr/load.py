@@ -34,9 +34,7 @@ def load_ksr(
         ksr_file_size = os.fstat(fd.fileno()).st_size
         if ksr_file_size > MAX_KSR_SIZE:
             raise RuntimeError(f"KSR exceeding maximum size of {MAX_KSR_SIZE} bytes")
-        xml_bytes = fd.read(
-            MAX_KSR_SIZE
-        )  # impose upper limit on how much memory/CPU can be spent loading a file
+        xml_bytes = fd.read(MAX_KSR_SIZE)  # impose upper limit on how much memory/CPU can be spent loading a file
     logger.info("Loaded KSR from file %s %s", filename, checksum_bytes2str(xml_bytes))
     if log_contents:
         log_file_contents(filename, xml_bytes, logger.getChild("ksr"))
@@ -49,18 +47,14 @@ def load_ksr(
             # This is better in test cases
             raise
         # This is better in regular operations since it adds information about the context
-        raise RuntimeError(
-            f"Failed validating KSR request in file {filename}: {exc}"
-        ) from exc
+        raise RuntimeError(f"Failed validating KSR request in file {filename}: {exc}") from exc
     return request
 
 
 def request_from_xml_file(filename: Path, xml_bytes: bytes) -> Request:
     """Parse XML data and return Request instance."""
     xml_hash = sha256(xml_bytes)
-    return request_from_xml(
-        xml_bytes.decode(), xml_filename=str(filename), xml_hash=xml_hash
-    )
+    return request_from_xml(xml_bytes.decode(), xml_filename=str(filename), xml_hash=xml_hash)
 
 
 def request_from_xml(xml: str, **kwargs: Any) -> Request:
@@ -71,9 +65,7 @@ def request_from_xml(xml: str, **kwargs: Any) -> Request:
         # handle a single RequestBundle in the request
         bundles_list = [bundles_list]
     bundles = request_bundles_from_list_of_dicts(bundles_list)
-    zsk_policy = signature_policy_from_dict(
-        data["KSR"]["value"]["Request"]["RequestPolicy"]["ZSK"]
-    )
+    zsk_policy = signature_policy_from_dict(data["KSR"]["value"]["Request"]["RequestPolicy"]["ZSK"])
     _attrs = data["KSR"]["attrs"]
     timestamp = None
     if "timestamp" in _attrs:

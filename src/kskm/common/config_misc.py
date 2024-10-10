@@ -61,42 +61,24 @@ class RequestPolicy(Policy):
     enable_unsupported_ecdsa: bool = False
     enable_unsupported_edwards_dsa: bool = False
     check_cycle_length: bool = True
-    min_cycle_inception_length: timedelta = Field(
-        default_factory=lambda: duration_to_timedelta("P79D")
-    )
-    max_cycle_inception_length: timedelta = Field(
-        default_factory=lambda: duration_to_timedelta("P81D")
-    )
-    min_bundle_interval: timedelta = Field(
-        default_factory=lambda: duration_to_timedelta("P9D")
-    )
-    max_bundle_interval: timedelta = Field(
-        default_factory=lambda: duration_to_timedelta("P11D")
-    )
+    min_cycle_inception_length: timedelta = Field(default_factory=lambda: duration_to_timedelta("P79D"))
+    max_cycle_inception_length: timedelta = Field(default_factory=lambda: duration_to_timedelta("P81D"))
+    min_bundle_interval: timedelta = Field(default_factory=lambda: duration_to_timedelta("P9D"))
+    max_bundle_interval: timedelta = Field(default_factory=lambda: duration_to_timedelta("P11D"))
 
     # Verify KSR policy parameters
     check_bundle_overlap: bool = True
     signature_algorithms_match_zsk_policy: bool = True
-    approved_algorithms: list[str] = Field(
-        default_factory=lambda: [AlgorithmDNSSEC.RSASHA256.name]
-    )
+    approved_algorithms: list[str] = Field(default_factory=lambda: [AlgorithmDNSSEC.RSASHA256.name])
     rsa_approved_exponents: list[PositiveInt] = Field(default_factory=lambda: [65537])
     rsa_approved_key_sizes: list[IntegerRSASize] = Field(default_factory=lambda: [2048])
     signature_validity_match_zsk_policy: bool = True
     check_keys_match_ksk_operator_policy: bool = True
-    num_keys_per_bundle: list[PositiveInt] = Field(
-        default_factory=lambda: [2, 1, 1, 1, 1, 1, 1, 1, 2]
-    )
-    num_different_keys_in_all_bundles: int = (
-        3  # can be 0 in tests, but will be enforced ge=1 upon load
-    )
-    dns_ttl: IntegerDNSTTL = (
-        0  # if this is 0, the config value ksk_policy.ttl will be used instead
-    )
+    num_keys_per_bundle: list[PositiveInt] = Field(default_factory=lambda: [2, 1, 1, 1, 1, 1, 1, 1, 2])
+    num_different_keys_in_all_bundles: int = 3  # can be 0 in tests, but will be enforced ge=1 upon load
+    dns_ttl: IntegerDNSTTL = 0  # if this is 0, the config value ksk_policy.ttl will be used instead
     signature_check_expire_horizon: bool = True
-    signature_horizon_days: int = (
-        180  # can be negative in tests, but will be enforced positive on config load
-    )
+    signature_horizon_days: int = 180  # can be negative in tests, but will be enforced positive on config load
     check_bundle_intervals: bool = True
 
     # Verify KSR/SKR chaining

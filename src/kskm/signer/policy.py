@@ -31,9 +31,7 @@ def check_skr_and_ksr(
     check_last_skr_key_present(last_skr, policy, p11modules)
 
 
-def check_last_skr_and_new_skr(
-    last_skr: Response, new_skr: Response, policy: RequestPolicy
-) -> None:
+def check_last_skr_and_new_skr(last_skr: Response, new_skr: Response, policy: RequestPolicy) -> None:
     """Validate that the new SKR is coherent with the last SKR."""
     check_publish_safety(last_skr, new_skr, policy)
     check_retire_safety(last_skr, new_skr, policy)
@@ -49,9 +47,7 @@ def check_unique_ids(ksr: Request, last_skr: Response, policy: RequestPolicy) ->
     check_unique_bundle_ids(ksr, last_skr, policy)
 
 
-def check_unique_request(
-    ksr: Request, last_skr: Response, policy: RequestPolicy
-) -> None:
+def check_unique_request(ksr: Request, last_skr: Response, policy: RequestPolicy) -> None:
     """
     Check the ID in the request.
 
@@ -62,14 +58,10 @@ def check_unique_request(
     last responses ID we make sure the KSR isn't a resend/replay of the previous KSR.
     """
     if ksr.id == last_skr.id:
-        raise KSR_ID_Violation(
-            f"The KSR request ID is the same as the last SKR ID: {ksr.id}"
-        )
+        raise KSR_ID_Violation(f"The KSR request ID is the same as the last SKR ID: {ksr.id}")
 
 
-def check_unique_bundle_ids(
-    ksr: Request, last_skr: Response, policy: RequestPolicy
-) -> None:
+def check_unique_bundle_ids(ksr: Request, last_skr: Response, policy: RequestPolicy) -> None:
     """
     Check the Bundle IDs in the request and make sure they are not also present in the last SKR.
 
@@ -82,14 +74,10 @@ def check_unique_bundle_ids(
     for ksr_bundle in ksr.bundles:
         for skr_bundle in last_skr.bundles:
             if ksr_bundle.id == skr_bundle.id:
-                raise KSR_BUNDLE_UNIQUE_Violation(
-                    f"A bundle with id {ksr_bundle.id} was also present in the last SKR"
-                )
+                raise KSR_BUNDLE_UNIQUE_Violation(f"A bundle with id {ksr_bundle.id} was also present in the last SKR")
 
 
-def check_publish_safety(
-    last_skr: Response, new_skr: Response, policy: RequestPolicy
-) -> None:
+def check_publish_safety(last_skr: Response, new_skr: Response, policy: RequestPolicy) -> None:
     """
     Ensure all keys in the last SKR and this one will be published according to policy.
 
@@ -98,18 +86,14 @@ def check_publish_safety(
     being used for signing and at least _RetireSafety_ before being removed after it is no longer used for signing.
     """
     if not policy.check_keys_publish_safety:
-        logger.warning(
-            "KSR-POLICY-SAFETY: PublishSafety checking disabled by policy (check_keys_publish_safety)"
-        )
+        logger.warning("KSR-POLICY-SAFETY: PublishSafety checking disabled by policy (check_keys_publish_safety)")
         return
 
     # First, check that all keys used to sign bundle[0] of the new_skr was published in the
     # last bundle of last_skr.
     _last_bundle = last_skr.bundles[-1]
     for sig in new_skr.bundles[0].signatures:
-        _match = [
-            x for x in _last_bundle.keys if x.key_identifier == sig.key_identifier
-        ]
+        _match = [x for x in _last_bundle.keys if x.key_identifier == sig.key_identifier]
         if not _match:
             logger.info("Last SKR:")
             for _msg in format_bundles_for_humans(last_skr.bundles):
@@ -146,9 +130,7 @@ def check_publish_safety(
     logger.info("KSR-POLICY-SAFETY: PublishSafety validated")
 
 
-def check_retire_safety(
-    last_skr: Response, new_skr: Response, policy: RequestPolicy
-) -> None:
+def check_retire_safety(last_skr: Response, new_skr: Response, policy: RequestPolicy) -> None:
     """
     Ensure all keys in the last SKR and this one will be retired according to policy.
 
@@ -157,9 +139,7 @@ def check_retire_safety(
     being used for signing and at least _RetireSafety_ before being removed after it is no longer used for signing.
     """
     if not policy.check_keys_retire_safety:
-        logger.warning(
-            "KSR-POLICY-SAFETY: RetireSafety checking disabled by policy (check_keys_retire_safety)"
-        )
+        logger.warning("KSR-POLICY-SAFETY: RetireSafety checking disabled by policy (check_keys_retire_safety)")
         return
 
     # Figure out the point in time where a signing key from the last bundle in the last SKR is required to
@@ -171,9 +151,7 @@ def check_retire_safety(
         if bundle.inception <= retire_at:
             # This bundle must include all the signing keys from the last bundle
             for sig in last_bundle.signatures:
-                _match = [
-                    x for x in bundle.keys if x.key_identifier == sig.key_identifier
-                ]
+                _match = [x for x in bundle.keys if x.key_identifier == sig.key_identifier]
                 if not _match:
                     for _msg in format_bundles_for_humans(new_skr.bundles):
                         logger.info(_msg)
@@ -204,9 +182,7 @@ def check_retire_safety(
                     # of regular signatures to be present for a certain amount of time does not apply.
                     continue
 
-                _match = [
-                    x for x in bundle.keys if x.key_identifier == sig.key_identifier
-                ]
+                _match = [x for x in bundle.keys if x.key_identifier == sig.key_identifier]
                 if not _match:
                     for _msg in format_bundles_for_humans(new_skr.bundles):
                         logger.info(_msg)

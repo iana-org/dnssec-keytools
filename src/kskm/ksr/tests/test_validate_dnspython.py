@@ -32,9 +32,7 @@ class TestDnsPythonValidate_signatures(TestCase):
 
     def test_keysize_change_dnspython(self) -> None:
         """Test file where ZSK changed from RSA1024 to RSA2048 using dnspython"""
-        self._test_file(
-            "ksr-root-2016-q3-0.xml", "a6b6162e-b299-427e-b11b-1a8c54a08910"
-        )
+        self._test_file("ksr-root-2016-q3-0.xml", "a6b6162e-b299-427e-b11b-1a8c54a08910")
 
     def _test_file(self, fn: str, filter_ids: str | None = None) -> None:
         full_fn = self.data_dir.joinpath(fn)
@@ -59,9 +57,7 @@ def dnspython_validate_bundle(bundle: RequestBundle) -> bool:
     _keys: dict[int, Key] = {}
     for key in bundle.keys:
         if key.key_tag in _keys:
-            raise ValueError(
-                f"More than one key with keytag {key.key_tag} in bundle {bundle.id}"
-            )
+            raise ValueError(f"More than one key with keytag {key.key_tag} in bundle {bundle.id}")
         _keys[key.key_tag] = key
     if not _keys:
         raise ValueError(f"No keys in bundle {bundle.id}")
@@ -78,9 +74,7 @@ def dnspython_validate_bundle(bundle: RequestBundle) -> bool:
             logger.exception("dnspython failed with an exception")
             raise
     if _keys:
-        raise ValueError(
-            f"One or more keys were not covered by a signature: {_keys.keys()}"
-        )
+        raise ValueError(f"One or more keys were not covered by a signature: {_keys.keys()}")
     return True
 
 
@@ -102,9 +96,7 @@ def dnspython_validate_key_sig(keys: set[Key], sig: Signature) -> bool:
         )
         text_rdata += [_dnskey]
 
-    dnskey_rr = dns.rrset.from_text(
-        sig.signers_name, sig.original_ttl, "IN", "DNSKEY", *text_rdata
-    )
+    dnskey_rr = dns.rrset.from_text(sig.signers_name, sig.original_ttl, "IN", "DNSKEY", *text_rdata)
     dnskey_rdata = dns.rdataset.from_text("IN", "DNSKEY", sig.original_ttl, *text_rdata)
     _keys: dict[dns.name.Name, dns.node.Node | dns.rdataset.Rdataset] = {
         _domainname: dnskey_rdata,

@@ -15,9 +15,7 @@ from kskm.misc.hsm import KSKM_P11, init_pkcs11_modules
 
 __author__ = "ft"
 
-_TEST_SOFTHSM2 = bool(
-    os.environ.get("SOFTHSM2_MODULE") and os.environ.get("SOFTHSM2_CONF")
-)
+_TEST_SOFTHSM2 = bool(os.environ.get("SOFTHSM2_MODULE") and os.environ.get("SOFTHSM2_CONF"))
 
 _TEST_CONFIG = """
 ---

@@ -2,13 +2,7 @@
 
 from datetime import datetime, timedelta, timezone
 
-from kskm.common.data import (
-    AlgorithmPolicy,
-    AlgorithmPolicyRSA,
-    Key,
-    Signature,
-    SignaturePolicy,
-)
+from kskm.common.data import AlgorithmPolicy, AlgorithmPolicyRSA, Key, Signature, SignaturePolicy
 from kskm.skr import Response
 from kskm.skr.data import ResponseBundle
 
@@ -98,9 +92,7 @@ def _skr_bundle_to_xml(bundle: ResponseBundle) -> str:
 
 def _skr_keys_to_xml(bundle: ResponseBundle) -> str:
     # Output keys in deterministic order to facilitate external SKR validation
-    return "".join(
-        [_skr_key_to_xml(key) for key in sorted(bundle.keys, key=lambda x: x.key_tag)]
-    )
+    return "".join([_skr_key_to_xml(key) for key in sorted(bundle.keys, key=lambda x: x.key_tag)])
 
 
 def _skr_key_to_xml(key: Key) -> str:

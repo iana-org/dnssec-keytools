@@ -50,12 +50,8 @@ def keygen(
     dnssec_alg = AlgorithmDNSSEC[args.key_alg]
     if is_algorithm_rsa(dnssec_alg):
         if args.key_size is None:
-            raise argparse.ArgumentError(
-                args.key_size, "RSA key generation requires key size"
-            )
-        p11key = generate_rsa_key(
-            flags, args.key_size, p11modules, label=args.key_label
-        )
+            raise argparse.ArgumentError(args.key_size, "RSA key generation requires key size")
+        p11key = generate_rsa_key(flags, args.key_size, p11modules, label=args.key_label)
     elif is_algorithm_ecdsa(dnssec_alg):
         crv = algorithm_to_curve(dnssec_alg)
         p11key = generate_ec_key(flags, crv, p11modules, label=args.key_label)
@@ -95,8 +91,7 @@ def keygen(
     for ksk in config.ksk_keys.values():
         if ksk.key_tag in key_tags:
             logger.error(
-                f"Generated key {p11key.label} has key tags {key_tags} matching "
-                f"KSK key in configuration: {ksk}"
+                f"Generated key {p11key.label} has key tags {key_tags} matching " f"KSK key in configuration: {ksk}"
             )
             raise RuntimeError("Key tag collision detected")
 
@@ -187,9 +182,7 @@ def main() -> bool:
 
     # Make a list of DNSSEC algorithms we allow generating keys for. RSASHA1 is obsoleted.
     valid_algorithms = [
-        x.name
-        for x in AlgorithmDNSSEC
-        if x.name != "RSASHA1" and (is_algorithm_rsa(x) or is_algorithm_ecdsa(x))
+        x.name for x in AlgorithmDNSSEC if x.name != "RSASHA1" and (is_algorithm_rsa(x) or is_algorithm_ecdsa(x))
     ]
     parser_keygen.add_argument(
         "--label",
@@ -246,9 +239,7 @@ def main() -> bool:
     )
 
     args = parser.parse_args()
-    logger = get_logger(
-        progname=progname, debug=args.debug, syslog=False, filelog=True
-    ).getChild(__name__)
+    logger = get_logger(progname=progname, debug=args.debug, syslog=False, filelog=True).getChild(__name__)
 
     try:
         config = get_config(args.config)

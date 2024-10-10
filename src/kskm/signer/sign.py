@@ -52,32 +52,24 @@ def sign_bundles(
         this_schema = schema.actions[bundle_num]
 
         if _bundle.signers:
-            logger.warning(
-                f"Bundle {_bundle.id} has signers specified - those will be ignored"
-            )
+            logger.warning(f"Bundle {_bundle.id} has signers specified - those will be ignored")
 
         keys_to_sign = KeysToSign(ksk_policy_ttl=ksk_policy.ttl)
 
         #
         # Add all the 'publish' keys (KSK operator keys) to the keys already in the bundle (ZSK operator keys)
         #
-        for this_key in _fetch_keys(
-            this_schema.publish, _bundle, p11modules, ksk_policy, config.ksk_keys, True
-        ):
+        for this_key in _fetch_keys(this_schema.publish, _bundle, p11modules, ksk_policy, config.ksk_keys, True):
             keys_to_sign.add(this_key.dns)
         #
         # Add all the 'revoke' keys (same as 'publish' but the key gets the revoke flag bit set)
         #
-        for this_key in _fetch_keys(
-            this_schema.revoke, _bundle, p11modules, ksk_policy, config.ksk_keys, True
-        ):
+        for this_key in _fetch_keys(this_schema.revoke, _bundle, p11modules, ksk_policy, config.ksk_keys, True):
             keys_to_sign.update(this_key.dns.as_revoked())
         #
         # All the signing keys sign the complete DNSKEY RRSET, so first add them to the bundles keys
         #
-        signing_keys = _fetch_keys(
-            this_schema.sign, _bundle, p11modules, ksk_policy, config.ksk_keys, False
-        )
+        signing_keys = _fetch_keys(this_schema.sign, _bundle, p11modules, ksk_policy, config.ksk_keys, False)
         for this_key in signing_keys:
             keys_to_sign.add(this_key.dns)
 
@@ -99,8 +91,7 @@ def sign_bundles(
         _ksk_algs = {x.algorithm.name for x in signatures}
         if _zsk_algs != _ksk_algs:
             raise CreateSignatureError(
-                f"ZSK algorithms {_zsk_algs} does not match KSK algorithms {_ksk_algs} "
-                f"for bundle {_bundle.id}"
+                f"ZSK algorithms {_zsk_algs} does not match KSK algorithms {_ksk_algs} " f"for bundle {_bundle.id}"
             )
 
         response_bundle = ResponseBundle(
@@ -135,9 +126,7 @@ class KeysToSign(BaseModel):
 
         if key.ttl != self.ksk_policy_ttl:
             if key.key_identifier not in self._hush_key_ttl_warnings:
-                logger.warning(
-                    f"Overriding key {key.key_identifier} TTL {key.ttl} -> {self.ksk_policy_ttl}"
-                )
+                logger.warning(f"Overriding key {key.key_identifier} TTL {key.ttl} -> {self.ksk_policy_ttl}")
                 if key.key_identifier:
                     self._hush_key_ttl_warnings.add(key.key_identifier)
             key = key.replace(ttl=self.ksk_policy_ttl)
@@ -178,10 +167,7 @@ def _fetch_keys(
         ksk = ksk_keys[_name]
         this_key = load_pkcs11_key(ksk, p11modules, ksk_policy, bundle, public=public)
         if not this_key:
-            logger.error(
-                f"Could not find key {repr(_name)} ({ksk.label}/{ksk.description}) "
-                f"for bundle {bundle.id}"
-            )
+            logger.error(f"Could not find key {repr(_name)} ({ksk.label}/{ksk.description}) " f"for bundle {bundle.id}")
             raise ConfigurationError(f"Key {repr(_name)} not found")
 
         # Ensure the right key was located
@@ -200,24 +186,18 @@ def _sign_keys(
     logger.debug(f"Signing {len(keys_to_sign.keys)} bundle keys:")
     for _this in keys_to_sign.keys:
         logger.debug(f"  {_this}")
-    logger.debug(
-        f"Signing above {len(keys_to_sign.keys)} bundle keys with sign_key {signing_key}"
-    )
+    logger.debug(f"Signing above {len(keys_to_sign.keys)} bundle keys with sign_key {signing_key}")
 
     # All ZSK TTLs are guaranteed to be the same as ksk_policy.ttl at this point. Just do this for clarity.
     for _key in keys_to_sign.keys:
         if _key.ttl != ksk_policy.ttl:
-            raise CreateSignatureError(
-                f"Key {_key.key_identifier} has TTL {_key.ttl} != {ksk_policy.ttl}"
-            )
+            raise CreateSignatureError(f"Key {_key.key_identifier} has TTL {_key.ttl} != {ksk_policy.ttl}")
 
     # To get the right key tag for revoked keys, we need to locate the signing key in the set of
     # keys to sign and use that key tag in the signature below.
     _dns_key = keys_to_sign.get(signing_key.dns.key_identifier)
     if not _dns_key:
-        raise CreateSignatureError(
-            f"Could not find signing key {signing_key.dns.key_identifier} in bundle {bundle.id}"
-        )
+        raise CreateSignatureError(f"Could not find signing key {signing_key.dns.key_identifier} in bundle {bundle.id}")
 
     sig = Signature(
         key_tag=_dns_key.key_tag,
@@ -234,26 +214,18 @@ def _sign_keys(
     )
 
     rrsig_raw = make_raw_rrsig(sig, keys_to_sign.keys)
-    signature_data = sign_using_p11(
-        signing_key.p11, rrsig_raw, signing_key.dns.algorithm
-    )
+    signature_data = sign_using_p11(signing_key.p11, rrsig_raw, signing_key.dns.algorithm)
 
     # Before proceeding, validate the signature using a non-HSM based implementation
     try:
-        _verify_using_crypto(
-            signing_key.p11, rrsig_raw, signature_data, signing_key.dns.algorithm
-        )
+        _verify_using_crypto(signing_key.p11, rrsig_raw, signature_data, signing_key.dns.algorithm)
     except InvalidSignature as exc:
-        raise SKR_VERIFY_Failure(
-            f"Invalid KSK signature encountered in bundle {bundle.id}"
-        ) from exc
+        raise SKR_VERIFY_Failure(f"Invalid KSK signature encountered in bundle {bundle.id}") from exc
 
     return sig.replace(signature_data=base64.b64encode(signature_data))
 
 
-def _verify_using_crypto(
-    p11_key: KSKM_P11Key, rrsig_raw: bytes, signature: bytes, algorithm: AlgorithmDNSSEC
-) -> None:
+def _verify_using_crypto(p11_key: KSKM_P11Key, rrsig_raw: bytes, signature: bytes, algorithm: AlgorithmDNSSEC) -> None:
     """Double-check signatures created using HSM with a standard software cryptographic library."""
     if p11_key.public_key is None:
         raise RuntimeError(f"Can't verify signature without public key ({p11_key})")

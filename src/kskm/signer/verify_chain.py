@@ -50,9 +50,7 @@ def check_chain_keys(ksr: Request, last_skr: Response, policy: RequestPolicy) ->
       last key bundle of SKR(n-1).
     """
     if not policy.check_chain_keys:
-        logger.warning(
-            "KSR-CHAIN-KEYS: Checking published keys disabled by policy (check_chain_keys)"
-        )
+        logger.warning("KSR-CHAIN-KEYS: Checking published keys disabled by policy (check_chain_keys)")
         return
 
     last_key_set = last_skr.bundles[-1].keys
@@ -62,22 +60,14 @@ def check_chain_keys(ksr: Request, last_skr: Response, policy: RequestPolicy) ->
 
     for this in first_key_set:
         if this not in last_key_set:
-            raise KSR_CHAIN_KEYS_Violation(
-                "Last key set in SKR(n-1) does not match first key set in KSR"
-            )
-    logger.info(
-        "KSR-CHAIN-KEYS: The last keys in SKR(n-1) matches the first keys in this KSR"
-    )
+            raise KSR_CHAIN_KEYS_Violation("Last key set in SKR(n-1) does not match first key set in KSR")
+    logger.info("KSR-CHAIN-KEYS: The last keys in SKR(n-1) matches the first keys in this KSR")
 
 
-def check_chain_overlap(
-    ksr: Request, last_skr: Response, policy: RequestPolicy
-) -> None:
+def check_chain_overlap(ksr: Request, last_skr: Response, policy: RequestPolicy) -> None:
     """Check signature chain overlap."""
     if not policy.check_chain_overlap:
-        logger.warning(
-            "KSR-CHAIN-OVERLAP: Checking chain signature overlap disabled by policy (check_chain_overlap)"
-        )
+        logger.warning("KSR-CHAIN-OVERLAP: Checking chain signature overlap disabled by policy (check_chain_overlap)")
         return
 
     previous = last_skr.bundles[-1]
@@ -113,18 +103,14 @@ def check_chain_overlap(
     )
 
 
-def check_last_skr_key_present(
-    skr: Response, policy: RequestPolicy, p11modules: KSKM_P11 | None
-) -> None:
+def check_last_skr_key_present(skr: Response, policy: RequestPolicy, p11modules: KSKM_P11 | None) -> None:
     """Verify the KSK(s) that signed the last bundle in the SKR(n-1) is present in the available HSM(s)."""
     if not p11modules:
         # Skipped in some test cases
         logger.info("KSR-CHAIN-KEYS: Skipped when not passed an KSKM_P11")
         return
     if not policy.check_chain_keys_in_hsm:
-        logger.warning(
-            "KSR-CHAIN-KEYS: Checking published keys disabled by policy (check_chain_keys_present)"
-        )
+        logger.warning("KSR-CHAIN-KEYS: Checking published keys disabled by policy (check_chain_keys_present)")
         return
 
     last_bundle = skr.bundles[-1]
@@ -133,8 +119,7 @@ def check_last_skr_key_present(
         p11key = get_p11_key(sig.key_identifier, p11modules, public=True)
         if not p11key or not p11key.public_key:
             raise KSR_CHAIN_KEYS_Violation(
-                f"Key {sig.key_identifier} not found in the HSM(s) "
-                f"(bundle {last_bundle.id})"
+                f"Key {sig.key_identifier} not found in the HSM(s) " f"(bundle {last_bundle.id})"
             )
         hsmkey = public_key_to_dnssec_key(
             public_key=p11key.public_key,
@@ -146,18 +131,14 @@ def check_last_skr_key_present(
         key = [x for x in last_bundle.keys if x.key_identifier == sig.key_identifier][0]
         if key.public_key != hsmkey.public_key:
             raise KSR_CHAIN_KEYS_Violation(
-                f"Key {sig.key_identifier} does not match key in the HSM "
-                f"(bundle {last_bundle.id})"
+                f"Key {sig.key_identifier} does not match key in the HSM " f"(bundle {last_bundle.id})"
             )
         logger.debug(
-            f"Key {sig.key_identifier} from last bundle in last SKR found in the HSM(s) "
-            f"(bundle {last_bundle.id})"
+            f"Key {sig.key_identifier} from last bundle in last SKR found in the HSM(s) " f"(bundle {last_bundle.id})"
         )
         count += 1
     if not count:
-        raise KSR_CHAIN_KEYS_Violation(
-            "KSR-CHAIN-KEYS: No signatures in the last bundle of the last SKR"
-        )
+        raise KSR_CHAIN_KEYS_Violation("KSR-CHAIN-KEYS: No signatures in the last bundle of the last SKR")
     logger.info(
         f"KSR-CHAIN-KEYS: All {count} signatures in the last bundle of the last SKR were made with keys "
         "present in the HSM(s)"

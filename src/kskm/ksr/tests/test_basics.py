@@ -46,11 +46,7 @@ class TestBasics(unittest.TestCase):
             min_signature_validity=datetime.timedelta(days=21),
             max_validity_overlap=datetime.timedelta(days=12),
             min_validity_overlap=datetime.timedelta(days=9),
-            algorithms={
-                AlgorithmPolicyRSA(
-                    bits=2048, algorithm=AlgorithmDNSSEC.RSASHA256, exponent=65537
-                )
-            },
+            algorithms={AlgorithmPolicyRSA(bits=2048, algorithm=AlgorithmDNSSEC.RSASHA256, exponent=65537)},
         )
         self.assertEqual(request.zsk_policy, policy)
 
