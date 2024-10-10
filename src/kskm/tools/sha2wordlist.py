@@ -9,8 +9,10 @@ the command line.
 import argparse
 import hashlib
 import sys
+from typing import NoReturn
 
 from kskm.common.wordlist import pgp_wordlist
+from kskm.tools import EXIT_CODES
 from kskm.version import __verbose_version__
 
 
@@ -35,7 +37,7 @@ def words(filename: str | None = None) -> None:
         print()
 
 
-def main() -> None:
+def main() -> EXIT_CODES:
     """Main program function."""
     parser = argparse.ArgumentParser(
         description=f"SHA-256 PGP Words Calculator {__verbose_version__}",
@@ -52,6 +54,18 @@ def main() -> None:
     else:
         words()
 
+    return EXIT_CODES.success
+
+
+def script_entrypoint() -> NoReturn:
+    """Script entrypoint for this tool"""
+    try:
+        res = main()
+        sys.exit(res.value)
+    except KeyboardInterrupt:
+        sys.exit(EXIT_CODES.interrupt.value)
+
 
 if __name__ == "__main__":
-    main()
+    # Run the script entrypoint if executed manually
+    script_entrypoint()

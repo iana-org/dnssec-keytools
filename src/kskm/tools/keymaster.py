@@ -17,6 +17,8 @@ import argparse
 import logging
 import os
 import sys
+from argparse import Namespace as ArgsType
+from typing import NoReturn
 
 from PyKCS11 import PyKCS11Error
 
@@ -31,6 +33,7 @@ from kskm.keymaster.delete import key_delete
 from kskm.keymaster.inventory import DNSRecords, key_inventory
 from kskm.keymaster.keygen import generate_ec_key, generate_rsa_key
 from kskm.misc.hsm import KSKM_P11, KeyType, init_pkcs11_modules
+from kskm.tools import EXIT_CODES
 from kskm.version import __verbose_version__
 
 SUPPORTED_ALGORITHMS = [str(x.name) for x in KeyType]
@@ -131,10 +134,10 @@ def inventory(
     return True
 
 
-def main() -> bool:
-    """Main function."""
-    progname = os.path.basename(sys.argv[0])
-
+def parse_args(arguments: list[str]) -> ArgsType | None:
+    """
+    Parse command line arguments.
+    """
     parser = argparse.ArgumentParser(
         description=f"Keymaster {__verbose_version__}",
         add_help=True,
@@ -238,20 +241,17 @@ def main() -> bool:
         help="Don't ask for confirmation",
     )
 
-    args = parser.parse_args()
-    logger = get_logger(progname=progname, debug=args.debug, syslog=False, filelog=True).getChild(__name__)
-
+    args = parser.parse_args(args=arguments)
     try:
-        config = get_config(args.config)
-    except FileNotFoundError as exc:
-        logger.critical(str(exc))
-        return False
-    except ConfigurationError as exc:
-        logger = logging.getLogger("configuration")
-        for message in str(exc).splitlines():
-            logger.critical(message)
-        return False
+        _ = args.func
+    except AttributeError:
+        parser.print_help()
+        return None
 
+    return args
+
+
+def keymaster(logger: logging.Logger, args: ArgsType, config: KSKMConfig) -> EXIT_CODES:
     #
     # Initialise PKCS#11 modules (HSMs)
     #
@@ -259,30 +259,54 @@ def main() -> bool:
         p11modules = init_pkcs11_modules(config, name=args.hsm, rw_session=True)
     except Exception as e:
         logger.critical("HSM initialisation error: %s", str(e))
-        return False
+        return EXIT_CODES.fatal
 
     if len(p11modules) <= 0:
         logger.critical("No HSM configured")
-        return False
+        return EXIT_CODES.fatal
 
     try:
-        mode_function = args.func
-    except AttributeError:
-        parser.print_help()
-        return False
-
-    try:
-        res = mode_function(args, config, p11modules, logger)
-        if res is True:
-            sys.exit(0)
+        res = args.func(args, config, p11modules, logger)
+        return EXIT_CODES.success if res is True else EXIT_CODES.fatal
     except PyKCS11Error as exc:
         logger.critical(str(exc))
-        sys.exit(1)
-    except KeyboardInterrupt:
-        sys.exit(0)
 
-    sys.exit(1)
+    return EXIT_CODES.fatal
+
+
+def main(progname: str, arguments: list[str]) -> EXIT_CODES:
+    """Main function."""
+
+    args = parse_args(arguments)
+    if not args:
+        return EXIT_CODES.fatal
+
+    logger = get_logger(progname=progname, debug=args.debug, syslog=False, filelog=True).getChild(__name__)
+
+    try:
+        config = get_config(args.config)
+    except FileNotFoundError as exc:
+        logger.critical(str(exc))
+        return EXIT_CODES.fatal
+    except ConfigurationError as exc:
+        logger = logging.getLogger("configuration")
+        for message in str(exc).splitlines():
+            logger.critical(message)
+        return EXIT_CODES.config
+
+    return keymaster(logger=logger, args=args, config=config)
+
+
+def script_entrypoint() -> NoReturn:
+    """Script entrypoint for this tool"""
+    try:
+        progname = os.path.basename(sys.argv[0])
+        res = main(progname=progname, arguments=sys.argv[1:])
+        sys.exit(res.value)
+    except KeyboardInterrupt:
+        sys.exit(EXIT_CODES.interrupt.value)
 
 
 if __name__ == "__main__":
-    main()
+    # Run the script entrypoint if executed manually
+    script_entrypoint()
