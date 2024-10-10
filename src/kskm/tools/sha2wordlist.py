@@ -6,17 +6,15 @@ digest and PGP wordlist. Also able to process one or more files specified on
 the command line.
 """
 
-
 import argparse
 import hashlib
 import sys
-from typing import Optional
 
 from kskm.common.wordlist import pgp_wordlist
 from kskm.version import __verbose_version__
 
 
-def words(filename: Optional[str] = None) -> None:
+def words(filename: str | None = None) -> None:
     """Output PGP words from file or STDIN."""
     if filename is not None:
         print(f"Filename:   {filename}")

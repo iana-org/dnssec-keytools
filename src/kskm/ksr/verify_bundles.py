@@ -1,7 +1,7 @@
 """Controls to verify KSR bundles."""
+
 from base64 import b64decode
 from logging import Logger
-from typing import Dict, Optional
 
 from cryptography.exceptions import InvalidSignature
 
@@ -9,6 +9,7 @@ from kskm.common.config_misc import RequestPolicy
 from kskm.common.data import (
     AlgorithmPolicy,
     AlgorithmPolicyECDSA,
+    AlgorithmPolicyEdDSA,
     AlgorithmPolicyRSA,
     FlagsDNSKEY,
     Key,
@@ -20,11 +21,12 @@ from kskm.common.ecdsa_utils import (
     get_ecdsa_pubkey_size,
     is_algorithm_ecdsa,
 )
-from kskm.common.rsa_utils import (
-    KSKM_PublicKey_RSA,
-    decode_rsa_public_key,
-    is_algorithm_rsa,
+from kskm.common.eddsa_utils import (
+    eddsa_public_key_without_prefix,
+    get_eddsa_pubkey_size,
+    is_algorithm_eddsa,
 )
+from kskm.common.rsa_utils import KSKM_PublicKey_RSA, is_algorithm_rsa
 from kskm.common.signature import validate_signatures
 from kskm.common.validate import PolicyViolation
 from kskm.ksr import Request
@@ -83,7 +85,7 @@ def check_unique_ids(request: Request, policy: RequestPolicy, logger: Logger) ->
           SKR is loaded, another pass will be made to validate that no bundle ID from this request was
           present in the last SKR.
     """
-    seen: Dict[str, int] = {}
+    seen: dict[str, int] = {}
     for bundle in request.bundles:
         if bundle.id in seen:
             raise KSR_BUNDLE_UNIQUE_Violation(
@@ -110,7 +112,7 @@ def check_keys_match_zsk_policy(
         logger.warning("KSR-BUNDLE-KEYS: Disabled by policy (keys_match_zsk_policy)")
         return
 
-    seen: Dict[str, Key] = {}
+    seen: dict[str, Key] = {}
 
     for bundle in request.bundles:
         for key in bundle.keys:
@@ -128,7 +130,9 @@ def check_keys_match_zsk_policy(
 
             # This is a new key - perform more checks on it
             if is_algorithm_rsa(key.algorithm):
-                pubkey = decode_rsa_public_key(key.public_key)
+                pubkey = KSKM_PublicKey_RSA.decode_public_key(
+                    key=key.public_key, algorithm=key.algorithm
+                )
 
                 _matching_alg = _find_matching_zsk_policy_rsa_alg(
                     request, key, pubkey, ignore_exponent=False
@@ -159,6 +163,19 @@ def check_keys_match_zsk_policy(
                     f"Key {key.key_identifier} in bundle {bundle.id} is an ECDSA key - this is untested"
                 )
                 if not _find_matching_zsk_policy_ecdsa_alg(request, key):
+                    raise KSR_BUNDLE_KEYS_Violation(
+                        f"Key {key.key_identifier} in bundle {bundle.id} "
+                        f"does not match the ZSK SignaturePolicy"
+                    )
+                logger.debug(
+                    f"Key {key.key_tag}/{key.key_identifier} parameters accepted"
+                )
+                seen[key.key_identifier] = key
+            elif is_algorithm_eddsa(key.algorithm):
+                logger.warning(
+                    f"Key {key.key_identifier} in bundle {bundle.id} is an EdDSA key - this is untested"
+                )
+                if not _find_matching_zsk_policy_eddsa_alg(request, key):
                     raise KSR_BUNDLE_KEYS_Violation(
                         f"Key {key.key_identifier} in bundle {bundle.id} "
                         f"does not match the ZSK SignaturePolicy"
@@ -200,7 +217,7 @@ def _find_matching_zsk_policy_rsa_alg(
     key: Key,
     pubkey: KSKM_PublicKey_RSA,
     ignore_exponent: bool = False,
-) -> Optional[AlgorithmPolicy]:
+) -> AlgorithmPolicy | None:
     for this in request.zsk_policy.algorithms:
         if not isinstance(this, AlgorithmPolicyRSA):
             # This branch is covered by test cases, but since the order of the set is not guaranteed
@@ -223,7 +240,7 @@ def _find_matching_zsk_policy_rsa_alg(
 
 def _find_matching_zsk_policy_ecdsa_alg(
     request: Request, key: Key
-) -> Optional[AlgorithmPolicy]:
+) -> AlgorithmPolicy | None:
     for this in request.zsk_policy.algorithms:
         if not isinstance(this, AlgorithmPolicyECDSA):
             # This branch is covered by test cases, but since the order of the set is not guaranteed
@@ -233,6 +250,23 @@ def _find_matching_zsk_policy_ecdsa_alg(
             b64decode(key.public_key), this.algorithm
         )
         ec_size = get_ecdsa_pubkey_size(_pubkey)
+        if key.algorithm == this.algorithm and ec_size == this.bits:
+            return this
+    return None
+
+
+def _find_matching_zsk_policy_eddsa_alg(
+    request: Request, key: Key
+) -> AlgorithmPolicy | None:
+    for this in request.zsk_policy.algorithms:
+        if not isinstance(this, AlgorithmPolicyEdDSA):
+            # This branch is covered by test cases, but since the order of the set is not guaranteed
+            # it won't register every time
+            continue
+        _pubkey = eddsa_public_key_without_prefix(
+            b64decode(key.public_key), this.algorithm
+        )
+        ec_size = get_eddsa_pubkey_size(_pubkey)
         if key.algorithm == this.algorithm and ec_size == this.bits:
             return this
     return None
@@ -260,10 +294,10 @@ def check_proof_of_possession(
                 raise KSR_BUNDLE_POP_Violation(
                     f"Unknown signature validation result in bundle {bundle.id}"
                 )
-        except InvalidSignature:
+        except InvalidSignature as exc:
             raise KSR_BUNDLE_POP_Violation(
                 f"Invalid signature encountered in bundle {bundle.id}"
-            )
+            ) from exc
 
         # All signatures in the bundle have been confirmed to sign all keys in the bundle.
         # Now verify that all keys in the bundle actually was used to create a signature.
@@ -290,7 +324,7 @@ def check_bundle_count(request: Request, policy: RequestPolicy, logger: Logger) 
       Verify that the number of requested bundles are within acceptable limits.
     """
     _num_bundles = len(request.bundles)
-    if policy.num_bundles is not None and _num_bundles != policy.num_bundles:
+    if _num_bundles != policy.num_bundles:
         raise KSR_BUNDLE_COUNT_Violation(
             f"Wrong number of bundles in request ({_num_bundles}, "
             f"expected {policy.num_bundles})"

@@ -1,29 +1,24 @@
 """SKR (Response) data classes."""
 
 from abc import ABC
-from dataclasses import dataclass
 from datetime import datetime
-from typing import List, Optional
 
-from kskm.common.data import Bundle, SignaturePolicy
+from kskm.common.data import Bundle, FrozenStrictBaseModel, SignaturePolicy
 
 
-@dataclass(frozen=True)
 class ResponseBundle(Bundle):
     """Response Bundle."""
 
 
-@dataclass(frozen=True)
-class SKR(ABC):
+class SKR(FrozenStrictBaseModel, ABC):
     """Signed Key Response (SKR)."""
 
     id: str
     serial: int
     domain: str
-    timestamp: Optional[datetime]
+    timestamp: datetime | None
 
 
-@dataclass(frozen=True)
 class Response(SKR):
     """SKR Response."""
 
@@ -31,4 +26,4 @@ class Response(SKR):
     ksk_policy: SignaturePolicy
     # 'bundles' is supposed to be a Set, but a set cannot contain other sets
     # (TypeError: unhashable type: 'set')
-    bundles: List[ResponseBundle]
+    bundles: list[ResponseBundle]

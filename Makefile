@@ -1,6 +1,4 @@
 SOURCE=		src
-PYTHON=		python3
-VENV=		venv
 DOCS=		htmlcov
 DISTDIRS=	*.egg-info build dist
 
@@ -8,48 +6,51 @@ SOFTHSM2_CONF=		${CURDIR}/testing/softhsm/softhsm.conf
 SOFTHSM2_MODULE?=	$(shell sh testing/softhsm/find_libsofthsm2.sh)
 BUILDINFO=		$(SOURCE)/kskm/buildinfo.py
 
-TEST_ENV=		SOFTHSM2_CONF=$(SOFTHSM2_CONF) \
-			SOFTHSM2_MODULE=$(SOFTHSM2_MODULE)
-PYTEST_OPTS=		--verbose --pylama --isort --black
-PYTEST_CACHE=		.pytest_cache
+TEST_ENV=	SOFTHSM2_CONF=$(SOFTHSM2_CONF) \
+		SOFTHSM2_MODULE=$(SOFTHSM2_MODULE)
+PYTEST_OPTS=	--verbose
+PYTEST_CACHE=	.pytest_cache
 
 all: $(BUILDINFO)
 
-$(VENV): $(VENV)/.depend
-
-$(VENV)/.depend: setup.py
-	$(PYTHON) -m venv $(VENV)
-	$(VENV)/bin/pip install wheel
-	$(VENV)/bin/pip install -e ".[online,testing]"
-	touch $(VENV)/.depend
-
-upgrade-venv:: setup.py
-	$(VENV)/bin/pip install --upgrade -e ".[online,testing]"
-	touch $(VENV)/.depend
+depend: softhsm
+	poetry install --all-extras
 
 wheel: $(BUILDINFO)
-	$(VENV)/bin/python setup.py bdist_wheel
+	poetry build -f wheel
 
 softhsm:
 	test -f $(SOFTHSM2_MODULE) || echo "Failed to find SoftHSM module"
 	(cd testing/softhsm; make SOFTHSM_CONF=$(SOFTHSM2_CONF) all)
 
-test: $(VENV) softhsm $(BUILDINFO)
-	env $(TEST_ENV) $(VENV)/bin/pytest $(PYTEST_OPTS) $(SOURCE)
+test: softhsm $(BUILDINFO)
+	env $(TEST_ENV) poetry run python -m pytest $(PYTEST_OPTS) $(SOURCE)
 
 container:
-	docker build --tag wksr .
+	docker compose build
 
-coverage: $(VENV) softhsm $(BUILDINFO)
-	env $(TEST_ENV) $(VENV)/bin/coverage run -m pytest $(PYTEST_OPTS) $(SOURCE)
-	$(VENV)/bin/coverage html
+coverage: softhsm $(BUILDINFO)
+	env $(TEST_ENV) poetry run coverage run -m pytest $(PYTEST_OPTS) $(SOURCE)
+	poetry run coverage html
 
-reformat: $(VENV)
-	$(VENV)/bin/isort $(SOURCE)
-	$(VENV)/bin/black $(SOURCE)
+reformat:
+	poetry run ruff check --select I --fix $(SOURCE)
+	poetry run ruff format $(SOURCE)
 
-typecheck: $(VENV)
-	$(VENV)/bin/mypy --ignore-missing-imports $(SOURCE)
+lint:
+	poetry run ruff check $(SOURCE)
+
+typecheck:
+	poetry run mypy --install-types --non-interactive --pretty --ignore-missing-imports $(SOURCE)
+
+vscode_packages:
+	sudo apt-get update
+	sudo apt-get install -y swig softhsm2
+
+# This target is used by the devcontainer.json to configure the devcontainer
+vscode: vscode_packages softhsm
+	pip3 install poetry
+	poetry install --all-extras
 
 $(BUILDINFO): $(SOURCE)
 	if [ -d .git ]; then \

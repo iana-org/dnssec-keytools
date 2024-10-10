@@ -7,7 +7,7 @@ from kskm.ta.keydigest import create_trustanchor_keydigest
 
 
 class Test_KeyDigest(unittest.TestCase):
-    def test_root_key_2017(self):
+    def test_root_key_2017(self) -> None:
         """Test creating one of the most well known key digests in the world."""
         kskkey = KSKKey(
             algorithm=AlgorithmDNSSEC.RSASHA256,

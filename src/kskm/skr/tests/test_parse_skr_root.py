@@ -1,22 +1,21 @@
 import os
 import unittest
-
-import pkg_resources
+from pathlib import Path
 
 from kskm.common.config import get_config
 from kskm.skr import load_skr, response_from_xml
 
 
 class TestParseRealSKRs(unittest.TestCase):
-    def setUp(self):
-        """ Prepare test instance """
-        self.data_dir = pkg_resources.resource_filename(__name__, "data")
-        self.policy_fn = os.path.join(self.data_dir, "response_policy.yaml")
+    def setUp(self) -> None:
+        """Prepare test instance"""
+        self.data_dir = Path(os.path.dirname(__file__), "data")
+        self.policy_fn = self.data_dir.joinpath("response_policy.yaml")
 
-    def test_parse_skr_root_2018_q1_0_d_to_e(self):
-        """ Test parsing skr-root-2018-q1-0-d_to_e.xml """
-        fn = os.path.join(self.data_dir, "skr-root-2018-q1-0-d_to_e.xml")
-        with open(fn, "r") as fd:
+    def test_parse_skr_root_2018_q1_0_d_to_e(self) -> None:
+        """Test parsing skr-root-2018-q1-0-d_to_e.xml"""
+        fn = self.data_dir.joinpath("skr-root-2018-q1-0-d_to_e.xml")
+        with open(fn) as fd:
             xml = fd.read()
         skr = response_from_xml(xml)
         self.assertEqual("4fe9bb10-6f6b-4503-8575-7824e2d66925", skr.id)
@@ -43,16 +42,16 @@ class TestParseRealSKRs(unittest.TestCase):
         )
         self.assertEqual(expected_ids, bundle_ids)
 
-    def test_parse_2018_q1_0(self):
-        """ Test loading and validating skr-root-2018-q1-0-d_to_e.xml """
-        fn = os.path.join(self.data_dir, "skr-root-2018-q1-0-d_to_e.xml")
+    def test_parse_2018_q1_0(self) -> None:
+        """Test loading and validating skr-root-2018-q1-0-d_to_e.xml"""
+        fn = self.data_dir.joinpath("skr-root-2018-q1-0-d_to_e.xml")
         config = get_config(None)
         skr = load_skr(fn, config.response_policy)
         self.assertEqual(skr.id, "4fe9bb10-6f6b-4503-8575-7824e2d66925")
 
-    def test_skr_log_contents_basics(self):
-        """ Test logging SKR loading """
-        fn = os.path.join(self.data_dir, "skr-root-2018-q1-0-d_to_e.xml")
+    def test_skr_log_contents_basics(self) -> None:
+        """Test logging SKR loading"""
+        fn = self.data_dir.joinpath("skr-root-2018-q1-0-d_to_e.xml")
         config = get_config(None)
         skr = load_skr(fn, config.response_policy, log_contents=True)
         self.assertEqual(skr.id, "4fe9bb10-6f6b-4503-8575-7824e2d66925")

@@ -1,16 +1,16 @@
 """PKCS#11 key interface."""
+
 import logging
-from dataclasses import dataclass, replace
-from typing import Optional
 
 from kskm.common.config_misc import KSKKey, KSKPolicy
-from kskm.common.data import FlagsDNSKEY, Key
+from kskm.common.data import FlagsDNSKEY, FrozenStrictBaseModel, Key
 from kskm.common.dnssec import public_key_to_dnssec_key
-from kskm.common.ecdsa_utils import KSKM_PublicKey_ECDSA, is_algorithm_ecdsa
+from kskm.common.ecdsa_utils import is_algorithm_ecdsa
+from kskm.common.eddsa_utils import is_algorithm_eddsa
 from kskm.common.rsa_utils import KSKM_PublicKey_RSA, is_algorithm_rsa
 from kskm.common.validate import PolicyViolation
 from kskm.ksr.data import RequestBundle
-from kskm.misc.hsm import KSKM_P11, KSKM_P11Key, get_p11_key
+from kskm.misc.hsm import KSKM_P11, KeyType, KSKM_P11Key, get_p11_key
 
 __author__ = "ft"
 
@@ -22,8 +22,7 @@ class KeyUsagePolicy_Violation(PolicyViolation):
     """Exception raised when a key can't be used because of policy."""
 
 
-@dataclass()
-class CompositeKey:
+class CompositeKey(FrozenStrictBaseModel):
     """Hold a key loaded from PKCS#11, and also converted to 'Key' format."""
 
     p11: KSKM_P11Key
@@ -36,7 +35,7 @@ def load_pkcs11_key(
     ksk_policy: KSKPolicy,
     bundle: RequestBundle,
     public: bool,
-) -> Optional[CompositeKey]:
+) -> CompositeKey | None:
     """
     Load a key from an HSM using a KSK key label and then validate it is the right key and is OK to use.
 
@@ -55,7 +54,9 @@ def load_pkcs11_key(
             f"Key {ksk.label} is not valid at the time of bundle {bundle.id} expiration"
         )
 
-    _found = get_p11_key(ksk.label, p11modules, public=public)
+    _found = get_p11_key(
+        ksk.label, p11modules, public=public, hash_using_hsm=ksk.hash_using_hsm
+    )
     if not _found:
         return None
 
@@ -64,9 +65,11 @@ def load_pkcs11_key(
         logger.debug(
             f"Got no complimentary public key for label {ksk.label}, searching again"
         )
-        _found_pub = get_p11_key(ksk.label, p11modules, public=True)
+        _found_pub = get_p11_key(
+            ksk.label, p11modules, public=True, hash_using_hsm=ksk.hash_using_hsm
+        )
         if _found_pub:
-            _found = replace(_found, public_key=_found_pub.public_key)
+            _found = _found.replace(public_key=_found_pub.public_key)
 
     if not _found.public_key:
         logger.error(
@@ -74,34 +77,40 @@ def load_pkcs11_key(
         )
         return None
 
-    if isinstance(_found.public_key, KSKM_PublicKey_RSA):
-        if not is_algorithm_rsa(ksk.algorithm):
-            raise ValueError(
-                f"PKCS#11 key {_found.label} is an RSA key, expected {ksk.algorithm.name}"
+    match _found.key_type:
+        case KeyType.RSA:
+            if not is_algorithm_rsa(ksk.algorithm):
+                raise ValueError(
+                    f"PKCS#11 key {_found.label} is an RSA key, expected {ksk.algorithm.name}"
+                )
+            pubkey = KSKM_PublicKey_RSA.decode_public_key(
+                _found.public_key, ksk.algorithm
             )
-        if _found.public_key.bits != ksk.rsa_size:
-            raise ValueError(
-                f"PKCS#11 key {_found.label} is RSA-{_found.public_key.bits} - expected {ksk.rsa_size}"
+            if pubkey.bits != ksk.rsa_size:
+                raise ValueError(
+                    f"PKCS#11 key {_found.label} is RSA-{pubkey.bits} - expected {ksk.rsa_size}"
+                )
+            if pubkey.exponent != ksk.rsa_exponent:
+                raise ValueError(
+                    f"PKCS#11 key {_found.label} has RSA exponent {pubkey.exponent} - "
+                    f"expected {ksk.rsa_exponent}"
+                )
+        case KeyType.EC:
+            if not is_algorithm_ecdsa(ksk.algorithm) and not is_algorithm_eddsa(
+                ksk.algorithm
+            ):
+                raise ValueError(
+                    f"PKCS#11 key {_found.label} is an ECDSA/EdDSA key, expected {ksk.algorithm.name}"
+                )
+        case _:
+            logger.error(
+                f'Key "{ksk.label}/{ksk.description}" for bundle {bundle.id} found in PKCS#11, but not recognised'
             )
-        if _found.public_key.exponent != ksk.rsa_exponent:
-            raise ValueError(
-                f"PKCS#11 key {_found.label} has RSA exponent {_found.public_key.exponent} - "
-                f"expected {ksk.rsa_exponent}"
-            )
-    elif isinstance(_found.public_key, KSKM_PublicKey_ECDSA):
-        if not is_algorithm_ecdsa(ksk.algorithm):
-            raise ValueError(
-                f"PKCS#11 key {_found.label} is an ECDSA key, expected {ksk.algorithm.name}"
-            )
-    else:
-        logger.error(
-            f'Key "{ksk.label}/{ksk.description}" for bundle {bundle.id} found in PKCS#11, but not recognised'
-        )
-        logger.debug(f"Key {ksk.label}: {_found}")
-        return None
+            logger.debug(f"Key {ksk.label}: {_found}")
+            return None
 
     _key = public_key_to_dnssec_key(
-        key=_found.public_key,
+        public_key=_found.public_key,
         key_identifier=ksk.label,
         algorithm=ksk.algorithm,
         flags=FlagsDNSKEY.SEP.value | FlagsDNSKEY.ZONE.value,

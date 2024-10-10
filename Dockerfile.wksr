@@ -1,6 +1,17 @@
 # Dockerfile for building standalone wksr server
 
-FROM python:3.7
+ARG PYTHON_VERSION
+
+FROM python:${PYTHON_VERSION} as builder
+
+ADD . /src
+WORKDIR /src
+
+RUN pip install poetry
+RUN poetry build
+
+
+FROM python:${PYTHON_VERSION}
 
 ARG UID=5353
 ARG GID=5353
@@ -15,7 +26,7 @@ RUN apt-get update
 RUN apt-get install -y swig
 
 WORKDIR /tmp
-COPY dist/*.whl .
+COPY --from=builder /src/dist/*.whl .
 RUN pip install -f . kskm[online]
 RUN rm *.whl
 

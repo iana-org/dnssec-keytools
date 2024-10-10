@@ -1,4 +1,5 @@
 """Code to create KeyDigest instances."""
+
 import binascii
 import logging
 from hashlib import sha256
@@ -6,7 +7,7 @@ from hashlib import sha256
 from kskm.common.config_misc import KSKKey
 from kskm.common.data import Key
 from kskm.common.dnssec import key_to_rdata
-from kskm.common.signature import _dn2wire
+from kskm.common.signature import dn2wire
 from kskm.ta import DigestDNSSEC, KeyDigest
 
 __author__ = "ft"
@@ -23,10 +24,10 @@ def create_trustanchor_keydigest(
 
     The DS record is specified in RFC 4509.
     """
-    rr = _dn2wire(domain)
+    rr = dn2wire(domain)
     rr += key_to_rdata(key)
     logger.debug(
-        f"Creating DS record for key %s using domain + DNSKEY RDATA\n%s",
+        "Creating DS record for key %s using domain + DNSKEY RDATA\n%s",
         ksk_key.label,
         binascii.hexlify(rr),
     )

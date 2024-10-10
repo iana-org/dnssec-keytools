@@ -1,4 +1,5 @@
 """Common code and base exception classes used in KSR/SKR validation."""
+
 import logging
 
 __author__ = "ft"

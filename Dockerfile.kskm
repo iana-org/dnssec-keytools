@@ -1,0 +1,32 @@
+# Dockerfile for building kskm tools
+
+ARG PYTHON_VERSION
+
+FROM python:${PYTHON_VERSION} as builder
+
+ADD . /src
+WORKDIR /src
+
+RUN pip install poetry
+RUN poetry build
+
+
+FROM python:${PYTHON_VERSION}
+
+ARG UID=5353
+ARG GID=5353
+
+RUN groupadd -g $GID kskm
+RUN useradd -r -u $UID -g $GID kskm
+
+RUN apt-get update
+RUN apt-get install -y swig
+
+WORKDIR /tmp
+COPY --from=builder /src/dist/*.whl .
+RUN pip install -f . kskm
+RUN rm *.whl
+
+USER kskm
+WORKDIR /home/kskm
+ENTRYPOINT /bin/bash
