@@ -209,7 +209,7 @@ Test cases provides evidence that if a deprecated algorithm is listed in the Req
 
 #### Argument (1.2.7.2)
 
-KSR-POLICY-ALG.2: The signer software (in 'check\_zsk\_policy\_algorithm' of 'ksr/verify\_policy.py') checks the 'RequestPolicy' section of the KSR and denies the use of unspported algorithms ('common/data.py').
+KSR-POLICY-ALG.2: The signer software (in 'check\_zsk\_policy\_algorithm' of 'ksr/verify\_policy.py') checks the 'RequestPolicy' section of the KSR and denies the use of unsupported algorithms ('common/data.py').
 
 ##### Evidence
 
@@ -217,7 +217,7 @@ Test cases provides evidence that if an unsupported algorithm is listed in the R
 
 #### Argument (1.2.7.3)
 
-KSR-POLICY-ALG.3: The signer software (in 'check\_zsk\_policy\_algorithm' of 'ksr/verify\_policy.py') checks to ensure that each occurrence of an algorithm in the 'RequestPolicy' section of the KSR is acceptable according to the configured policy ('approved\_algoritms').
+KSR-POLICY-ALG.3: The signer software (in 'check\_zsk\_policy\_algorithm' of 'ksr/verify\_policy.py') checks to ensure that each occurrence of an algorithm in the 'RequestPolicy' section of the KSR is acceptable according to the configured policy ('approved\_algorithms').
 
 ##### Evidence
 
@@ -241,7 +241,7 @@ Test cases provides evidence that if the algorithm listed in the 'RequestPolicy'
 
 #### Argument (1.2.7.6)
 
-KSR-POLICY-ALG.6: The signer software (in 'check\_keys\_match\_zsk\_policy' of 'ksr/verify\_budles.py') checks to ensure that the signature algorithms and key parameters of each key in each key bundle is in compliance with the 'RequestPolicy' section of the KSR.
+KSR-POLICY-ALG.6: The signer software (in 'check\_keys\_match\_zsk\_policy' of 'ksr/verify\_bundles.py') checks to ensure that the signature algorithms and key parameters of each key in each key bundle is in compliance with the 'RequestPolicy' section of the KSR.
 
 ##### Evidence
 
