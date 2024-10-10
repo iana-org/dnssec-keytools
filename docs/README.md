@@ -15,10 +15,10 @@ Describes the high-level architectural design of the KSR Signer software, descri
 
 ## Source Code Review
 
-1. The `dnssec-keytools-2024-20240920-20e5dd9` source code audit has been performed by No Hats Corporation. 
+1. The source code audit for the `dnssec-keytools-2024-20240920-20e5dd9` release was performed by No Hats Corporation. 
    - No Hats Corporation's audit report is available at [NoHatsAudit-KSKM-Tools-feature2024.pdf](./reports/NoHatsAudit-KSKM-Tools-feature2024.pdf)
    - The audit report's PGP signature is available at [NoHatsAudit-KSKM-Tools-feature2024.pdf.asc](./reports/NoHatsAudit-KSKM-Tools-feature2024.pdf.asc) 
 
-2. The `kskm-0.0.1` source code audit has been performed by No Hats Corporation. 
+2. The source code audit for the  `kskm-0.0.1` version `(dnssec-keytools-2019-20210409-efd2237)` was performed by No Hats Corporation. 
    - No Hats Corporation's audit report is available at [NoHatsAudit-KSKM-Tools-v1.01.pdf](./reports/NoHatsAudit-KSKM-Tools-v1.01.pdf)
    - The audit report's PGP signature is available at [NoHatsAudit-KSKM-Tools-v1.01.sig](./reports/NoHatsAudit-KSKM-Tools-v1.01.sig)
